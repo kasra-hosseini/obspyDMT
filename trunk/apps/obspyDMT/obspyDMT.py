@@ -45,41 +45,32 @@ except Exception, error:
 global descrip
 
 descrip = []
-try:
-    from obspy.core import __version__ as obs_ver
-    from obspy.core import read, UTCDateTime
-    from obspy.signal import seisSim, invsim
-    from obspy.xseed import Parser
-    from obspy.imaging.beachball import Beach, Beachball
+
+from obspy.core import __version__ as obs_ver
+from obspy.core import read, UTCDateTime
+from obspy.signal import seisSim, invsim
+from obspy.xseed import Parser
+#from obspy.imaging.beachball import Beach, Beachball
+
+# Required Clients from Obspy will be imported here.
+from obspy.neries import Client as Client_neries
+from obspy.iris import Client as Client_iris
+from obspy.arclink import Client as Client_arclink
     
-    # Required Clients from Obspy will be imported here.
-    from obspy.neries import Client as Client_neries
-    from obspy.iris import Client as Client_iris
-    from obspy.arclink import Client as Client_arclink
-    
-    descrip.append('obspy ver: ' + obs_ver)
-except Exception, error:
-    descrip.append('obspy: ' + 'not installed' + '\n\n' + \
-                    'error:' + '\n' + str(error) + '\n')
+descrip.append('obspy ver: ' + obs_ver)
+
 try:
     from obspy.core.util import locations2degrees
 except Exception, error:
-    try:
-        from obspy.taup.taup import locations2degrees
-    except Exception, error:
-        print error
-try:
-    import numpy as np
-    descrip.append('numpy ver: ' + np.__version__)
-except Exception, error:
-    descrip.append('numpy: ' + 'not installed' + '\n\n' + \
-                    'error:' + '\n' + str(error) + '\n')
-try:
-    import scipy
-    descrip.append('scipy ver: ' + scipy.__version__)
-except Exception, error:
-    descrip.append('scipy: ' + 'not installed' + '\n\n' + \
-                    'error:' + '\n' + str(error) + '\n')
+    print error
+    from obspy.taup.taup import locations2degrees
+    
+import numpy as np
+descrip.append('numpy ver: ' + np.__version__)
+
+import scipy
+descrip.append('scipy ver: ' + scipy.__version__)
+
 try:
     from matplotlib import __version__ as mat_ver
     import matplotlib.pyplot as plt
