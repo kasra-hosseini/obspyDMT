@@ -59,7 +59,8 @@ try:
     
     descrip.append('obspy ver: ' + obs_ver)
 except Exception, error:
-    descrip.append('obspy: ' + 'not installed')
+    descrip.append('obspy: ' + 'not installed' + '\n\n' + \
+                    'error:' + '\n' + str(error) + '\n')
 try:
     from obspy.core.util import locations2degrees
 except Exception, error:
@@ -71,24 +72,28 @@ try:
     import numpy as np
     descrip.append('numpy ver: ' + np.__version__)
 except Exception, error:
-    descrip.append('numpy: ' + 'not installed')
+    descrip.append('numpy: ' + 'not installed' + '\n\n' + \
+                    'error:' + '\n' + str(error) + '\n')
 try:
     import scipy
     descrip.append('scipy ver: ' + scipy.__version__)
 except Exception, error:
-    descrip.append('scipy: ' + 'not installed')
+    descrip.append('scipy: ' + 'not installed' + '\n\n' + \
+                    'error:' + '\n' + str(error) + '\n')
 try:
     from matplotlib import __version__ as mat_ver
     import matplotlib.pyplot as plt
     descrip.append('matplotlib ver: ' + mat_ver)
 except Exception, error:
-    descrip.append('matplotlib: ' + 'not installed')
+    descrip.append('matplotlib: ' + 'not installed' + '\n\n' + \
+                    'error:' + '\n' + str(error) + '\n')
 try:
     from mpl_toolkits.basemap import __version__ as base_ver
     from mpl_toolkits.basemap import Basemap
     descrip.append('Basemap ver: ' + base_ver)
 except Exception, error:
-    descrip.append('Basemap: ' + 'not installed')
+    descrip.append('Basemap: ' + 'not installed' + '\n\n' + \
+                    'error:' + '\n' + str(error))
 
 """
 - obspyDMT
@@ -858,15 +863,6 @@ def read_input_command(parser, **kwargs):
         print bold + "Check all the dependencies:" + reset
         for i in range(0, len(descrip)):
             print descrip[i]
-            
-        if descrip[0].split(': ')[1] == 'not installed':
-            print '\n' + 'obspy is required to run the ObsPyDMT!' + \
-                    'Please refer to http://obspy.org/ [Installing ObsPy]'
-        if descrip[4].split(': ')[1] == 'not installed':
-            print "\n" + "Unable to import mpl_toolkits.basemap, " + \
-                    "no plotting available."
-            print "For documentation please refer to:"
-            print "http://matplotlib.github.com/basemap/"
         print "***************************"
         sys.exit(2)
         
