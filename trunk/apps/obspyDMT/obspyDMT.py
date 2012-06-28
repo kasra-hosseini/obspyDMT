@@ -42,6 +42,14 @@ try:
 except Exception, error:
     print "Unable to import smtplib. Sending email is not possible!"
 
+windows = sys.platform.startswith('win')
+if not windows:
+    import threading
+    import termios
+    TERMIOS = termios
+    # need a lock for the global quitflag variable which is used in two threads
+    lock = threading.RLock()
+
 global descrip
 
 descrip = []
@@ -178,7 +186,9 @@ def obspyDMT(**kwargs):
             '---------------------'
     
     # global variables
-    global input, events
+    global input, events, quitflag, done
+    quitflag = False
+    done = False
     
     # ------------------Parsing command-line options--------------------
     (options, args, parser) = command_parse()
@@ -203,7 +213,8 @@ def obspyDMT(**kwargs):
     # ------------------Generate desired INPUT-Periods file-------------
     if input['input_period'] == 'Y':
         INPUT_Periods_file(input)
-    
+        
+    keypress_thread().start()
     # ------------------IRIS--------------------------------------------
     if input['IRIS'] == 'Y':
         
@@ -346,7 +357,8 @@ def obspyDMT(**kwargs):
         reset + 'ata '+ bold + 'M' + reset + 'anagement ' + bold + 'T' + \
         reset + 'ool)' + reset + '\n'
     print '------------------------------------------------------------'
-
+    
+    done = True
 
 ########################################################################
 ###################### Functions are defined here ######################
@@ -1472,7 +1484,7 @@ def get_Events(input, request):
             'updating mode.' + '\n' + \
             'Y: Remove the tree, continue the program ' + \
             'and download again.' + \
-            '\n\n' + 'Do you want to continue? (Y/N)' + '\n') == 'Y':
+            '\n\n' + 'Do you want to continue? (Y/N)' + '\n').upper() == 'Y':
             print '--------------------------------------------------------'
             shutil.rmtree(eventpath)
             os.makedirs(eventpath)
@@ -1912,7 +1924,7 @@ def IRIS_waveform(input, Sta_req, type):
                         + ',' + str(size/1.e6) + ',' + '\n'
                     time_file.writelines(ti)
                     time_file.close()
-                
+                check_quit()
             except Exception, e:    
                 
                 t22 = datetime.now()
@@ -2447,23 +2459,24 @@ def inst_correct(input, ls_saved_stas, address, clients):
     for i in range(0, len(ls_saved_stas)):
         
         inform = clients + ' -- ' + str(i+1) + '/' + str(len(ls_saved_stas))
-        
-        # Removing the trend
-        rt_c = RTR(stream = ls_saved_stas[i], degree = 2)
-        tr = read(ls_saved_stas[i])[0]
-        tr.data = rt_c
-        
-        # Tapering
-        taper = invsim.cosTaper(len(tr.data))
-        tr.data *= taper
-        
-        resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
-                                    ls_saved_stas[0].split('/')[-1])
-        
-        obspy_fullresp(trace = tr, resp_file = resp_file, \
-            Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
-            BP_filter = input['pre_filt'], inform = inform)
-
+        try:
+            # Removing the trend
+            rt_c = RTR(stream = ls_saved_stas[i], degree = 2)
+            tr = read(ls_saved_stas[i])[0]
+            tr.data = rt_c
+            
+            # Tapering
+            taper = invsim.cosTaper(len(tr.data))
+            tr.data *= taper
+            
+            resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
+                                        ls_saved_stas[0].split('/')[-1])
+            
+            obspy_fullresp(trace = tr, resp_file = resp_file, \
+                Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
+                BP_filter = input['pre_filt'], inform = inform)
+        except Exception, e:
+            print e
 
     # ---------Creating Tar files (Response files)
     if input['zip_w'] == 'Y':
@@ -2552,8 +2565,16 @@ def obspy_fullresp(trace, resp_file, Address, unit = 'DIS', \
                 trace.stats['location'] + '.' + trace.stats['channel']
         trace.write(os.path.join(Address, unit.lower() + '.' + \
                                         trace_identity), format = 'SAC')
+        
+        if unit.lower() == 'dis':                                                                                                                                   
+            unit_print = 'displacement'                                                                                                                             
+        if unit.lower() == 'vel':                                                                                                                                   
+            unit_print = 'velocity'                                                                                                                                 
+        if unit.lower() == 'acc':                                                                                                                                   
+            unit_print = 'acceleration'                                                                                                                             
 
-        print inform + ' -- Instrument Correction for: ' + trace_identity
+        print inform + ' -- Instrument Correction to ' + unit_print + \                                                                                             
+                                            ' for: ' + trace_identity 
         
     except Exception, e:
         print inform + ' -- ' + str(e)
@@ -2885,7 +2906,7 @@ def create_foders_files(events, eventpath):
             'and Magnitude (min/max) -- exists in your directory.' + '\n\n' + \
             'You could either close the program and try updating your ' + \
             'folder OR remove the tree, continue the program and download again.' + \
-            '\n' + 'Do you want to continue? (Y/N)' + '\n') == 'Y':
+            '\n' + 'Do you want to continue? (Y/N)' + '\n').upper() == 'Y':
                 print '-------------------------------------------------------------'
                 shutil.rmtree(os.path.join(eventpath, events[i]['event_id']))
             
@@ -3226,6 +3247,85 @@ def locate(root = '.', target = 'info'):
     
     return matches
 
+###################### KEYPRESS-THREAD #################################
+
+# this is to support windows without changing the rest
+if windows:
+    class keypress_thread():
+        """
+        Empty class, for windows support.
+        """
+        def __init__(self):
+            print "Detected windows, no keypress-thread started."
+
+        def start(self):
+            print "No 'q' key support on windows."
+
+    def check_quit():
+        """
+        Does nothing, for windows support.
+        """
+        return
+#
+else:
+    class keypress_thread (threading.Thread):
+        """
+        This class will run as a second thread to capture keypress events
+        """
+        global quitflag, done
+
+        def run(self):
+            global quitflag, done
+            msg = 'Keypress capture thread initialized...\n'
+            msg += "Press 'q' at any time to finish " \
+            + "the file in progress and quit."
+            print msg
+            while not done:
+                c = getkey()
+                print c
+                if c == 'q' and not done:
+                    try:
+                        with lock:
+                            quitflag = True
+                    except:
+                        pass
+                    print "You pressed q."
+                    msg = "ObsPyLoad will finish downloading and saving the " \
+                    + "last file and quit gracefully."
+                    print msg
+                    # exit this thread
+                    sys.exit(0)
+
+    def getkey():
+        """
+        Uses termios to wait for a keypress event and return the char.
+        """
+        fd = sys.stdin.fileno()
+        old = termios.tcgetattr(fd)
+        new = termios.tcgetattr(fd)
+        new[3] = new[3] & ~TERMIOS.ICANON & ~TERMIOS.ECHO
+        new[6][TERMIOS.VMIN] = 1
+        new[6][TERMIOS.VTIME] = 0
+        termios.tcsetattr(fd, TERMIOS.TCSANOW, new)
+        c = None
+        try:
+                c = os.read(fd, 1)
+        finally:
+                termios.tcsetattr(fd, TERMIOS.TCSAFLUSH, old)
+        return c
+
+    def check_quit():
+        """
+        Checks if the user pressed q to quit downloading meanwhile.
+        """
+        global quitflag
+        with lock:
+            if quitflag:
+                msg = "Quitting. To resume the download, just run " + \
+                "ObsPyLoad again, using the same arguments."
+                print msg
+                sys.exit(0)
+
 ########################################################################
 ########################################################################
 ########################################################################
@@ -3274,6 +3374,7 @@ if __name__ == "__main__":
         print e
         pass
     
+    print "Press any key to quit"
     # pass the return of main to the command line.
     sys.exit(status)
 
