@@ -40,8 +40,10 @@ from datetime import datetime
 try:
     import smtplib
 except Exception, error:
+    print "\n********************************************************"
     print "Unable to import smtplib. Sending email is not possible!"
-
+    print "********************************************************\n"
+    
 windows = sys.platform.startswith('win')
 if not windows:
     import threading
@@ -58,7 +60,6 @@ from obspy.core import __version__ as obs_ver
 from obspy.core import read, UTCDateTime
 from obspy.signal import seisSim, invsim
 from obspy.xseed import Parser
-#from obspy.imaging.beachball import Beach, Beachball
 
 # Required Clients from Obspy will be imported here.
 from obspy.neries import Client as Client_neries
@@ -70,7 +71,9 @@ descrip.append('obspy ver: ' + obs_ver)
 try:
     from obspy.core.util import locations2degrees
 except Exception, error:
+    print "\n*************************************"
     print error
+    print "*************************************\n"
     from obspy.taup.taup import locations2degrees
     
 import numpy as np
@@ -189,6 +192,14 @@ def obspyDMT(**kwargs):
     global input, events, quitflag, done
     quitflag = False
     done = False
+    
+    
+    msg = 'Keypress capture thread initialized...\n'
+    msg += "Press 'q' at any time to finish " \
+            + "the file in progress and quit."
+    print "\n=============================================================="
+    print msg
+    print "==============================================================\n"
     
     # ------------------Parsing command-line options--------------------
     (options, args, parser) = command_parse()
@@ -3276,10 +3287,6 @@ else:
 
         def run(self):
             global quitflag, done
-            msg = 'Keypress capture thread initialized...\n'
-            msg += "Press 'q' at any time to finish " \
-            + "the file in progress and quit."
-            print msg
             while not done:
                 c = getkey()
                 print c
@@ -3289,10 +3296,14 @@ else:
                             quitflag = True
                     except:
                         pass
+                    print "\n=======================================" + \
+                                "======================================="
                     print "You pressed q."
-                    msg = "ObsPyLoad will finish downloading and saving the " \
+                    msg = "obspyDMT will finish downloading and saving the " \
                     + "last file and quit gracefully."
                     print msg
+                    print "=======================================" + \
+                                "======================================="
                     # exit this thread
                     sys.exit(0)
 
@@ -3321,9 +3332,13 @@ else:
         global quitflag
         with lock:
             if quitflag:
-                msg = "Quitting. To resume the download, just run " + \
-                "ObsPyLoad again, using the same arguments."
+                print "\n\n=======================================" + \
+                                "========================="
+                msg = "Quitting. To resume the download: \nplease use " + \
+                        "the 'Update' functionality described in the tutorial."
                 print msg
+                print "=======================================" + \
+                                "========================="
                 sys.exit(0)
 
 ########################################################################
