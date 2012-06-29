@@ -2573,7 +2573,7 @@ def obspy_fullresp(trace, resp_file, Address, unit = 'DIS', \
         if unit.lower() == 'acc':                                                                                                                                   
             unit_print = 'acceleration'                                                                                                                             
 
-        print inform + ' -- Instrument Correction to ' + unit_print + \                                                                                             
+        print inform + ' -- Instrument Correction to ' + unit_print + \
                                             ' for: ' + trace_identity 
         
     except Exception, e:
