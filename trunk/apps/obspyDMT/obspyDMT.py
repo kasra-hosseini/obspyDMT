@@ -95,7 +95,8 @@ try:
     descrip.append('Basemap ver: ' + base_ver)
 except Exception, error:
     descrip.append('Basemap: ' + 'not installed' + '\n\n' + \
-                    'error:' + '\n' + str(error))
+                    'error:' + '\n' + str(error) + '\n' + \
+                    'You could not use the Plot module')
 
 """
 - obspyDMT
@@ -225,7 +226,7 @@ def obspyDMT(**kwargs):
     if input['input_period'] == 'Y':
         INPUT_Periods_file(input)
         
-    keypress_thread().start()
+    #keypress_thread().start()
     # ------------------IRIS--------------------------------------------
     if input['IRIS'] == 'Y':
         
@@ -2486,6 +2487,7 @@ def inst_correct(input, ls_saved_stas, address, clients):
             obspy_fullresp(trace = tr, resp_file = resp_file, \
                 Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
                 BP_filter = input['pre_filt'], inform = inform)
+            check_quit()
         except Exception, e:
             print e
 
@@ -2760,8 +2762,8 @@ def PLOT(input, clients):
     for i in ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray']:
         if input[i] != 'N':
             plot_se_ray(input, ls_saved_stas)
-    
-    if input['plot_epi']:
+            
+    if input['plot_epi'] != 'N':
         plot_epi(input, ls_add_stas, ls_saved_stas)
     
 ###################### plot_se_ray #####################################
