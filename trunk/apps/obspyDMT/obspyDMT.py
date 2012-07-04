@@ -32,6 +32,7 @@ import pickle
 import glob
 import ConfigParser
 import commands
+import subprocess
 import tarfile
 from datetime import datetime
 from lxml import objectify
@@ -484,6 +485,10 @@ def command_parse():
     parser.add_option("--response", action="store",
                       dest="response", help=helpmsg)
     
+    helpmsg = "retrieve the PAZ."
+    parser.add_option("--paz", action="store_true",
+                      dest="paz", help=helpmsg)
+    
     helpmsg = "send request (waveform/response) to IRIS. [Default: 'Y']"
     parser.add_option("--iris", action="store",
                       dest="IRIS", help=helpmsg)
@@ -566,7 +571,8 @@ def command_parse():
     helpmsg = "search for all the stations within the defined " + \
                 "circle, syntax: <lon>/<lat>/<rmin>/<rmax>. " + \
                 "May not be used together with rectangular " + \
-                "bounding box station restrictions (station_rect)."
+                "bounding box station restrictions (station_rect)." + \
+                " Currently, ArcLink does not support this option!"
     parser.add_option("--station_circle", action="store",
                       dest="station_circle", help=helpmsg)
    
@@ -626,7 +632,19 @@ def command_parse():
                 "This is equivalent to: \"--iris_ic_auto N --arc_ic_auto N\""
     parser.add_option("--ic_no", action="store_true",
                         dest="ic_no", help=helpmsg)
-                        
+    
+    helpmsg = "Instrument Correction, using obspy modules"
+    parser.add_option("--ic_obspy", action="store",
+                      dest="ic_obspy", help=helpmsg)
+    
+    helpmsg = "Instrument Correction, using SAC"
+    parser.add_option("--ic_sac", action="store_true",
+                      dest="ic_sac", help=helpmsg)
+    
+    helpmsg = "Instrument Correction, using SAC (Poles And Zeros)"
+    parser.add_option("--ic_sac_paz", action="store_true",
+                      dest="ic_sac_paz", help=helpmsg)
+    
     helpmsg = "apply a bandpass filter to the data trace before " + \
                 "deconvolution ('None' if you do not need pre_filter), " + \
                 "syntax: '(f1,f2,f3,f4)' which are the four corner " + \
@@ -825,6 +843,7 @@ def read_input_command(parser, **kwargs):
                 
                 'iris_ic': 'N', 'iris_ic_auto': 'Y',
                 'arc_ic': 'N', 'arc_ic_auto': 'Y',
+                'ic_obspy': 'Y',
                 'pre_filt': '(0.008, 0.012, 3.0, 4.0)',
                 'corr_unit': 'DIS',
                 
@@ -1049,6 +1068,8 @@ def read_input_command(parser, **kwargs):
     
     input['waveform'] = options.waveform
     input['response'] = options.response
+    if options.paz: options.paz = 'Y'
+    input['paz'] = options.paz
     if options.SAC: options.SAC = 'Y'
     input['SAC'] = options.SAC
     
@@ -1110,6 +1131,18 @@ def read_input_command(parser, **kwargs):
         input['iris_ic'] = input['ic_all']
         input['arc_ic'] = input['ic_all']
     
+    input['ic_obspy'] = options.ic_obspy
+    
+    if options.ic_sac: options.ic_sac = 'Y'
+    input['ic_sac'] = options.ic_sac
+    
+    if options.ic_sac_paz: options.ic_sac_paz = 'Y'
+    input['ic_sac_paz'] = options.ic_sac_paz
+    
+    if input['ic_sac'] == 'Y' or input['ic_sac_paz'] == 'Y':
+        input['SAC'] = 'Y'
+        input['ic_obspy'] = 'N'
+
     input['corr_unit'] = options.corr_unit
     input['pre_filt'] = options.pre_filt
     if options.zip_w: options.zip_w = 'Y'
@@ -1888,7 +1921,24 @@ def IRIS_waveform(input, Sta_req, type):
                         '.' + Sta_req[i][j][1] + '.' + \
                         Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"   
                      
-                                
+                
+                if input['paz'] == 'Y':                    
+                    
+                    dummy = 'PAZ'
+                    
+                    client_iris.sacpz(Sta_req[i][j][0], Sta_req[i][j][1], \
+                        Sta_req[i][j][2], Sta_req[i][j][3], \
+                        events[i]['t1'], events[i]['t2'], \
+                        filename = os.path.join(add_event[i], 'Resp', \
+                        'PAZ' + '.' + Sta_req[i][j][0] + '.' + \
+                        Sta_req[i][j][1] + '.' + \
+                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3]))
+                    
+                    print "Saving PAZ for     : " + Sta_req[i][j][0] + \
+                        '.' + Sta_req[i][j][1] + '.' + \
+                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"
+                
+                
                 dummy = 'Meta-data'
                 
                 dic[j] ={'info': Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + \
@@ -2095,7 +2145,7 @@ def ARC_available(input, event, target_path, event_number):
         
     except Exception, e:
             
-        Exception_file = open(os.path.join(target_path, \
+        Exception_file = open(os.path.join(target_path, event['event_id'],
             'info', 'exception'), 'a')
         ee = 'arclink -- Event:' + str(event_number) + '---' + str(e) + '\n'
         
@@ -2196,6 +2246,27 @@ def ARC_waveform(input, Sta_req, type):
                     sp.writeRESP(os.path.join(add_event[i], 'Resp'))
                     
                     print "Saving Response for: " + Sta_req[i][j][0] + \
+                        '.' + Sta_req[i][j][1] + '.' + \
+                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"
+                
+                
+                if input['paz'] == 'Y':                    
+                    
+                    dummy = 'PAZ'
+                    
+                    paz_arc = client_arclink.getPAZ(\
+                        Sta_req[i][j][0], Sta_req[i][j][1], \
+                        Sta_req[i][j][2], Sta_req[i][j][3], \
+                        time = events[i]['t1'])
+                    
+                    paz_file = open(\
+                        os.path.join(add_event[i], 'Resp', 'PAZ' + \
+                        '.' + Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
+                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), 'w')
+                    pickle.dump(paz_arc, paz_file)
+                    paz_file.close()
+                    
+                    print "Saving PAZ for     : " + Sta_req[i][j][0] + \
                         '.' + Sta_req[i][j][1] + '.' + \
                         Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"
                 
@@ -2454,6 +2525,8 @@ def inst_correct(input, ls_saved_stas, address, clients):
         1) RTR: remove the trend
         2) tapering
         3) pre-filtering and deconvolution of Resp file from Raw counts
+        
+    Remove the instrument type by deconvolution using spectral division.
     """
     
     t_inst_1 = datetime.now()
@@ -2472,22 +2545,45 @@ def inst_correct(input, ls_saved_stas, address, clients):
         
         inform = clients + ' -- ' + str(i+1) + '/' + str(len(ls_saved_stas))
         try:
-            # Removing the trend
-            rt_c = RTR(stream = ls_saved_stas[i], degree = 2)
-            tr = read(ls_saved_stas[i])[0]
-            tr.data = rt_c
             
-            # Tapering
-            taper = invsim.cosTaper(len(tr.data))
-            tr.data *= taper
+            if input['ic_obspy'] == 'Y':
+                # Removing the trend
+                rt_c = RTR(stream = ls_saved_stas[i], degree = 2)
+                tr = read(ls_saved_stas[i])[0]
+                tr.data = rt_c
+                
+                # Tapering
+                taper = invsim.cosTaper(len(tr.data))
+                tr.data *= taper
+                
+                resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
+                                            ls_saved_stas[i].split('/')[-1])
+                
+                obspy_fullresp(trace = tr, resp_file = resp_file, \
+                    Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
+                    BP_filter = input['pre_filt'], inform = inform)
+                check_quit()
             
-            resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
-                                        ls_saved_stas[0].split('/')[-1])
+            if input['ic_sac'] == 'Y':
+                
+                resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
+                                            ls_saved_stas[i].split('/')[-1])
             
-            obspy_fullresp(trace = tr, resp_file = resp_file, \
-                Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
-                BP_filter = input['pre_filt'], inform = inform)
-            check_quit()
+                SAC_fullresp(trace = ls_saved_stas[i], resp_file = resp_file, \
+                    address = address, BH_file = BH_file, unit = input['corr_unit'], \
+                    BP_filter = input['pre_filt'], inform = inform)
+                check_quit()
+            
+            if input['ic_sac_paz'] == 'Y':
+                
+                paz_file = os.path.join(address, 'Resp', 'PAZ' + '.' + \
+                                            ls_saved_stas[i].split('/')[-1])
+            
+                SAC_PAZ(trace = ls_saved_stas[i], paz_file = paz_file, \
+                    address = address, BH_file = BH_file, unit = input['corr_unit'], \
+                    BP_filter = input['pre_filt'], inform = inform)
+                check_quit()
+                
         except Exception, e:
             print e
 
@@ -2591,7 +2687,141 @@ def obspy_fullresp(trace, resp_file, Address, unit = 'DIS', \
         
     except Exception, e:
         print inform + ' -- ' + str(e)
+
+###################### SAC_fullresp ####################################
+
+def SAC_fullresp(trace, resp_file, address, BH_file = 'BH', unit = 'DIS', \
+                    BP_filter = (0.008, 0.012, 3.0, 4.0), inform = 'N/N'):
+    
+    """
+    This script runs SAC program for instrument correction
+    Instrument Correction will be done for all waveforms in the BH_RAW folder
+    Response files will be loaded from Resp folder
+
+    Instrument Correction has three main steps:
+    1) RTR: remove the trend
+    2) tapering
+    3) pre-filtering and deconvolution of Resp file from Raw counts
+    """
+    
+    try:
         
+        trace_info = trace.split('/')[-1].split('.')
+        
+        if unit.lower() == 'dis':                                                                                                                                   
+            unit_sac = 'NONE'                                                                                                                             
+        if unit.lower() == 'vel':                                                                                                                                   
+            unit_sac = 'VEL'                                                                                                                                 
+        if unit.lower() == 'acc':                                                                                                                                   
+            unit_sac = 'ACC'
+        
+        BP_filter_tuple = eval(BP_filter)
+        freqlim = str(BP_filter_tuple[0]) + ' ' +  str(BP_filter_tuple[1]) \
+                    + ' ' + str(BP_filter_tuple[2]) + ' ' + \
+                    str(BP_filter_tuple[3])
+        
+        pwd = commands.getoutput('pwd')
+        os.chdir(os.path.join(address, BH_file))
+        
+        p = subprocess.Popen(['sac'],
+                             stdout = subprocess.PIPE,
+                             stdin  = subprocess.PIPE,
+                             stderr = subprocess.STDOUT )
+                             
+        s = \
+        'setbb resp ../Resp/' + resp_file.split('/')[-1] + '\n' + \
+        'read ../BH_RAW/' + trace.split('/')[-1] + '\n' + \
+        'rtrend' + '\n' + \
+        'taper' + '\n' + \
+        'trans from evalresp fname %resp to ' + unit_sac + ' freqlim ' + freqlim + '\n' + \
+        'write ' + unit.lower() + '.' + trace_info[1] + '.' + trace_info[2] + \
+                                            '.' + trace_info[3] + '\n' + \
+        'quit\n'
+        
+        out = p.communicate(s)
+        print out[0]
+        os.chdir(pwd)
+                            
+        if unit.lower() == 'dis':                                                                                                                                   
+            unit_print = 'displacement'                                                                                                                             
+        if unit.lower() == 'vel':                                                                                                                                   
+            unit_print = 'velocity'                                                                                                                                 
+        if unit.lower() == 'acc':                                                                                                                                   
+            unit_print = 'acceleration'                                                                                                                             
+
+        print inform + ' -- Instrument Correction to ' + unit_print + \
+                        ' for: ' + trace_info[0] + '.' + trace_info[1] + '.' + trace_info[2] + '.' + trace_info[3] 
+                                            
+    except Exception, e:
+        print inform + ' -- ' + str(e)
+
+###################### SAC_PAZ #########################################
+
+def SAC_PAZ(trace, paz_file, address, BH_file = 'BH', unit = 'DIS', \
+                    BP_filter = (0.008, 0.012, 3.0, 4.0), inform = 'N/N'):
+    
+    """
+    This script runs SAC program for instrument correction (PAZ)
+    Instrument Correction will be done for all waveforms in the BH_RAW folder
+    PAZ files will be loaded from Resp folder
+
+    Instrument Correction has three main steps:
+    1) RTR: remove the trend
+    2) tapering
+    3) pre-filtering and deconvolution of PAZ from Raw counts
+    """
+    
+    try:
+        
+        trace_info = trace.split('/')[-1].split('.')
+        
+        if unit.lower() == 'dis':                                                                                                                                   
+            unit_sac = 'NONE'                                                                                                                             
+        if unit.lower() == 'vel':                                                                                                                                   
+            unit_sac = 'VEL'                                                                                                                                 
+        if unit.lower() == 'acc':                                                                                                                                   
+            unit_sac = 'ACC'
+        
+        BP_filter_tuple = eval(BP_filter)
+        freqlim = str(BP_filter_tuple[0]) + ' ' +  str(BP_filter_tuple[1]) \
+                    + ' ' + str(BP_filter_tuple[2]) + ' ' + \
+                    str(BP_filter_tuple[3])
+        
+        pwd = commands.getoutput('pwd')
+        os.chdir(os.path.join(address, BH_file))
+        
+        p = subprocess.Popen(['sac'],
+                             stdout = subprocess.PIPE,
+                             stdin  = subprocess.PIPE,
+                             stderr = subprocess.STDOUT )
+                             
+        s = \
+        'setbb pzfile ../Resp/' + paz_file.split('/')[-1] + '\n' + \
+        'read ../BH_RAW/' + trace.split('/')[-1] + '\n' + \
+        'rtrend' + '\n' + \
+        'taper' + '\n' + \
+        'trans from polezero s %pzfile to ' + unit_sac + ' freqlim ' + freqlim + '\n' + \
+        'write ' + unit.lower() + '.' + trace_info[1] + '.' + trace_info[2] + \
+                                            '.' + trace_info[3] + '\n' + \
+        'quit\n'
+        
+        out = p.communicate(s)
+        print out[0]
+        os.chdir(pwd)
+                            
+        if unit.lower() == 'dis':                                                                                                                                   
+            unit_print = 'displacement'                                                                                                                             
+        if unit.lower() == 'vel':                                                                                                                                   
+            unit_print = 'velocity'                                                                                                                                 
+        if unit.lower() == 'acc':                                                                                                                                   
+            unit_print = 'acceleration'                                                                                                                             
+
+        print inform + ' -- Instrument Correction to ' + unit_print + \
+                        ' for: ' + trace_info[0] + '.' + trace_info[1] + '.' + trace_info[2] + '.' + trace_info[3] 
+                                            
+    except Exception, e:
+        print inform + ' -- ' + str(e)
+
 ###################### IRIS_ARC_merge ##################################
 
 def IRIS_ARC_merge(input, clients):
@@ -3112,8 +3342,14 @@ def read_station_event(address):
     
     for k in range(0, len(target_add)):
         sta_ev_tmp = []
-        sta_file_open = open(os.path.join(target_add[k],\
-                                                'station_event'), 'r')
+        
+        if os.path.isfile(os.path.join(target_add[k], 'station_event')):
+            sta_file_open = open(os.path.join(target_add[k],\
+                                                    'station_event'), 'r')
+        else:
+            create_station_event(address = target_add[k])
+            sta_file_open = open(os.path.join(target_add[k],\
+                                                    'station_event'), 'r')
         sta_file = sta_file_open.readlines()
         for i in sta_file:
             sta_ev_tmp.append(i.split(','))
@@ -3121,6 +3357,49 @@ def read_station_event(address):
     
     return sta_ev
 
+###################### create_station_event ############################
+
+def create_station_event(address):
+    
+    """
+    Creates the station_event file ("info" folder)
+    """
+    
+    event_address = os.path.dirname(address)
+    if os.path.isdir(os.path.join(event_address, 'BH_RAW')):
+        sta_address = os.path.join(event_address, 'BH_RAW')
+    elif os.path.isdir(os.path.join(event_address, 'BH')):
+        sta_address = os.path.join(event_address, 'BH')
+    ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
+    
+    for i in range(0, len(ls_stas)):
+        sta_file_open = open(os.path.join(address, 'station_event'), 'a')
+        sta = read(ls_stas[i])[0]
+        sta_stats = sta.stats
+        
+        try:
+            sta_info = sta_stats.network + ',' + sta_stats.station + ',' + \
+                        sta_stats.location + ',' + sta_stats.channel + ',' + \
+                        str(sta_stats.sac.stla) + ',' + str(sta_stats.sac.stlo) + ',' + \
+                        str(sta_stats.sac.stel) + ',' + str(sta_stats.sac.stdp) + ',' + \
+                        event_address.split('/')[-1] + ',' + \
+                        str(sta_stats.sac.evla) + ',' + str(sta_stats.sac.evlo) + ',' + \
+                        str(sta_stats.sac.evdp) + ',' + str(sta_stats.sac.mag) + ',' + \
+                        'iris' + ',' + '\n'
+        except Exception, e:
+            print e
+            sta_info = sta_stats.network + ',' + sta_stats.station + ',' + \
+                        sta_stats.location + ',' + sta_stats.channel + ',' + \
+                        str(-12345.0) + ',' + str(-12345.0) + ',' + \
+                        str(-12345.0) + ',' + str(-12345.0) + ',' + \
+                        event_address.split('/')[-1] + ',' + \
+                        str(-12345.0) + ',' + str(-12345.0) + ',' + \
+                        str(-12345.0) + ',' + str(-12345.0) + ',' + \
+                        'iris' + ',' + '\n'
+        
+        sta_file_open.writelines(sta_info)
+        sta_file_open.close()
+        
 ###################### quake_info ######################################
 
 def quake_info(address, target):
