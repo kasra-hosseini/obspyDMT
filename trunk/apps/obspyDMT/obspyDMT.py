@@ -641,9 +641,9 @@ def command_parse():
     parser.add_option("--ic_sac", action="store_true",
                       dest="ic_sac", help=helpmsg)
     
-    helpmsg = "Instrument Correction, using SAC (Poles And Zeros)"
-    parser.add_option("--ic_sac_paz", action="store_true",
-                      dest="ic_sac_paz", help=helpmsg)
+    helpmsg = "Instrument Correction, using SAC and obspy (Poles And Zeros)"
+    parser.add_option("--ic_paz", action="store_true",
+                      dest="ic_paz", help=helpmsg)
     
     helpmsg = "apply a bandpass filter to the data trace before " + \
                 "deconvolution ('None' if you do not need pre_filter), " + \
@@ -1136,10 +1136,10 @@ def read_input_command(parser, **kwargs):
     if options.ic_sac: options.ic_sac = 'Y'
     input['ic_sac'] = options.ic_sac
     
-    if options.ic_sac_paz: options.ic_sac_paz = 'Y'
-    input['ic_sac_paz'] = options.ic_sac_paz
+    if options.ic_paz: options.ic_paz = 'Y'
+    input['ic_paz'] = options.ic_paz
     
-    if input['ic_sac'] == 'Y' or input['ic_sac_paz'] == 'Y':
+    if input['ic_sac'] == 'Y' or input['ic_paz'] == 'Y':
         input['SAC'] = 'Y'
         input['ic_obspy'] = 'N'
 
@@ -1932,7 +1932,8 @@ def IRIS_waveform(input, Sta_req, type):
                         filename = os.path.join(add_event[i], 'Resp', \
                         'PAZ' + '.' + Sta_req[i][j][0] + '.' + \
                         Sta_req[i][j][1] + '.' + \
-                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3]))
+                        Sta_req[i][j][2] + '.' + \
+                        Sta_req[i][j][3] + '.' + 'full'))
                     
                     print "Saving PAZ for     : " + Sta_req[i][j][0] + \
                         '.' + Sta_req[i][j][1] + '.' + \
@@ -2169,6 +2170,8 @@ def ARC_waveform(input, Sta_req, type):
     global events
     
     client_arclink = Client_arclink()
+    client_neries = Client_neries(user='test@obspy.org')
+    
     add_event = []
     
     if type == 'save':
@@ -2212,15 +2215,25 @@ def ARC_waveform(input, Sta_req, type):
                 if input['waveform'] == 'Y':
                     
                     dummy = 'Waveform'
-                
-                    client_arclink.saveWaveform(os.path.join(add_event[i], \
-                        'BH_RAW', \
-                        Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
-                        Sta_req[i][j][0], Sta_req[i][j][1], \
-                        Sta_req[i][j][2], Sta_req[i][j][3], \
-                        events[i]['t1'], events[i]['t2'])
-                
+                    
+                    try:
+                        client_arclink.saveWaveform(os.path.join(add_event[i], \
+                            'BH_RAW', \
+                            Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
+                            Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
+                            Sta_req[i][j][0], Sta_req[i][j][1], \
+                            Sta_req[i][j][2], Sta_req[i][j][3], \
+                            events[i]['t1'], events[i]['t2'])
+                    except Exception, e: 
+                        print "\nWaveform not available in ArcLink, try NERIES:\n"
+                        client_neries.saveWaveform(os.path.join(add_event[i], \
+                            'BH_RAW', \
+                            Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
+                            Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
+                            Sta_req[i][j][0], Sta_req[i][j][1], \
+                            Sta_req[i][j][2], Sta_req[i][j][3], \
+                            events[i]['t1'], events[i]['t2'])
+
                     print "Saving Waveform for: " + Sta_req[i][j][0] + \
                         '.' + Sta_req[i][j][1] + '.' + \
                         Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"  
@@ -2260,9 +2273,10 @@ def ARC_waveform(input, Sta_req, type):
                         time = events[i]['t1'])
                     
                     paz_file = open(\
-                        os.path.join(add_event[i], 'Resp', 'PAZ' + \
-                        '.' + Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), 'w')
+                        os.path.join(add_event[i], 'Resp', 'PAZ' + '.' + \
+                        Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
+                        Sta_req[i][j][2] + '.' + \
+                        Sta_req[i][j][3] + '.' + 'paz'), 'w')
                     pickle.dump(paz_arc, paz_file)
                     paz_file.close()
                     
@@ -2273,40 +2287,50 @@ def ARC_waveform(input, Sta_req, type):
                 
                 dummy = 'Meta-data'
                 
-                dic[j] ={'info': Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + \
-                    '.' + Sta_req[i][j][2] + '.' + Sta_req[i][j][3], \
-                    'net': Sta_req[i][j][0], 'sta': Sta_req[i][j][1], \
-                    'latitude': Sta_req[i][j][4], 'longitude': Sta_req[i][j][5], \
-                    'loc': Sta_req[i][j][2], 'cha': Sta_req[i][j][3], \
-                    'elevation': Sta_req[i][j][6], 'depth': Sta_req[i][j][7]}
+                if os.path.isfile(os.path.join(add_event[i], \
+                        'BH_RAW', \
+                        Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
+                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3])):
                 
-                Syn_file = open(os.path.join(add_event[i], \
-                                    'info', 'station_event'), 'a')
-                syn = Sta_req[i][j][0] + ',' + Sta_req[i][j][1] + ',' + \
-                    Sta_req[i][j][2] + ',' + Sta_req[i][j][3] + ',' + \
-                    str(Sta_req[i][j][4]) + ',' + str(Sta_req[i][j][5]) + \
-                    ',' + str(Sta_req[i][j][6]) + ',' + \
-                    str(Sta_req[i][j][7]) + ',' + events[i]['event_id'] + \
-                    ',' + str(events[i]['latitude']) \
-                     + ',' + str(events[i]['longitude']) + ',' + \
-                     str(events[i]['depth']) + ',' + \
-                     str(events[i]['magnitude']) + ',' + 'arc' + ',' + '\n'
-                Syn_file.writelines(syn)
-                Syn_file.close()
-                
-                if input['SAC'] == 'Y':
-                    writesac(address_st = os.path.join(add_event[i], 'BH_RAW', \
-                            Sta_req[i][j][0] +  '.' + Sta_req[i][j][1] + \
-                            '.' + Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
-                            sta_info = dic[j], ev_info = events[i])
-                
-                print "Saving Station  for: " + Sta_req[i][j][0] + '.' + \
-                    Sta_req[i][j][1] + '.' + \
-                    Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"
-                
-                
-                t22 = datetime.now()
+                    dic[j] ={'info': Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + \
+                        '.' + Sta_req[i][j][2] + '.' + Sta_req[i][j][3], \
+                        'net': Sta_req[i][j][0], 'sta': Sta_req[i][j][1], \
+                        'latitude': Sta_req[i][j][4], 'longitude': Sta_req[i][j][5], \
+                        'loc': Sta_req[i][j][2], 'cha': Sta_req[i][j][3], \
+                        'elevation': Sta_req[i][j][6], 'depth': Sta_req[i][j][7]}
                     
+                    Syn_file = open(os.path.join(add_event[i], \
+                                        'info', 'station_event'), 'a')
+                    syn = Sta_req[i][j][0] + ',' + Sta_req[i][j][1] + ',' + \
+                        Sta_req[i][j][2] + ',' + Sta_req[i][j][3] + ',' + \
+                        str(Sta_req[i][j][4]) + ',' + str(Sta_req[i][j][5]) + \
+                        ',' + str(Sta_req[i][j][6]) + ',' + \
+                        str(Sta_req[i][j][7]) + ',' + events[i]['event_id'] + \
+                        ',' + str(events[i]['latitude']) \
+                         + ',' + str(events[i]['longitude']) + ',' + \
+                         str(events[i]['depth']) + ',' + \
+                         str(events[i]['magnitude']) + ',' + 'arc' + ',' + '\n'
+                    Syn_file.writelines(syn)
+                    Syn_file.close()
+                    
+                    if input['SAC'] == 'Y':
+                        writesac(address_st = os.path.join(add_event[i], 'BH_RAW', \
+                                Sta_req[i][j][0] +  '.' + Sta_req[i][j][1] + \
+                                '.' + Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
+                                sta_info = dic[j], ev_info = events[i])
+                    
+                    print "Saving Station  for: " + Sta_req[i][j][0] + '.' + \
+                        Sta_req[i][j][1] + '.' + \
+                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"
+                    
+                    
+                    t22 = datetime.now()
+                
+                else:
+                    print "\n!No waveform has been saved for: " + \
+                        Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
+                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3]
+                
                 if input['time_arc'] == 'Y':
                     time_arc = t22 - t11
                     time_file = open(os.path.join(add_event[i], \
@@ -2574,15 +2598,40 @@ def inst_correct(input, ls_saved_stas, address, clients):
                     BP_filter = input['pre_filt'], inform = inform)
                 check_quit()
             
-            if input['ic_sac_paz'] == 'Y':
+            if input['ic_paz'] == 'Y':
                 
-                paz_file = os.path.join(address, 'Resp', 'PAZ' + '.' + \
-                                            ls_saved_stas[i].split('/')[-1])
-            
-                SAC_PAZ(trace = ls_saved_stas[i], paz_file = paz_file, \
-                    address = address, BH_file = BH_file, unit = input['corr_unit'], \
-                    BP_filter = input['pre_filt'], inform = inform)
-                check_quit()
+                if clients == 'iris':
+                    paz_file = os.path.join(address, 'Resp', 'PAZ' + '.' + \
+                                    ls_saved_stas[i].split('/')[-1] + '.' + 'full')
+                
+                    SAC_PAZ(trace = ls_saved_stas[i], paz_file = paz_file, \
+                        address = address, BH_file = BH_file, unit = input['corr_unit'], \
+                        BP_filter = input['pre_filt'], inform = inform)
+                    check_quit()
+                
+                if clients == 'arc':
+                    
+                    rt_c = RTR(stream = ls_saved_stas[i], degree = 2)
+                    tr = read(ls_saved_stas[i])[0]
+                    tr.data = rt_c
+                    
+                    # Tapering
+                    taper = invsim.cosTaper(len(tr.data))
+                    tr.data *= taper
+                    
+                    paz_file_open = open(os.path.join(address, 'Resp', 'PAZ' + '.' + \
+                                    ls_saved_stas[i].split('/')[-1] + '.' + 'paz'))
+                    paz_file = pickle.load(paz_file_open)
+                    
+                    paz_dic = {\
+                    'poles': paz_file['poles'], \
+                    'zeros': paz_file['zeros'], \
+                    'gain': paz_file['gain']}
+                    
+                    obspy_PAZ(trace = tr, paz_dic = paz_dic, \
+                        Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
+                        BP_filter = input['pre_filt'], inform = inform)
+                    check_quit()
                 
         except Exception, e:
             print e
@@ -2819,6 +2868,40 @@ def SAC_PAZ(trace, paz_file, address, BH_file = 'BH', unit = 'DIS', \
         print inform + ' -- Instrument Correction to ' + unit_print + \
                         ' for: ' + trace_info[0] + '.' + trace_info[1] + '.' + trace_info[2] + '.' + trace_info[3] 
                                             
+    except Exception, e:
+        print inform + ' -- ' + str(e)
+
+###################### obspy_PAZ #######################################
+
+def obspy_PAZ(trace, paz_dic, Address, unit = 'DIS', \
+            BP_filter = (0.008, 0.012, 3.0, 4.0), inform = 'N/N'):
+    
+    date = trace.stats['starttime']
+    
+    try:
+        
+        trace.data = seisSim(data = trace.data, \
+            samp_rate = trace.stats.sampling_rate,paz_remove=paz_dic, \
+            paz_simulate = None, remove_sensitivity=False, \
+            simulate_sensitivity = False, water_level = 600.0, \
+            zero_mean = True, taper = False, pre_filt=eval(BP_filter), \
+            seedresp=None, pitsasim=False, sacsim = False)
+        
+        trace_identity = trace.stats['station'] + '.' + \
+                trace.stats['location'] + '.' + trace.stats['channel']
+        trace.write(os.path.join(Address, unit.lower() + '.' + \
+                                        trace_identity), format = 'SAC')
+        
+        if unit.lower() == 'dis':                                                                                                                                   
+            unit_print = 'displacement'                                                                                                                             
+        if unit.lower() == 'vel':                                                                                                                                   
+            unit_print = 'velocity'                                                                                                                                 
+        if unit.lower() == 'acc':                                                                                                                                   
+            unit_print = 'acceleration'                                                                                                                             
+
+        print inform + ' -- Instrument Correction to ' + unit_print + \
+                                            ' for: ' + trace_identity 
+        
     except Exception, e:
         print inform + ' -- ' + str(e)
 
