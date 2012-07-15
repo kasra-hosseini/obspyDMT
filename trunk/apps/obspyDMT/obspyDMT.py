@@ -7,11 +7,13 @@
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
-#
-#   Copyright (C) 2012 Kasra Hosseini, Chris Scheingraber
 #-------------------------------------------------------------------
 
 #for debugging: import ipdb; ipdb.set_trace()
+'''
+COMMENTS:
+1. PAZ for ArcLink does not work properly yet
+'''
 
 #-----------------------------------------------------------------------
 #----------------Import required Modules (Python and Obspy)-------------
@@ -339,7 +341,8 @@ def obspyDMT(**kwargs):
         IRIS_ARC_merge(input, clients = 'arc')
     
     # ------------------PLOT--------------------------------------------    
-    for i in ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray', 'plot_epi']:
+    for i in ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray', 'plot_epi', \
+                'plot_dt']:
         if input[i] != 'N':
     
             print '*********************'
@@ -496,6 +499,10 @@ def command_parse():
     helpmsg = "send request (waveform/response) to ArcLink. [Default: 'Y']"
     parser.add_option("--arc", action="store",
                       dest="ArcLink", help=helpmsg)
+    
+    helpmsg = "send request (waveform) to NERIES if ArcLink fails. [Default: 'N']"
+    parser.add_option("--neries", action="store_true",
+                      dest="NERIES", help=helpmsg)
                       
     helpmsg = "parallel request (under construction)"
     parser.add_option("--nodes", action="store_true",
@@ -633,15 +640,16 @@ def command_parse():
     parser.add_option("--ic_no", action="store_true",
                         dest="ic_no", help=helpmsg)
     
-    helpmsg = "Instrument Correction, using obspy modules"
+    helpmsg = "Instrument Correction (full response), using obspy modules"
     parser.add_option("--ic_obspy", action="store",
                       dest="ic_obspy", help=helpmsg)
     
-    helpmsg = "Instrument Correction, using SAC"
+    helpmsg = "Instrument Correction (full response), using SAC"
     parser.add_option("--ic_sac", action="store_true",
                       dest="ic_sac", help=helpmsg)
     
-    helpmsg = "Instrument Correction, using SAC and obspy (Poles And Zeros)"
+    helpmsg = "Instrument Correction (Poles And Zeros), " + \
+                "using SAC (for IRIS) and obspy (for ArcLink)"
     parser.add_option("--ic_paz", action="store_true",
                       dest="ic_paz", help=helpmsg)
     
@@ -765,6 +773,14 @@ def command_parse():
     parser.add_option("--max_epi", action="store",
                       dest="max_epi", help=helpmsg)
     
+    helpmsg = "plot \"Data(MB)-Time(Sec)\" -- ATTENTION: " + \
+                "\"time_iris\" and/or \"time_arc\" should exist in the " + \
+                "\"info\" folder [refer to " + \
+                "\"time_iris\" and \"time_arc\" options] " + \
+                "[Default: 'N']"
+    parser.add_option("--plot_dt", action="store",
+                      dest="plot_dt", help=helpmsg)
+    
     helpmsg = "the path where obspyDMT will store " + \
                 "the plots [Default: '.' (the same directory " + \
                 "as obspyDMT.py)]"
@@ -858,7 +874,7 @@ def read_input_command(parser, **kwargs):
                 'plot_type': 'raw',
                 
                 'plot_ev': 'N', 'plot_sta': 'N', 'plot_se': 'N',
-                'plot_ray': 'N', 'plot_epi': 'N',
+                'plot_ray': 'N', 'plot_epi': 'N', 'plot_dt': 'N',
                 'plot_save': '.', 'plot_format': 'png',
                 
                 'min_epi': 0.0, 'max_epi': 180.0,
@@ -884,7 +900,7 @@ def read_input_command(parser, **kwargs):
         reset = "\033[0;0m"
         print '\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *' 
-        print '\t\t' + '*' + '\t\t' + bold + '1.0' + reset + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + bold + '1.1' + reset + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -960,6 +976,10 @@ def read_input_command(parser, **kwargs):
     if options.plot_epi != 'N':
         if not os.path.isabs(options.plot_epi):
             options.plot_epi = os.path.join(os.getcwd(), options.plot_epi)
+    
+    if options.plot_dt != 'N':
+        if not os.path.isabs(options.plot_dt):
+            options.plot_dt = os.path.join(os.getcwd(), options.plot_dt)
     
     if options.plot_save != 'N':
         if not os.path.isabs(options.plot_save):
@@ -1075,6 +1095,8 @@ def read_input_command(parser, **kwargs):
     
     input['IRIS'] = options.IRIS
     input['ArcLink'] = options.ArcLink
+    if options.NERIES: options.NERIES = 'Y'
+    input['NERIES'] = options.NERIES
     
     if options.time_iris: options.time_iris = 'Y'
     input['time_iris'] = options.time_iris
@@ -1171,6 +1193,7 @@ def read_input_command(parser, **kwargs):
     input['plot_se'] = options.plot_se
     input['plot_ray'] = options.plot_ray
     input['plot_epi'] = options.plot_epi
+    input['plot_dt'] = options.plot_dt
     
     input['min_epi'] = float(options.min_epi)
     input['max_epi'] = float(options.max_epi)
@@ -1191,7 +1214,7 @@ def read_input_command(parser, **kwargs):
     
     for i in ['iris_update', 'arc_update', 'iris_ic', 'arc_ic', \
                 'iris_merge', 'arc_merge', 'plot_se', 'plot_sta', \
-                'plot_ev', 'plot_ray', 'plot_epi']:
+                'plot_ev', 'plot_ray', 'plot_epi', 'plot_dt']:
         if input[i] != 'N':
             input['get_events'] = 'N'
             input['get_continuous'] = 'N'
@@ -1978,13 +2001,13 @@ def IRIS_waveform(input, Sta_req, type):
                 if input['time_iris'] == 'Y':
                     time_iris = t22 - t11
                     time_file = open(os.path.join(add_event[i], 'info', \
-                        'iris_time'), 'a')
+                        'time_iris'), 'a')
                     size = getFolderSize(os.path.join(add_event[i])) 
                     print size/1.e6
                     ti = Sta_req[i][j][0] + ',' + Sta_req[i][j][1] + ',' + \
                         Sta_req[i][j][2] + ',' + Sta_req[i][j][3] + ',' + \
                         str(time_iris.seconds) + ',' + str(time_iris.microseconds) \
-                        + ',' + str(size/1.e6) + ',' + '\n'
+                        + ',' + str(size/1.e6) + ',+,\n'
                     time_file.writelines(ti)
                     time_file.close()
                 check_quit()
@@ -1995,13 +2018,14 @@ def IRIS_waveform(input, Sta_req, type):
                 if input['time_iris'] == 'Y':
                     time_iris = t22 - t11
                     time_file = open(os.path.join(add_event[i], \
-                                    'info', 'iris_time'), 'a')
+                                    'info', 'time_iris'), 'a')
                     size = getFolderSize(os.path.join(add_event[i])) 
                     print size/1.e6
                     ti = Sta_req[i][j][0] + ',' + Sta_req[i][j][1] + ',' + \
                         Sta_req[i][j][2] + ',' + Sta_req[i][j][3] + ',' + \
                         str(time_iris.seconds) + ',' + \
-                        str(time_iris.microseconds) + ',' + str(size/1.e6) + ',' + '\n'
+                        str(time_iris.microseconds) + ',' + \
+                        str(size/1.e6) + ',-,\n'
                     time_file.writelines(ti)
                     time_file.close()
                                 
@@ -2211,7 +2235,7 @@ def ARC_waveform(input, Sta_req, type):
                 
                 t11 = datetime.now()
                            
-                                
+                           
                 if input['waveform'] == 'Y':
                     
                     dummy = 'Waveform'
@@ -2224,16 +2248,25 @@ def ARC_waveform(input, Sta_req, type):
                             Sta_req[i][j][0], Sta_req[i][j][1], \
                             Sta_req[i][j][2], Sta_req[i][j][3], \
                             events[i]['t1'], events[i]['t2'])
+                    
                     except Exception, e: 
-                        print "\nWaveform not available in ArcLink, try NERIES:\n"
-                        client_neries.saveWaveform(os.path.join(add_event[i], \
-                            'BH_RAW', \
-                            Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-                            Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
-                            Sta_req[i][j][0], Sta_req[i][j][1], \
-                            Sta_req[i][j][2], Sta_req[i][j][3], \
-                            events[i]['t1'], events[i]['t2'])
+                        print e
+                        
+                        if input['NERIES'] == 'Y':
+                            print "\nWaveform is not available in ArcLink, trying NERIES!\n"
+                            client_neries.saveWaveform(os.path.join(add_event[i], \
+                                'BH_RAW', \
+                                Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
+                                Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
+                                Sta_req[i][j][0], Sta_req[i][j][1], \
+                                Sta_req[i][j][2], Sta_req[i][j][3], \
+                                events[i]['t1'], events[i]['t2'])
 
+                    check_file = open(os.path.join(add_event[i], 'BH_RAW', \
+                        Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
+                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3]))
+                    check_file.close()
+                                        
                     print "Saving Waveform for: " + Sta_req[i][j][0] + \
                         '.' + Sta_req[i][j][1] + '.' + \
                         Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"  
@@ -2287,78 +2320,68 @@ def ARC_waveform(input, Sta_req, type):
                 
                 dummy = 'Meta-data'
                 
-                if os.path.isfile(os.path.join(add_event[i], \
-                        'BH_RAW', \
-                        Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3])):
+                dic[j] ={'info': Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + \
+                    '.' + Sta_req[i][j][2] + '.' + Sta_req[i][j][3], \
+                    'net': Sta_req[i][j][0], 'sta': Sta_req[i][j][1], \
+                    'latitude': Sta_req[i][j][4], 'longitude': Sta_req[i][j][5], \
+                    'loc': Sta_req[i][j][2], 'cha': Sta_req[i][j][3], \
+                    'elevation': Sta_req[i][j][6], 'depth': Sta_req[i][j][7]}
                 
-                    dic[j] ={'info': Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + \
-                        '.' + Sta_req[i][j][2] + '.' + Sta_req[i][j][3], \
-                        'net': Sta_req[i][j][0], 'sta': Sta_req[i][j][1], \
-                        'latitude': Sta_req[i][j][4], 'longitude': Sta_req[i][j][5], \
-                        'loc': Sta_req[i][j][2], 'cha': Sta_req[i][j][3], \
-                        'elevation': Sta_req[i][j][6], 'depth': Sta_req[i][j][7]}
-                    
-                    Syn_file = open(os.path.join(add_event[i], \
-                                        'info', 'station_event'), 'a')
-                    syn = Sta_req[i][j][0] + ',' + Sta_req[i][j][1] + ',' + \
-                        Sta_req[i][j][2] + ',' + Sta_req[i][j][3] + ',' + \
-                        str(Sta_req[i][j][4]) + ',' + str(Sta_req[i][j][5]) + \
-                        ',' + str(Sta_req[i][j][6]) + ',' + \
-                        str(Sta_req[i][j][7]) + ',' + events[i]['event_id'] + \
-                        ',' + str(events[i]['latitude']) \
-                         + ',' + str(events[i]['longitude']) + ',' + \
-                         str(events[i]['depth']) + ',' + \
-                         str(events[i]['magnitude']) + ',' + 'arc' + ',' + '\n'
-                    Syn_file.writelines(syn)
-                    Syn_file.close()
-                    
-                    if input['SAC'] == 'Y':
-                        writesac(address_st = os.path.join(add_event[i], 'BH_RAW', \
-                                Sta_req[i][j][0] +  '.' + Sta_req[i][j][1] + \
-                                '.' + Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
-                                sta_info = dic[j], ev_info = events[i])
-                    
-                    print "Saving Station  for: " + Sta_req[i][j][0] + '.' + \
-                        Sta_req[i][j][1] + '.' + \
-                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"
-                    
-                    
-                    t22 = datetime.now()
+                Syn_file = open(os.path.join(add_event[i], \
+                                    'info', 'station_event'), 'a')
+                syn = Sta_req[i][j][0] + ',' + Sta_req[i][j][1] + ',' + \
+                    Sta_req[i][j][2] + ',' + Sta_req[i][j][3] + ',' + \
+                    str(Sta_req[i][j][4]) + ',' + str(Sta_req[i][j][5]) + \
+                    ',' + str(Sta_req[i][j][6]) + ',' + \
+                    str(Sta_req[i][j][7]) + ',' + events[i]['event_id'] + \
+                    ',' + str(events[i]['latitude']) \
+                     + ',' + str(events[i]['longitude']) + ',' + \
+                     str(events[i]['depth']) + ',' + \
+                     str(events[i]['magnitude']) + ',' + 'arc' + ',' + '\n'
+                Syn_file.writelines(syn)
+                Syn_file.close()
                 
-                else:
-                    print "\n!No waveform has been saved for: " + \
-                        Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3]
+                if input['SAC'] == 'Y':
+                    writesac(address_st = os.path.join(add_event[i], 'BH_RAW', \
+                            Sta_req[i][j][0] +  '.' + Sta_req[i][j][1] + \
+                            '.' + Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
+                            sta_info = dic[j], ev_info = events[i])
                 
-                if input['time_arc'] == 'Y':
-                    time_arc = t22 - t11
-                    time_file = open(os.path.join(add_event[i], \
-                                    'info', 'arc_time'), 'a+')
-                    size = getFolderSize(os.path.join(add_event[i]))
-                    print size/1.e6
-                    ti = Sta_req[i][j][0] + ',' + Sta_req[i][j][1] + ',' + \
-                        Sta_req[i][j][2] + ',' + Sta_req[i][j][3] + ',' + \
-                        str(time_arc.seconds) + ',' + \
-                        str(time_arc.microseconds) + ',' + str(size/1.e6) + ',' + '\n'
-                    time_file.writelines(ti)
-                    time_file.close()
-                
-            except Exception, e:    
-                                
-            
+                print "Saving Station  for: " + Sta_req[i][j][0] + '.' + \
+                    Sta_req[i][j][1] + '.' + \
+                    Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"
+                    
                 t22 = datetime.now()
                 
                 if input['time_arc'] == 'Y':
                     time_arc = t22 - t11
                     time_file = open(os.path.join(add_event[i], \
-                                    'info', 'arc_time'), 'a+')
+                                    'info', 'time_arc'), 'a+')
                     size = getFolderSize(os.path.join(add_event[i]))
                     print size/1.e6
                     ti = Sta_req[i][j][0] + ',' + Sta_req[i][j][1] + ',' + \
                         Sta_req[i][j][2] + ',' + Sta_req[i][j][3] + ',' + \
                         str(time_arc.seconds) + ',' + \
-                        str(time_arc.microseconds) + ',' + str(size/1.e6) + ',' + '\n'
+                        str(time_arc.microseconds) + ',' + \
+                        str(size/1.e6) + ',+,\n'
+                    time_file.writelines(ti)
+                    time_file.close()
+                
+            except Exception, e:    
+                                
+                t22 = datetime.now()
+                
+                if input['time_arc'] == 'Y':
+                    time_arc = t22 - t11
+                    time_file = open(os.path.join(add_event[i], \
+                                    'info', 'time_arc'), 'a+')
+                    size = getFolderSize(os.path.join(add_event[i]))
+                    print size/1.e6
+                    ti = Sta_req[i][j][0] + ',' + Sta_req[i][j][1] + ',' + \
+                        Sta_req[i][j][2] + ',' + Sta_req[i][j][3] + ',' + \
+                        str(time_arc.seconds) + ',' + \
+                        str(time_arc.microseconds) + ',' + \
+                        str(size/1.e6) + ',-,\n'
                     time_file.writelines(ti)
                     time_file.close()
             
@@ -2643,9 +2666,9 @@ def inst_correct(input, ls_saved_stas, address, clients):
         print 'Compressing Raw files'
         print '*********************'
             
-        path = os.path.join(address, BH_RAW)
+        path = os.path.join(address, 'BH_RAW')
         tar_file = os.path.join(path, 'BH_RAW.tar')
-        files = '*.*.*'
+        files = '*.*.*.*'
         
         compress_gzip(path = path, tar_file = tar_file, files = files)
                 
@@ -2656,9 +2679,9 @@ def inst_correct(input, ls_saved_stas, address, clients):
         print 'Compressing Response files'
         print '**************************'
         
-        path = os.path.join(address, Resp)
+        path = os.path.join(address, 'Resp')
         tar_file = os.path.join(path, 'Resp.tar')
-        files = 'RESP.*'
+        files = '*.*.*.*'
         
         compress_gzip(path = path, tar_file = tar_file, files = files)
         
@@ -2799,7 +2822,9 @@ def SAC_fullresp(trace, resp_file, address, BH_file = 'BH', unit = 'DIS', \
             unit_print = 'acceleration'                                                                                                                             
 
         print inform + ' -- Instrument Correction to ' + unit_print + \
-                        ' for: ' + trace_info[0] + '.' + trace_info[1] + '.' + trace_info[2] + '.' + trace_info[3] 
+                        ' for: ' + trace_info[0] + '.' + trace_info[1] + \
+                        '.' + trace_info[2] + '.' + trace_info[3] 
+        print "-----------------------------------"
                                             
     except Exception, e:
         print inform + ' -- ' + str(e)
@@ -3012,7 +3037,8 @@ def PLOT(input, clients):
     Plotting tools
     """
     
-    for i in ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray', 'plot_epi']:
+    for i in ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray', 'plot_epi', \
+                'plot_dt']:
         if input[i] != 'N':
             events, address_events = quake_info(input[i], 'info')
     
@@ -3078,6 +3104,9 @@ def PLOT(input, clients):
             
     if input['plot_epi'] != 'N':
         plot_epi(input, ls_add_stas, ls_saved_stas)
+    
+    if input['plot_dt'] != 'N':
+        plot_dt(input, address_events)
     
 ###################### plot_se_ray #####################################
 
@@ -3186,6 +3215,52 @@ def plot_epi(input, ls_add_stas, ls_saved_stas):
     plt.savefig(os.path.join(input['plot_save'], 'plot.' + \
                                                 input['plot_format']))
 
+###################### plot_dt #########################################
+
+def plot_dt(input, address_events):
+    
+    """
+    Plot: Data(MB)-Time(Sec)
+    """
+            
+    for i in range(0, len(address_events)):
+        for client in ['time_iris', 'time_arc']:
+            if os.path.isfile(os.path.join(address_events[i], 'info', client)):
+                
+                plt.clf()
+                
+                dt_open = open(os.path.join(address_events[i], \
+                                            'info', client))
+                dt_read = dt_open.readlines()
+                for j in range(0, len(dt_read)):
+                    dt_read[j] = dt_read[j].split(',')
+                
+                time_all = 0
+                succ = 0; fail = 0
+                for k in range(0, len(dt_read)):
+
+                    time_all += eval(dt_read[k][4]) + eval(dt_read[k][5])/1.e6
+                    MB_all = eval(dt_read[k][6])
+
+                    if dt_read[k][7] == '+':
+                        plt.scatter(time_all, MB_all, c = 'b', edgecolors = 'b')
+                        succ += 1
+                    elif dt_read[k][7] == '-':
+                        plt.scatter(time_all, MB_all, c = 'r', edgecolors = 'r')
+                        fail += 1
+                plt.xlabel('sec')
+                plt.ylabel('MB')
+                plt.title(client.split('_')[1].upper() + '\n' + \
+                            'All: ' + str(succ + fail) + ' -- ' + \
+                            'Succ: ' + str(succ) + ' ' + '(' + \
+                            str(round(float(succ)/(succ + fail)*100., 1)) + '%)' + \
+                            ' - ' + \
+                            'Fail: ' + str(fail) + ' ' + '(' + \
+                            str(round(float(fail)/(succ + fail)*100., 1)) + '%)')
+                plt.savefig(os.path.join(address_events[i], 'info', \
+                            'Data-Time_' + client.split('_')[1] + \
+                            '.' + input['plot_format']))
+            
 ###################### XML_list_avail ##################################
 
 def XML_list_avail(xmlfile):
@@ -3265,12 +3340,6 @@ def create_foders_files(events, eventpath):
         Syn_file = open(os.path.join(eventpath, events[i]['event_id'], \
             'info', 'station_event'), 'a+')
         Syn_file.close()
-        
-    if input['time_iris'] == 'Y':
-        for i in range(0, len_events):
-            time_file = open(os.path.join(eventpath, events[i]['event_id'], \
-                    'info', 'iris_time'), 'a+')
-            time_file.close()
         
     for i in range(0, len_events):
         quake_file = open(os.path.join(eventpath, events[i]['event_id'],\
