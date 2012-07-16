@@ -3235,28 +3235,47 @@ def plot_dt(input, address_events):
                 for j in range(0, len(dt_read)):
                     dt_read[j] = dt_read[j].split(',')
                 
-                time_all = 0
+                time_single = 0
                 succ = 0; fail = 0
+                MB_all = []; time_all = []
                 for k in range(0, len(dt_read)):
 
-                    time_all += eval(dt_read[k][4]) + eval(dt_read[k][5])/1.e6
-                    MB_all = eval(dt_read[k][6])
+                    time_single += eval(dt_read[k][4]) + eval(dt_read[k][5])/1.e6
+                    time_all.append(time_single)
+                    MB_single = eval(dt_read[k][6])
+                    MB_all.append(MB_single)
 
                     if dt_read[k][7] == '+':
-                        plt.scatter(time_all, MB_all, c = 'b', edgecolors = 'b')
+                        plt.scatter(time_single, MB_single, s = 1, \
+                                    c = 'b', edgecolors = 'b', marker = 'o')
                         succ += 1
                     elif dt_read[k][7] == '-':
-                        plt.scatter(time_all, MB_all, c = 'r', edgecolors = 'r')
+                        plt.scatter(time_single, MB_single, s = 1, \
+                                    c = 'r', edgecolors = 'r', marker = 'o')
                         fail += 1
+                
+                time_array = np.array(time_all)
+                MB_array = np.array(MB_all)
+                
+                poly = np.poly1d(np.polyfit(time_array, MB_array, 1))
+                time_poly = np.linspace(0, time_all[-1], len(time_all))
+                plt.plot(time_array, poly(time_array), 'k--')
+                
+                trans_rate = (poly(time_array[-1])-poly(time_array[0]))/ \
+                                        (time_array[-1]-time_array[0])*60
+                
                 plt.xlabel('sec')
                 plt.ylabel('MB')
                 plt.title(client.split('_')[1].upper() + '\n' + \
-                            'All: ' + str(succ + fail) + ' -- ' + \
+                            'All: ' + str(succ + fail) + '--' + \
                             'Succ: ' + str(succ) + ' ' + '(' + \
                             str(round(float(succ)/(succ + fail)*100., 1)) + '%)' + \
-                            ' - ' + \
+                            '-' + \
                             'Fail: ' + str(fail) + ' ' + '(' + \
-                            str(round(float(fail)/(succ + fail)*100., 1)) + '%)')
+                            str(round(float(fail)/(succ + fail)*100., 1)) + '%)' + \
+                            '--' + \
+                             str(round(trans_rate, 2)) + 'MB/min')
+
                 plt.savefig(os.path.join(address_events[i], 'info', \
                             'Data-Time_' + client.split('_')[1] + \
                             '.' + input['plot_format']))
