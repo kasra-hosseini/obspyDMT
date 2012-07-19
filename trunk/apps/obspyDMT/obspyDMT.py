@@ -641,12 +641,12 @@ def command_parse():
                         dest="ic_no", help=helpmsg)
     
     helpmsg = "Instrument Correction (full response), using obspy modules"
-    parser.add_option("--ic_obspy", action="store",
-                      dest="ic_obspy", help=helpmsg)
+    parser.add_option("--ic_obspy_full", action="store",
+                      dest="ic_obspy_full", help=helpmsg)
     
     helpmsg = "Instrument Correction (full response), using SAC"
-    parser.add_option("--ic_sac", action="store_true",
-                      dest="ic_sac", help=helpmsg)
+    parser.add_option("--ic_sac_full", action="store_true",
+                      dest="ic_sac_full", help=helpmsg)
     
     helpmsg = "Instrument Correction (Poles And Zeros), " + \
                 "using SAC (for IRIS) and obspy (for ArcLink)"
@@ -859,7 +859,7 @@ def read_input_command(parser, **kwargs):
                 
                 'iris_ic': 'N', 'iris_ic_auto': 'Y',
                 'arc_ic': 'N', 'arc_ic_auto': 'Y',
-                'ic_obspy': 'Y',
+                'ic_obspy_full': 'Y',
                 'pre_filt': '(0.008, 0.012, 3.0, 4.0)',
                 'corr_unit': 'DIS',
                 
@@ -1153,17 +1153,17 @@ def read_input_command(parser, **kwargs):
         input['iris_ic'] = input['ic_all']
         input['arc_ic'] = input['ic_all']
     
-    input['ic_obspy'] = options.ic_obspy
+    input['ic_obspy_full'] = options.ic_obspy_full
     
-    if options.ic_sac: options.ic_sac = 'Y'
-    input['ic_sac'] = options.ic_sac
+    if options.ic_sac_full: options.ic_sac_full = 'Y'
+    input['ic_sac_full'] = options.ic_sac_full
     
     if options.ic_paz: options.ic_paz = 'Y'
     input['ic_paz'] = options.ic_paz
     
-    if input['ic_sac'] == 'Y' or input['ic_paz'] == 'Y':
+    if input['ic_sac_full'] == 'Y' or input['ic_paz'] == 'Y':
         input['SAC'] = 'Y'
-        input['ic_obspy'] = 'N'
+        input['ic_obspy_full'] = 'N'
 
     input['corr_unit'] = options.corr_unit
     input['pre_filt'] = options.pre_filt
@@ -2593,7 +2593,7 @@ def inst_correct(input, ls_saved_stas, address, clients):
         inform = clients + ' -- ' + str(i+1) + '/' + str(len(ls_saved_stas))
         try:
             
-            if input['ic_obspy'] == 'Y':
+            if input['ic_obspy_full'] == 'Y':
                 # Removing the trend
                 rt_c = RTR(stream = ls_saved_stas[i], degree = 2)
                 tr = read(ls_saved_stas[i])[0]
@@ -2611,7 +2611,7 @@ def inst_correct(input, ls_saved_stas, address, clients):
                     BP_filter = input['pre_filt'], inform = inform)
                 check_quit()
             
-            if input['ic_sac'] == 'Y':
+            if input['ic_sac_full'] == 'Y':
                 
                 resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
                                             ls_saved_stas[i].split('/')[-1])
@@ -2623,6 +2623,24 @@ def inst_correct(input, ls_saved_stas, address, clients):
             
             if input['ic_paz'] == 'Y':
                 
+                rt_c = RTR(stream = ls_saved_stas[i], degree = 2)
+                tr = read(ls_saved_stas[i])[0]
+                tr.data = rt_c
+                
+                # Tapering
+                taper = invsim.cosTaper(len(tr.data))
+                tr.data *= taper
+                
+                resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
+                                            ls_saved_stas[i].split('/')[-1])
+            
+                obspy_PAZ(trace = tr, resp_file = resp_file, \
+                    Address = os.path.join(address, BH_file), \
+                    clients = clients, unit = input['corr_unit'], \
+                    BP_filter = input['pre_filt'], inform = inform)
+                check_quit()
+                
+                """
                 if clients == 'iris':
                     paz_file = os.path.join(address, 'Resp', 'PAZ' + '.' + \
                                     ls_saved_stas[i].split('/')[-1] + '.' + 'full')
@@ -2655,7 +2673,7 @@ def inst_correct(input, ls_saved_stas, address, clients):
                         Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
                         BP_filter = input['pre_filt'], inform = inform)
                     check_quit()
-                
+                """
         except Exception, e:
             print e
 
@@ -2829,6 +2847,120 @@ def SAC_fullresp(trace, resp_file, address, BH_file = 'BH', unit = 'DIS', \
     except Exception, e:
         print inform + ' -- ' + str(e)
 
+###################### readRESP ########################################
+
+def readRESP(resp_file, unit, clients):
+
+    resp_open = open(resp_file)
+    resp_read = resp_open.readlines()
+
+    gain_num = []
+    A0_num = []
+    poles_num = []
+    poles = []
+    zeros = []
+    zeros_num = []
+    if clients == 'iris':
+        for i in range(0, len(resp_read)):
+            if resp_read[i].find('B058F04') != -1:  
+                gain_num.append(i)
+            if resp_read[i].find('B053F07') != -1:  
+                A0_num.append(i)
+            if resp_read[i].find('B053F10-13') != -1:  
+                zeros_num.append(i)
+            if resp_read[i].find('B053F15-18') != -1:  
+                poles_num.append(i)
+                
+    elif clients == 'arc':
+        for i in range(0, len(resp_read)):
+            if resp_read[i].find('B058F04') != -1:  
+                gain_num.append(i)
+            if resp_read[i].find('B043F08') != -1:  
+                A0_num.append(i)
+            if resp_read[i].find('B043F11-14') != -1:  
+                zeros_num.append(i)
+            if resp_read[i].find('B043F16-19') != -1:  
+                poles_num.append(i)
+        
+    list_sensitivity = resp_read[gain_num[-1]].split('\n')[0].split(' ')
+    list_new_sensitivity = [x for x in list_sensitivity if x]
+    sensitivity = eval(list_new_sensitivity[-1])
+    
+    list_A0 = resp_read[A0_num[0]].split('\n')[0].split(' ')
+    list_new_A0 = [x for x in list_A0 if x]
+    A0 = eval(list_new_A0[-1])
+
+    
+    for i in range(0, len(poles_num)):
+        
+        list_poles = resp_read[poles_num[i]].split('\n')[0].split(' ')
+        list_new_poles = [x for x in list_poles if x]
+        
+        poles_r = eval(list_new_poles[-4])
+        poles_i = eval(list_new_poles[-3])
+        poles.append(complex(poles_r, poles_i))
+    
+    for i in range(0, len(zeros_num)):
+        
+        list_zeros = resp_read[zeros_num[i]].split('\n')[0].split(' ')
+        list_new_zeros = [x for x in list_zeros if x]
+        
+        zeros_r = eval(list_new_zeros[-4])
+        zeros_i = eval(list_new_zeros[-3])
+        zeros.append(complex(zeros_r, zeros_i))
+            
+            
+    if unit.lower() == 'dis':                                                                                                                                   
+        zeros.append(0j)
+    #if unit.lower() == 'vel':                                                                                                                                   
+    #    zeros = [0j, 0j]
+    #if unit.lower() == 'acc':                                                                                                                                   
+    #    zeros = [0j]
+    
+    paz = {\
+    'poles': poles,
+    'zeros': zeros,
+    'gain': A0,
+    'sensitivity': sensitivity\
+    }
+    return paz
+
+###################### obspy_PAZ #######################################
+
+def obspy_PAZ(trace, resp_file, Address, clients, unit = 'DIS', \
+            BP_filter = (0.008, 0.012, 3.0, 4.0), inform = 'N/N'):
+    
+    try:
+        
+        paz = readRESP(resp_file, unit, clients)
+        
+        trace.data = seisSim(data = trace.data, \
+            samp_rate = trace.stats.sampling_rate,paz_remove=paz, \
+            paz_simulate = None, remove_sensitivity=True, \
+            simulate_sensitivity = False, water_level = 600.0, \
+            zero_mean = True, taper = False, pre_filt=eval(BP_filter), \
+            seedresp=None, pitsasim=False, sacsim = True)
+        
+        trace.data *= 1.e9
+        
+        trace_identity = trace.stats['station'] + '.' + \
+                trace.stats['location'] + '.' + trace.stats['channel']
+        trace.write(os.path.join(Address, unit.lower() + '.' + \
+                                        trace_identity), format = 'SAC')
+        
+        if unit.lower() == 'dis':                                                                                                                                   
+            unit_print = 'displacement'                                                                                                                             
+        if unit.lower() == 'vel':                                                                                                                                   
+            unit_print = 'velocity'                                                                                                                                 
+        if unit.lower() == 'acc':                                                                                                                                   
+            unit_print = 'acceleration'                                                                                                                             
+
+        print inform + ' -- Instrument Correction to ' + unit_print + \
+                                            ' for: ' + trace_identity 
+        
+    except Exception, e:
+        print inform + ' -- ' + str(e)
+
 ###################### SAC_PAZ #########################################
 
 def SAC_PAZ(trace, paz_file, address, BH_file = 'BH', unit = 'DIS', \
@@ -2875,6 +3007,7 @@ def SAC_PAZ(trace, paz_file, address, BH_file = 'BH', unit = 'DIS', \
         'rtrend' + '\n' + \
         'taper' + '\n' + \
         'trans from polezero s %pzfile to ' + unit_sac + ' freqlim ' + freqlim + '\n' + \
+        'MUL 1.0e9' + '\n' + \
         'write ' + unit.lower() + '.' + trace_info[1] + '.' + trace_info[2] + \
                                             '.' + trace_info[3] + '\n' + \
         'quit\n'
@@ -2895,7 +3028,7 @@ def SAC_PAZ(trace, paz_file, address, BH_file = 'BH', unit = 'DIS', \
                                             
     except Exception, e:
         print inform + ' -- ' + str(e)
-
+"""
 ###################### obspy_PAZ #######################################
 
 def obspy_PAZ(trace, paz_dic, Address, unit = 'DIS', \
@@ -2929,7 +3062,7 @@ def obspy_PAZ(trace, paz_dic, Address, unit = 'DIS', \
         
     except Exception, e:
         print inform + ' -- ' + str(e)
-
+"""
 ###################### IRIS_ARC_merge ##################################
 
 def IRIS_ARC_merge(input, clients):
