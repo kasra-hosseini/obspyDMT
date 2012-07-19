@@ -10,9 +10,9 @@
 #-------------------------------------------------------------------
 
 #for debugging: import ipdb; ipdb.set_trace()
+
 '''
-COMMENTS:
-1. PAZ for ArcLink does not work properly yet
+Talk with Jo and Karin about the results
 '''
 
 #-----------------------------------------------------------------------
@@ -640,6 +640,14 @@ def command_parse():
     parser.add_option("--ic_no", action="store_true",
                         dest="ic_no", help=helpmsg)
     
+    helpmsg = "Parallel Instrument Correction. "
+    parser.add_option("--ic_parallel", action="store_true",
+                        dest="ic_parallel", help=helpmsg)
+    
+    helpmsg = "Number of processors to be used in --ic_parallel. [Default: 20]"
+    parser.add_option("--ic_np", action="store_true",
+                        dest="ic_np", help=helpmsg)
+    
     helpmsg = "Instrument Correction (full response), using obspy modules"
     parser.add_option("--ic_obspy_full", action="store",
                       dest="ic_obspy_full", help=helpmsg)
@@ -859,6 +867,9 @@ def read_input_command(parser, **kwargs):
                 
                 'iris_ic': 'N', 'iris_ic_auto': 'Y',
                 'arc_ic': 'N', 'arc_ic_auto': 'Y',
+                
+                'ic_np': 20,
+                
                 'ic_obspy_full': 'Y',
                 'pre_filt': '(0.008, 0.012, 3.0, 4.0)',
                 'corr_unit': 'DIS',
@@ -1152,6 +1163,11 @@ def read_input_command(parser, **kwargs):
     if input['ic_all'] != 'N':
         input['iris_ic'] = input['ic_all']
         input['arc_ic'] = input['ic_all']
+    
+    if options.ic_parallel: options.ic_parallel = 'Y'
+    input['ic_parallel'] = options.ic_parallel
+    
+    input['ic_np'] = options.ic_np
     
     input['ic_obspy_full'] = options.ic_obspy_full
     
@@ -2588,95 +2604,33 @@ def inst_correct(input, ls_saved_stas, address, clients):
     except Exception, e:
         pass
     
-    for i in range(0, len(ls_saved_stas)):
+    if input['ic_parallel'] == 'Y':
+        import pprocess
         
-        inform = clients + ' -- ' + str(i+1) + '/' + str(len(ls_saved_stas))
-        try:
-            
-            if input['ic_obspy_full'] == 'Y':
-                # Removing the trend
-                rt_c = RTR(stream = ls_saved_stas[i], degree = 2)
-                tr = read(ls_saved_stas[i])[0]
-                tr.data = rt_c
-                
-                # Tapering
-                taper = invsim.cosTaper(len(tr.data))
-                tr.data *= taper
-                
-                resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
-                                            ls_saved_stas[i].split('/')[-1])
-                
-                obspy_fullresp(trace = tr, resp_file = resp_file, \
-                    Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
-                    BP_filter = input['pre_filt'], inform = inform)
-                check_quit()
-            
-            if input['ic_sac_full'] == 'Y':
-                
-                resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
-                                            ls_saved_stas[i].split('/')[-1])
-            
-                SAC_fullresp(trace = ls_saved_stas[i], resp_file = resp_file, \
-                    address = address, BH_file = BH_file, unit = input['corr_unit'], \
-                    BP_filter = input['pre_filt'], inform = inform)
-                check_quit()
-            
-            if input['ic_paz'] == 'Y':
-                
-                rt_c = RTR(stream = ls_saved_stas[i], degree = 2)
-                tr = read(ls_saved_stas[i])[0]
-                tr.data = rt_c
-                
-                # Tapering
-                taper = invsim.cosTaper(len(tr.data))
-                tr.data *= taper
-                
-                resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
-                                            ls_saved_stas[i].split('/')[-1])
-            
-                obspy_PAZ(trace = tr, resp_file = resp_file, \
-                    Address = os.path.join(address, BH_file), \
-                    clients = clients, unit = input['corr_unit'], \
-                    BP_filter = input['pre_filt'], inform = inform)
-                check_quit()
-                
-                """
-                if clients == 'iris':
-                    paz_file = os.path.join(address, 'Resp', 'PAZ' + '.' + \
-                                    ls_saved_stas[i].split('/')[-1] + '.' + 'full')
-                
-                    SAC_PAZ(trace = ls_saved_stas[i], paz_file = paz_file, \
-                        address = address, BH_file = BH_file, unit = input['corr_unit'], \
-                        BP_filter = input['pre_filt'], inform = inform)
-                    check_quit()
-                
-                if clients == 'arc':
-                    
-                    rt_c = RTR(stream = ls_saved_stas[i], degree = 2)
-                    tr = read(ls_saved_stas[i])[0]
-                    tr.data = rt_c
-                    
-                    # Tapering
-                    taper = invsim.cosTaper(len(tr.data))
-                    tr.data *= taper
-                    
-                    paz_file_open = open(os.path.join(address, 'Resp', 'PAZ' + '.' + \
-                                    ls_saved_stas[i].split('/')[-1] + '.' + 'paz'))
-                    paz_file = pickle.load(paz_file_open)
-                    
-                    paz_dic = {\
-                    'poles': paz_file['poles'], \
-                    'zeros': paz_file['zeros'], \
-                    'gain': paz_file['gain']}
-                    
-                    obspy_PAZ(trace = tr, paz_dic = paz_dic, \
-                        Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
-                        BP_filter = input['pre_filt'], inform = inform)
-                    check_quit()
-                """
-        except Exception, e:
-            print e
+        print "##############################"
+        print "Parallel Instrument Correction"
+        print "##############################"
+        
+        parallel_results = pprocess.Map(limit=input['ic_np'], reuse=1)
+        parallel_job = parallel_results.manage(pprocess.MakeReusable(IC_core))
 
+        for i in range(0, len(ls_saved_stas)):
+            parallel_job(ls_saved_stas = ls_saved_stas[i], \
+                    clients = clients, address = address, \
+                    BH_file = BH_file, \
+                    inform = clients + ' -- ' + \
+                    str(i+1) + '/' + str(len(ls_saved_stas)))
+
+        parallel_results.finish()
+    
+    else:
+        for i in range(0, len(ls_saved_stas)):
+            IC_core(ls_saved_stas = ls_saved_stas[i], \
+                    clients = clients, address = address, \
+                    BH_file = BH_file, \
+                    inform = clients + ' -- ' + \
+                    str(i+1) + '/' + str(len(ls_saved_stas)))
+        
     # ---------Creating Tar files (Response files)
     if input['zip_w'] == 'Y':
                         
@@ -2711,6 +2665,98 @@ def inst_correct(input, ls_saved_stas, address, clients):
                     str(len(ls_saved_stas)) + ' stations:'
     print t_inst_2 - t_inst_1
     print '-----------------------------------------------'
+
+###################### IC_core #########################################
+
+def IC_core(ls_saved_stas, clients, address, BH_file, inform):
+    
+    global input
+    
+    try:
+        
+        if input['ic_obspy_full'] == 'Y':
+            # Removing the trend
+            rt_c = RTR(stream = ls_saved_stas, degree = 2)
+            tr = read(ls_saved_stas)[0]
+            tr.data = rt_c
+            
+            # Tapering
+            taper = invsim.cosTaper(len(tr.data))
+            tr.data *= taper
+            
+            resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
+                                        ls_saved_stas.split('/')[-1])
+            
+            obspy_fullresp(trace = tr, resp_file = resp_file, \
+                Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
+                BP_filter = input['pre_filt'], inform = inform)
+            check_quit()
+        
+        if input['ic_sac_full'] == 'Y':
+            
+            resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
+                                        ls_saved_stas.split('/')[-1])
+        
+            SAC_fullresp(trace = ls_saved_stas, resp_file = resp_file, \
+                address = address, BH_file = BH_file, unit = input['corr_unit'], \
+                BP_filter = input['pre_filt'], inform = inform)
+            check_quit()
+        
+        if input['ic_paz'] == 'Y':
+            
+            rt_c = RTR(stream = ls_saved_stas, degree = 2)
+            tr = read(ls_saved_stas)[0]
+            tr.data = rt_c
+            
+            # Tapering
+            taper = invsim.cosTaper(len(tr.data))
+            tr.data *= taper
+            
+            resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
+                                        ls_saved_stas.split('/')[-1])
+        
+            obspy_PAZ(trace = tr, resp_file = resp_file, \
+                Address = os.path.join(address, BH_file), \
+                clients = clients, unit = input['corr_unit'], \
+                BP_filter = input['pre_filt'], inform = inform)
+            check_quit()
+            
+            """
+            if clients == 'iris':
+                paz_file = os.path.join(address, 'Resp', 'PAZ' + '.' + \
+                                ls_saved_stas.split('/')[-1] + '.' + 'full')
+            
+                SAC_PAZ(trace = ls_saved_stas, paz_file = paz_file, \
+                    address = address, BH_file = BH_file, unit = input['corr_unit'], \
+                    BP_filter = input['pre_filt'], inform = inform)
+                check_quit()
+            
+            if clients == 'arc':
+                
+                rt_c = RTR(stream = ls_saved_stas, degree = 2)
+                tr = read(ls_saved_stas)[0]
+                tr.data = rt_c
+                
+                # Tapering
+                taper = invsim.cosTaper(len(tr.data))
+                tr.data *= taper
+                
+                paz_file_open = open(os.path.join(address, 'Resp', 'PAZ' + '.' + \
+                                ls_saved_stas.split('/')[-1] + '.' + 'paz'))
+                paz_file = pickle.load(paz_file_open)
+                
+                paz_dic = {\
+                'poles': paz_file['poles'], \
+                'zeros': paz_file['zeros'], \
+                'gain': paz_file['gain']}
+                
+                obspy_PAZ(trace = tr, paz_dic = paz_dic, \
+                    Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
+                    BP_filter = input['pre_filt'], inform = inform)
+                check_quit()
+            """
+    except Exception, e:
+        print e
 
 ###################### RTR #############################################
 
