@@ -11,10 +11,6 @@
 
 #for debugging: import ipdb; ipdb.set_trace()
 
-'''
-Talk with Jo and Karin about the results
-'''
-
 #-----------------------------------------------------------------------
 #----------------Import required Modules (Python and Obspy)-------------
 #-----------------------------------------------------------------------
@@ -177,7 +173,7 @@ def obspyDMT(**kwargs):
     bold = "\033[1m"
     reset = "\033[0;0m"
     print '\t\t' + bold + 'ObsPyDMT ' + reset + '(' + bold + 'ObsPy D' + \
-        reset + 'ata '+ bold + 'M' + reset + 'anagement' + bold + 'T' + \
+        reset + 'ata '+ bold + 'M' + reset + 'anagement ' + bold + 'T' + \
         reset + 'ool)' + reset + '\n'
     print '\t' + 'Automatic tool for Downloading, Processing and Management'
     print '\t\t\t' + 'of Large Seismic Datasets'
@@ -477,7 +473,7 @@ def command_parse():
                       dest="req_parallel", help=helpmsg)
     
     helpmsg = "Number of processors to be used in --req_parallel. [Default: 4]"
-    parser.add_option("--req_np", action="store_true",
+    parser.add_option("--req_np", action="store",
                         dest="req_np", help=helpmsg)
     
     helpmsg = "using the IRIS bulkdataselect Web service. Since this " + \
@@ -653,7 +649,7 @@ def command_parse():
                         dest="ic_parallel", help=helpmsg)
     
     helpmsg = "Number of processors to be used in --ic_parallel. [Default: 20]"
-    parser.add_option("--ic_np", action="store_true",
+    parser.add_option("--ic_np", action="store",
                         dest="ic_np", help=helpmsg)
     
     helpmsg = "Instrument Correction (full response), using obspy modules"
@@ -1107,7 +1103,7 @@ def read_input_command(parser, **kwargs):
     if options.req_parallel: options.req_parallel = 'Y'
     input['req_parallel'] = options.req_parallel
     
-    input['req_np'] = options.req_np
+    input['req_np'] = int(options.req_np)
     
     if options.iris_bulk: options.iris_bulk = 'Y'
     input['iris_bulk'] = options.iris_bulk
@@ -1182,7 +1178,7 @@ def read_input_command(parser, **kwargs):
     if options.ic_parallel: options.ic_parallel = 'Y'
     input['ic_parallel'] = options.ic_parallel
     
-    input['ic_np'] = options.ic_np
+    input['ic_np'] = int(options.ic_np)
     
     input['ic_obspy_full'] = options.ic_obspy_full
     
@@ -1685,6 +1681,11 @@ def events_info(request):
     global input
     
     if request == 'event-based':
+        
+        print '\n###############################'
+        print 'Start sending the event request'
+        print '###############################\n'
+        
         client_neries = Client_neries()
         
         events = client_neries.getEvents(min_datetime=input['min_date'], \
@@ -1699,6 +1700,11 @@ def events_info(request):
             events[i]['t2'] = events[i]['datetime'] + input['offset']
     
     elif request == 'continuous':
+        
+        print '\n###############################'
+        print 'Start identifying the intervals'
+        print '###############################\n'
+        
         m_date = UTCDateTime(input['min_date'])
         M_date = UTCDateTime(input['max_date'])
         
@@ -1929,9 +1935,10 @@ def IRIS_waveform(input, Sta_req, type):
         if input['req_parallel'] == 'Y':
             import pprocess
             
-            print "################"
+            print "###################"
             print "Parallel Request"
-            print "################"
+            print "Number of Nodes: " + str(input['req_np'])
+            print "###################"
             
             parallel_results = pprocess.Map(limit=input['req_np'], reuse=1)
             parallel_job = parallel_results.manage(pprocess.MakeReusable(IRIS_download_core))
@@ -2681,6 +2688,7 @@ def inst_correct(input, ls_saved_stas, address, clients):
         
         print "##############################"
         print "Parallel Instrument Correction"
+        print "Number of Nodes: " + str(input['ic_np'])
         print "##############################"
         
         parallel_results = pprocess.Map(limit=input['ic_np'], reuse=1)
@@ -3055,7 +3063,7 @@ def obspy_PAZ(trace, resp_file, Address, clients, unit = 'DIS', \
         trace.data = seisSim(data = trace.data, \
             samp_rate = trace.stats.sampling_rate,paz_remove=paz, \
             paz_simulate = None, remove_sensitivity=True, \
-            simulate_sensitivity = False, water_level = 600.0, \
+            simulate_sensitivity = False, water_level = 60.0, \
             zero_mean = True, taper = False, pre_filt=eval(BP_filter), \
             seedresp=None, pitsasim=False, sacsim = True)
         
@@ -3142,7 +3150,8 @@ def SAC_PAZ(trace, paz_file, address, BH_file = 'BH', unit = 'DIS', \
             unit_print = 'acceleration'                                                                                                                             
 
         print inform + ' -- Instrument Correction to ' + unit_print + \
-                        ' for: ' + trace_info[0] + '.' + trace_info[1] + '.' + trace_info[2] + '.' + trace_info[3] 
+                        ' for: ' + trace_info[0] + '.' + trace_info[1] + \
+                        '.' + trace_info[2] + '.' + trace_info[3] 
                                             
     except Exception, e:
         print inform + ' -- ' + str(e)
