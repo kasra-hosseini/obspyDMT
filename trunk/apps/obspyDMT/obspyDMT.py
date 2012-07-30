@@ -229,7 +229,7 @@ def obspyDMT(**kwargs):
     # ------------------IRIS--------------------------------------------
     if input['IRIS'] == 'Y':
         
-        print '********************************************************'
+        print '\n********************************************************'
         print 'IRIS -- Download waveforms, response files and meta-data'
         print '********************************************************'
         
@@ -248,7 +248,7 @@ def obspyDMT(**kwargs):
     # ------------------Arclink-----------------------------------------
     if input['ArcLink'] == 'Y':
             
-        print '********************************************************'
+        print '\n********************************************************'
         print 'ArcLink -- Download waveforms, response files and meta-data'
         print '********************************************************'
         
@@ -267,7 +267,7 @@ def obspyDMT(**kwargs):
     # ------------------IRIS-Updating-----------------------------------
     if input['iris_update'] != 'N':
         
-        print '*********************'
+        print '\n*********************'
         print 'IRIS -- Updating Mode'
         print '*********************'
         
@@ -286,7 +286,7 @@ def obspyDMT(**kwargs):
     # ------------------ArcLink-Updating--------------------------------
     if input['arc_update'] != 'N':
         
-        print '************************'
+        print '\n************************'
         print 'ArcLink -- Updating Mode'
         print '************************'
         
@@ -305,7 +305,7 @@ def obspyDMT(**kwargs):
     # ------------------IRIS-instrument---------------------------------
     if input['iris_ic'] != 'N' or input['iris_ic_auto'] == 'Y':
         
-        print '*****************************'
+        print '\n*****************************'
         print 'IRIS -- Instrument Correction'
         print '*****************************'
         
@@ -314,7 +314,7 @@ def obspyDMT(**kwargs):
     # ------------------Arclink-instrument------------------------------
     if input['arc_ic'] != 'N' or input['arc_ic_auto'] == 'Y':
             
-        print '********************************'
+        print '\n********************************'
         print 'ArcLink -- Instrument Correction'
         print '********************************'
                 
@@ -323,7 +323,7 @@ def obspyDMT(**kwargs):
     # ------------------IRIS-merge--------------------------------------    
     if input['iris_merge'] != 'N' or input['iris_merge_auto'] == 'Y':
         
-        print '*****************************'
+        print '\n*****************************'
         print 'IRIS -- Merging the waveforms'
         
         IRIS_ARC_merge(input, clients = 'iris')
@@ -331,7 +331,7 @@ def obspyDMT(**kwargs):
     # ------------------ArcLink-merge-----------------------------------    
     if input['arc_merge'] != 'N' or input['arc_merge_auto'] == 'Y':
         
-        print '********************************'
+        print '\n********************************'
         print 'ArcLink -- Merging the waveforms'
             
         IRIS_ARC_merge(input, clients = 'arc')
@@ -341,7 +341,7 @@ def obspyDMT(**kwargs):
                 'plot_dt']:
         if input[i] != 'N':
     
-            print '*********************'
+            print '\n*********************'
             print 'Start the PLOT module'
             print '*********************'
             
@@ -353,7 +353,7 @@ def obspyDMT(**kwargs):
     # ------------------Email-------------------------------------------    
     if input['email'] != 'N':
         
-        print '*********************************************'
+        print '\n*********************************************'
         print 'Sending email to the following email-address:'
         print input['email']
         print '*********************************************'
@@ -520,9 +520,13 @@ def command_parse():
                 "(stla and stlo), station elevation (stel), " + \
                 "station depth (stdp), event location (evla and evlo), " + \
                 "event depth (evdp) and event magnitude (mag) " + \
-                "will be stored in the SAC headers. [Default: MSEED] "
-    parser.add_option("--SAC", action="store_true",
+                "will be stored in the SAC headers. [Default: 'Y'] "
+    parser.add_option("--SAC", action="store",
                       dest="SAC", help=helpmsg)
+    
+    helpmsg = "MSEED format for saving the waveforms."
+    parser.add_option("--mseed", action="store_true",
+                      dest="mseed", help=helpmsg)
     
     helpmsg = "generate a data-time file for an IRIS request. " + \
                 "This file shows the required time for each request " + \
@@ -848,6 +852,8 @@ def read_input_command(parser, **kwargs):
                 'waveform': 'Y', 'response': 'Y',
                 'IRIS': 'Y', 'ArcLink': 'Y',
                 
+                'SAC': 'Y',
+                
                 'preset': 0.0, 'offset': 1800.0,
                 
                 'net': '*', 'sta': '*', 'loc': '*', 'cha': '*',
@@ -1112,8 +1118,9 @@ def read_input_command(parser, **kwargs):
     input['response'] = options.response
     if options.paz: options.paz = 'Y'
     input['paz'] = options.paz
-    if options.SAC: options.SAC = 'Y'
+    
     input['SAC'] = options.SAC
+    if options.mseed: input['SAC'] = 'N'
     
     input['IRIS'] = options.IRIS
     input['ArcLink'] = options.ArcLink
@@ -1236,9 +1243,9 @@ def read_input_command(parser, **kwargs):
         input['arc_merge_auto'] = 'N'
     else:
         input['iris_merge_auto'] = options.iris_merge_auto
-        input['merge_type'] = options.merge_type
         input['arc_merge_auto'] = options.arc_merge_auto
-    
+        input['merge_type'] = options.merge_type
+        
     for i in ['iris_update', 'arc_update', 'iris_ic', 'arc_ic', \
                 'iris_merge', 'arc_merge', 'plot_se', 'plot_sta', \
                 'plot_ev', 'plot_ray', 'plot_epi', 'plot_dt']:
@@ -1275,6 +1282,7 @@ def read_input_command(parser, **kwargs):
 def read_input_file():  
     
     """
+    #SHOULD BE CHANGED!
     Read inputs from INPUT.cfg file.
     
     This module will read the INPUT.cfg file which is 
@@ -1428,6 +1436,7 @@ def read_input_file():
 def nodes(input):
     
     """
+    #SHOULD BE CHANGED!
     Downloading in Parallel way
     Please change the 'INPUT-Periods' file for different requests
     Suggestion: 
@@ -1507,6 +1516,7 @@ def nodes(input):
 def INPUT_Periods_file(input):
     
     """
+    #SHOULD BE CHANGED!
     This module is mainly written for Parallel requests.
     Generates the INPUT-Periods file based on requested events.
     
@@ -1999,10 +2009,6 @@ def IRIS_waveform(input, Sta_req, type):
 ###################### IRIS_download_core ##################################
 
 def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, input):
-#def IRIS_download_core(args):
-    
-#    i = args[0]; j =  args[1]; dic =  args[2]; type = args[3]; len_events = args[4]
-#    events = args[5]; add_event = args[6]; Sta_req = args[7]; input = args[8]
 
     print '------------------'
     print type
@@ -2298,7 +2304,8 @@ def ARC_waveform(input, Sta_req, type):
             print "################"
             
             parallel_results = pprocess.Map(limit=input['req_np'], reuse=1)
-            parallel_job = parallel_results.manage(pprocess.MakeReusable(ARC_download_core))
+            parallel_job = \
+                parallel_results.manage(pprocess.MakeReusable(ARC_download_core))
 
             for j in range(0, len_req_arc):
                 parallel_job(i = i, j = j, dic = dic, type = type, \
@@ -2325,7 +2332,8 @@ def ARC_waveform(input, Sta_req, type):
                     ' and for event' + '-' + str(i) + ': ' + str(len(Sta_req[i])) + '\n'
         Report.writelines(rep)
         rep = 'ARC-' + type + ' stations for channel ' + \
-                input['cha'] + ' and for event' + '-' + str(i) + ':     ' + str(len(dic)) + '\n'
+                input['cha'] + ' and for event' + '-' + \
+                str(i) + ':     ' + str(len(dic)) + '\n'
         Report.writelines(rep)
         Report.writelines('----------------------------------' + '\n')
         
@@ -2634,14 +2642,22 @@ def IRIS_ARC_IC(input, clients):
     
     for i in range(0, len(events)):
         sta_ev = read_station_event(address_events[i])
+        ls_saved_stas_tmp = []
         ls_saved_stas = []
         
         for j in range(0, len(sta_ev[0])):
             if clients == sta_ev[0][j][13]:
                 station_id = sta_ev[0][j][0] + '.' + sta_ev[0][j][1] + '.' + \
                              sta_ev[0][j][2] + '.' + sta_ev[0][j][3]
-                ls_saved_stas.append(os.path.join(address_events[i], 'BH_RAW',\
+                ls_saved_stas_tmp.append(os.path.join(address_events[i], 'BH_RAW',\
                                         station_id))
+        
+        pattern_sta = input['net'] + '.' + input['sta'] + '.' + \
+                        input['loc'] + '.' + input['cha']
+        
+        for k in range(0, len(ls_saved_stas_tmp)):
+            if fnmatch.fnmatch(ls_saved_stas_tmp[k].split('/')[-1], pattern_sta):
+                ls_saved_stas.append(ls_saved_stas_tmp[k])
         
         if len(ls_saved_stas) != 0:        
             print 'event: ' + str(i+1) + '/' + str(len(events)) + \
@@ -2891,12 +2907,12 @@ def obspy_fullresp(trace, resp_file, Address, unit = 'DIS', \
         trace.write(os.path.join(Address, unit.lower() + '.' + \
                                         trace_identity), format = 'SAC')
         
-        if unit.lower() == 'dis':                                                                                                                                   
-            unit_print = 'displacement'                                                                                                                             
-        if unit.lower() == 'vel':                                                                                                                                   
-            unit_print = 'velocity'                                                                                                                                 
-        if unit.lower() == 'acc':                                                                                                                                   
-            unit_print = 'acceleration'                                                                                                                             
+        if unit.lower() == 'dis':
+            unit_print = 'displacement'
+        if unit.lower() == 'vel':
+            unit_print = 'velocity'
+        if unit.lower() == 'acc':
+            unit_print = 'acceleration'
 
         print inform + ' -- Instrument Correction to ' + unit_print + \
                                             ' for: ' + trace_identity 
@@ -2924,11 +2940,11 @@ def SAC_fullresp(trace, resp_file, address, BH_file = 'BH', unit = 'DIS', \
         
         trace_info = trace.split('/')[-1].split('.')
         
-        if unit.lower() == 'dis':                                                                                                                                   
-            unit_sac = 'NONE'                                                                                                                             
-        if unit.lower() == 'vel':                                                                                                                                   
-            unit_sac = 'VEL'                                                                                                                                 
-        if unit.lower() == 'acc':                                                                                                                                   
+        if unit.lower() == 'dis':
+            unit_sac = 'NONE'
+        if unit.lower() == 'vel':
+            unit_sac = 'VEL'
+        if unit.lower() == 'acc':
             unit_sac = 'ACC'
         
         BP_filter_tuple = eval(BP_filter)
@@ -2948,7 +2964,8 @@ def SAC_fullresp(trace, resp_file, address, BH_file = 'BH', unit = 'DIS', \
         'setbb resp ../Resp/' + resp_file.split('/')[-1] + '\n' + \
         'read ../BH_RAW/' + trace.split('/')[-1] + '\n' + \
         'rtrend' + '\n' + \
-        'taper' + '\n' + \
+        'taper type cosine' + '\n' + \
+        'rmean' + '\n' + \
         'trans from evalresp fname %resp to ' + unit_sac + ' freqlim ' + freqlim + '\n' + \
         'write ' + unit.lower() + '.' + trace_info[1] + '.' + trace_info[2] + \
                                             '.' + trace_info[3] + '\n' + \
@@ -2958,12 +2975,12 @@ def SAC_fullresp(trace, resp_file, address, BH_file = 'BH', unit = 'DIS', \
         print out[0]
         os.chdir(pwd)
                             
-        if unit.lower() == 'dis':                                                                                                                                   
-            unit_print = 'displacement'                                                                                                                             
-        if unit.lower() == 'vel':                                                                                                                                   
-            unit_print = 'velocity'                                                                                                                                 
-        if unit.lower() == 'acc':                                                                                                                                   
-            unit_print = 'acceleration'                                                                                                                             
+        if unit.lower() == 'dis':
+            unit_print = 'displacement'
+        if unit.lower() == 'vel':
+            unit_print = 'velocity'
+        if unit.lower() == 'acc':
+            unit_print = 'acceleration'
 
         print inform + ' -- Instrument Correction to ' + unit_print + \
                         ' for: ' + trace_info[0] + '.' + trace_info[1] + \
@@ -3036,11 +3053,11 @@ def readRESP(resp_file, unit, clients):
         zeros.append(complex(zeros_r, zeros_i))
             
             
-    if unit.lower() == 'dis':                                                                                                                                   
+    if unit.lower() == 'dis':
         zeros.append(0j)
-    #if unit.lower() == 'vel':                                                                                                                                   
+    #if unit.lower() == 'vel':
     #    zeros = [0j, 0j]
-    #if unit.lower() == 'acc':                                                                                                                                   
+    #if unit.lower() == 'acc':
     #    zeros = [0j]
     
     paz = {\
@@ -3063,7 +3080,7 @@ def obspy_PAZ(trace, resp_file, Address, clients, unit = 'DIS', \
         trace.data = seisSim(data = trace.data, \
             samp_rate = trace.stats.sampling_rate,paz_remove=paz, \
             paz_simulate = None, remove_sensitivity=True, \
-            simulate_sensitivity = False, water_level = 60.0, \
+            simulate_sensitivity = False, water_level = 600.0, \
             zero_mean = True, taper = False, pre_filt=eval(BP_filter), \
             seedresp=None, pitsasim=False, sacsim = True)
         
@@ -3074,12 +3091,12 @@ def obspy_PAZ(trace, resp_file, Address, clients, unit = 'DIS', \
         trace.write(os.path.join(Address, unit.lower() + '.' + \
                                         trace_identity), format = 'SAC')
         
-        if unit.lower() == 'dis':                                                                                                                                   
-            unit_print = 'displacement'                                                                                                                             
-        if unit.lower() == 'vel':                                                                                                                                   
-            unit_print = 'velocity'                                                                                                                                 
-        if unit.lower() == 'acc':                                                                                                                                   
-            unit_print = 'acceleration'                                                                                                                             
+        if unit.lower() == 'dis':
+            unit_print = 'displacement'
+        if unit.lower() == 'vel':
+            unit_print = 'velocity'
+        if unit.lower() == 'acc':
+            unit_print = 'acceleration'
 
         print inform + ' -- Instrument Correction to ' + unit_print + \
                                             ' for: ' + trace_identity 
@@ -3107,11 +3124,11 @@ def SAC_PAZ(trace, paz_file, address, BH_file = 'BH', unit = 'DIS', \
         
         trace_info = trace.split('/')[-1].split('.')
         
-        if unit.lower() == 'dis':                                                                                                                                   
-            unit_sac = 'NONE'                                                                                                                             
-        if unit.lower() == 'vel':                                                                                                                                   
-            unit_sac = 'VEL'                                                                                                                                 
-        if unit.lower() == 'acc':                                                                                                                                   
+        if unit.lower() == 'dis':
+            unit_sac = 'NONE'
+        if unit.lower() == 'vel':
+            unit_sac = 'VEL'
+        if unit.lower() == 'acc':
             unit_sac = 'ACC'
         
         BP_filter_tuple = eval(BP_filter)
@@ -3131,7 +3148,8 @@ def SAC_PAZ(trace, paz_file, address, BH_file = 'BH', unit = 'DIS', \
         'setbb pzfile ../Resp/' + paz_file.split('/')[-1] + '\n' + \
         'read ../BH_RAW/' + trace.split('/')[-1] + '\n' + \
         'rtrend' + '\n' + \
-        'taper' + '\n' + \
+        'taper type cosine' + '\n' + \
+        'rmean' + '\n' + \
         'trans from polezero s %pzfile to ' + unit_sac + ' freqlim ' + freqlim + '\n' + \
         'MUL 1.0e9' + '\n' + \
         'write ' + unit.lower() + '.' + trace_info[1] + '.' + trace_info[2] + \
@@ -3142,12 +3160,12 @@ def SAC_PAZ(trace, paz_file, address, BH_file = 'BH', unit = 'DIS', \
         print out[0]
         os.chdir(pwd)
                             
-        if unit.lower() == 'dis':                                                                                                                                   
-            unit_print = 'displacement'                                                                                                                             
-        if unit.lower() == 'vel':                                                                                                                                   
-            unit_print = 'velocity'                                                                                                                                 
-        if unit.lower() == 'acc':                                                                                                                                   
-            unit_print = 'acceleration'                                                                                                                             
+        if unit.lower() == 'dis':
+            unit_print = 'displacement'
+        if unit.lower() == 'vel':
+            unit_print = 'velocity'
+        if unit.lower() == 'acc':
+            unit_print = 'acceleration'
 
         print inform + ' -- Instrument Correction to ' + unit_print + \
                         ' for: ' + trace_info[0] + '.' + trace_info[1] + \
@@ -3177,12 +3195,12 @@ def obspy_PAZ(trace, paz_dic, Address, unit = 'DIS', \
         trace.write(os.path.join(Address, unit.lower() + '.' + \
                                         trace_identity), format = 'SAC')
         
-        if unit.lower() == 'dis':                                                                                                                                   
-            unit_print = 'displacement'                                                                                                                             
-        if unit.lower() == 'vel':                                                                                                                                   
-            unit_print = 'velocity'                                                                                                                                 
-        if unit.lower() == 'acc':                                                                                                                                   
-            unit_print = 'acceleration'                                                                                                                             
+        if unit.lower() == 'dis':
+            unit_print = 'displacement'
+        if unit.lower() == 'vel':
+            unit_print = 'velocity'
+        if unit.lower() == 'acc':
+            unit_print = 'acceleration'
 
         print inform + ' -- Instrument Correction to ' + unit_print + \
                                             ' for: ' + trace_identity 
@@ -3210,7 +3228,9 @@ def IRIS_ARC_merge(input, clients):
         
     events, address_events = quake_info(address, 'info')
     
+    ls_saved_stas_tmp = []
     ls_saved_stas = []
+    
     for i in range(0, len(events)):
         sta_ev = read_station_event(address_events[i])
         for j in range(0, len(sta_ev[0])):
@@ -3236,8 +3256,15 @@ def IRIS_ARC_merge(input, clients):
                         
                 station_id = network + '.' + sta_ev[0][j][1] + '.' + \
                              sta_ev[0][j][2] + '.' + sta_ev[0][j][3]
-                ls_saved_stas.append(os.path.join(address_events[i], BH_file,\
+                ls_saved_stas_tmp.append(os.path.join(address_events[i], BH_file,\
                                         station_id))
+    
+    pattern_sta = input['net'] + '.' + input['sta'] + '.' + \
+                    input['loc'] + '.' + input['cha']
+    
+    for k in range(0, len(ls_saved_stas_tmp)):
+        if fnmatch.fnmatch(ls_saved_stas_tmp[k].split('/')[-1], pattern_sta):
+            ls_saved_stas.append(ls_saved_stas_tmp[k])
     
     if len(ls_saved_stas) != 0:
         ls_saved_stations = []
@@ -3305,29 +3332,31 @@ def PLOT(input, clients):
     ls_saved_stas = []
     ls_add_stas = []
     
-    for i in range(0, len(events)):
-        
-        ls_saved_stas_tmp = []
-        ls_add_stas_tmp = []
-        sta_ev = read_station_event(address_events[i])
-        
-        for j in range(0, len(sta_ev[0])):
-            
-            if input['plot_type'] == 'raw':
-                BH_file = 'BH_RAW'
-                network = sta_ev[0][j][0]
-            elif input['plot_type'] == 'corrected':
-                if input['corr_unit'] == 'DIS':
-                    BH_file = 'BH'
-                    network = 'dis'
-                elif input['corr_unit'] == 'VEL':
-                    BH_file = 'BH_' + input['corr_unit']
-                    network = 'vel'
-                elif input['corr_unit'] == 'ACC':
-                    BH_file = 'BH_' + input['corr_unit']
-                    network = 'acc'
+    for k in ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray', 'plot_epi']:
+        if input[k] != 'N':
+            for i in range(0, len(events)):
+                
+                ls_saved_stas_tmp = []
+                ls_add_stas_tmp = []
+                sta_ev = read_station_event(address_events[i])
+                
+                for j in range(0, len(sta_ev[0])):
                     
-            station_id = network + ',' + sta_ev[0][j][1] + ',' + \
+                    if input['plot_type'] == 'raw':
+                        BH_file = 'BH_RAW'
+                        network = sta_ev[0][j][0]
+                    elif input['plot_type'] == 'corrected':
+                        if input['corr_unit'] == 'DIS':
+                            BH_file = 'BH'
+                            network = 'dis'
+                        elif input['corr_unit'] == 'VEL':
+                            BH_file = 'BH_' + input['corr_unit']
+                            network = 'vel'
+                        elif input['corr_unit'] == 'ACC':
+                            BH_file = 'BH_' + input['corr_unit']
+                            network = 'acc'
+                            
+                    station_id = network + ',' + sta_ev[0][j][1] + ',' + \
                          sta_ev[0][j][2] + ',' + sta_ev[0][j][3] + ',' + \
                          sta_ev[0][j][4] + ',' + sta_ev[0][j][5] + ',' + \
                          sta_ev[0][j][6] + ',' + sta_ev[0][j][7] + ',' + \
@@ -3335,29 +3364,31 @@ def PLOT(input, clients):
                          sta_ev[0][j][10] + ',' + sta_ev[0][j][11] + ',' + \
                          sta_ev[0][j][12] + ',' + sta_ev[0][j][13]
 
-            if input['plot_all'] != 'Y':
-                if clients == sta_ev[0][j][13]:
-                    ls_saved_stas_tmp.append(station_id)
-                    ls_add_stas_tmp.append(os.path.join(address_events[i], \
-                                            BH_file, network + '.' + \
-                                            sta_ev[0][j][1] + '.' + \
-                                            sta_ev[0][j][2] + '.' + \
-                                            sta_ev[0][j][3]))
-            elif input['plot_all'] == 'Y':
-                ls_saved_stas_tmp.append(station_id)
-                ls_add_stas_tmp.append(os.path.join(address_events[i], \
-                                            BH_file, network + '.' + \
-                                            sta_ev[0][j][1] + '.' + \
-                                            sta_ev[0][j][2] + '.' + \
-                                            sta_ev[0][j][3]))
-        
-        ls_saved_stas.append(ls_saved_stas_tmp)
-        ls_add_stas.append(ls_add_stas_tmp)
-    
-    for i in range(0, len(ls_saved_stas)):
-        for j in range(0, len(ls_saved_stas[i])):
-            ls_saved_stas[i][j] = ls_saved_stas[i][j].split(',')
-    
+                    if input['plot_all'] != 'Y':
+                        if clients == sta_ev[0][j][13]:
+                            ls_saved_stas_tmp.append(station_id)
+                            ls_add_stas_tmp.append(\
+                                        os.path.join(address_events[i], \
+                                        BH_file, network + '.' + \
+                                        sta_ev[0][j][1] + '.' + \
+                                        sta_ev[0][j][2] + '.' + \
+                                        sta_ev[0][j][3]))
+                    elif input['plot_all'] == 'Y':
+                        ls_saved_stas_tmp.append(station_id)
+                        ls_add_stas_tmp.append(\
+                                os.path.join(address_events[i], \
+                                BH_file, network + '.' + \
+                                sta_ev[0][j][1] + '.' + \
+                                sta_ev[0][j][2] + '.' + \
+                                sta_ev[0][j][3]))
+                
+                ls_saved_stas.append(ls_saved_stas_tmp)
+                ls_add_stas.append(ls_add_stas_tmp)
+            
+            for i in range(0, len(ls_saved_stas)):
+                for j in range(0, len(ls_saved_stas[i])):
+                    ls_saved_stas[i][j] = ls_saved_stas[i][j].split(',')
+            
     for i in ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray']:
         if input[i] != 'N':
             plot_se_ray(input, ls_saved_stas)
@@ -3499,6 +3530,7 @@ def plot_dt(input, address_events):
                 time_single = 0
                 succ = 0; fail = 0
                 MB_all = []; time_all = []
+                
                 for k in range(0, len(dt_read)):
 
                     time_single += eval(dt_read[k][4]) + eval(dt_read[k][5])/1.e6
@@ -3632,7 +3664,7 @@ def create_foders_files(events, eventpath):
         quake_file.writelines(repr(events[i]['datetime'].hour).rjust(15)\
                 + repr(events[i]['datetime'].minute).rjust(15) + \
                 repr(events[i]['datetime'].second).rjust(15) + \
-                repr(800).rjust(15) + '\n')
+                repr(events[i]['datetime'].microsecond).rjust(15) + '\n')
         
         quake_file.writelines(\
                 ' '*(15 - len('%.5f' % events[i]['latitude'])) + '%.5f' \
@@ -3656,7 +3688,7 @@ def create_foders_files(events, eventpath):
         quake_file.writelines(repr(events[i]['t1'].hour).rjust(15)\
                 + repr(events[i]['t1'].minute).rjust(15) + \
                 repr(events[i]['t1'].second).rjust(15) + \
-                repr(800).rjust(15) + '\n')
+                repr(events[i]['t1'].microsecond).rjust(15) + '\n')
         
         quake_file.writelines(repr(events[i]['t2'].year).rjust(15)\
                 + repr(events[i]['t2'].julday).rjust(15) \
@@ -3665,7 +3697,7 @@ def create_foders_files(events, eventpath):
         quake_file.writelines(repr(events[i]['t2'].hour).rjust(15)\
                 + repr(events[i]['t2'].minute).rjust(15) + \
                 repr(events[i]['t2'].second).rjust(15) + \
-                repr(800).rjust(15) + '\n')
+                repr(events[i]['t2'].microsecond).rjust(15) + '\n')
 
 ###################### writesac ########################################
 
