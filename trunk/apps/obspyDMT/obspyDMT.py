@@ -11,6 +11,11 @@
 
 #for debugging: import ipdb; ipdb.set_trace()
 
+'''
+Parallel Processing info! (should be completed)
+It is almost done, but you should read and plot it!
+'''
+
 #-----------------------------------------------------------------------
 #----------------Import required Modules (Python and Obspy)-------------
 #-----------------------------------------------------------------------
@@ -1250,6 +1255,7 @@ def read_input_command(parser, **kwargs):
                 'iris_merge', 'arc_merge', 'plot_se', 'plot_sta', \
                 'plot_ev', 'plot_ray', 'plot_epi', 'plot_dt']:
         if input[i] != 'N':
+	    input['datapath'] = input[i]
             input['get_events'] = 'N'
             input['get_continuous'] = 'N'
             input['IRIS'] = 'N'
@@ -2001,7 +2007,19 @@ def IRIS_waveform(input, Sta_req, type):
         Report.writelines(rep)
         Report.writelines('----------------------------------' + '\n')
         Report.close()
-    
+        
+        if input['req_parallel'] == 'Y':
+            report_parallel_open = open(os.path.join(add_event[i], \
+                                        'info', 'report_parallel'), 'a')
+            report_parallel_open.writelines(\
+                '---------------IRIS---------------' + '\n')
+            report_parallel_open.writelines(\
+                'Request' + '\n')
+            report_parallel_open.writelines(\
+                'Number of Nodes: ' + str(input['req_np']) + '\n')
+            report_parallel_open.writelines(\
+                'Total Time     : ' + str(t_wave) + '\n')
+                
     print "------------"
     print 'IRIS is DONE'
     print "------------"
@@ -2344,7 +2362,19 @@ def ARC_waveform(input, Sta_req, type):
         Report.writelines(rep)
         Report.writelines('----------------------------------' + '\n')
         Report.close()
-
+        
+        if input['req_parallel'] == 'Y':
+            report_parallel_open = open(os.path.join(add_event[i], \
+                                        'info', 'report_parallel'), 'a')
+            report_parallel_open.writelines(\
+                '---------------ARC---------------' + '\n')
+            report_parallel_open.writelines(\
+                'Request' + '\n')
+            report_parallel_open.writelines(\
+                'Number of Nodes: ' + str(input['req_np']) + '\n')
+            report_parallel_open.writelines(\
+                'Total Time     : ' + str(t_wave) + '\n')
+        
     print "---------------"
     print 'ArcLink is DONE'
     print "---------------"
@@ -2726,7 +2756,7 @@ def inst_correct(input, ls_saved_stas, address, clients):
                     BH_file = BH_file, \
                     inform = clients + ' -- ' + \
                     str(i+1) + '/' + str(len(ls_saved_stas)))
-        
+    
     # ---------Creating Tar files (Response files)
     if input['zip_w'] == 'Y':
                         
@@ -2755,6 +2785,20 @@ def inst_correct(input, ls_saved_stas, address, clients):
         
     
     t_inst_2 = datetime.now()
+    
+    if input['ic_parallel'] == 'Y':
+        report_parallel_open = open(os.path.join(address, \
+                                    'info', 'report_parallel'), 'a')
+        report_parallel_open.writelines(\
+            '---------------' + clients.upper() + '---------------' + '\n')
+        report_parallel_open.writelines(\
+            'Instrument Correction' + '\n')
+        report_parallel_open.writelines(\
+            'Number of Nodes: ' + str(input['ic_np']) + '\n')
+        report_parallel_open.writelines(\
+            'Number of Stas : ' + str(len(ls_saved_stas)) + '\n')
+        report_parallel_open.writelines(\
+            'Total Time     : ' + str(t_inst_2 - t_inst_1) + '\n')
     
     print '-----------------------------------------------'
     print 'Time for Instrument Correction of ' + \
@@ -2799,6 +2843,15 @@ def IC_core(ls_saved_stas, clients, address, BH_file, inform):
             check_quit()
         
         if input['ic_paz'] == 'Y':
+            """
+            paz_file = os.path.join(address, 'Resp', 'PAZ' + '.' + \
+                                ls_saved_stas.split('/')[-1] + '.' + 'full')
+            
+            SAC_PAZ(trace = ls_saved_stas, paz_file = paz_file, \
+                address = address, BH_file = BH_file, unit = input['corr_unit'], \
+                BP_filter = input['pre_filt'], inform = inform)
+            """
+            
             
             rt_c = RTR(stream = ls_saved_stas, degree = 2)
             tr = read(ls_saved_stas)[0]
@@ -2964,7 +3017,7 @@ def SAC_fullresp(trace, resp_file, address, BH_file = 'BH', unit = 'DIS', \
         'setbb resp ../Resp/' + resp_file.split('/')[-1] + '\n' + \
         'read ../BH_RAW/' + trace.split('/')[-1] + '\n' + \
         'rtrend' + '\n' + \
-        'taper type cosine' + '\n' + \
+        'taper' + '\n' + \
         'rmean' + '\n' + \
         'trans from evalresp fname %resp to ' + unit_sac + ' freqlim ' + freqlim + '\n' + \
         'write ' + unit.lower() + '.' + trace_info[1] + '.' + trace_info[2] + \
@@ -3003,7 +3056,8 @@ def readRESP(resp_file, unit, clients):
     poles = []
     zeros = []
     zeros_num = []
-    if clients == 'iris':
+    #if clients == 'iris':
+    if resp_read[0].find('obspy.xseed') == -1:
         for i in range(0, len(resp_read)):
             if resp_read[i].find('B058F04') != -1:  
                 gain_num.append(i)
@@ -3014,7 +3068,8 @@ def readRESP(resp_file, unit, clients):
             if resp_read[i].find('B053F15-18') != -1:  
                 poles_num.append(i)
                 
-    elif clients == 'arc':
+    #elif clients == 'arc':
+    elif resp_read[0].find('obspy.xseed') != -1:
         for i in range(0, len(resp_read)):
             if resp_read[i].find('B058F04') != -1:  
                 gain_num.append(i)
@@ -3066,6 +3121,9 @@ def readRESP(resp_file, unit, clients):
     'gain': A0,
     'sensitivity': sensitivity\
     }
+    
+    #print paz
+    
     return paz
 
 ###################### obspy_PAZ #######################################
@@ -3148,7 +3206,7 @@ def SAC_PAZ(trace, paz_file, address, BH_file = 'BH', unit = 'DIS', \
         'setbb pzfile ../Resp/' + paz_file.split('/')[-1] + '\n' + \
         'read ../BH_RAW/' + trace.split('/')[-1] + '\n' + \
         'rtrend' + '\n' + \
-        'taper type cosine' + '\n' + \
+        'taper' + '\n' + \
         'rmean' + '\n' + \
         'trans from polezero s %pzfile to ' + unit_sac + ' freqlim ' + freqlim + '\n' + \
         'MUL 1.0e9' + '\n' + \
@@ -3546,7 +3604,10 @@ def plot_dt(input, address_events):
                         plt.scatter(time_single, MB_single, s = 1, \
                                     c = 'r', edgecolors = 'r', marker = 'o')
                         fail += 1
-                
+                """
+                if input['req_parallel'] == 'Y':
+                    rep_par_open = open(os.path.join(address_events[i], 'info', report_parallel))
+                """
                 time_array = np.array(time_all)
                 MB_array = np.array(MB_all)
                 

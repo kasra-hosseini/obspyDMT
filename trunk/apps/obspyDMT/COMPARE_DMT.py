@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------
-#   Filename:  TF_DMT.py
-#   Purpose:   ObsPyDMT Time Frequency Plot
+#   Filename:  COMPARE_DMT.py
+#   Purpose:   ObsPyDMT Instrument Correction Analyser
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -28,18 +28,19 @@ from optparse import OptionParser
 import numpy as np
 import matplotlib.pyplot as plt
 
-from obspy.core import read
-from obspy.signal import cross_correlation
+from obspy.core import read, UTCDateTime
+from obspy.signal import cross_correlation, pazToFreqResp, invsim
 
 
 ########################################################################
 ############################# Main Program #############################
 ########################################################################
 
-def TF_DMT(**kwargs):
+def COMPARE_DMT(**kwargs):
     
     """
-    TF_DMT: is the function dedicated to the main part of the code.
+    COMPARE_DMT: is the function dedicated to the main part of the code.
+    For more information about each part, please refer to the relevant function
     """
     
     # global variables
@@ -87,13 +88,17 @@ def command_parse():
     # given with dest="var"
     # * you need to provide every possible option here.
 
-    helpmsg = "the path where TF_DMT will read the FIRST dataset"
+    helpmsg = "the path where COMPARE_DMT will read the FIRST dataset"
     parser.add_option("--first_path", action="store",
                       dest="first_path", help=helpmsg)
     
-    helpmsg = "the path where TF_DMT will read the SECOND dataset"
+    helpmsg = "the path where COMPARE_DMT will read the SECOND dataset"
     parser.add_option("--second_path", action="store",
                       dest="second_path", help=helpmsg)
+    
+    helpmsg = "unit (DIS, VEL and ACC) of the corrected seismograms. [Default: DIS]"
+    parser.add_option("--corr_unit", action="store", dest="corr_unit",
+                        help=helpmsg)
     
     helpmsg = "identity code restriction, syntax: net.sta.loc.cha " + \
                 "(eg: TA.*.*.BHZ to search for all BHZ channels in " + \
@@ -167,6 +172,7 @@ def read_input_command(parser, **kwargs):
     input = {   'first_path': None,
                 'second_path': None,
                 
+                'corr_unit': 'dis',
                 'net': '*', 'sta': '*', 'loc': '*', 'cha': '*',
                 
                 'cc_np': 4,
@@ -195,7 +201,9 @@ def read_input_command(parser, **kwargs):
         if not os.path.isabs(options.second_path):
             options.second_path = os.path.join(os.getcwd(), options.second_path)
             
-            
+    
+    input['corr_unit'] = options.corr_unit.lower()
+    
     # Extract network, station, location, channel if the user has given an
     # identity code (-i xx.xx.xx.xx)
     if options.identity:
@@ -245,51 +253,102 @@ def single_comparison():
     
     global input
     
+    # identity of the waveforms (first and second paths) to be compared with each other
     identity_all = input['net'] + '.' + input['sta'] + '.' + \
                     input['loc'] + '.' + input['cha']
     ls_first = glob.glob(os.path.join(input['first_path'], identity_all))
     ls_second = glob.glob(os.path.join(input['second_path'], identity_all))
     
-    
     for i in range(0, len(ls_first)):
         try:
             
             tr1 = read(ls_first[i])[0]
+            
+            # identity of the current waveform
             identity = tr1.stats.network + '.' + tr1.stats.station + '.' + \
                         tr1.stats.location + '.' + tr1.stats.channel
             
+            # tr1: first path, tr2: second path, tr3: Raw data
+            tr3 = read(os.path.join(input['first_path'], '..', 'BH_RAW', identity))[0]
+            
+            response_file = os.path.join(input['first_path'], '..', 'Resp/RESP.' + identity)
+            
+            # Extract the PAZ info from response file
+            paz = readRESP(response_file, unit = input['corr_unit'])
+            
+            poles = paz['poles']
+            zeros = paz['zeros']
+            scale_fac = paz['gain']
+            sensitivity = paz['sensitivity']
+            
+            # Convert Poles and Zeros (PAZ) to frequency response.
+            h, f = pazToFreqResp(poles, zeros, scale_fac, \
+                            1./tr1.stats.sampling_rate, 16384, freq=True)
+            # Use the evalresp library to extract 
+            # instrument response information from a SEED RESP-file.
+            resp = invsim.evalresp(t_samp = 1./tr1.stats.sampling_rate, \
+                    nfft = 16384, filename = response_file, \
+                    date = tr1.stats.starttime, units = input['corr_unit'].upper())
+            
+            # Keep the current identity in a new variable
             id_name = identity
             
             try:
                 tr2 = read(os.path.join(input['second_path'], identity))[0]
             except Exception, error:
-                #print error
-                identity = 'dis' + '.' + tr1.stats.station + '.' + \
+                # if it is not possible to read the identity in the second path
+                # then change the network part of the identity based on
+                # correction unit
+                identity = input['corr_unit'] + '.' + tr1.stats.station + '.' + \
                         tr1.stats.location + '.' + tr1.stats.channel
                 tr2 = read(os.path.join(input['second_path'], identity))[0]
             
-            plt.clf()
-            
+            # create time arrays for tr1, tr2 and tr3
             time_tr1 = np.arange(0, tr1.stats.npts/tr1.stats.sampling_rate, \
                                                 1./tr1.stats.sampling_rate)
             time_tr2 = np.arange(0, tr2.stats.npts/tr2.stats.sampling_rate, \
                                                 1./tr2.stats.sampling_rate)
-            
+            time_tr3 = np.arange(0, tr3.stats.npts/tr3.stats.sampling_rate, \
+                                                1./tr3.stats.sampling_rate)
+
+            # label for plotting
             label_tr1 = ls_first[i].split('/')[-2]
             label_tr2 = ls_second[i].split('/')[-2]
+            label_tr3 = 'RAW'
             
-            plt.plot(time_tr1, tr1.data, color = 'blue', label = label_tr1)
-            plt.plot(time_tr2, tr2.data, color = 'red', label = label_tr2)
+            # normalization of all three waveforms to the 
+            # max(max(tr1), max(tr2), max(tr3)) to keep the scales
+            maxi = max(abs(tr1.data).max(), abs(tr2.data).max(), abs(tr3.data).max())
+            tr1_data = tr1.data/abs(maxi)
+            tr2_data = tr2.data/abs(maxi)
+            tr3_data = tr3.data/abs(maxi)
+            
+            # start plotting
+            plt.figure()
+            plt.subplot(311)
+            
+            plt.plot(time_tr1, tr1_data, color = 'blue', label = label_tr1)
+            plt.plot(time_tr2, tr2_data, color = 'red', label = label_tr2)
+            plt.plot(time_tr3, tr3_data, color = 'black', ls = '--', label = label_tr3)
 
             plt.xlabel('Time (sec)', fontsize = 'large', weight = 'bold')
-            plt.ylabel('Displacement (nm)', fontsize = 'large', weight = 'bold')
             
+            if input['corr_unit'] == 'dis':
+                ylabel_str = 'Displacement (nm)'
+            elif input['corr_unit'] == 'vel':
+                ylabel_str = 'Velocity'
+            elif input['corr_unit'] == 'acc':
+                ylabel_str = 'Acceleration'
+            
+            plt.ylabel(ylabel_str, fontsize = 'large', weight = 'bold')
             
             plt.xticks(fontsize = 'large')
             plt.yticks(fontsize = 'large')
             
             plt.legend()
             
+            #-------------------Cross Correlation
+            # 5 seconds as total length of samples to shift for cross correlation.
             cc_np = tr1.stats.sampling_rate * 5
             
             np_shift, coeff = cross_correlation.xcorr(tr1, tr2, int(cc_np))
@@ -304,16 +363,87 @@ def single_comparison():
                         ' sec , coeff: ' + str(round(coeff, 5)) + \
                         '\n' + id_name, \
                         fontsize = 'large', weight = 'bold')
+            
+            # -----------------------
+            plt.subplot(323)
+            
+            plt.plot(np.log10(f), np.log10(abs(resp)), \
+                                        color = 'blue', label = 'RESP')
+            plt.plot(np.log10(f), np.log10(abs(h) * sensitivity), \
+                                        color = 'red', label = 'PAZ')
+            
+            #for j in [0.008, 0.012, 0.025, 0.5, 1, 2, 3, 4]:
+            for j in [0.5]:
+                plt.axvline(np.log10(j), linestyle = '--')
+
+            plt.xlabel('Frequency [Hz] -- power of 10')
+            plt.ylabel('Amplitude -- power of 10')
+
+            plt.legend()
+            
+            # -----------------------
+            plt.subplot(324)
+            #take negative of imaginary part
+            phase_paz = np.unwrap(np.arctan2(h.imag, h.real))
+            phase_resp = np.unwrap(np.arctan2(resp.imag, resp.real))
+            plt.plot(np.log10(f), phase_resp, color = 'blue', label = 'RESP')
+            plt.plot(np.log10(f), phase_paz, color = 'red', label = 'PAZ')
+            
+            #for j in [0.008, 0.012, 0.025, 0.5, 1, 2, 3, 4]:
+            for j in [0.5]:
+                plt.axvline(np.log10(j), linestyle = '--')
+
+            plt.xlabel('Frequency [Hz] -- power of 10')
+            plt.ylabel('Phase [radian]')
+
+            plt.legend()
+
+            # title, centered above both subplots
+            # make more room in between subplots for the ylabel of right plot
+            plt.subplots_adjust(wspace=0.3)
+            
+            # -----------------------
+            plt.subplot(325)
+            
+            plt.plot(np.log10(f), abs(resp) - abs(h) * 1.e9, \
+                                    color = 'black', label = 'RESP - PAZ')
+
+            for j in [0.008, 0.012, 0.025, 0.5, 1, 2, 3, 4]:
+                plt.axvline(np.log10(j), linestyle = '--')
+
+            plt.xlabel('Frequency [Hz] -- power of 10')
+            plt.ylabel('Amplitude')
+
+            plt.legend()
+            
+            # -----------------------
+            plt.subplot(326)
+            #take negative of imaginary part
+            phase_paz = np.unwrap(np.arctan2(h.imag, h.real))
+            phase_resp = np.unwrap(np.arctan2(resp.imag, resp.real))
+            plt.plot(np.log10(f), phase_resp - phase_paz, \
+                                    color = 'black', label = 'RESP - PAZ')
+
+            for j in [0.008, 0.012, 0.025, 0.5, 1, 2, 3, 4]:
+                plt.axvline(np.log10(j), linestyle = '--')
+
+            plt.xlabel('Frequency [Hz] -- power of 10')
+            plt.ylabel('Phase [radian]')
+
+            plt.legend()
+
+            # title, centered above both subplots
+            # make more room in between subplots for the ylabel of right plot
+            plt.subplots_adjust(wspace=0.3)
             plt.show()
             
+            
             print str(i+1) + '/' + str(len(ls_first))
-            wait = raw_input(identity)
-            
-            plt.close()
-            
             print ls_first[i]
             print '------------------'
-        
+            wait = raw_input(id_name)
+            print '***************************'
+            
         except Exception, error:
             print '##################'
             print error
@@ -328,7 +458,7 @@ def cross_corr(max_ts = 5.):
     create a 'cc.txt' file for the waveforms in the first path and 
     the second path by measuring the cross correlation coefficient and
     the time shift.
-    'cc.txt' is located in the same folder as TF_DMT.py
+    'cc.txt' is located in the same folder as COMPARE_DMT.py
     """
     
     global input
@@ -358,11 +488,13 @@ def cross_corr(max_ts = 5.):
             print '"cc.txt" is removed'
         print '----------------------------------------------------'
     
+    # open the cc.txt file that exists in the directory OR create a new one
     cc_open = open('./cc.txt', 'a')
     cc_open.writelines(str(len(ls_first)) + ',\n')
     cc_open.close()
     
     if input['cc_parallel'] == 'Y':
+        # Parallel Cross Correlation
         import pprocess
         
         print "###################"
@@ -370,6 +502,7 @@ def cross_corr(max_ts = 5.):
         print "Number of Nodes: " + str(input['cc_np'])
         print "###################"
         
+        # using pprocess.Map to define the parallel job
         parallel_results = pprocess.Map(limit=input['cc_np'], reuse=1)
         parallel_job = parallel_results.manage(pprocess.MakeReusable(cc_core))
         
@@ -396,6 +529,8 @@ def cc_core(ls_first, ls_second, identity_all, max_ts, print_sta):
     the cc.txt file
     """
     
+    global input
+    
     try:
         
         cc_open = open('./cc.txt', 'a')
@@ -410,15 +545,35 @@ def cc_core(ls_first, ls_second, identity_all, max_ts, print_sta):
             tr2 = read(os.path.join(input['second_path'], identity))[0]
         except Exception, error:
             #print error
-            identity = 'dis' + '.' + tr1.stats.station + '.' + \
+            identity = input['corr_unit'] + '.' + tr1.stats.station + '.' + \
                     tr1.stats.location + '.' + tr1.stats.channel
             tr2 = read(os.path.join(input['second_path'], identity))[0]
         
         cc_np = tr1.stats.sampling_rate * max_ts
         np_shift, coeff = cross_correlation.xcorr(tr1, tr2, int(cc_np))
         t_shift = float(np_shift)/tr1.stats.sampling_rate
-        cc_open.writelines(id_name + ',' + str(coeff) + \
-                            ',' + str(t_shift) + ',' + '\n')
+        
+        # scale_str shows whether the scale of the waveforms are the same or not
+        # if scale_str = 'Y' then the scale is correct.
+        scale_str = 'Y'
+        
+        if abs(tr1.data).max() > 2.0 * abs(tr2.data).max():
+            label_tr1 = ls_first.split('/')[-2]
+            label_tr2 = ls_second[0].split('/')[-2]
+            print '#####################################################'
+            print "Scale is not correct! " + label_tr1 + '>' + label_tr2
+            print '#####################################################'
+            scale_str = 'N'
+        elif abs(tr2.data).max() >= 2.0 * abs(tr1.data).max():
+            label_tr1 = ls_first.split('/')[-2]
+            label_tr2 = ls_second[0].split('/')[-2]
+            print '#####################################################'
+            print "Scale is not correct! " + label_tr2 + '>' + label_tr1
+            print '#####################################################'
+            scale_str = 'N'
+            
+        cc_open.writelines(id_name + ',' + str(coeff) + ',' + str(t_shift) + \
+                                            ',' + scale_str + ',' + '\n')
                             
         print "Cross Correlation:"
         print id_name
@@ -428,15 +583,16 @@ def cc_core(ls_first, ls_second, identity_all, max_ts, print_sta):
         print '------------------'
    
         cc_open.close()
+        cc_open.close()
     
     except Exception, error:
         print '##################'
         print error
         print '##################'
 
-###################### cc_core #########################################
+###################### read_cc #########################################
 
-def read_cc(max_coeff = 0.99, width = 0.05, max_ts = 5.):
+def read_cc(max_coeff = 0.99, width = 0.01, max_ts = 5.):
     
     """
     This function reads the cc.txt file and create some plots
@@ -449,6 +605,7 @@ def read_cc(max_coeff = 0.99, width = 0.05, max_ts = 5.):
     cc_open = open('./cc.txt', 'r')
     cc_read = cc_open.readlines()
     
+    # create a new file (cc_error.txt) for the problematic comparisons
     cc_error_open = open('./cc_error.txt', 'w')
     
     len_ls_first = str(int(cc_read[0].split(',')[0]))
@@ -458,14 +615,14 @@ def read_cc(max_coeff = 0.99, width = 0.05, max_ts = 5.):
         coeff = eval(cc_read[i][1])
         t_shift = eval(cc_read[i][2])
         
-        if abs(coeff) > max_coeff:
+        if abs(coeff) > max_coeff and cc_read[i][3] == 'Y':
             t_shift_array = np.append(t_shift_array, t_shift)
             num_stas += 1
         
-        if abs(t_shift) >= width or abs(coeff) <= max_coeff:
+        if abs(t_shift) >= width or abs(coeff) <= max_coeff or cc_read[i][3] == 'N':
             cc_error_open.writelines(cc_read[i][0] + ',' + \
                         str(round(float(cc_read[i][1]), 4)) + ',' + \
-                        cc_read[i][2] + ',' + '\n')
+                        cc_read[i][2] + ',' + cc_read[i][3] + ',' + '\n')
         else:
             zero_count += 1
     
@@ -477,14 +634,11 @@ def read_cc(max_coeff = 0.99, width = 0.05, max_ts = 5.):
     for i in range(0, len(bins)):
         digit_count[str(i)] = digit_list.count(i)
     
-    #zero_count = digit_count[str(int(len(bins)/2. + 1))] + \
-    #                digit_count[str(int(len(bins)/2.))]
-    
     plt.clf()
     
     for i in range(0, len(bins)):
         plt.bar(left = bins[i]-(width), width = width, \
-                        height = digit_count[str(i)])
+                height = digit_count[str(i)], color = 'blue', edgecolor = 'blue')
     
     plt.xlabel('Time Shift (sec)', fontsize = 'large', weight = 'bold')
     plt.ylabel('Number of Waveforms', fontsize = 'large', weight = 'bold')
@@ -499,6 +653,92 @@ def read_cc(max_coeff = 0.99, width = 0.05, max_ts = 5.):
     
     plt.show()
 
+###################### readRESP ########################################
+
+def readRESP(resp_file, unit, clients = 'iris'):
+    
+    """
+    parse the response file
+    now two different formats are supported
+    """
+    
+    resp_open = open(resp_file)
+    resp_read = resp_open.readlines()
+
+    gain_num = []
+    A0_num = []
+    poles_num = []
+    poles = []
+    zeros = []
+    zeros_num = []
+    
+    if resp_read[0].find('obspy.xseed') == -1:
+        for i in range(0, len(resp_read)):
+            if resp_read[i].find('B058F04') != -1:  
+                gain_num.append(i)
+            if resp_read[i].find('B053F07') != -1:  
+                A0_num.append(i)
+            if resp_read[i].find('B053F10-13') != -1:  
+                zeros_num.append(i)
+            if resp_read[i].find('B053F15-18') != -1:  
+                poles_num.append(i)
+                
+    elif resp_read[0].find('obspy.xseed') != -1:
+        for i in range(0, len(resp_read)):
+            if resp_read[i].find('B058F04') != -1:  
+                gain_num.append(i)
+            if resp_read[i].find('B043F08') != -1:  
+                A0_num.append(i)
+            if resp_read[i].find('B043F11-14') != -1:  
+                zeros_num.append(i)
+            if resp_read[i].find('B043F16-19') != -1:  
+                poles_num.append(i)
+    
+    list_sensitivity = resp_read[gain_num[-1]].split('\n')[0].split(' ')
+    list_new_sensitivity = [x for x in list_sensitivity if x]
+    sensitivity = eval(list_new_sensitivity[-1])
+    
+    list_A0 = resp_read[A0_num[0]].split('\n')[0].split(' ')
+    list_new_A0 = [x for x in list_A0 if x]
+    A0 = eval(list_new_A0[-1])
+
+    
+    for i in range(0, len(poles_num)):
+        
+        list_poles = resp_read[poles_num[i]].split('\n')[0].split(' ')
+        list_new_poles = [x for x in list_poles if x]
+        
+        poles_r = eval(list_new_poles[-4])
+        poles_i = eval(list_new_poles[-3])
+        poles.append(complex(poles_r, poles_i))
+    
+    for i in range(0, len(zeros_num)):
+        
+        list_zeros = resp_read[zeros_num[i]].split('\n')[0].split(' ')
+        list_new_zeros = [x for x in list_zeros if x]
+        
+        zeros_r = eval(list_new_zeros[-4])
+        zeros_i = eval(list_new_zeros[-3])
+        zeros.append(complex(zeros_r, zeros_i))
+            
+            
+    if unit.lower() == 'dis':
+        zeros.append(0j)
+    #if unit.lower() == 'vel':
+    #    zeros = [0j, 0j]
+    #if unit.lower() == 'acc':
+    #    zeros = [0j]
+    
+    paz = {\
+    'poles': poles,
+    'zeros': zeros,
+    'gain': A0,
+    'sensitivity': sensitivity\
+    }
+    
+    print paz
+    
+    return paz
 
 ########################################################################
 ########################################################################
@@ -508,7 +748,7 @@ if __name__ == "__main__":
     
     t1_pro = time.time()
     
-    status = TF_DMT()
+    status = COMPARE_DMT()
     
     t_pro = time.time() - t1_pro
     print "\n------------"
