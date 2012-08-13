@@ -14,6 +14,12 @@
 '''
 Parallel Processing info! (should be completed)
 It is almost done, but you should read and plot it!
+
+Change in a way that IF it could not find the station_event and/or quake file
+the program generates them itself (also apply to obspyNC)
+continue with explanation and ....
+
+INSTRUMENT CORRECTION (reviwe the whole DVA)
 '''
 
 #-----------------------------------------------------------------------
@@ -2245,8 +2251,8 @@ def ARC_available(input, event, target_path, event_number):
             starttime=UTCDateTime(event['datetime'])-10, \
             endtime=UTCDateTime(event['datetime'])+10, \
             instruments=False, route=True, sensortype='', \
-            min_latitude=input['mlat_rbb'], max_latitude=input['Mlat_rbb'], \
-            min_longitude=input['mlon_rbb'], max_longitude=input['Mlon_rbb'], \
+            min_latitude=None, max_latitude=None, \
+            min_longitude=None, max_longitude=None, \
             restricted=False, permanent=None, modified_after=None)
         
         for j in inventories.keys():
@@ -2254,11 +2260,16 @@ def ARC_available(input, event, target_path, event_number):
             if len(netsta) == 4:
                 sta = netsta[0] + '.' + netsta[1]
                 if inventories[sta]['depth'] == None:
-                    inventories[sta]['depth'] = 0
-                Sta_arc.append([netsta[0], netsta[1], netsta[2], netsta[3],\
-                        inventories[sta]['latitude'], inventories[sta]['longitude'],\
-                        inventories[sta]['elevation'], inventories[sta]['depth']])      
-        
+                    inventories[sta]['depth'] = 0.0
+                if input['mlat_rbb'] <= inventories[sta]['latitude'] <= input['Mlat_rbb'] and \
+                    input['mlon_rbb'] <= inventories[sta]['longitude'] <= input['Mlon_rbb']:
+                    Sta_arc.append([netsta[0], netsta[1], netsta[2], netsta[3],\
+                            inventories[sta]['latitude'], inventories[sta]['longitude'],\
+                            inventories[sta]['elevation'], inventories[sta]['depth']])
+                
+        if len(Sta_arc) == 0:
+            Sta_arc.append([])
+                
         Sta_arc.sort()
         
     except Exception, e:
@@ -2334,6 +2345,7 @@ def ARC_waveform(input, Sta_req, type):
             parallel_results.finish()
         
         else:
+            
             for j in range(0, len_req_arc):
                 ARC_download_core(i = i, j = j, dic = dic, type = type, \
                                 len_events = len_events, \
@@ -2544,19 +2556,19 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
                 str(size/1.e6) + ',-,\n'
             time_file.writelines(ti)
             time_file.close()
-    
         
-        print dummy + '---' + Sta_req[i][j][0] +    '.' + Sta_req[i][j][1] + \
-            '.' +Sta_req[i][j][2] + '.' + Sta_req[i][j][3]
+        if len(Sta_req[i][j]) != 0: 
+            print dummy + '---' + Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + \
+                            '.' +Sta_req[i][j][2] + '.' + Sta_req[i][j][3]
+            ee = 'arclink -- ' + dummy + '---' + str(i) + '-' + str(j) + '---' + \
+                        Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
+                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + \
+                        '---' + str(e) + '\n'
+        elif len(Sta_req[i][j]) == 0:
+            ee = 'There is no available station for this event.'
         
         Exception_file = open(os.path.join(add_event[i], \
                         'info', 'exception'), 'a')
-
-        ee = 'arclink -- ' + dummy + '---' + str(i) + '-' + str(j) + '---' + \
-            Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-            Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + \
-            '---' + str(e) + '\n'
-        
         Exception_file.writelines(ee)
         Exception_file.close()
         print e
@@ -3469,7 +3481,7 @@ def plot_se_ray(input, ls_saved_stas):
 
     m = Basemap(projection='aeqd', lon_0=-100, lat_0=40, \
                                                 resolution='c')
-
+    
     m.drawcoastlines()
     #m.fillcontinents()
     m.drawparallels(np.arange(-90.,120.,30.))
