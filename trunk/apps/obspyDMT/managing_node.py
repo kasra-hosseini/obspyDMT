@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------
-#   Filename:  obspyNC.py
-#   Purpose:   obspyNC main program 
+#   Filename:  managing_node.py
+#   Purpose:   managing_node main program 
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -12,8 +12,6 @@
 #for debugging: import ipdb; ipdb.set_trace()
 
 '''
-Add new and useful attributes
-continue with explanation and ....
 '''
 
 #-----------------------------------------------------------------------
@@ -27,35 +25,33 @@ from __future__ import with_statement
 import sys
 import os
 import glob
-import shutil
 import time
 import fnmatch
 from optparse import OptionParser
 
-import numpy as np
-
 from netCDF4 import Dataset
 
-from obspy.core import read, UTCDateTime, Trace
-from obspy.core.util.attribdict import AttribDict
+from obspy.core import read, UTCDateTime
+from obspy.core.util import locations2degrees
+#from obspy.taup.taup import getTravelTimes
+from obspy.iris import Client as Client_iris
 
 ########################################################################
 ############################# Main Program #############################
 ########################################################################
 
-def obspyNC(**kwargs):
+def managing_node(**kwargs):
     
     """
-    obspyNC: is the function dedicated to the main part of the code.
+    managing_node: is the function dedicated to the main part of the code.
     """
     
     print '-----------------------------------------------------'
     bold = "\033[1m"
     reset = "\033[0;0m"
-    print '\t\t' + bold + 'ObsPyNC ' + reset + '(' + bold + 'ObsPy N' + \
-        reset + 'et'+ bold + 'C' + reset + 'DF)' + reset + '\n'
-    print '\t' + 'Automatic tool for Reading and Writing'
-    print '       netCDF4 files for Large Seismic Datasets'
+    print '\t\t' + bold + 'Managing Node' + reset
+    print '\t' + '  Automatic tool for Managing'
+    print '     Large Seismic Datasets using netCDF4'
     print '\n'
     print ':copyright:'
     print 'The ObsPy Development Team (devs@obspy.org)' + '\n'
@@ -75,9 +71,13 @@ def obspyNC(**kwargs):
     # ------------------Read INPUT file (Parameters)--------------------
     read_input_command(parser, **kwargs)
     
-    # ------------------ncMain------------------------------------------
-    ncMain()
-
+    # ------------------ncCreate----------------------------------------
+    if input['ncCreate'] != 'N':
+        ncCreate()
+    
+    # ------------------ncSelect----------------------------------------
+    if input['ncSelect'] != 'N':
+        ncSelect()
 
 ########################################################################
 ###################### Functions are defined here ######################
@@ -106,10 +106,10 @@ def command_parse():
     parser.add_option("--ncCreate", action="store",
                         dest="ncCreate", help=helpmsg)
     
-    helpmsg = "Extract from a netCDF file existed in the " + \
-                "event folder(s) specified here [Default: 'N']"
-    parser.add_option("--ncExtract", action="store",
-                        dest="ncExtract", help=helpmsg)
+    helpmsg = "Managing address where the managing_node.nc is located " + \
+                "[Default: '.' (current folder)]"
+    parser.add_option("--managing_address", action="store",
+                        dest="managing_address", help=helpmsg)
     
     helpmsg = "identity code restriction, syntax: net.sta.loc.cha " + \
                 "(eg: TA.*.*.BHZ to search for all BHZ channels in " + \
@@ -137,13 +137,55 @@ def command_parse():
     parser.add_option("--data_type", action="store",
                         dest="data_type", help=helpmsg)
     
-    helpmsg = "Parallel ncCreate and ncExtract"
-    parser.add_option("--nc_parallel", action="store_true",
-                      dest="nc_parallel", help=helpmsg)
+    helpmsg = "Select required stations and events from a netCDF4 file" + \
+                "specified here [Default: 'N']"
+    parser.add_option("--ncSelect", action="store",
+                        dest="ncSelect", help=helpmsg)
     
-    helpmsg = "Number of processors to be used in --nc_parallel. [Default: 4]"
-    parser.add_option("--nc_np", action="store",
-                        dest="nc_np", help=helpmsg)
+    helpmsg = "search for all the events within the defined rectangle, " + \
+                "GMT syntax: <lonmin>/<lonmax>/<latmin>/<latmax> " + \
+                "[Default: -180.0/+180.0/-90.0/+90.0]"
+    parser.add_option("--event_rect", action="store", dest="event_rect",
+                        help=helpmsg)
+    
+    helpmsg = "minimum magnitude. [Default: 0.0]"
+    parser.add_option("--evmagmin", action="store",
+                      dest="evmagmin", help=helpmsg)
+    
+    helpmsg = "maximum magnitude. [Default: 9.9]"
+    parser.add_option("--evmagmax", action="store",
+                      dest="evmagmax", help=helpmsg)
+
+    helpmsg = "minimum depth (event). [Default: +10.0 (above the surface!)]"
+    parser.add_option("--evdpmin", action="store",
+                      dest="evdpmin", help=helpmsg)
+    
+    helpmsg = "maximum depth (event). [Default: -6000.0]"
+    parser.add_option("--evdpmax", action="store",
+                      dest="evdpmax", help=helpmsg)
+    
+    helpmsg = "search for all the stations within the defined " + \
+                "rectangle, GMT syntax: " + \
+                "<lonmin>/<lonmax>/<latmin>/<latmax>." + \
+                "[Default: -180.0/+180.0/-90.0/+90.0]"
+    parser.add_option("--station_rect", action="store", 
+                      dest="station_rect", help=helpmsg)
+    
+    helpmsg = "minimum station elevation. [Default: -10.0]"
+    parser.add_option("--stelmin", action="store",
+                      dest="stelmin", help=helpmsg)
+    
+    helpmsg = "maximum station elevation. [Default: +100000.0]"
+    parser.add_option("--stelmax", action="store",
+                      dest="stelmax", help=helpmsg)
+
+    helpmsg = "minimum depth (station). [Default: +10.0 (above the surface!)]"
+    parser.add_option("--stdpmin", action="store",
+                      dest="stdpmin", help=helpmsg)
+    
+    helpmsg = "maximum depth (station). [Default: -6000.0]"
+    parser.add_option("--stdpmax", action="store",
+                      dest="stdpmax", help=helpmsg)
     
     # parse command line options
     (options, args) = parser.parse_args()
@@ -169,13 +211,27 @@ def read_input_command(parser, **kwargs):
     # 2. By defining the required command-line flag (if you use 
     # "'./obspyDMT.py --type command'")
     input = {   'ncCreate': 'N',
-                'ncExtract': 'N',
     
+                'managing_address': '.',
+                
                 'net': '*', 'sta': '*', 'loc': '*', 'cha': '*',
                 
-                'data_type': 'raw',
+                'data_type': 'DIS',
                 
-                'nc_np': 4,
+                'ncSelect': 'N',
+                
+                'evlatmin': -90.0, 'evlatmax': +90.0, 
+                'evlonmin': -180.0, 'evlonmax': +180.0,
+                
+                'evdpmin': +10.0, 'evdpmax': -6000,
+                'evmagmin': +0.0, 'evmagmax': +10.0,
+                
+                'stlatmin': -90.0, 'stlatmax': +90.0, 
+                'stlonmin': -180.0, 'stlonmax': +180.0,
+                
+                'stdpmin': +10.0, 'stdpmax': -6000,
+                'stelmin': -10.0, 'stelmax': +100000.0,
+                
             }
     
     # feed input dictionary of defaults into parser object
@@ -196,12 +252,17 @@ def read_input_command(parser, **kwargs):
         if not os.path.isabs(options.ncCreate):
             options.ncCreate = os.path.join(os.getcwd(), options.ncCreate)
     
-    if options.ncExtract != 'N':
-        if not os.path.isabs(options.ncExtract):
-            options.ncExtract = os.path.join(os.getcwd(), options.ncExtract)
+    if options.managing_address != 'N':
+        if not os.path.isabs(options.managing_address):
+            options.managing_address = os.path.join(os.getcwd(), options.managing_address)
+    
+    if options.ncSelect != 'N':
+        if not os.path.isabs(options.ncSelect):
+            options.ncSelect = os.path.join(os.getcwd(), options.ncSelect)
     
     input['ncCreate'] = options.ncCreate
-    input['ncExtract'] = options.ncExtract
+    input['managing_address'] = options.managing_address
+    input['ncSelect'] = options.ncSelect
     
     # Extract network, station, location, channel if the user has given an
     # identity code (-i xx.xx.xx.xx)
@@ -224,33 +285,96 @@ def read_input_command(parser, **kwargs):
         
     input['cha'] = options.cha
     
-    input['data_type'] = options.data_type
+    input['data_type'] = options.data_type    
+                
+    # extract min. and max. longitude and latitude if the user has given the
+    # coordinates with -r (GMT syntax)
+    if options.event_rect:
+        try:
+            options.event_rect = options.event_rect.split('/')
+            if len(options.event_rect) != 4:
+                print "Erroneous rectangle given."
+                sys.exit(2)
+            options.evlonmin = float(options.event_rect[0])
+            options.evlonmax = float(options.event_rect[1])
+            options.evlatmin = float(options.event_rect[2])
+            options.evlatmax = float(options.event_rect[3])
+        except:
+            print "Erroneous rectangle given."
+            sys.exit(2)
     
-    if options.nc_parallel: options.nc_parallel = 'Y'
-    input['nc_parallel'] = options.nc_parallel
+    # extract min. and max. longitude and latitude if the user has given the
+    # coordinates with -g (GMT syntax)
+    if options.station_rect:
+        try:
+            options.station_rect = options.station_rect.split('/')
+            if len(options.station_rect) != 4:
+                print "Erroneous rectangle given."
+                sys.exit(2)
+            options.stlonmin = float(options.station_rect[0])
+            options.stlonmax = float(options.station_rect[1])
+            options.stlatmin = float(options.station_rect[2])
+            options.stlatmax = float(options.station_rect[3])
+        except:
+            print "Erroneous rectangle given."
+            sys.exit(2)
     
-    input['nc_np'] = int(options.nc_np)
+    # Extract network, station, location, channel if the user has given an
+    # identity code (-i xx.xx.xx.xx)
+    if options.identity:
+        try:
+            options.net, options.sta, options.loc, options.cha = \
+                                    options.identity.split('.')
+        except:
+            print "Erroneous identity code given."
+            sys.exit(2)
     
-###################### ncMain ##########################################
+    input['evlonmin'] = options.evlonmin
+    input['evlonmax'] = options.evlonmax
+    input['evlatmin'] = options.evlatmin
+    input['evlatmax'] = options.evlatmax
+    
+    
+    input['evmagmin'] = float(options.evmagmin)
+    input['evmagmax'] = float(options.evmagmax)
+    input['evdpmin'] = float(options.evdpmin)
+    input['evdpmax'] = float(options.evdpmax)
+    
+    input['stlonmin'] = options.evlonmin
+    input['stlonmax'] = options.evlonmax
+    input['stlatmin'] = options.evlatmin
+    input['stlatmax'] = options.evlatmax
+    
+    input['stdpmin'] = float(options.stdpmin)
+    input['stdpmax'] = float(options.stdpmax)
+    input['stelmin'] = float(options.stelmin)
+    input['stelmax'] = float(options.stelmax)
+    
+###################### ncCreate ########################################
 
-def ncMain():
+def ncCreate():
     
     """
-    This function is the main netCDF (read/write) function. The required
-    address, list of stations and other info will be collected here and
-    will be passed to ncChoose (choose between Create/Extract)
+    This function is the main function for creating netCDF file.
     """
     
-    global input
+    global input, rootgrp, client_iris
     
-    if input['ncCreate'] != 'N':
-        address = input['ncCreate']
-    if input['ncExtract'] != 'N':
-        address = input['ncExtract']
+    client_iris = Client_iris()
     
+    address = input['ncCreate']
     events, address_events = quake_info(address, 'info')
     
+    rootgrp = Dataset(os.path.join(input['managing_address'], 'managing_node.nc'), \
+                                                        'w', format = 'NETCDF4')
+    
+    rootgrp.number_events = len(events)
+    
     for i in range(0, len(events)):
+        
+        eventname = address_events[i].split('/')[-1]
+        eventgrp = rootgrp.createGroup(eventname)
+        
         sta_ev = read_station_event(address_events[i])
         ls_saved_stas_tmp = []
         ls_saved_stas = []
@@ -269,207 +393,196 @@ def ncMain():
             elif input['data_type'].upper() == 'ACC':
                 BH_file = 'BH_ACC'
                 network = 'acc'
-            
+        
             station_id = network + '.' + sta_ev[0][j][1] + '.' + \
                          sta_ev[0][j][2] + '.' + sta_ev[0][j][3]
-            resp_id = sta_ev[0][j][0] + '.' + sta_ev[0][j][1] + '.' + \
-                         sta_ev[0][j][2] + '.' + sta_ev[0][j][3]
-            ls_saved_stas_tmp.append([os.path.join(address_events[i], BH_file,\
-                                    station_id), resp_id])
+                         
+            ls_saved_stas_tmp.append(os.path.join(address_events[i], BH_file,\
+                                    station_id))
         
         pattern_sta = input['net'] + '.' + input['sta'] + '.' + \
                         input['loc'] + '.' + input['cha']
         
         for k in range(0, len(ls_saved_stas_tmp)):
-            if fnmatch.fnmatch(ls_saved_stas_tmp[k][0].split('/')[-1], pattern_sta):
+            if fnmatch.fnmatch(ls_saved_stas_tmp[k].split('/')[-1], pattern_sta):
                 ls_saved_stas.append(ls_saved_stas_tmp[k])
         
         if len(ls_saved_stas) != 0:        
             print '\n**********'
             print 'event: ' + str(i+1) + '/' + str(len(events))
             print '**********'
-            ncChoose(input, ls_saved_stas, address_events[i])
+            ncCreate_core(input, ls_saved_stas, address_events[i], eventgrp)
             
         else:
             print "There is no station in the folder to convert!"
-
-###################### ncChoose ########################################
-
-def ncChoose(input, ls_saved_stas, address):
     
-    """
-    Based on the user request (Create or Extract), this function will 
-    provide the required inputs for:
-    ncCreate and ncExtract
-    """
-    
-    global rootgrp
-    
-    eventname = address.split('/')[-1]
-    
-    if input['ncCreate'] != 'N':
-        
-        print "========================"
-        print "Create netCDF file from:"
-        print address
-        print "========================"
-        
-        if os.path.isdir(os.path.join(address, 'ncfolder')):
-            shutil.rmtree(os.path.join(address, 'ncfolder'))
-        
-        os.mkdir(os.path.join(address, 'ncfolder'))
-        
-        print "Number of all available stations in the folder to "
-        print "be converted into netCDF:"
-        print len(ls_saved_stas)
-        print '----------------'
-
-        rootgrp = Dataset(os.path.join(address, 'ncfolder', eventname + '.nc'), \
-                                                        'w', format = 'NETCDF4')
-        
-        tr_tmp = read(ls_saved_stas[0][0])[0]
-        
-        rootgrp.eventID = eventname
-        rootgrp.evla = tr_tmp.stats.sac.evla
-        rootgrp.evlo = tr_tmp.stats.sac.evlo
-        rootgrp.evdp = tr_tmp.stats.sac.evdp
-        rootgrp.mag = tr_tmp.stats.sac.mag
-        
-        """
-        if input['nc_parallel'] == 'Y':
-            import pprocess
-            
-            print "###################"
-            print "Parallel Request"
-            print "Number of Nodes: " + str(input['nc_np'])
-            print "###################"
-            
-            parallel_results = pprocess.Map(limit=input['nc_np'], reuse=1)
-            parallel_job = parallel_results.manage(pprocess.MakeReusable(ncCreate_core))
-
-            for i in range(660, len(ls_saved_stas)):
-                print_str = 'station: ' + str(i+1) + '/' + str(len(ls_saved_stas))
-                parallel_job(address = address, ls_saved_stas = ls_saved_stas[i],
-                                    eventname = eventname, print_str = print_str)
-            
-            parallel_results.finish()
-        
-            
-        else:
-        """
-        
-        for i in range(0, len(ls_saved_stas)):
-            print_str = str(i+1)
-            ncCreate_core(address = address, ls_saved_stas = ls_saved_stas[i], \
-                                eventname = eventname, print_str = print_str)
-        rootgrp.close()
-        
-        
-    elif input['ncExtract'] != 'N':
-        
-        print "============================"
-        print "Extracting netCDF file from:"
-        print address
-        print "============================"
-        
-        rootgrp = Dataset(os.path.join(address, 'ncfolder', eventname + '.nc'), \
-                                                        'r', format = 'NETCDF4')
-        ncExtract(address = address)
+    rootgrp.close()
 
 ###################### ncCreate_core ###################################
 
-def ncCreate_core(address, ls_saved_stas, eventname, print_str):
+def ncCreate_core(input, ls_saved_stas, address, eventgrp):
     
     """
-    Function defined for parallel job which contains all the required steps
-    for ncCreate (Creating a netCDF file out of an event folder)
     """
     
-    global rootgrp
+    global rootgrp, client_iris
     
-    print print_str,
+    eventname = address.split('/')[-1]
     
-    try:
-        if os.path.isfile(os.path.join(address, 'Resp', 'RESP' + '.' + \
-                                ls_saved_stas[1])):
-            resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
-                                    ls_saved_stas[1])
-            resp_open = open(resp_file)
-            resp_read = resp_open.read()
-        else:
-            print '\n' + os.path.join(address, 'Resp', 'RESP' + '.' + \
-                                ls_saved_stas[1]) + ' -- ' + \
-                                'DOES NOT EXIST!'
-            resp_read = 'NO RESPONSE FILE AVAILABLE'
+    print "========================"
+    print "Create netCDF file from:"
+    print address
+    print "========================"
+    
+    print "Number of all available stations in the folder"
+    print len(ls_saved_stas)
+    print '----------------'
+
+    tr_tmp = read(ls_saved_stas[0])[0]
+    
+    eventgrp.evla = tr_tmp.stats.sac.evla
+    eventgrp.evlo = tr_tmp.stats.sac.evlo
+    eventgrp.evdp = tr_tmp.stats.sac.evdp
+    eventgrp.mag = tr_tmp.stats.sac.mag
+    
+    stgrp = eventgrp.createGroup('stations')
+    
+    stationIDS = str(len(ls_saved_stas)) + ' --- , '
+    
+    eventgrp.createDimension('latitude', len(ls_saved_stas))
+    eventgrp.createDimension('longitude', len(ls_saved_stas))
+    eventgrp.createDimension('depth', len(ls_saved_stas))
+    eventgrp.createDimension('elevation', len(ls_saved_stas))
+    eventgrp.createDimension('epicentral', len(ls_saved_stas))
+    
+    stasla = eventgrp.createVariable('latitude', 'f4', ('latitude',) , zlib = True)
+    staslo = eventgrp.createVariable('longitude', 'f4', ('longitude',) , zlib = True)
+    stasdp = eventgrp.createVariable('depth', 'f4', ('depth',) , zlib = True)
+    stasel = eventgrp.createVariable('elevation', 'f4', ('elevation',) , zlib = True)
+    stasepi = eventgrp.createVariable('epicentral', 'f4', ('epicentral',) , zlib = True)
+    
+    
+    for i in range(0, len(ls_saved_stas)):
         
-        tr = read(ls_saved_stas[0])[0]
-        ncCreate(tr = tr, resp_read = resp_read)
-    except Exception, e:
-        print "\nProblem with reading the: " + ls_saved_stas[1]
-        print e
-        print "------------------------------------------------"
-
-###################### ncCreate ########################################
-
-def ncCreate(tr, resp_read):
-    
-    """
-    This function puts one station (data, response file, header) in an
-    already created netCDF file
-    
-    : type rootgrp: netCDF4.Dataset
-    : param rootgrp: a netCDF version 4 group that contains one event
-    : type tr: class 'obspy.core.trace.Trace'
-    : param tr: the trace that will be added to the nc file
-    : type resp_read: str
-    : param resp_read: the whole response file of the trace in 
-                       one string format to be added as an attribute
-                       to the info group of the station group
-    """
-    
-    global rootgrp
-    
-    stationID = tr.stats.network + '.' + tr.stats.station + '.' + \
+        print str(i+1),
+        
+        try:
+            tr = read(ls_saved_stas[i])[0]
+        except Exception, e:
+            print "\nProblem with reading the: " + ls_saved_stas[1]
+            print e
+            print "------------------------------------------------"
+            continue
+        
+        stationID = tr.stats.network + '.' + tr.stats.station + '.' + \
                         tr.stats.location + '.' + tr.stats.channel
         
-    stgrp = rootgrp.createGroup(stationID)
-    
-    stgrp.identity = stationID
-    stgrp.stla = tr.stats.sac.stla
-    stgrp.stlo = tr.stats.sac.stlo
-    stgrp.stdp = tr.stats.sac.stdp
-    stgrp.stel = tr.stats.sac.stel
-    
-    stgrp.respfile = resp_read
-    
-    for i in tr.stats.sac.keys():
-        if np.isnan(tr.stats.sac[i]) == True:
-            tr.stats.sac[i] = -12345.0
-    
-    stgrp.headerV = str(tr.stats.values())
-    stgrp.headerK = str(tr.stats.keys())
+        stationIDS += stationID + ' , '
+        
+        stasla[i] = tr.stats.sac.stla
+        staslo[i] = tr.stats.sac.stlo
+        stasdp[i] = tr.stats.sac.stdp
+        stasel[i] = tr.stats.sac.stel
+        stasepi[i] = locations2degrees(lat1 = eventgrp.evla, \
+                        long1 = eventgrp.evlo, lat2 = stasla[i], \
+                        long2 = staslo[i])
+        
+        """
+        req_phases = ['P', 'PP', 'S', 'SS', 'PcP', 'ScS', 'Pdiff', 'Sdiff', \
+                        'PKP', 'SKS', 'PKiKP', 'SKiKS', 'PKIKP', 'SKIKS']
+        #tt = getTravelTimes(delta=stasepi[i], depth=eventgrp.evdp, \
+        #                                    model='iasp91')
+        tt = client_iris.traveltime(model='prem', phases=req_phases, \
+                        evdepth=eventgrp.evdp, distdeg=(stasepi[i],), \
+                        distkm=None, evloc=None, staloc=None, \
+                        noheader=True, traveltimeonly=True, \
+                        rayparamonly=False, mintimeonly=False, filename=None)
+        tt = tt.split('\n')
+        
+        for j in range(0, len(tt)-1):
+            if tt[i].split('=')[1].strip() == 'Pdiff':
+                print 'this one has Pdiff'
+        
+        for m in range(0, len(tt)):
+            if tt[m]['phase_name'] in input['phase']:
+        """
+        
+    eventgrp.stations = stationIDS
 
-    stgrp.createDimension('data', len(tr.data))
-    stdata = stgrp.createVariable('data', 'f8', ('data',), zlib = True)
+###################### ncSelect ########################################
 
-    stdata[:] = tr.data
-    
-###################### ncExtract #######################################
-
-def ncExtract(address):
+def ncSelect():
 
     """
-    This function extract a station (data, response file, header) from a
-    netCDF file
-
-    : type rootgrp: netCDF4.Dataset
-    : param rootgrp: a netCDF version 4 group that contains one event
-    : type tr: class 'obspy.core.trace.Trace'
-    : param tr: the trace that will be extracted from the nc file
-    : type resp_read: str
-    : param resp_read: the whole response file of the trace in 
-                       one string format extracted from the info/respfile attribute
     """
+    
+    global input, rootgrp
+    
+    print "============================"
+    print "Extracting netCDF file from:"
+    print os.path.join(input['ncSelect'])
+    print "============================"
+    
+    rootgrp = Dataset(os.path.join(input['ncSelect']), \
+                                            'r', format = 'NETCDF4')
+    
+    if input['data_type'] == 'raw':
+        BH_file = 'BH_RAW'
+    elif input['data_type'].upper() == 'DIS':
+        BH_file = 'BH'
+    elif input['data_type'].upper() == 'VEL':
+        BH_file = 'BH_VEL'
+    elif input['data_type'].upper() == 'ACC':
+        BH_file = 'BH_ACC'
+    
+    evsta_info_open = open('./evsta_info.txt', 'w')
+    
+    ev_num = 1
+    pattern_sta = input['net'] + '.' + input['sta'] + '.' + \
+                        input['loc'] + '.' + input['cha']
+    
+    for evgrp in rootgrp.groups:
+        
+        print '\n\n====================='
+        print 'Event: \n' + str(ev_num) + '/' + str(len(rootgrp.groups))
+        ev_num += 1
+        print '====================='
+        event_grp = rootgrp.groups[evgrp]
+        
+        # check the required events:
+        if not input['evlatmin']<=float(event_grp.evla)<=input['evlatmax'] or \
+           not input['evlonmin']<=float(event_grp.evlo)<=input['evlonmax'] or \
+           not input['evdpmax']<=float(event_grp.evdp)<=input['evdpmin'] or \
+           not input['evmagmin']<=float(event_grp.mag)<=input['evmagmax']:
+            continue
+        
+        print str(len(event_grp.stations.split(' , '))-2)
+        
+        for i in range(1, len(event_grp.stations.split(' , '))-2):
+            
+            station_name = event_grp.stations.split(' , ')[i]
+            
+            if not fnmatch.fnmatch(station_name, pattern_sta):
+                continue
+            
+            if not input['stlatmin']<=float(event_grp.variables['latitude'][i])<=input['stlatmax'] or \
+               not input['stlonmin']<=float(event_grp.variables['longitude'][i])<=input['stlonmax'] or \
+               not input['stdpmax']<=float(event_grp.variables['depth'][i])<=input['stdpmin'] or \
+               not input['stelmin']<=float(event_grp.variables['elevation'][i])<=input['stelmax']:
+                continue
+            print str(i),
+            
+            evsta_info_open.writelines(evgrp + ' , ' + station_name + ' , \n')
+        
+   
+    evsta_info_open.close()
+    rootgrp.close()
+
+    
+"""
+    
+    rootgrp = Dataset(os.path.join(address, 'ncfolder', eventname + '.nc'), \
+                                                'r', format = 'NETCDF4')
     
     global rootgrp
     
@@ -512,7 +625,7 @@ def ncExtract(address):
         tr.write(os.path.join(address, 'BH_NC', stgrp.identity), format = 'SAC')
         
         num_iter += 1
-
+"""
 ###################### quake_info ######################################
 
 def quake_info(address, target):
@@ -932,10 +1045,10 @@ def create_station_event(address):
 if __name__ == "__main__":
     
     t1_pro = time.time()
-    status = obspyNC()
+    status = managing_node()
     t_pro = time.time() - t1_pro
     
-    print'\n------------'
+    print'\n\n------------'
     print "Total Time:"
     print t_pro
     print'------------\n'

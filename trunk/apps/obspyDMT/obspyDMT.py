@@ -877,8 +877,8 @@ def read_input_command(parser, **kwargs):
                 'lat_cba': None, 'lon_cba': None, 
                 'mr_cba': None, 'Mr_cba': None,
                 
-                'mlat_rbb': None, 'Mlat_rbb': None, 
-                'mlon_rbb': None, 'Mlon_rbb': None,
+                'mlat_rbb': -100.0, 'Mlat_rbb': +100.0, 
+                'mlon_rbb': -200.0, 'Mlon_rbb': +200.0,
 
                 'test': 'N',
                 
@@ -1883,7 +1883,10 @@ def IRIS_available(input, event, target_path, event_number):
         Exception_file.writelines(ee)
         Exception_file.close()
         print e
-        
+    
+    if len(Sta_iris) == 0:
+        Sta_iris.append([])
+    
     return Sta_iris
     
 ###################### IRIS_waveform ###############################
@@ -2165,21 +2168,23 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
                 str(size/1.e6) + ',-,\n'
             time_file.writelines(ti)
             time_file.close()
-                        
-        print dummy + '---' + Sta_req[i][j][0] +    '.' + Sta_req[i][j][1] + \
-            '.' +Sta_req[i][j][2] + '.' + Sta_req[i][j][3]
         
-        Exception_file = open(os.path.join(add_event[i], 'info', \
-            'exception'), 'a')
-
-        ee = 'iris -- ' + dummy + '---' + str(i) + '-' + str(j) + '---' + \
-            Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-            Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + \
-            '---' + str(e) + '\n'
         
+        if len(Sta_req[i][j]) != 0: 
+            print dummy + '---' + Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + \
+                            '.' +Sta_req[i][j][2] + '.' + Sta_req[i][j][3]
+            ee = 'iris -- ' + dummy + '---' + str(i) + '-' + str(j) + '---' + \
+                    Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
+                    Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + \
+                    '---' + str(e) + '\n'
+        elif len(Sta_req[i][j]) == 0:
+            ee = 'There is no available station for this event.'
+        
+        Exception_file = open(os.path.join(add_event[i], \
+                        'info', 'exception'), 'a')
         Exception_file.writelines(ee)
         Exception_file.close()
-        print e 
+        print e
 
 ###################### Arclink_network #################################
 
@@ -2617,6 +2622,8 @@ def IRIS_update(input, address):
         Sta_all = Stas_iris[k]
         Stas_req.append(rm_duplicate(Sta_all, \
                             address = os.path.join(address_events[k])))
+        if not os.path.isdir(os.path.join(address_events[k], 'BH_RAW')):
+            os.makedirs(os.path.join(address_events[k], 'BH_RAW'))
             
     return Stas_req
 
@@ -2657,8 +2664,12 @@ def ARC_update(input, address):
     
     for k in range(0, len_events):
         Sta_all = Stas_arc[k]
+        if Sta_all == [[]]:
+            continue
         Stas_req.append(rm_duplicate(Sta_all, \
                             address = os.path.join(address_events[k])))
+        if not os.path.isdir(os.path.join(address_events[k], 'BH_RAW')):
+            os.makedirs(os.path.join(address_events[k], 'BH_RAW'))
             
     return Stas_req
     
@@ -3731,9 +3742,7 @@ def create_foders_files(events, eventpath):
                             'info', 'quake'), 'a+')
         
         quake_file.writelines(repr(events[i]['datetime'].year).rjust(15)\
-                + repr(events[i]['datetime'].julday).rjust(15) \
-                + repr(events[i]['datetime'].month).rjust(15) \
-                + repr(events[i]['datetime'].day).rjust(15) + '\n')
+                + repr(events[i]['datetime'].julday).rjust(15) + '\n')
         quake_file.writelines(repr(events[i]['datetime'].hour).rjust(15)\
                 + repr(events[i]['datetime'].minute).rjust(15) + \
                 repr(events[i]['datetime'].second).rjust(15) + \
@@ -3902,6 +3911,11 @@ def create_station_event(address):
     Creates the station_event file ("info" folder)
     """
     
+    print '====================================='
+    print 'station_event could not be found'
+    print 'Start Creating the station_event file'
+    print '====================================='
+    
     event_address = os.path.dirname(address)
     if os.path.isdir(os.path.join(event_address, 'BH_RAW')):
         sta_address = os.path.join(event_address, 'BH_RAW')
@@ -3909,9 +3923,17 @@ def create_station_event(address):
         sta_address = os.path.join(event_address, 'BH')
     ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
     
+    print len(ls_stas)
     for i in range(0, len(ls_stas)):
+        print i,
         sta_file_open = open(os.path.join(address, 'station_event'), 'a')
-        sta = read(ls_stas[i])[0]
+        
+        try:
+            sta = read(ls_stas[i])[0]
+        except Exception, e:
+            print e
+            print 'could not read the waveform data'
+        
         sta_stats = sta.stats
         
         try:
@@ -3936,6 +3958,8 @@ def create_station_event(address):
         
         sta_file_open.writelines(sta_info)
         sta_file_open.close()
+    
+    print '\n--------------------------'
         
 ###################### quake_info ######################################
 
@@ -3949,8 +3973,13 @@ def quake_info(address, target):
     target_add = locate(address, target)
     
     for k in range(0, len(target_add)):
-        quake_file_open = open(os.path.join \
-                                    (target_add[k], 'quake'), 'r')
+        if not os.path.isfile(os.path.join(target_add[k], 'quake')):
+            print '============================='
+            print 'quake file could not be found'
+            print 'Start Creating the quake file'
+            print '============================='
+            quake_create(address_info = target_add[k])
+        quake_file_open = open(os.path.join(target_add[k], 'quake'), 'r')
         quake_file = quake_file_open.readlines()
 
         tmp = []
@@ -3962,17 +3991,35 @@ def quake_info(address, target):
                 except ValueError:
                     pass
         
+        if len(tmp) < 20:
+            print '====================='
+            print 'Modify the quake file'
+            print '====================='
+            quake_modify(quake_item = tmp, address_info = target_add[k])
+            
+            quake_file_open = open(os.path.join(target_add[k], 'quake'), 'r')
+            quake_file = quake_file_open.readlines()
+
+            tmp = []
+            
+            for i in quake_file:
+                for j in i.split():
+                    try:
+                        tmp.append(float(j))
+                    except ValueError:
+                        pass
+
         quake_d = {'year0': int(tmp[0]), 'julday0': int(tmp[1]), \
-                'hour0': int(tmp[4]), 'minute0': int(tmp[5]), \
-                'second0': int(tmp[6]), 'lat': float(tmp[8]), \
-                'lon': float(tmp[9]), 'dp': float(tmp[10]), \
-                'mag': float(tmp[11]), \
-                'year1': int(tmp[12]), 'julday1': int(tmp[13]), \
-                'hour1': int(tmp[16]), 'minute1': int(tmp[17]), \
-                'second1': int(tmp[18]), \
-                'year2': int(tmp[20]), 'julday2': int(tmp[21]), \
-                'hour2': int(tmp[24]), 'minute2': int(tmp[25]), \
-                'second2': int(tmp[26]),}
+                'hour0': int(tmp[2]), 'minute0': int(tmp[3]), \
+                'second0': int(tmp[4]), 'lat': float(tmp[6]), \
+                'lon': float(tmp[7]), 'dp': float(tmp[8]), \
+                'mag': float(tmp[9]), \
+                'year1': int(tmp[10]), 'julday1': int(tmp[11]), \
+                'hour1': int(tmp[14]), 'minute1': int(tmp[15]), \
+                'second1': int(tmp[16]), \
+                'year2': int(tmp[18]), 'julday2': int(tmp[19]), \
+                'hour2': int(tmp[22]), 'minute2': int(tmp[23]), \
+                'second2': int(tmp[24]),}
         
         quake_t0 = UTCDateTime(year=quake_d['year0'], julday=quake_d['julday0'], \
                         hour=quake_d['hour0'], minute=quake_d['minute0'], \
@@ -4001,6 +4048,228 @@ def quake_info(address, target):
         address_event.append(os.path.dirname(target_add[i]))
     
     return events, address_event
+
+###################### quake_create ####################################
+
+def quake_create(address_info):
+            
+    """
+    if there is not any quake file in the info folder
+    then it will be created based on the data available 
+    in the BH_RAW or BH file
+    """
+    
+    quake_file = open(os.path.join(address_info, 'quake'), 'w')
+    
+    address = os.path.normpath(os.path.join(address_info, '..'))
+    
+    if os.path.isdir(os.path.join(address, 'BH_RAW')):
+        sta_address = os.path.join(address, 'BH_RAW')
+    #elif os.path.isdir(os.path.join(address, 'BH')):
+    else:
+        sta_address = os.path.join(address, 'BH')
+        
+    ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
+    
+    sta = read(ls_stas[0])[0]
+    sta_stats = sta.stats
+    
+    try:
+        quake_file.writelines(repr(sta_stats.starttime.year).rjust(15)\
+                + repr(sta_stats.starttime.julday).rjust(15) + '\n')
+        quake_file.writelines(repr(sta_stats.starttime.hour).rjust(15)\
+                + repr(sta_stats.starttime.minute).rjust(15) + \
+                repr(sta_stats.starttime.second).rjust(15) + \
+                repr(sta_stats.starttime.microsecond).rjust(15) + '\n')
+        quake_file.writelines(\
+                ' '*(15 - len('%.5f' % sta_stats.sac.evla)) + '%.5f' \
+                % sta_stats.sac.evla + \
+                ' '*(15 - len('%.5f' % sta_stats.sac.evlo)) + '%.5f' \
+                % sta_stats.sac.evlo + '\n')
+        quake_file.writelines(\
+                ' '*(15 - len('%.5f' % abs(sta_stats.sac.evdp))) + '%.5f' \
+                % abs(sta_stats.sac.evdp) + '\n')
+        quake_file.writelines(\
+                ' '*(15 - len('%.5f' % abs(sta_stats.sac.mag))) + '%.5f' \
+                % abs(sta_stats.sac.mag) + '\n')
+        quake_file.writelines(\
+                ' '*(15 - len(address.split('/')[-1])) + \
+                        address.split('/')[-1] + '-' + '\n')
+        
+        quake_file.writelines(repr(sta_stats.starttime.year).rjust(15)\
+                + repr(sta_stats.starttime.julday).rjust(15) \
+                + repr(sta_stats.starttime.month).rjust(15) \
+                + repr(sta_stats.starttime.day).rjust(15) + '\n')
+        quake_file.writelines(repr(sta_stats.starttime.hour).rjust(15)\
+                + repr(sta_stats.starttime.minute).rjust(15) + \
+                repr(sta_stats.starttime.second).rjust(15) + \
+                repr(sta_stats.starttime.microsecond).rjust(15) + '\n')
+            
+        sta_stats_endtime = sta_stats.starttime + sta_stats.npts/sta_stats.sampling_rate
+
+        quake_file.writelines(repr(sta_stats_endtime.year).rjust(15)\
+                + repr(sta_stats_endtime.julday).rjust(15) \
+                + repr(sta_stats_endtime.month).rjust(15) \
+                + repr(sta_stats_endtime.day).rjust(15) + '\n')
+        quake_file.writelines(repr(sta_stats_endtime.hour).rjust(15)\
+                + repr(sta_stats_endtime.minute).rjust(15) + \
+                repr(sta_stats_endtime.second).rjust(15) + \
+                repr(sta_stats_endtime.microsecond).rjust(15) + '\n')
+                
+    except Exception, e:
+        print e
+        quake_file.writelines(repr(sta_stats.starttime.year).rjust(15)\
+                + repr(sta_stats.starttime.julday).rjust(15) + '\n')
+        quake_file.writelines(repr(sta_stats.starttime.hour).rjust(15)\
+                + repr(sta_stats.starttime.minute).rjust(15) + \
+                repr(sta_stats.starttime.second).rjust(15) + \
+                repr(sta_stats.starttime.microsecond).rjust(15) + '\n')
+        quake_file.writelines(\
+                ' '*(15 - len('%.5f' % 0.0)) + '%.5f' \
+                % 0.0 + \
+                ' '*(15 - len('%.5f' % 0.0)) + '%.5f' \
+                % 0.0 + '\n')
+        quake_file.writelines(\
+                ' '*(15 - len('%.5f' % abs(-12345.0))) + '%.5f' \
+                % abs(-12345.0) + '\n')
+        quake_file.writelines(\
+                ' '*(15 - len('%.5f' % abs(-12345.0))) + '%.5f' \
+                % abs(-12345.0) + '\n')
+        quake_file.writelines(\
+                ' '*(15 - len(address.split('/')[-1])) + \
+                        address.split('/')[-1] + '-' + '\n')
+        
+        quake_file.writelines(repr(sta_stats.starttime.year).rjust(15)\
+                + repr(sta_stats.starttime.julday).rjust(15) \
+                + repr(sta_stats.starttime.month).rjust(15) \
+                + repr(sta_stats.starttime.day).rjust(15) + '\n')
+        quake_file.writelines(repr(sta_stats.starttime.hour).rjust(15)\
+                + repr(sta_stats.starttime.minute).rjust(15) + \
+                repr(sta_stats.starttime.second).rjust(15) + \
+                repr(sta_stats.starttime.microsecond).rjust(15) + '\n')
+            
+        sta_stats_endtime = sta_stats.starttime + sta_stats.npts/sta_stats.sampling_rate
+
+        quake_file.writelines(repr(sta_stats_endtime.year).rjust(15)\
+                + repr(sta_stats_endtime.julday).rjust(15) \
+                + repr(sta_stats_endtime.month).rjust(15) \
+                + repr(sta_stats_endtime.day).rjust(15) + '\n')
+        quake_file.writelines(repr(sta_stats_endtime.hour).rjust(15)\
+                + repr(sta_stats_endtime.minute).rjust(15) + \
+                repr(sta_stats_endtime.second).rjust(15) + \
+                repr(sta_stats_endtime.microsecond).rjust(15) + '\n')
+    quake_file.close()
+
+###################### quake_modify ####################################
+
+def quake_modify(quake_item, address_info):
+
+    """
+    if the quake file does not contain all the required parameters
+    then it will be modified based on the data available 
+    in the BH_RAW or BH file
+    """
+    
+    quake_file_new = open(os.path.join(address_info, 'quake'), 'w')
+    
+    address = os.path.normpath(os.path.join(address_info, '..'))
+    
+    if os.path.isdir(os.path.join(address, 'BH_RAW')):
+        sta_address = os.path.join(address, 'BH_RAW')
+    #elif os.path.isdir(os.path.join(address, 'BH')):
+    else:
+        sta_address = os.path.join(address, 'BH')
+        
+    ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
+    
+    sta = read(ls_stas[0])[0]
+    sta_stats = sta.stats
+    
+    try:
+        quake_file_new.writelines(repr(int(quake_item[0])).rjust(15)\
+                + repr(int(quake_item[1])).rjust(15) + '\n')
+        quake_file_new.writelines(repr(int(quake_item[2])).rjust(15)\
+                + repr(int(quake_item[3])).rjust(15) + \
+                repr(int(quake_item[4])).rjust(15) + \
+                repr(int(quake_item[5])).rjust(15) + '\n')
+        quake_file_new.writelines(\
+                ' '*(15 - len('%.5f' % quake_item[6])) + '%.5f' \
+                % quake_item[6] + \
+                ' '*(15 - len('%.5f' % quake_item[7])) + '%.5f' \
+                % quake_item[7] + '\n')
+        quake_file_new.writelines(\
+                ' '*(15 - len('%.5f' % abs(quake_item[8]))) + '%.5f' \
+                % abs(quake_item[8]) + '\n')
+        quake_file_new.writelines(\
+                ' '*(15 - len('%.5f' % abs(sta_stats.sac.mag))) + '%.5f' \
+                % abs(sta_stats.sac.mag) + '\n')
+        quake_file_new.writelines(\
+                ' '*(15 - len(address.split('/')[-1])) + \
+                        address.split('/')[-1] + '-' + '\n')
+        
+        quake_file_new.writelines(repr(sta_stats.starttime.year).rjust(15)\
+                + repr(sta_stats.starttime.julday).rjust(15) \
+                + repr(sta_stats.starttime.month).rjust(15) \
+                + repr(sta_stats.starttime.day).rjust(15) + '\n')
+        quake_file_new.writelines(repr(sta_stats.starttime.hour).rjust(15)\
+                + repr(sta_stats.starttime.minute).rjust(15) + \
+                repr(sta_stats.starttime.second).rjust(15) + \
+                repr(sta_stats.starttime.microsecond).rjust(15) + '\n')
+            
+        sta_stats_endtime = sta_stats.starttime + sta_stats.npts/sta_stats.sampling_rate
+
+        quake_file_new.writelines(repr(sta_stats_endtime.year).rjust(15)\
+                + repr(sta_stats_endtime.julday).rjust(15) \
+                + repr(sta_stats_endtime.month).rjust(15) \
+                + repr(sta_stats_endtime.day).rjust(15) + '\n')
+        quake_file_new.writelines(repr(sta_stats_endtime.hour).rjust(15)\
+                + repr(sta_stats_endtime.minute).rjust(15) + \
+                repr(sta_stats_endtime.second).rjust(15) + \
+                repr(sta_stats_endtime.microsecond).rjust(15) + '\n')
+                
+    except Exception, e:
+        print e
+        quake_file_new.writelines(repr(int(quake_item[0])).rjust(15)\
+                + repr(int(quake_item[1])).rjust(15) + '\n')
+        quake_file_new.writelines(repr(int(quake_item[2])).rjust(15)\
+                + repr(int(quake_item[3])).rjust(15) + \
+                repr(int(quake_item[4])).rjust(15) + \
+                repr(int(quake_item[5])).rjust(15) + '\n')
+        quake_file_new.writelines(\
+                ' '*(15 - len('%.5f' % quake_item[6])) + '%.5f' \
+                % quake_item[6] + \
+                ' '*(15 - len('%.5f' % quake_item[7])) + '%.5f' \
+                % quake_item[7] + '\n')
+        quake_file_new.writelines(\
+                ' '*(15 - len('%.5f' % abs(quake_item[8]))) + '%.5f' \
+                % abs(quake_item[8]) + '\n')
+        quake_file_new.writelines(\
+                ' '*(15 - len('%.5f' % abs(-12345.0))) + '%.5f' \
+                % abs(-12345.0) + '\n')
+        quake_file_new.writelines(\
+                ' '*(15 - len(address.split('/')[-1])) + \
+                        address.split('/')[-1] + '-' + '\n')
+        
+        quake_file_new.writelines(repr(sta_stats.starttime.year).rjust(15)\
+                + repr(sta_stats.starttime.julday).rjust(15) \
+                + repr(sta_stats.starttime.month).rjust(15) \
+                + repr(sta_stats.starttime.day).rjust(15) + '\n')
+        quake_file_new.writelines(repr(sta_stats.starttime.hour).rjust(15)\
+                + repr(sta_stats.starttime.minute).rjust(15) + \
+                repr(sta_stats.starttime.second).rjust(15) + \
+                repr(sta_stats.starttime.microsecond).rjust(15) + '\n')
+            
+        sta_stats_endtime = sta_stats.starttime + sta_stats.npts/sta_stats.sampling_rate
+
+        quake_file_new.writelines(repr(sta_stats_endtime.year).rjust(15)\
+                + repr(sta_stats_endtime.julday).rjust(15) \
+                + repr(sta_stats_endtime.month).rjust(15) \
+                + repr(sta_stats_endtime.day).rjust(15) + '\n')
+        quake_file_new.writelines(repr(sta_stats_endtime.hour).rjust(15)\
+                + repr(sta_stats_endtime.minute).rjust(15) + \
+                repr(sta_stats_endtime.second).rjust(15) + \
+                repr(sta_stats_endtime.microsecond).rjust(15) + '\n')
+    quake_file_new.close()
     
 ###################### compress_gzip ###################################
 
