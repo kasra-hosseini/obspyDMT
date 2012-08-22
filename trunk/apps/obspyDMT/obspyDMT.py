@@ -12,12 +12,8 @@
 #for debugging: import ipdb; ipdb.set_trace()
 
 '''
-Parallel Processing info! (should be completed)
-It is almost done, but you should read and plot it!
-
-Change in a way that IF it could not find the station_event and/or quake file
-the program generates them itself (also apply to obspyNC)
-continue with explanation and ....
+- Parallel Processing info! (should be completed) -- It is almost done, but you should read and plot it!
+- continue with explanation and ....
 
 INSTRUMENT CORRECTION (reviwe the whole DVA)
 '''
@@ -179,7 +175,7 @@ def obspyDMT(**kwargs):
          SVN server) for further documentation.
     """ 
     
-    print '------------------------------------------------------------' + \
+    print '\n------------------------------------------------------------' + \
             '---------------------'
     bold = "\033[1m"
     reset = "\033[0;0m"
@@ -244,36 +240,16 @@ def obspyDMT(**kwargs):
         print 'IRIS -- Download waveforms, response files and meta-data'
         print '********************************************************'
         
-        Stas_iris = IRIS_network(input)
+        IRIS_network(input)
         
-        Stas_iris_target = []
-        for stas in Stas_iris:
-            if stas:
-                Stas_iris_target.append(stas)
-        
-        if Stas_iris_target:
-            IRIS_waveform(input, Stas_iris_target, type = 'save')
-        else:
-            'No available station in IRIS for your request!'
-            
     # ------------------Arclink-----------------------------------------
     if input['ArcLink'] == 'Y':
             
-        print '\n********************************************************'
+        print '\n***********************************************************'
         print 'ArcLink -- Download waveforms, response files and meta-data'
-        print '********************************************************'
+        print '***********************************************************'
         
-        Stas_arc = ARC_network(input)
-        
-        Stas_arc_target = []
-        for stas in Stas_arc:
-            if stas:
-                Stas_arc_target.append(stas)
-        
-        if Stas_arc_target:
-            ARC_waveform(input, Stas_arc_target, type = 'save')
-        else:
-            'No available station in ArcLink for your request!'
+        ARC_network(input)
                 
     # ------------------IRIS-Updating-----------------------------------
     if input['iris_update'] != 'N':
@@ -282,17 +258,7 @@ def obspyDMT(**kwargs):
         print 'IRIS -- Updating Mode'
         print '*********************'
         
-        Sta_req = IRIS_update(input, address = input['iris_update'])
-        
-        Stas_iris_target = []
-        for stas in Sta_req:
-            if stas:
-                Stas_iris_target.append(stas)
-        
-        if Stas_iris_target:
-            IRIS_waveform(input, Stas_iris_target, type = 'update')
-        else:
-            'No available station in IRIS for your request!'
+        IRIS_update(input, address = input['iris_update'])
 
     # ------------------ArcLink-Updating--------------------------------
     if input['arc_update'] != 'N':
@@ -301,17 +267,7 @@ def obspyDMT(**kwargs):
         print 'ArcLink -- Updating Mode'
         print '************************'
         
-        Sta_req = ARC_update(input, address = input['arc_update'])
-        
-        Stas_arc_target = []
-        for stas in Sta_req:
-            if stas:
-                Stas_arc_target.append(stas)
-        
-        if Stas_arc_target:
-            ARC_waveform(input, Stas_arc_target, type = 'update')
-        else:
-            'No available station in ArcLink for your request!'
+        ARC_update(input, address = input['arc_update'])
     
     # ------------------IRIS-instrument---------------------------------
     if input['iris_ic'] != 'N' or input['iris_ic_auto'] == 'Y':
@@ -934,7 +890,7 @@ def read_input_command(parser, **kwargs):
         reset = "\033[0;0m"
         print '\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *' 
-        print '\t\t' + '*' + '\t\t' + bold + '1.1' + reset + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + bold + '2.0' + reset + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -1261,7 +1217,7 @@ def read_input_command(parser, **kwargs):
                 'iris_merge', 'arc_merge', 'plot_se', 'plot_sta', \
                 'plot_ev', 'plot_ray', 'plot_epi', 'plot_dt']:
         if input[i] != 'N':
-	    input['datapath'] = input[i]
+            input['datapath'] = input[i]
             input['get_events'] = 'N'
             input['get_continuous'] = 'N'
             input['IRIS'] = 'N'
@@ -1776,8 +1732,6 @@ def IRIS_network(input):
     Returns information about what time series data is available 
     at the IRIS DMC for all requested events
     """
-
-    t_iris_1 = datetime.now()
     
     global events
     
@@ -1790,42 +1744,37 @@ def IRIS_network(input):
     create_foders_files(events, eventpath)
 
     print 'IRIS-Folders are Created!'
-    print "--------------------"
-    
-    Stas_iris = []
+    print "-------------------------"
     
     for i in range(0, len_events):
         
+        t_iris_1 = datetime.now()
+        
         target_path = os.path.join(eventpath, events[i]['event_id'])
-        Sta_iris = IRIS_available(input, events[i], target_path, event_number = i)
-        Stas_iris.append(Sta_iris)
+        Stas_iris = IRIS_available(input, events[i], target_path, event_number = i)
         
         if input['iris_bulk'] != 'Y':
+            print "\n-------------------------"
             print 'IRIS-Availability for event: ' + str(i+1) + str('/') + \
                                     str(len_events) + '  ---> ' + 'DONE'
         else:
-            print 'IRIS-bulkfile for event    : ' + str(i+1) + str('/') + \
+            print "\n-------------------------"
+            print 'IRIS-bulkfile for event: ' + str(i+1) + str('/') + \
                                     str(len_events) + '  ---> ' + 'DONE'
         
-        if input['get_continuous'] == 'Y' and input['iris_bulk'] == 'Y':
-            for j in range(1, len_events):
-                Stas_iris.append(Sta_iris)
-                target_path = os.path.join(eventpath, events[j]['event_id'])
-                shutil.copy2(os.path.join(eventpath, events[0]['event_id'], \
-                    'info', 'bulkdata-0.txt'), \
-                    os.path.join(target_path, \
-                    'info', 'bulkdata-' + str(j) + '.txt'))
-                print 'IRIS-Availability for event: ' + str(j+1) + str('/') + \
-                                    str(len_events) + '  ---> ' + 'DONE'
-            break
+        t_iris_2 = datetime.now()
+        t_iris = t_iris_2 - t_iris_1
         
-    t_iris_2 = datetime.now()
-    t_iris = t_iris_2 - t_iris_1
-    print "--------------------"
-    print 'IRIS-Time: (Availability)'
-    print t_iris    
-    
-    return Stas_iris
+        print "................."
+        print 'Time:'
+        print t_iris    
+        print "-------------------------"
+        
+        if Stas_iris:
+            IRIS_waveform(input, Stas_iris, i, type = 'save')
+        else:
+            'No available station in IRIS for your request!'
+            continue
 
 ###################### IRIS_available ##################################
 
@@ -1891,7 +1840,7 @@ def IRIS_available(input, event, target_path, event_number):
     
 ###################### IRIS_waveform ###############################
 
-def IRIS_waveform(input, Sta_req, type):
+def IRIS_waveform(input, Sta_req, i, type):
     
     """
     Gets Waveforms, Response files and meta-data 
@@ -1910,146 +1859,148 @@ def IRIS_waveform(input, Sta_req, type):
                     input['max_date'].split('T')[0] + '_' + \
                     str(input['min_mag']) + '_' + str(input['max_mag'])
         eventpath = os.path.join(input['datapath'], Period)
-        for i in range(0, len(events)):
+        for k in range(0, len(events)):
             add_event.append(os.path.join(eventpath, \
-                                        events[i]['event_id'])) 
+                                        events[k]['event_id'])) 
     elif type == 'update':
         events, add_event = quake_info(input['iris_update'], target = 'info')
     
     len_events = len(events)
     
-    for i in range(0, len_events):
-        print "--------------------"
-        if input['test'] == 'Y':
-            len_req_iris = input['test_num']
-        else:   
-            len_req_iris = len(Sta_req[i])
+    if input['test'] == 'Y':
+        len_req_iris = input['test_num']
+    else:   
+        len_req_iris = len(Sta_req)
 
+    if input['iris_bulk'] == 'Y':
         
-        if input['iris_bulk'] == 'Y':
-            
-            t11 = datetime.now()
-                    
-            bulk_file = os.path.join(add_event[i], 'info', \
-                                'bulkdata-' + str(i) + '.txt')
-            
-            print 'bulkdataselect request is sent for event: ' + \
-                                        str(i+1) + '/' + str(len_events)
-            bulk_st = client_iris.bulkdataselect(bulk_file)
-            
-            print 'Saving the stations...'
-            
-            for m in range(0, len(bulk_st)):
-                bulk_st_info = bulk_st[m].stats
-                bulk_st[m].write(os.path.join(add_event[i], 'BH_RAW', \
-                    bulk_st_info['network'] + '.' + \
-                    bulk_st_info['station'] + '.' + \
-                    bulk_st_info['location'] + '.' + \
-                    bulk_st_info['channel']), 'MSEED')
-            
-            input['waveform'] = 'N'
-            
-            t22 = datetime.now()
-            
-            print 'bulkdataselect request is done for event: ' + \
-                                        str(i+1) + '/' + str(len_events)
-            print "Time for bulkdataselect: " + str(t22-t11)
-
-        dic = {}                
+        t11 = datetime.now()
+                
+        bulk_file = os.path.join(add_event[i], 'info', \
+                            'bulkdata-' + str(i) + '.txt')
         
-        if input['req_parallel'] == 'Y':
-            import pprocess
-            
-            print "###################"
-            print "Parallel Request"
-            print "Number of Nodes: " + str(input['req_np'])
-            print "###################"
-            
-            parallel_results = pprocess.Map(limit=input['req_np'], reuse=1)
-            parallel_job = parallel_results.manage(pprocess.MakeReusable(IRIS_download_core))
-
-            for j in range(0, len_req_iris):
-                parallel_job(i = i, j = j, dic = dic, type = type, \
+        print 'bulkdataselect request is sent for event: ' + \
+                                    str(i+1) + '/' + str(len_events)
+        bulk_st = client_iris.bulkdataselect(bulk_file)
+        
+        print '--------'
+        print 'Saving the stations...'
+        print '--------'
+        
+        for m in range(0, len(bulk_st)):
+            bulk_st_info = bulk_st[m].stats
+            bulk_st[m].write(os.path.join(add_event[i], 'BH_RAW', \
+                bulk_st_info['network'] + '.' + \
+                bulk_st_info['station'] + '.' + \
+                bulk_st_info['location'] + '.' + \
+                bulk_st_info['channel']), 'MSEED')
+        
+        input['waveform'] = 'N'
+        
+        t22 = datetime.now()
+        
+        print 'bulkdataselect request is done for event: ' + \
+                                    str(i+1) + '/' + str(len_events)
+        print "Time: \n" + str(t22-t11)
+        print '-------------------------\n'
+    
+    dic = {}                
+    
+    if input['req_parallel'] == 'Y':
+        import pprocess
+        
+        print "###################"
+        print "Parallel Request"
+        print "Number of Nodes: " + str(input['req_np'])
+        print "###################"
+        
+        parallel_results = pprocess.Map(limit=input['req_np'], reuse=1)
+        parallel_job = parallel_results.manage(pprocess.MakeReusable(IRIS_download_core))
+        
+        for j in range(0, len_req_iris):
+            parallel_job(i = i, j = j, dic = dic, type = type, \
+                            len_events = len_events, \
+                            events = events, add_event = add_event, \
+                            Sta_req = Sta_req, input = input)
+        
+        parallel_results.finish()
+    
+    else:
+        for j in range(0, len_req_iris):
+            IRIS_download_core(i = i, j = j, dic = dic, type = type, \
                                 len_events = len_events, \
                                 events = events, add_event = add_event, \
                                 Sta_req = Sta_req, input = input)
-            
-            parallel_results.finish()
-        
-        else:
+    
+    if input['iris_bulk'] == 'Y':
+        if input['SAC'] == 'Y':
             for j in range(0, len_req_iris):
-                IRIS_download_core(i = i, j = j, dic = dic, type = type, \
-                                    len_events = len_events, \
-                                    events = events, add_event = add_event, \
-                                    Sta_req = Sta_req, input = input)
+                try:
+                    writesac(address_st = os.path.join(add_event[i], 'BH_RAW', \
+                        Sta_req[j][0] + '.' + Sta_req[j][1] + '.' + \
+                        Sta_req[j][2] + '.' + Sta_req[j][3]), \
+                        sta_info = dic[j], ev_info = events[i])
+                except Exception, e:
+                    pass
+        input['waveform'] = 'Y'
+    
+    Report = open(os.path.join(add_event[i], 'info', 'report_st'), 'a')
+    eventsID = events[i]['event_id']
+    Report.writelines('<><><><><><><><><><><><><><><><><>' + '\n')
+    Report.writelines(eventsID + '\n')
+    Report.writelines('---------------IRIS---------------' + '\n')
+    Report.writelines('---------------' + input['cha'] + '---------------' + '\n')
+    rep = 'IRIS-Available stations for channel ' + input['cha'] + \
+            ' and for event' + '-' + str(i) + ': ' + str(len(Sta_req)) + '\n'
+    Report.writelines(rep)
+    rep = 'IRIS-' + type + ' stations for channel ' + input['cha'] + \
+            ' and for event' + '-' + str(i) + ':     ' + str(len(dic)) + '\n'
+    Report.writelines(rep)
+    Report.writelines('----------------------------------' + '\n')
         
-        if input['iris_bulk'] == 'Y':
-            if input['SAC'] == 'Y':
-                for j in range(0, len_req_iris):
-                    try:
-                        writesac(address_st = os.path.join(add_event[i], 'BH_RAW', \
-                            Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-                            Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
-                            sta_info = dic[j], ev_info = events[i])
-                    except Exception, e:
-                        pass
-            input['waveform'] = 'Y'
+    t_wave_2 = datetime.now()
+    t_wave = t_wave_2 - t_wave_1
         
-        Report = open(os.path.join(add_event[i], 'info', 'report_st'), 'a')
-        eventsID = events[i]['event_id']
-        Report.writelines('<><><><><><><><><><><><><><><><><>' + '\n')
-        Report.writelines(eventsID + '\n')
-        Report.writelines('---------------IRIS---------------' + '\n')
-        Report.writelines('---------------' + input['cha'] + '---------------' + '\n')
-        rep = 'IRIS-Available stations for channel ' + input['cha'] + \
-                ' and for event' + '-' + str(i) + ': ' + str(len(Sta_req[i])) + '\n'
-        Report.writelines(rep)
-        rep = 'IRIS-' + type + ' stations for channel ' + input['cha'] + \
-                ' and for event' + '-' + str(i) + ':     ' + str(len(dic)) + '\n'
-        Report.writelines(rep)
-        Report.writelines('----------------------------------' + '\n')
+    rep = "Time for " + type + "ing Waveforms from IRIS: " + str(t_wave) + '\n'
+    Report.writelines(rep)
+    Report.writelines('----------------------------------' + '\n')
+    Report.close()
+    
+    if input['req_parallel'] == 'Y':
+        report_parallel_open = open(os.path.join(add_event[i], \
+                                    'info', 'report_parallel'), 'a')
+        report_parallel_open.writelines(\
+            '---------------IRIS---------------' + '\n')
+        report_parallel_open.writelines(\
+            'Request' + '\n')
+        report_parallel_open.writelines(\
+            'Number of Nodes: ' + str(input['req_np']) + '\n')
+        report_parallel_open.writelines(\
+            'Total Time     : ' + str(t_wave) + '\n')
             
-        t_wave_2 = datetime.now()
-        t_wave = t_wave_2 - t_wave_1
-            
-        rep = "Time for " + type + "ing Waveforms from IRIS: " + str(t_wave) + '\n'
-        Report.writelines(rep)
-        Report.writelines('----------------------------------' + '\n')
-        Report.close()
-        
-        if input['req_parallel'] == 'Y':
-            report_parallel_open = open(os.path.join(add_event[i], \
-                                        'info', 'report_parallel'), 'a')
-            report_parallel_open.writelines(\
-                '---------------IRIS---------------' + '\n')
-            report_parallel_open.writelines(\
-                'Request' + '\n')
-            report_parallel_open.writelines(\
-                'Number of Nodes: ' + str(input['req_np']) + '\n')
-            report_parallel_open.writelines(\
-                'Total Time     : ' + str(t_wave) + '\n')
-                
-    print "------------"
-    print 'IRIS is DONE'
-    print "------------"
+    print "\n------------------------"
+    print 'IRIS for event-' + str(i+1) + ' is Done'
+    print 'Time:'
+    print t_wave
+    print "------------------------\n"
 
 ###################### IRIS_download_core ##################################
 
 def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, input):
-
+    
     print '------------------'
     print type
     print 'IRIS-Event and Station Numbers are:'
     print str(i+1) + '/' + str(len_events) + '-' + str(j+1) + '/' + \
-            str(len(Sta_req[i])) + '-' + input['cha']
+            str(len(Sta_req)) + '-' + input['cha']
     try:
         
         client_iris = Client_iris()
         
         t11 = datetime.now()
         
-        if Sta_req[i][j][2] == '--' or Sta_req[i][j][2] == '  ':
-                Sta_req[i][j][2] = ''
+        if Sta_req[j][2] == '--' or Sta_req[j][2] == '  ':
+                Sta_req[j][2] = ''
         
         
         if input['waveform'] == 'Y':                    
@@ -2057,15 +2008,15 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
             dummy = 'Waveform'
             
             client_iris.saveWaveform(os.path.join(add_event[i], 'BH_RAW', \
-                Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-                Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
-                Sta_req[i][j][0], Sta_req[i][j][1], \
-                Sta_req[i][j][2], Sta_req[i][j][3], \
+                Sta_req[j][0] + '.' + Sta_req[j][1] + '.' + \
+                Sta_req[j][2] + '.' + Sta_req[j][3]), \
+                Sta_req[j][0], Sta_req[j][1], \
+                Sta_req[j][2], Sta_req[j][3], \
                 events[i]['t1'], events[i]['t2'])
             
-            print "Saving Waveform for: " + Sta_req[i][j][0] + \
-                '.' + Sta_req[i][j][1] + '.' + \
-                Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"  
+            print "Saving Waveform for: " + Sta_req[j][0] + \
+                '.' + Sta_req[j][1] + '.' + \
+                Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"  
         
         
         if input['response'] == 'Y':
@@ -2074,43 +2025,43 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
             
             client_iris.saveResponse(os.path.join(add_event[i], \
                 'Resp', 'RESP' + '.' + \
-                Sta_req[i][j][0] +  '.' + Sta_req[i][j][1] + '.' + \
-                Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
-                Sta_req[i][j][0], Sta_req[i][j][1], \
-                Sta_req[i][j][2], Sta_req[i][j][3], \
+                Sta_req[j][0] +  '.' + Sta_req[j][1] + '.' + \
+                Sta_req[j][2] + '.' + Sta_req[j][3]), \
+                Sta_req[j][0], Sta_req[j][1], \
+                Sta_req[j][2], Sta_req[j][3], \
                 events[i]['t1'], events[i]['t2'])
             
-            print "Saving Response for: " + Sta_req[i][j][0] + \
-                '.' + Sta_req[i][j][1] + '.' + \
-                Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"   
+            print "Saving Response for: " + Sta_req[j][0] + \
+                '.' + Sta_req[j][1] + '.' + \
+                Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"   
              
         
         if input['paz'] == 'Y':                    
             
             dummy = 'PAZ'
             
-            client_iris.sacpz(Sta_req[i][j][0], Sta_req[i][j][1], \
-                Sta_req[i][j][2], Sta_req[i][j][3], \
+            client_iris.sacpz(Sta_req[j][0], Sta_req[j][1], \
+                Sta_req[j][2], Sta_req[j][3], \
                 events[i]['t1'], events[i]['t2'], \
                 filename = os.path.join(add_event[i], 'Resp', \
-                'PAZ' + '.' + Sta_req[i][j][0] + '.' + \
-                Sta_req[i][j][1] + '.' + \
-                Sta_req[i][j][2] + '.' + \
-                Sta_req[i][j][3] + '.' + 'full'))
+                'PAZ' + '.' + Sta_req[j][0] + '.' + \
+                Sta_req[j][1] + '.' + \
+                Sta_req[j][2] + '.' + \
+                Sta_req[j][3] + '.' + 'full'))
             
-            print "Saving PAZ for     : " + Sta_req[i][j][0] + \
-                '.' + Sta_req[i][j][1] + '.' + \
-                Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"
+            print "Saving PAZ for     : " + Sta_req[j][0] + \
+                '.' + Sta_req[j][1] + '.' + \
+                Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"
         
         
         dummy = 'Meta-data'
         
-        dic[j] ={'info': Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + \
-            '.' + Sta_req[i][j][2] + '.' + Sta_req[i][j][3], \
-            'net': Sta_req[i][j][0], 'sta': Sta_req[i][j][1], \
-            'latitude': Sta_req[i][j][4], 'longitude': Sta_req[i][j][5], \
-            'loc': Sta_req[i][j][2], 'cha': Sta_req[i][j][3], \
-            'elevation': Sta_req[i][j][6], 'depth': 0}
+        dic[j] ={'info': Sta_req[j][0] + '.' + Sta_req[j][1] + \
+            '.' + Sta_req[j][2] + '.' + Sta_req[j][3], \
+            'net': Sta_req[j][0], 'sta': Sta_req[j][1], \
+            'latitude': Sta_req[j][4], 'longitude': Sta_req[j][5], \
+            'loc': Sta_req[j][2], 'cha': Sta_req[j][3], \
+            'elevation': Sta_req[j][6], 'depth': 0}
 
         Syn_file = open(os.path.join(add_event[i], 'info', \
                                 'station_event'), 'a')
@@ -2127,13 +2078,13 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
         
         if input['SAC'] == 'Y':
             writesac(address_st = os.path.join(add_event[i], 'BH_RAW', \
-                Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-                Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
+                Sta_req[j][0] + '.' + Sta_req[j][1] + '.' + \
+                Sta_req[j][2] + '.' + Sta_req[j][3]), \
                 sta_info = dic[j], ev_info = events[i])
         
-        print "Saving Metadata for: " + Sta_req[i][j][0] + \
-            '.' + Sta_req[i][j][1] + '.' + \
-            Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"
+        print "Saving Metadata for: " + Sta_req[j][0] + \
+            '.' + Sta_req[j][1] + '.' + \
+            Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"
             
         
         t22 = datetime.now()
@@ -2144,8 +2095,8 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
                 'time_iris'), 'a')
             size = getFolderSize(os.path.join(add_event[i])) 
             print size/1.e6
-            ti = Sta_req[i][j][0] + ',' + Sta_req[i][j][1] + ',' + \
-                Sta_req[i][j][2] + ',' + Sta_req[i][j][3] + ',' + \
+            ti = Sta_req[j][0] + ',' + Sta_req[j][1] + ',' + \
+                Sta_req[j][2] + ',' + Sta_req[j][3] + ',' + \
                 str(time_iris.seconds) + ',' + str(time_iris.microseconds) \
                 + ',' + str(size/1.e6) + ',+,\n'
             time_file.writelines(ti)
@@ -2161,8 +2112,8 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
                             'info', 'time_iris'), 'a')
             size = getFolderSize(os.path.join(add_event[i])) 
             print size/1.e6
-            ti = Sta_req[i][j][0] + ',' + Sta_req[i][j][1] + ',' + \
-                Sta_req[i][j][2] + ',' + Sta_req[i][j][3] + ',' + \
+            ti = Sta_req[j][0] + ',' + Sta_req[j][1] + ',' + \
+                Sta_req[j][2] + ',' + Sta_req[j][3] + ',' + \
                 str(time_iris.seconds) + ',' + \
                 str(time_iris.microseconds) + ',' + \
                 str(size/1.e6) + ',-,\n'
@@ -2170,14 +2121,14 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
             time_file.close()
         
         
-        if len(Sta_req[i][j]) != 0: 
-            print dummy + '---' + Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + \
-                            '.' +Sta_req[i][j][2] + '.' + Sta_req[i][j][3]
+        if len(Sta_req[j]) != 0: 
+            print dummy + '---' + Sta_req[j][0] + '.' + Sta_req[j][1] + \
+                            '.' +Sta_req[j][2] + '.' + Sta_req[j][3]
             ee = 'iris -- ' + dummy + '---' + str(i) + '-' + str(j) + '---' + \
-                    Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-                    Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + \
+                    Sta_req[j][0] + '.' + Sta_req[j][1] + '.' + \
+                    Sta_req[j][2] + '.' + Sta_req[j][3] + \
                     '---' + str(e) + '\n'
-        elif len(Sta_req[i][j]) == 0:
+        elif len(Sta_req[j]) == 0:
             ee = 'There is no available station for this event.'
         
         Exception_file = open(os.path.join(add_event[i], \
@@ -2194,8 +2145,6 @@ def ARC_network(input):
     Returns information about what time series data is available 
     at the ArcLink nodes for all requested events
     """
-        
-    t_arc_1 = datetime.now()
     
     global events
     
@@ -2209,40 +2158,37 @@ def ARC_network(input):
         create_foders_files(events, eventpath)           
         
     print 'ArcLink-Folders are Created!'
-    print "--------------------"
-    
-    Stas_arc = []
+    print "----------------------------"
     
     for i in range(0, len_events):
-    
-        Sta_arc = ARC_available(input, events[i], eventpath, event_number = i)
-        Stas_arc.append(Sta_arc)
         
+        t_arc_1 = datetime.now()
+    
+        Stas_arc = ARC_available(input, events[i], eventpath, event_number = i)
+        
+        print "\n-------------------------"
         print 'ArcLink-Availability for event: ' + str(i+1) + str('/') + \
                                     str(len_events) + '  --->' + 'DONE'
         
-        if input['get_continuous'] == 'Y':
-            for j in range(1, len_events):
-                Stas_arc.append(Sta_arc)
-                print 'ArcLink-Availability for event: ' + str(j+1) + str('/') + \
-                                    str(len_events) + '  --->' + 'DONE'
-            break
+        t_arc_2 = datetime.now()
+        t_arc_21 = t_arc_2 - t_arc_1
         
-    t_arc_2 = datetime.now()
-    t_arc_21 = t_arc_2 - t_arc_1
-    
-    print "--------------------"
-    print 'ARC-Time: (Availability)'
-    print t_arc_21
-    
-    return Stas_arc
+        print "................."
+        print 'Time:'
+        print t_arc_21
+        print "-------------------------"
+        
+        if Stas_arc:
+            ARC_waveform(input, Stas_arc, i, type = 'save')
+        else:
+            'No available station in ArcLink for your request!'
 
 ###################### ARC_available ###################################
 
 def ARC_available(input, event, target_path, event_number):
     
     """
-    Check the availablity of the IRIS stations
+    Check the availablity of the ArcLink stations
     """
     
     client_arclink = Client_arclink()
@@ -2286,12 +2232,12 @@ def ARC_available(input, event, target_path, event_number):
         Exception_file.writelines(ee)
         Exception_file.close()
         print e
-
+    
     return Sta_arc
 
 ###################### Arclink_waveform ############################
 
-def ARC_waveform(input, Sta_req, type):
+def ARC_waveform(input, Sta_req, i, type):
     
     """
     Gets Waveforms, Response files and meta-data 
@@ -2312,89 +2258,89 @@ def ARC_waveform(input, Sta_req, type):
                     input['max_date'].split('T')[0] + '_' + \
                     str(input['min_mag']) + '_' + str(input['max_mag'])
         eventpath = os.path.join(input['datapath'], Period)
-        for i in range(0, len(events)):
+        for k in range(0, len(events)):
             add_event.append(os.path.join(eventpath, \
-                                        events[i]['event_id']))  
+                                        events[k]['event_id']))  
     elif type == 'update':
         events, add_event = quake_info(input['arc_update'], target = 'info')
     
     len_events = len(events)
     
-    for i in range(0, len_events):
-        print "--------------------"
-        if input['test'] == 'Y':
-            len_req_arc = input['test_num']
-            
-        else:    
-            len_req_arc = len(Sta_req[i])       
+    if input['test'] == 'Y':
+        len_req_arc = input['test_num']
+        
+    else:    
+        len_req_arc = len(Sta_req)       
 
-        dic = {}
+    dic = {}
+    
+    if input['req_parallel'] == 'Y':
+        import pprocess
         
-        if input['req_parallel'] == 'Y':
-            import pprocess
-            
-            print "################"
-            print "Parallel Request"
-            print "################"
-            
-            parallel_results = pprocess.Map(limit=input['req_np'], reuse=1)
-            parallel_job = \
-                parallel_results.manage(pprocess.MakeReusable(ARC_download_core))
+        print "################"
+        print "Parallel Request"
+        print "################"
+        
+        parallel_results = pprocess.Map(limit=input['req_np'], reuse=1)
+        parallel_job = \
+            parallel_results.manage(pprocess.MakeReusable(ARC_download_core))
 
-            for j in range(0, len_req_arc):
-                parallel_job(i = i, j = j, dic = dic, type = type, \
-                                len_events = len_events, \
-                                events = events, add_event = add_event, \
-                                Sta_req = Sta_req, input = input)
-            
-            parallel_results.finish()
+        for j in range(0, len_req_arc):
+            parallel_job(i = i, j = j, dic = dic, type = type, \
+                            len_events = len_events, \
+                            events = events, add_event = add_event, \
+                            Sta_req = Sta_req, input = input)
         
-        else:
-            
-            for j in range(0, len_req_arc):
-                ARC_download_core(i = i, j = j, dic = dic, type = type, \
-                                len_events = len_events, \
-                                events = events, add_event = add_event, \
-                                Sta_req = Sta_req, input = input)
+        parallel_results.finish()
+    
+    else:
         
-        Report = open(os.path.join(add_event[i], 'info', 'report_st'), 'a')
-        eventsID = events[i]['event_id']
-        Report.writelines('<><><><><><><><><><><><><><><><><>' + '\n')
-        Report.writelines(eventsID + '\n')
-        Report.writelines('---------------ARC---------------' + '\n')
-        Report.writelines('---------------' + input['cha'] + '---------------' + '\n')
-        rep = 'ARC-Available stations for channel ' + input['cha'] + \
-                    ' and for event' + '-' + str(i) + ': ' + str(len(Sta_req[i])) + '\n'
-        Report.writelines(rep)
-        rep = 'ARC-' + type + ' stations for channel ' + \
-                input['cha'] + ' and for event' + '-' + \
-                str(i) + ':     ' + str(len(dic)) + '\n'
-        Report.writelines(rep)
-        Report.writelines('----------------------------------' + '\n')
-        
-        t_wave_2 = datetime.now()
-        t_wave = t_wave_2 - t_wave_1
-        
-        rep = "Time for " + type + "ing Waveforms from ArcLink: " + str(t_wave) + '\n'
-        Report.writelines(rep)
-        Report.writelines('----------------------------------' + '\n')
-        Report.close()
-        
-        if input['req_parallel'] == 'Y':
-            report_parallel_open = open(os.path.join(add_event[i], \
-                                        'info', 'report_parallel'), 'a')
-            report_parallel_open.writelines(\
-                '---------------ARC---------------' + '\n')
-            report_parallel_open.writelines(\
-                'Request' + '\n')
-            report_parallel_open.writelines(\
-                'Number of Nodes: ' + str(input['req_np']) + '\n')
-            report_parallel_open.writelines(\
-                'Total Time     : ' + str(t_wave) + '\n')
-        
-    print "---------------"
-    print 'ArcLink is DONE'
-    print "---------------"
+        for j in range(0, len_req_arc):
+            ARC_download_core(i = i, j = j, dic = dic, type = type, \
+                            len_events = len_events, \
+                            events = events, add_event = add_event, \
+                            Sta_req = Sta_req, input = input)
+    
+    Report = open(os.path.join(add_event[i], 'info', 'report_st'), 'a')
+    eventsID = events[i]['event_id']
+    Report.writelines('<><><><><><><><><><><><><><><><><>' + '\n')
+    Report.writelines(eventsID + '\n')
+    Report.writelines('---------------ARC---------------' + '\n')
+    Report.writelines('---------------' + input['cha'] + '---------------' + '\n')
+    rep = 'ARC-Available stations for channel ' + input['cha'] + \
+                ' and for event' + '-' + str(i) + ': ' + str(len(Sta_req)) + '\n'
+    Report.writelines(rep)
+    rep = 'ARC-' + type + ' stations for channel ' + \
+            input['cha'] + ' and for event' + '-' + \
+            str(i) + ':     ' + str(len(dic)) + '\n'
+    Report.writelines(rep)
+    Report.writelines('----------------------------------' + '\n')
+    
+    t_wave_2 = datetime.now()
+    t_wave = t_wave_2 - t_wave_1
+    
+    rep = "Time for " + type + "ing Waveforms from ArcLink: " + str(t_wave) + '\n'
+    Report.writelines(rep)
+    Report.writelines('----------------------------------' + '\n')
+    Report.close()
+    
+    if input['req_parallel'] == 'Y':
+        report_parallel_open = open(os.path.join(add_event[i], \
+                                    'info', 'report_parallel'), 'a')
+        report_parallel_open.writelines(\
+            '---------------ARC---------------' + '\n')
+        report_parallel_open.writelines(\
+            'Request' + '\n')
+        report_parallel_open.writelines(\
+            'Number of Nodes: ' + str(input['req_np']) + '\n')
+        report_parallel_open.writelines(\
+            'Total Time     : ' + str(t_wave) + '\n')
+    
+    print "\n------------------------"
+    print 'ArcLink for event-' + str(i+1) + ' is Done'
+    print 'Time:'
+    print t_wave
+    print "------------------------\n"
 
 ###################### ARC_download_core ###############################
 
@@ -2404,7 +2350,7 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
     print type
     print 'ArcLink-Event and Station Numbers are:'
     print str(i+1) + '/' + str(len_events) + '-' + str(j+1) + '/' + \
-            str(len(Sta_req[i])) + '-' + input['cha']
+            str(len(Sta_req)) + '-' + input['cha']
     
     try:
         
@@ -2420,10 +2366,10 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
             try:
                 client_arclink.saveWaveform(os.path.join(add_event[i], \
                     'BH_RAW', \
-                    Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-                    Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
-                    Sta_req[i][j][0], Sta_req[i][j][1], \
-                    Sta_req[i][j][2], Sta_req[i][j][3], \
+                    Sta_req[j][0] + '.' + Sta_req[j][1] + '.' + \
+                    Sta_req[j][2] + '.' + Sta_req[j][3]), \
+                    Sta_req[j][0], Sta_req[j][1], \
+                    Sta_req[j][2], Sta_req[j][3], \
                     events[i]['t1'], events[i]['t2'])
             
             except Exception, e: 
@@ -2433,20 +2379,20 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
                     print "\nWaveform is not available in ArcLink, trying NERIES!\n"
                     client_neries.saveWaveform(os.path.join(add_event[i], \
                         'BH_RAW', \
-                        Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
-                        Sta_req[i][j][0], Sta_req[i][j][1], \
-                        Sta_req[i][j][2], Sta_req[i][j][3], \
+                        Sta_req[j][0] + '.' + Sta_req[j][1] + '.' + \
+                        Sta_req[j][2] + '.' + Sta_req[j][3]), \
+                        Sta_req[j][0], Sta_req[j][1], \
+                        Sta_req[j][2], Sta_req[j][3], \
                         events[i]['t1'], events[i]['t2'])
 
             check_file = open(os.path.join(add_event[i], 'BH_RAW', \
-                Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-                Sta_req[i][j][2] + '.' + Sta_req[i][j][3]))
+                Sta_req[j][0] + '.' + Sta_req[j][1] + '.' + \
+                Sta_req[j][2] + '.' + Sta_req[j][3]))
             check_file.close()
                                 
-            print "Saving Waveform for: " + Sta_req[i][j][0] + \
-                '.' + Sta_req[i][j][1] + '.' + \
-                Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"  
+            print "Saving Waveform for: " + Sta_req[j][0] + \
+                '.' + Sta_req[j][1] + '.' + \
+                Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"  
         
         
         if input['response'] == 'Y':
@@ -2455,22 +2401,22 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
             
             client_arclink.saveResponse(os.path.join(add_event[i], \
                 'Resp', 'RESP' + \
-                '.' + Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-                Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
-                Sta_req[i][j][0], Sta_req[i][j][1], \
-                Sta_req[i][j][2], Sta_req[i][j][3], \
+                '.' + Sta_req[j][0] + '.' + Sta_req[j][1] + '.' + \
+                Sta_req[j][2] + '.' + Sta_req[j][3]), \
+                Sta_req[j][0], Sta_req[j][1], \
+                Sta_req[j][2], Sta_req[j][3], \
                 events[i]['t1'], events[i]['t2'])
             
             sp = Parser(os.path.join(add_event[i], \
-                'Resp', 'RESP' + '.' + Sta_req[i][j][0] + \
-                '.' + Sta_req[i][j][1] + '.' + \
-                Sta_req[i][j][2] + '.' + Sta_req[i][j][3]))
+                'Resp', 'RESP' + '.' + Sta_req[j][0] + \
+                '.' + Sta_req[j][1] + '.' + \
+                Sta_req[j][2] + '.' + Sta_req[j][3]))
             
             sp.writeRESP(os.path.join(add_event[i], 'Resp'))
             
-            print "Saving Response for: " + Sta_req[i][j][0] + \
-                '.' + Sta_req[i][j][1] + '.' + \
-                Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"
+            print "Saving Response for: " + Sta_req[j][0] + \
+                '.' + Sta_req[j][1] + '.' + \
+                Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"
         
         
         if input['paz'] == 'Y':                    
@@ -2478,39 +2424,39 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
             dummy = 'PAZ'
             
             paz_arc = client_arclink.getPAZ(\
-                Sta_req[i][j][0], Sta_req[i][j][1], \
-                Sta_req[i][j][2], Sta_req[i][j][3], \
+                Sta_req[j][0], Sta_req[j][1], \
+                Sta_req[j][2], Sta_req[j][3], \
                 time = events[i]['t1'])
             
             paz_file = open(\
                 os.path.join(add_event[i], 'Resp', 'PAZ' + '.' + \
-                Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-                Sta_req[i][j][2] + '.' + \
-                Sta_req[i][j][3] + '.' + 'paz'), 'w')
+                Sta_req[j][0] + '.' + Sta_req[j][1] + '.' + \
+                Sta_req[j][2] + '.' + \
+                Sta_req[j][3] + '.' + 'paz'), 'w')
             pickle.dump(paz_arc, paz_file)
             paz_file.close()
             
-            print "Saving PAZ for     : " + Sta_req[i][j][0] + \
-                '.' + Sta_req[i][j][1] + '.' + \
-                Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"
+            print "Saving PAZ for     : " + Sta_req[j][0] + \
+                '.' + Sta_req[j][1] + '.' + \
+                Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"
         
         
         dummy = 'Meta-data'
         
-        dic[j] ={'info': Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + \
-            '.' + Sta_req[i][j][2] + '.' + Sta_req[i][j][3], \
-            'net': Sta_req[i][j][0], 'sta': Sta_req[i][j][1], \
-            'latitude': Sta_req[i][j][4], 'longitude': Sta_req[i][j][5], \
-            'loc': Sta_req[i][j][2], 'cha': Sta_req[i][j][3], \
-            'elevation': Sta_req[i][j][6], 'depth': Sta_req[i][j][7]}
+        dic[j] ={'info': Sta_req[j][0] + '.' + Sta_req[j][1] + \
+            '.' + Sta_req[j][2] + '.' + Sta_req[j][3], \
+            'net': Sta_req[j][0], 'sta': Sta_req[j][1], \
+            'latitude': Sta_req[j][4], 'longitude': Sta_req[j][5], \
+            'loc': Sta_req[j][2], 'cha': Sta_req[j][3], \
+            'elevation': Sta_req[j][6], 'depth': Sta_req[j][7]}
         
         Syn_file = open(os.path.join(add_event[i], \
                             'info', 'station_event'), 'a')
-        syn = Sta_req[i][j][0] + ',' + Sta_req[i][j][1] + ',' + \
-            Sta_req[i][j][2] + ',' + Sta_req[i][j][3] + ',' + \
-            str(Sta_req[i][j][4]) + ',' + str(Sta_req[i][j][5]) + \
-            ',' + str(Sta_req[i][j][6]) + ',' + \
-            str(Sta_req[i][j][7]) + ',' + events[i]['event_id'] + \
+        syn = Sta_req[j][0] + ',' + Sta_req[j][1] + ',' + \
+            Sta_req[j][2] + ',' + Sta_req[j][3] + ',' + \
+            str(Sta_req[j][4]) + ',' + str(Sta_req[j][5]) + \
+            ',' + str(Sta_req[j][6]) + ',' + \
+            str(Sta_req[j][7]) + ',' + events[i]['event_id'] + \
             ',' + str(events[i]['latitude']) \
              + ',' + str(events[i]['longitude']) + ',' + \
              str(events[i]['depth']) + ',' + \
@@ -2520,13 +2466,13 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
         
         if input['SAC'] == 'Y':
             writesac(address_st = os.path.join(add_event[i], 'BH_RAW', \
-                    Sta_req[i][j][0] +  '.' + Sta_req[i][j][1] + \
-                    '.' + Sta_req[i][j][2] + '.' + Sta_req[i][j][3]), \
+                    Sta_req[j][0] +  '.' + Sta_req[j][1] + \
+                    '.' + Sta_req[j][2] + '.' + Sta_req[j][3]), \
                     sta_info = dic[j], ev_info = events[i])
         
-        print "Saving Station  for: " + Sta_req[i][j][0] + '.' + \
-            Sta_req[i][j][1] + '.' + \
-            Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + "  ---> DONE"
+        print "Saving Station  for: " + Sta_req[j][0] + '.' + \
+            Sta_req[j][1] + '.' + \
+            Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"
             
         t22 = datetime.now()
         
@@ -2536,8 +2482,8 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
                             'info', 'time_arc'), 'a+')
             size = getFolderSize(os.path.join(add_event[i]))
             print size/1.e6
-            ti = Sta_req[i][j][0] + ',' + Sta_req[i][j][1] + ',' + \
-                Sta_req[i][j][2] + ',' + Sta_req[i][j][3] + ',' + \
+            ti = Sta_req[j][0] + ',' + Sta_req[j][1] + ',' + \
+                Sta_req[j][2] + ',' + Sta_req[j][3] + ',' + \
                 str(time_arc.seconds) + ',' + \
                 str(time_arc.microseconds) + ',' + \
                 str(size/1.e6) + ',+,\n'
@@ -2554,22 +2500,22 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
                             'info', 'time_arc'), 'a+')
             size = getFolderSize(os.path.join(add_event[i]))
             print size/1.e6
-            ti = Sta_req[i][j][0] + ',' + Sta_req[i][j][1] + ',' + \
-                Sta_req[i][j][2] + ',' + Sta_req[i][j][3] + ',' + \
+            ti = Sta_req[j][0] + ',' + Sta_req[j][1] + ',' + \
+                Sta_req[j][2] + ',' + Sta_req[j][3] + ',' + \
                 str(time_arc.seconds) + ',' + \
                 str(time_arc.microseconds) + ',' + \
                 str(size/1.e6) + ',-,\n'
             time_file.writelines(ti)
             time_file.close()
         
-        if len(Sta_req[i][j]) != 0: 
-            print dummy + '---' + Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + \
-                            '.' +Sta_req[i][j][2] + '.' + Sta_req[i][j][3]
+        if len(Sta_req[j]) != 0: 
+            print dummy + '---' + Sta_req[j][0] + '.' + Sta_req[j][1] + \
+                            '.' +Sta_req[j][2] + '.' + Sta_req[j][3]
             ee = 'arclink -- ' + dummy + '---' + str(i) + '-' + str(j) + '---' + \
-                        Sta_req[i][j][0] + '.' + Sta_req[i][j][1] + '.' + \
-                        Sta_req[i][j][2] + '.' + Sta_req[i][j][3] + \
+                        Sta_req[j][0] + '.' + Sta_req[j][1] + '.' + \
+                        Sta_req[j][2] + '.' + Sta_req[j][3] + \
                         '---' + str(e) + '\n'
-        elif len(Sta_req[i][j]) == 0:
+        elif len(Sta_req[j]) == 0:
             ee = 'There is no available station for this event.'
         
         Exception_file = open(os.path.join(add_event[i], \
@@ -2593,13 +2539,11 @@ def IRIS_update(input, address):
     events, address_events = quake_info(address, 'info')
     len_events = len(events)
     
-    Stas_iris = []
     
     for i in range(0, len_events):
-    
+
         target_path = address_events
-        Sta_iris = IRIS_available(input, events[i], target_path[i], event_number = i)
-        Stas_iris.append(Sta_iris)
+        Stas_iris = IRIS_available(input, events[i], target_path[i], event_number = i)
         
         if input['iris_bulk'] != 'Y':
             print 'IRIS-Availability for event: ' + str(i+1) + str('/') + \
@@ -2608,24 +2552,16 @@ def IRIS_update(input, address):
             print 'IRIS-bulkfile for event    : ' + str(i+1) + str('/') + \
                                     str(len_events) + '  ---> ' + 'DONE'
         
-        if input['get_continuous'] == 'Y':
-            for j in range(1, len_events):
-                Stas_iris.append(Sta_iris)
-                print 'IRIS-Availability for event: ' + str(j+1) + str('/') + \
-                                    str(len_events) + '  --->' + 'DONE'
-            break
+        Stas_req = rm_duplicate(Stas_iris, \
+                            address = os.path.join(address_events[i]))
+        if not os.path.isdir(os.path.join(address_events[i], 'BH_RAW')):
+            os.makedirs(os.path.join(address_events[i], 'BH_RAW'))
     
-    
-    Stas_req = []
-    
-    for k in range(0, len_events):
-        Sta_all = Stas_iris[k]
-        Stas_req.append(rm_duplicate(Sta_all, \
-                            address = os.path.join(address_events[k])))
-        if not os.path.isdir(os.path.join(address_events[k], 'BH_RAW')):
-            os.makedirs(os.path.join(address_events[k], 'BH_RAW'))
-            
-    return Stas_req
+        if Stas_req:
+            IRIS_waveform(input, Stas_req, i, type = 'update')
+        else:
+            'No available station in IRIS for your request!'
+            continue
 
 ###################### ARC_update ######################################
     
@@ -2642,36 +2578,25 @@ def ARC_update(input, address):
     events, address_events = quake_info(address, 'info')
     len_events = len(events)
     
-    Stas_arc = []
-    
     for i in range(0, len_events):
-        
+        import ipdb; ipdb.set_trace()
+
         target_path = address_events
-        Sta_arc = ARC_available(input, events[i], target_path[i], event_number = i)
-        Stas_arc.append(Sta_arc)
+        Stas_arc = ARC_available(input, events[i], target_path[i], event_number = i)
         
         print 'ArcLink-Availability for event: ' + str(i+1) + str('/') + \
                                     str(len_events) + '  --->' + 'DONE'
         
-        if input['get_continuous'] == 'Y':
-            for j in range(1, len_events):
-                Stas_arc.append(Sta_arc)
-                print 'ArcLink-Availability for event: ' + str(j+1) + str('/') + \
-                                    str(len_events) + '  --->' + 'DONE'
-            break
+        Stas_req = rm_duplicate(Stas_arc, \
+                            address = os.path.join(address_events[i]))
+        if not os.path.isdir(os.path.join(address_events[i], 'BH_RAW')):
+            os.makedirs(os.path.join(address_events[i], 'BH_RAW'))
         
-    Stas_req = []
-    
-    for k in range(0, len_events):
-        Sta_all = Stas_arc[k]
-        if Sta_all == [[]]:
+        if Stas_req:
+            ARC_waveform(input, Stas_req, i, type = 'update')
+        else:
+            'No available station in ArcLink for your request!'
             continue
-        Stas_req.append(rm_duplicate(Sta_all, \
-                            address = os.path.join(address_events[k])))
-        if not os.path.isdir(os.path.join(address_events[k], 'BH_RAW')):
-            os.makedirs(os.path.join(address_events[k], 'BH_RAW'))
-            
-    return Stas_req
     
 ###################### IRIS_ARC_IC #####################################
 
@@ -2692,7 +2617,7 @@ def IRIS_ARC_IC(input, clients):
         address = input[clients + '_ic']
     
     events, address_events = quake_info(address, 'info')
-    
+
     for i in range(0, len(events)):
         sta_ev = read_station_event(address_events[i])
         ls_saved_stas_tmp = []
@@ -2713,9 +2638,10 @@ def IRIS_ARC_IC(input, clients):
                 ls_saved_stas.append(ls_saved_stas_tmp[k])
         
         if len(ls_saved_stas) != 0:        
+            print '\n=================='
             print 'event: ' + str(i+1) + '/' + str(len(events)) + \
                                                             ' -- ' + clients
-            print '------------------------------------'
+            print '=================='
             inst_correct(input, ls_saved_stas, address_events[i], clients) 
         else:
             print "There is no station in the folder to correct!"
@@ -2973,7 +2899,7 @@ def obspy_fullresp(trace, resp_file, Address, unit = 'DIS', \
         
         trace.data = seisSim(data = trace.data, \
             samp_rate = trace.stats.sampling_rate,paz_remove=None, \
-            paz_simulate = None, remove_sensitivity=False, \
+            paz_simulate = None, remove_sensitivity=True, \
             simulate_sensitivity = False, water_level = 600.0, \
             zero_mean = True, taper = False, pre_filt=eval(BP_filter), \
             seedresp=seedresp, pitsasim=False, sacsim = True)
@@ -3072,7 +2998,24 @@ def readRESP(resp_file, unit, clients):
 
     resp_open = open(resp_file)
     resp_read = resp_open.readlines()
-
+    
+    check_resp = []
+    
+    for resp_line in resp_read:
+        if "velocity in meters per second" in resp_line.lower() or \
+            "velocity in meters/second" in resp_line.lower():
+                
+            check_resp.append('M/S exists in the response file!')
+    
+    if check_resp == []:
+        print '\n*****************************************************'
+        print 'The response file is not in the right dimension (M/S)'
+        print 'This could cause problems in the instrument correction.'
+        print 'Please check the response file:'
+        print resp_file
+        print '*****************************************************'
+        sys.exit()
+    
     gain_num = []
     A0_num = []
     poles_num = []
@@ -3144,9 +3087,7 @@ def readRESP(resp_file, unit, clients):
     'gain': A0,
     'sensitivity': sensitivity\
     }
-    
-    #print paz
-    
+ 
     return paz
 
 ###################### obspy_PAZ #######################################
