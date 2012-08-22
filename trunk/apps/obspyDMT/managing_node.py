@@ -24,6 +24,8 @@
 from __future__ import with_statement
 import sys
 import os
+import subprocess
+import random
 import glob
 import time
 import fnmatch
@@ -46,7 +48,7 @@ def managing_node(**kwargs):
     managing_node: is the function dedicated to the main part of the code.
     """
     
-    print '-----------------------------------------------------'
+    print '\n-----------------------------------------------------'
     bold = "\033[1m"
     reset = "\033[0;0m"
     print '\t\t' + bold + 'Managing Node' + reset
@@ -78,7 +80,11 @@ def managing_node(**kwargs):
     # ------------------ncSelect----------------------------------------
     if input['ncSelect'] != 'N':
         ncSelect()
-
+    
+    # ------------------plot_nc-----------------------------------------
+    if input['plot_nc'] != 'N':
+        plot_nc()
+        
 ########################################################################
 ###################### Functions are defined here ######################
 ########################################################################
@@ -187,6 +193,23 @@ def command_parse():
     parser.add_option("--stdpmax", action="store",
                       dest="stdpmax", help=helpmsg)
     
+    helpmsg = "plot the events, stations and ray path in the given folder " + \
+                "[Default: 'N']"
+    parser.add_option("--plot", action="store",
+                        dest="plot_nc", help=helpmsg)
+    
+    helpmsg = "plot just the events"
+    parser.add_option("--plot_ev", action="store_true",
+                        dest="plot_ev", help=helpmsg)
+    
+    helpmsg = "plot just the stations"
+    parser.add_option("--plot_sta", action="store_true",
+                        dest="plot_sta", help=helpmsg)
+    
+    helpmsg = "plot just the ray paths"
+    parser.add_option("--plot_ray", action="store_true",
+                        dest="plot_ray", help=helpmsg)
+    
     # parse command line options
     (options, args) = parser.parse_args()
     
@@ -232,6 +255,7 @@ def read_input_command(parser, **kwargs):
                 'stdpmin': +10.0, 'stdpmax': -6000,
                 'stelmin': -10.0, 'stelmax': +100000.0,
                 
+                'plot_nc': 'N',
             }
     
     # feed input dictionary of defaults into parser object
@@ -260,9 +284,14 @@ def read_input_command(parser, **kwargs):
         if not os.path.isabs(options.ncSelect):
             options.ncSelect = os.path.join(os.getcwd(), options.ncSelect)
     
+    if options.plot_nc != 'N':
+        if not os.path.isabs(options.plot_nc):
+            options.plot_nc = os.path.join(os.getcwd(), options.plot_nc)
+    
     input['ncCreate'] = options.ncCreate
     input['managing_address'] = options.managing_address
     input['ncSelect'] = options.ncSelect
+    input['plot_nc'] = options.plot_nc
     
     # Extract network, station, location, channel if the user has given an
     # identity code (-i xx.xx.xx.xx)
@@ -340,16 +369,37 @@ def read_input_command(parser, **kwargs):
     input['evdpmin'] = float(options.evdpmin)
     input['evdpmax'] = float(options.evdpmax)
     
-    input['stlonmin'] = options.evlonmin
-    input['stlonmax'] = options.evlonmax
-    input['stlatmin'] = options.evlatmin
-    input['stlatmax'] = options.evlatmax
+    input['stlonmin'] = options.stlonmin
+    input['stlonmax'] = options.stlonmax
+    input['stlatmin'] = options.stlatmin
+    input['stlatmax'] = options.stlatmax
     
     input['stdpmin'] = float(options.stdpmin)
     input['stdpmax'] = float(options.stdpmax)
     input['stelmin'] = float(options.stelmin)
     input['stelmax'] = float(options.stelmax)
     
+    if options.plot_ev:
+        input['plot_ev'] = 'Y'
+        input['plot_sta'] = 'N'
+        input['plot_ray'] = 'N'
+        input['plot_all'] = 'N'
+    elif options.plot_sta:
+        input['plot_ev'] = 'N'
+        input['plot_sta'] = 'Y'
+        input['plot_ray'] = 'N'
+        input['plot_all'] = 'N'
+    elif options.plot_ray:
+        input['plot_ev'] = 'N'
+        input['plot_sta'] = 'N'
+        input['plot_ray'] = 'Y'
+        input['plot_all'] = 'N'
+    else:
+        input['plot_ev'] = 'N'
+        input['plot_sta'] = 'N'
+        input['plot_ray'] = 'N'
+        input['plot_all'] = 'Y'
+        
 ###################### ncCreate ########################################
 
 def ncCreate():
@@ -434,9 +484,8 @@ def ncCreate_core(input, ls_saved_stas, address, eventgrp):
     print address
     print "========================"
     
-    print "Number of all available stations in the folder"
+    print "All available stations:"
     print len(ls_saved_stas)
-    print '----------------'
 
     tr_tmp = read(ls_saved_stas[0])[0]
     
@@ -507,6 +556,7 @@ def ncCreate_core(input, ls_saved_stas, address, eventgrp):
             if tt[m]['phase_name'] in input['phase']:
         """
         
+    print '\n----------------'
     eventgrp.stations = stationIDS
 
 ###################### ncSelect ########################################
@@ -536,8 +586,12 @@ def ncSelect():
         BH_file = 'BH_ACC'
     
     evsta_info_open = open('./evsta_info.txt', 'w')
+    evsta_plot_open = open('./evsta_plot.txt', 'w')
+    ev_plot_open = open('./ev_plot.txt', 'w')
+    sta_plot_open = open('./sta_plot.txt', 'w')
     
     ev_num = 1
+    ls_sta = []
     pattern_sta = input['net'] + '.' + input['sta'] + '.' + \
                         input['loc'] + '.' + input['cha']
     
@@ -555,6 +609,10 @@ def ncSelect():
            not input['evdpmax']<=float(event_grp.evdp)<=input['evdpmin'] or \
            not input['evmagmin']<=float(event_grp.mag)<=input['evmagmax']:
             continue
+            
+        ev_plot_open.writelines(str(round(float(event_grp.evlo), 5)) + ' ' + \
+                                str(round(float(event_grp.evla), 5)) + ' ' + \
+                                '\n')
         
         print str(len(event_grp.stations.split(' , '))-2)
         
@@ -573,9 +631,33 @@ def ncSelect():
             print str(i),
             
             evsta_info_open.writelines(evgrp + ' , ' + station_name + ' , \n')
-        
-   
+            
+            evsta_plot_open.writelines(\
+                '> -G' + str(int(random.random()*256)) + '/' + \
+                str(int(random.random()*256)) + '/' + str(int(random.random()*256)) + '\n' + \
+                str(round(float(event_grp.evlo), 5)) + ' ' + \
+                str(round(float(event_grp.evla), 5)) + ' ' + \
+                str(random.random()) + ' ' + \
+                '\n' + \
+                str(round(float(event_grp.variables['longitude'][i]), 5)) + ' ' + \
+                str(round(float(event_grp.variables['latitude'][i]), 5)) + ' ' + \
+                str(random.random()) + ' ' + \
+                '\n')
+            
+            if ls_sta == [] or not station_name in ls_sta[:][0]:
+                ls_sta.append([station_name, \
+                    [str(round(float(event_grp.variables['latitude'][i]), 5)), \
+                     str(round(float(event_grp.variables['longitude'][i]), 5))]])
+            
+    for k in range(0, len(ls_sta)):
+        sta_plot_open.writelines(\
+                str(round(float(ls_sta[k][1][1]), 5)) + ' ' + \
+                str(round(float(ls_sta[k][1][0]), 5)) + ' ' + \
+                '\n')
+
     evsta_info_open.close()
+    evsta_plot_open.close()
+    ev_plot_open.close()
     rootgrp.close()
 
     
@@ -626,6 +708,60 @@ def ncSelect():
         
         num_iter += 1
 """
+
+###################### plot_nc #########################################
+
+def plot_nc():
+    
+    """
+    """
+    
+    pwd_str = os.getcwd()
+    
+    os.chdir(input['plot_nc'])
+    
+    os.system('psbasemap -Rd -JK180/9i -B45g30 -K > output.ps')
+    os.system('pscoast -Rd -JK180/9i -B45g30:."World-wide Ray Path Coverage": -Dc -A1000 -Glightgray -Wthinnest -t20 -O -K >> output.ps')
+    
+    if input['plot_ray'] == 'Y':
+        print '\n================================================='
+        print 'Plot the ray path between each event-station pair'
+        print '================================================='
+        
+        os.system('psxy ./evsta_plot.txt -JK180/9i -Rd -O -t100 >> output.ps')
+    if input['plot_sta'] == 'Y':
+        print '\n================================================'
+        print 'Plot all available stations based on the options'
+        print '================================================'
+        
+        os.system('psxy ./sta_plot.txt -JK180/9i -Rd -Si0.14c -Gblue -O >> output.ps')
+    if input['plot_ev'] == 'Y':
+        print '\n=============================================='
+        print 'Plot all available events based on the options'
+        print '=============================================='
+        
+        os.system('psxy ./ev_plot.txt -JK180/9i -Rd -Sa0.28c -Gred -O >> output.ps')
+    if input['plot_all'] == 'Y':
+        print '\n================================================'
+        print 'Plot:'
+        print 'all available events based on the options'
+        print 'all available stations based on the options'
+        print 'the ray path between each event-station pair'
+        print '================================================'
+        
+        os.system('psxy ./evsta_plot.txt -JK180/9i -Rd -O -K -t100 >> output.ps')
+        os.system('psxy ./sta_plot.txt -JK180/9i -Rd -Si0.14c -Gblue -O -K >> output.ps')
+        os.system('psxy ./ev_plot.txt -JK180/9i -Rd -Sa0.28c -Gred -O >> output.ps')
+        
+    os.system('ps2raster output.ps -A -P -Tf')
+    
+    os.system('mv output.ps plot.ps')
+    os.system('mv output.pdf plot.pdf')
+    
+    os.system('xdg-open plot.pdf')
+    
+    os.chdir(pwd_str)
+    
 ###################### quake_info ######################################
 
 def quake_info(address, target):
