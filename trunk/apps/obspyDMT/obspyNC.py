@@ -49,7 +49,7 @@ def obspyNC(**kwargs):
     obspyNC: is the function dedicated to the main part of the code.
     """
     
-    print '-----------------------------------------------------'
+    print '\n-----------------------------------------------------'
     bold = "\033[1m"
     reset = "\033[0;0m"
     print '\t\t' + bold + 'ObsPyNC ' + reset + '(' + bold + 'ObsPy N' + \
@@ -101,6 +101,10 @@ def command_parse():
     # given with dest="var"
     # * you need to provide every possible option here.
     
+    helpmsg = "show how to run obspyNC.py and exit"
+    parser.add_option("--how", action="store_true",
+                      dest="how", help=helpmsg)
+    
     helpmsg = "Create a netCDF4 file out of the event folder(s) " + \
                 "specified here [Default: 'N']"
     parser.add_option("--ncCreate", action="store",
@@ -136,6 +140,10 @@ def command_parse():
     helpmsg = "work with 'raw', 'dis', 'vel' or 'acc' waveforms. [Default: 'raw']"
     parser.add_option("--data_type", action="store",
                         dest="data_type", help=helpmsg)
+    
+    helpmsg = "To not generate AXISEM input file. (STATION file)"
+    parser.add_option("--noaxisem", action="store_true",
+                      dest="noaxisem", help=helpmsg)
     
     helpmsg = "Parallel ncCreate and ncExtract"
     parser.add_option("--nc_parallel", action="store_true",
@@ -192,6 +200,25 @@ def read_input_command(parser, **kwargs):
         for arg in kwargs:
             exec("options.%s = kwargs[arg]") % arg
     
+    if options.how:
+        print '\n===================================================================================='
+        print 'To run obspyNC:'
+        
+        print '\n1. To Create a netCDF4 file out of a given folder:'
+        print '\t./obspyNC.py --ncCreate address --data_type dis'
+        print '"--data_type dis" ---> says that the type of the data that we want to convert is dis'
+        print '\nif you just want to convert specific stations:'
+        print '\t./obspyNC.py --ncCreate address --data_type dis --identity "*.*.*.BHZ"\n'
+        print '----------'
+        print '\n2. To Extract the data from a netCDF4 file:'
+        print '\t./obspyNC.py --ncExtract address\n'
+        print '----------'
+        print '\n3. obspyNC creates "STATIONS" file as an AXISEM input by default, if not needed:'
+        print '\t./obspyNC.py --ncCreate address --noaxisem'
+        print '\t./obspyNC.py --ncExtract address --noaxisem'
+        print '====================================================================================\n'
+        sys.exit(2)
+    
     if options.ncCreate != 'N':
         if not os.path.isabs(options.ncCreate):
             options.ncCreate = os.path.join(os.getcwd(), options.ncCreate)
@@ -226,6 +253,9 @@ def read_input_command(parser, **kwargs):
     
     input['data_type'] = options.data_type
     
+    if options.noaxisem: options.noaxisem = 'Y'
+    input['noaxisem'] = options.noaxisem
+    
     if options.nc_parallel: options.nc_parallel = 'Y'
     input['nc_parallel'] = options.nc_parallel
     
@@ -250,48 +280,73 @@ def ncMain():
     
     events, address_events = quake_info(address, 'info')
     
-    for i in range(0, len(events)):
-        sta_ev = read_station_event(address_events[i])
-        ls_saved_stas_tmp = []
-        ls_saved_stas = []
+    if input['nc_parallel'] == 'Y':
+        import pprocess
         
-        for j in range(0, len(sta_ev[0])):
+        print "\n#######################"
+        print "Parallel Create/Extract"
+        print "Number of Nodes: " + str(input['nc_np'])
+        print "#######################\n"
+        
+        parallel_results = pprocess.Map(limit=input['nc_np'], reuse=1)
+        parallel_job = parallel_results.manage(pprocess.MakeReusable(nc_parallel_core))
+        
+        for i in range(0, len(events)):
+            parallel_job(events = events, address_events = address_events, i = i)
+        parallel_results.finish()
+    
+    else:
+        for i in range(0, len(events)):
+            nc_parallel_core(events = events, address_events = address_events, i = i)
             
-            if input['data_type'] == 'raw':
-                BH_file = 'BH_RAW'
-                network = sta_ev[0][j][0]
-            elif input['data_type'].upper() == 'DIS':
-                BH_file = 'BH'
-                network = 'dis'
-            elif input['data_type'].upper() == 'VEL':
-                BH_file = 'BH_VEL'
-                network = 'vel'
-            elif input['data_type'].upper() == 'ACC':
-                BH_file = 'BH_ACC'
-                network = 'acc'
-            
-            station_id = network + '.' + sta_ev[0][j][1] + '.' + \
-                         sta_ev[0][j][2] + '.' + sta_ev[0][j][3]
-            resp_id = sta_ev[0][j][0] + '.' + sta_ev[0][j][1] + '.' + \
-                         sta_ev[0][j][2] + '.' + sta_ev[0][j][3]
-            ls_saved_stas_tmp.append([os.path.join(address_events[i], BH_file,\
-                                    station_id), resp_id])
+###################### nc_parallel_core ################################
+
+def nc_parallel_core(events, address_events, i):
+    
+    """
+    """
+    
+    sta_ev = read_station_event(address_events[i])
+    ls_saved_stas_tmp = []
+    ls_saved_stas = []
+    
+    for j in range(0, len(sta_ev[0])):
         
-        pattern_sta = input['net'] + '.' + input['sta'] + '.' + \
-                        input['loc'] + '.' + input['cha']
+        if input['data_type'] == 'raw':
+            BH_file = 'BH_RAW'
+            network = sta_ev[0][j][0]
+        elif input['data_type'].upper() == 'DIS':
+            BH_file = 'BH'
+            network = 'dis'
+        elif input['data_type'].upper() == 'VEL':
+            BH_file = 'BH_VEL'
+            network = 'vel'
+        elif input['data_type'].upper() == 'ACC':
+            BH_file = 'BH_ACC'
+            network = 'acc'
         
-        for k in range(0, len(ls_saved_stas_tmp)):
-            if fnmatch.fnmatch(ls_saved_stas_tmp[k][0].split('/')[-1], pattern_sta):
-                ls_saved_stas.append(ls_saved_stas_tmp[k])
+        station_id = network + '.' + sta_ev[0][j][1] + '.' + \
+                     sta_ev[0][j][2] + '.' + sta_ev[0][j][3]
+        resp_id = sta_ev[0][j][0] + '.' + sta_ev[0][j][1] + '.' + \
+                     sta_ev[0][j][2] + '.' + sta_ev[0][j][3]
+        ls_saved_stas_tmp.append([os.path.join(address_events[i], BH_file,\
+                                station_id), resp_id])
+    
+    pattern_sta = input['net'] + '.' + input['sta'] + '.' + \
+                    input['loc'] + '.' + input['cha']
+    
+    for k in range(0, len(ls_saved_stas_tmp)):
+        if fnmatch.fnmatch(ls_saved_stas_tmp[k][0].split('/')[-1], pattern_sta):
+            ls_saved_stas.append(ls_saved_stas_tmp[k])
+    
+    if len(ls_saved_stas) != 0:        
+        print '\n\n**********'
+        print 'event: ' + str(i+1) + '/' + str(len(events))
+        print '**********'
+        ncChoose(input, ls_saved_stas, address_events[i])
         
-        if len(ls_saved_stas) != 0:        
-            print '\n**********'
-            print 'event: ' + str(i+1) + '/' + str(len(events))
-            print '**********'
-            ncChoose(input, ls_saved_stas, address_events[i])
-            
-        else:
-            print "There is no station in the folder to convert!"
+    else:
+        print "There is no station in the folder to convert!"
 
 ###################### ncChoose ########################################
 
@@ -303,7 +358,7 @@ def ncChoose(input, ls_saved_stas, address):
     ncCreate and ncExtract
     """
     
-    global rootgrp
+    global rootgrp, ls_converted_stas, st_converted_stas
     
     eventname = address.split('/')[-1]
     
@@ -319,49 +374,24 @@ def ncChoose(input, ls_saved_stas, address):
         
         os.mkdir(os.path.join(address, 'ncfolder'))
         
-        print "Number of all available stations in the folder to "
+        print '\n-------------------------'
+        print "Number of all available"
+        print "stations in the folder to "
         print "be converted into netCDF:"
         print len(ls_saved_stas)
-        print '----------------'
+        print '-------------------------'
 
         rootgrp = Dataset(os.path.join(address, 'ncfolder', eventname + '.nc'), \
                                                         'w', format = 'NETCDF4')
-        
-        tr_tmp = read(ls_saved_stas[0][0])[0]
-        
-        rootgrp.eventID = eventname
-        rootgrp.evla = tr_tmp.stats.sac.evla
-        rootgrp.evlo = tr_tmp.stats.sac.evlo
-        rootgrp.evdp = tr_tmp.stats.sac.evdp
-        rootgrp.mag = tr_tmp.stats.sac.mag
-        
-        """
-        if input['nc_parallel'] == 'Y':
-            import pprocess
-            
-            print "###################"
-            print "Parallel Request"
-            print "Number of Nodes: " + str(input['nc_np'])
-            print "###################"
-            
-            parallel_results = pprocess.Map(limit=input['nc_np'], reuse=1)
-            parallel_job = parallel_results.manage(pprocess.MakeReusable(ncCreate_core))
-
-            for i in range(660, len(ls_saved_stas)):
-                print_str = 'station: ' + str(i+1) + '/' + str(len(ls_saved_stas))
-                parallel_job(address = address, ls_saved_stas = ls_saved_stas[i],
-                                    eventname = eventname, print_str = print_str)
-            
-            parallel_results.finish()
-        
-            
-        else:
-        """
-        
+        ls_converted_stas = []
+        st_converted_stas = 'AXISEM STATIONS\n'
         for i in range(0, len(ls_saved_stas)):
             print_str = str(i+1)
-            ncCreate_core(address = address, ls_saved_stas = ls_saved_stas[i], \
-                                eventname = eventname, print_str = print_str)
+            ncCreate(address = address, ls_saved_stas = ls_saved_stas[i], \
+                            eventname = eventname, print_str = print_str)
+        
+        if not input['noaxisem'] == 'Y':
+            rootgrp.axisem = st_converted_stas
         rootgrp.close()
         
         
@@ -376,16 +406,16 @@ def ncChoose(input, ls_saved_stas, address):
                                                         'r', format = 'NETCDF4')
         ncExtract(address = address)
 
-###################### ncCreate_core ###################################
+###################### ncCreate ########################################
 
-def ncCreate_core(address, ls_saved_stas, eventname, print_str):
+def ncCreate(address, ls_saved_stas, eventname, print_str):
     
     """
     Function defined for parallel job which contains all the required steps
     for ncCreate (Creating a netCDF file out of an event folder)
     """
     
-    global rootgrp
+    global rootgrp, ls_converted_stas, st_converted_stas
     
     print print_str,
     
@@ -403,15 +433,23 @@ def ncCreate_core(address, ls_saved_stas, eventname, print_str):
             resp_read = 'NO RESPONSE FILE AVAILABLE'
         
         tr = read(ls_saved_stas[0])[0]
-        ncCreate(tr = tr, resp_read = resp_read)
+        
+        rootgrp.eventID = eventname
+        rootgrp.evla = tr.stats.sac.evla
+        rootgrp.evlo = tr.stats.sac.evlo
+        rootgrp.evdp = tr.stats.sac.evdp
+        rootgrp.mag = tr.stats.sac.mag
+        
+        ncCreate_core(tr = tr, resp_read = resp_read)
     except Exception, e:
-        print "\nProblem with reading the: " + ls_saved_stas[1]
+        print "\n------------------------------------------------"
+        print "Problem with reading the: " + ls_saved_stas[1]
         print e
         print "------------------------------------------------"
 
-###################### ncCreate ########################################
+###################### ncCreate_core ###################################
 
-def ncCreate(tr, resp_read):
+def ncCreate_core(tr, resp_read):
     
     """
     This function puts one station (data, response file, header) in an
@@ -427,7 +465,7 @@ def ncCreate(tr, resp_read):
                        to the info group of the station group
     """
     
-    global rootgrp
+    global rootgrp, ls_converted_stas, st_converted_stas
     
     stationID = tr.stats.network + '.' + tr.stats.station + '.' + \
                         tr.stats.location + '.' + tr.stats.channel
@@ -453,6 +491,24 @@ def ncCreate(tr, resp_read):
     stdata = stgrp.createVariable('data', 'f8', ('data',), zlib = True)
 
     stdata[:] = tr.data
+    
+    if tr.stats.location == '' or tr.stats.location == ' ':
+        tr.stats.location = '__'
+    if tr.stats.network + '.' + tr.stats.station + '.' + \
+                tr.stats.location not in ls_converted_stas:
+        ls_converted_stas.append(tr.stats.network + '.' + tr.stats.station + \
+                                                    '.' + tr.stats.location)
+        st_converted_stas += tr.stats.station + tr.stats.location + \
+                            ' '*(5 - len('%s' % tr.stats.network)) + '%s' \
+                            % tr.stats.network + \
+                            ' '*(9 - len('%.2f' % float(tr.stats.sac.stla))) + '%.2f' \
+                            % float(tr.stats.sac.stla) + \
+                            ' '*(9 - len('%.2f' % float(tr.stats.sac.stlo))) + '%.2f' \
+                            % float(tr.stats.sac.stlo) + \
+                            ' '*(15 - len('0.0000000E+00')) + \
+                            '0.0000000E+00' + \
+                            ' '*(15 - len('0.0000000E+00')) + \
+                            '0.0000000E+00' + '\n'
     
 ###################### ncExtract #######################################
 
@@ -482,10 +538,17 @@ def ncExtract(address):
     root_grps = rootgrp.groups
     
     num_iter = 1
-    print "Number of all available stations in the netCDF file"
+    print "\n----------------------------"
+    print "Number of all available"
+    print "stations in the netCDF file:"
     print len(root_grps)
-    print '----------------'
+    print "----------------------------\n"
     
+    if not input['noaxisem'] == 'Y':
+        axi_open = open(os.path.join(address, 'STATIONS'), 'w')
+        axi_open.writelines(rootgrp.axisem[17:])
+        axi_open.close
+        
     for grp in root_grps:
         
         print str(num_iter),
@@ -863,10 +926,6 @@ def read_station_event(address):
             sta_file_open = open(os.path.join(target_add[k],\
                                                     'station_event'), 'r')
         else:
-            print '====================================='
-            print 'station_event could not be found'
-            print 'Start Creating the station_event file'
-            print '====================================='
             create_station_event(address = target_add[k])
             sta_file_open = open(os.path.join(target_add[k],\
                                                     'station_event'), 'r')
@@ -885,6 +944,11 @@ def create_station_event(address):
     Creates the station_event file ("info" folder)
     """
     
+    print '====================================='
+    print 'station_event could not be found'
+    print 'Start Creating the station_event file'
+    print '====================================='
+    
     event_address = os.path.dirname(address)
     if os.path.isdir(os.path.join(event_address, 'BH_RAW')):
         sta_address = os.path.join(event_address, 'BH_RAW')
@@ -892,14 +956,17 @@ def create_station_event(address):
         sta_address = os.path.join(event_address, 'BH')
     ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
     
+    print len(ls_stas)
     for i in range(0, len(ls_stas)):
+        print i,
         sta_file_open = open(os.path.join(address, 'station_event'), 'a')
+        
         try:
             sta = read(ls_stas[i])[0]
         except Exception, e:
             print e
             print 'could not read the waveform data'
-            
+        
         sta_stats = sta.stats
         
         try:
@@ -924,6 +991,8 @@ def create_station_event(address):
         
         sta_file_open.writelines(sta_info)
         sta_file_open.close()
+    
+    print '\n--------------------------'
 
 ########################################################################
 ########################################################################
@@ -931,14 +1000,44 @@ def create_station_event(address):
 
 if __name__ == "__main__":
     
+    
+    global rootgrp
+    
     t1_pro = time.time()
     status = obspyNC()
     t_pro = time.time() - t1_pro
     
-    print'\n------------'
+    print'\n\n==========='
     print "Total Time:"
     print t_pro
-    print'------------\n'
+    print'===========\n'
     
     # pass the return of main to the command line.
     sys.exit(status)
+
+
+
+
+###################### Trial and Error #################################
+"""
+if input['nc_parallel'] == 'Y':
+    import pprocess
+    
+    print "###################"
+    print "Parallel Request"
+    print "Number of Nodes: " + str(input['nc_np'])
+    print "###################"
+    
+    parallel_results = pprocess.Map(limit=input['nc_np'], reuse=1)
+    parallel_job = parallel_results.manage(pprocess.MakeReusable(ncCreate_core))
+
+    for i in range(660, len(ls_saved_stas)):
+        print_str = 'station: ' + str(i+1) + '/' + str(len(ls_saved_stas))
+        parallel_job(address = address, ls_saved_stas = ls_saved_stas[i],
+                            eventname = eventname, print_str = print_str)
+    
+    parallel_results.finish()
+
+    
+else:
+"""

@@ -28,8 +28,10 @@ from optparse import OptionParser
 import numpy as np
 import matplotlib.pyplot as plt
 
-from obspy.core import read, UTCDateTime
+from obspy.core import read, UTCDateTime, util
+from obspy.iris import Client
 from obspy.signal import cross_correlation, pazToFreqResp, invsim
+from obspy.taup import taup
 
 
 ########################################################################
@@ -42,6 +44,22 @@ def COMPARE_DMT(**kwargs):
     COMPARE_DMT: is the function dedicated to the main part of the code.
     For more information about each part, please refer to the relevant function
     """
+    
+    print '\n--------------------------------------------------------'
+    bold = "\033[1m"
+    reset = "\033[0;0m"
+    print '\t\t' + bold + 'COMPARE_DMT' + reset
+    print '\t' + 'Automatic tool for comparing '
+    print '\t' + '   Large Seismic Datasets'
+    print '\n'
+    print ':copyright:'
+    print 'The ObsPy Development Team (devs@obspy.org)' + '\n'
+    print 'Developed by Kasra Hosseini'
+    print 'email: hosseini@geophysik.uni-muenchen.de' + '\n'
+    print ':license:'
+    print 'GNU General Public License, Version 3'
+    print '(http://www.gnu.org/licenses/gpl-3.0-standalone.html)'
+    print '--------------------------------------------------------'
     
     # global variables
     global input
@@ -57,7 +75,7 @@ def COMPARE_DMT(**kwargs):
         single_comparison()
     
     # ------------------Cross Correlation-------------------------------
-    if input['cc'] == 'Y':
+    if input['cc'] == 'Y' or input['cc_parallel'] == 'Y':
         cross_corr()
         read_cc()
     
@@ -87,7 +105,11 @@ def command_parse():
     # store_false saves bool FALSE, store saves string; into the variable
     # given with dest="var"
     # * you need to provide every possible option here.
-
+    
+    helpmsg = "show how to run COMPARE_DMT.py and exit"
+    parser.add_option("--how", action="store_true",
+                      dest="how", help=helpmsg)
+    
     helpmsg = "the path where COMPARE_DMT will read the FIRST dataset"
     parser.add_option("--first_path", action="store",
                       dest="first_path", help=helpmsg)
@@ -127,12 +149,13 @@ def command_parse():
     parser.add_option("--single_comparison", action="store_true",
                       dest="single_comparison", help=helpmsg)
     
-    helpmsg = \
-    '''
-    create a 'cc.txt' file for the waveforms in the first path and 
-    the second path by measuring the cross correlation coefficient and
-    the time shift.
-    '''
+    helpmsg = "add response file and PAZ for plotting"
+    parser.add_option("--resp_paz", action="store_true",
+                      dest="resp_paz", help=helpmsg)
+    
+    helpmsg = "create a 'cc.txt' file for the waveforms in the first path and " + \
+                "the second path by measuring the cross correlation coefficient and" + \
+                "the time shift."
     parser.add_option("--cc", action="store_true",
                       dest="cc", help=helpmsg)
     
@@ -168,7 +191,7 @@ def read_input_command(parser, **kwargs):
     # Defining the default values. 
     # Each of these values could be changed:
     # By defining the required command-line flag
-    
+        
     input = {   'first_path': None,
                 'second_path': None,
                 
@@ -191,7 +214,29 @@ def read_input_command(parser, **kwargs):
         # assigning kwargs to entries of OptionParser object
         for arg in kwargs:
             exec("options.%s = kwargs[arg]") % arg
+    
+    if options.how:
+        print '\n===================================================================================='
+        print 'To run COMPARE_DMT:'
         
+        print '\n1. For single comparison:'
+        print '\t./COMPARE_DMT.py --first_path first_path --second_path second_path --single_comparison'
+        print '\nTo compare specific stations, we could define the identity as:'
+        print '\t./COMPARE_DMT.py --first_path first_path --second_path second_path --single_comparison' + \
+                        ' --identity "*.736A.*.BHZ"\n'
+        print '----------'
+        print '\n2. For creating a cross correlation file (cc.txt):'
+        print '\t./COMPARE_DMT.py --first_path first_path --second_path second_path --cc'
+        print '\nThis could be done in parallel:'
+        print '\t./COMPARE_DMT.py --first_path first_path --second_path second_path --cc_parallel'
+        print '\nThe number of cores could be defined as:'
+        print '\t./COMPARE_DMT.py --first_path first_path --second_path second_path --cc_parallel --cc_np 12\n'
+        print '----------'
+        print '\n3. For reading the cc.txt file and plot:'
+        print '\t./COMPARE_DMT.py --first_path first_path --second_path second_path --read_cc'
+        print '====================================================================================\n'
+        sys.exit(2)
+    
     # parse datapath (check if given absolute or relative)
     if options.first_path:
         if not os.path.isabs(options.first_path):
@@ -232,6 +277,9 @@ def read_input_command(parser, **kwargs):
     if options.single_comparison: options.single_comparison = 'Y'
     input['single_comparison'] = options.single_comparison
     
+    if options.resp_paz: options.resp_paz = 'Y'
+    input['resp_paz'] = options.resp_paz
+    
     if options.cc: options.cc = 'Y'
     input['cc'] = options.cc
     
@@ -251,6 +299,8 @@ def single_comparison():
     one by one comparison of the waveforms in the first path with the second path.
     """
     
+    client = Client()
+    
     global input
     
     # identity of the waveforms (first and second paths) to be compared with each other
@@ -261,34 +311,62 @@ def single_comparison():
     
     for i in range(0, len(ls_first)):
         try:
-            
             tr1 = read(ls_first[i])[0]
+            '''
+            evsta_dist = util.locations2degrees(lat1 = tr1.stats.sac.evla, \
+                                    long1 = tr1.stats.sac.evlo, lat2 = tr1.stats.sac.stla, \
+                                    long2 = tr1.stats.sac.stlo)
             
+            taup_tt = taup.getTravelTimes(delta = evsta_dist, depth = tr1.stats.sac.evdp)
+            
+            phase_exist = 'N'
+            
+            for tt_item in taup_tt:
+                if tt_item['phase_name'] == 'Pdiff':
+                    t_phase = tt_item['time']
+                    t_cut_1 = tr1.stats.starttime + t_phase - 30
+                    t_cut_2 = tr1.stats.starttime + t_phase + 80
+                    tr1.trim(starttime = t_cut_1, endtime = t_cut_2)
+                    
+                    phase_exist = 'Y'
+            
+            if phase_exist != 'Y':
+                continue
+            '''
             # identity of the current waveform
             identity = tr1.stats.network + '.' + tr1.stats.station + '.' + \
                         tr1.stats.location + '.' + tr1.stats.channel
             
             # tr1: first path, tr2: second path, tr3: Raw data
             tr3 = read(os.path.join(input['first_path'], '..', 'BH_RAW', identity))[0]
+            '''
+            tr1.filter('lowpass', freq=0.1, corners=2)
+            tr1.filter('lowpass', freq=0.1, corners=2)
+            tr1.filter('lowpass', freq=0.1, corners=2)
+            tr1.filter('lowpass', freq=0.1, corners=2)
+            tr1.filter('highpass', freq=0.012, corners=2)
+            tr1.filter('highpass', freq=0.012, corners=2)
+            '''
+            if input['resp_paz'] == 'Y':
+                response_file = os.path.join(input['first_path'], '..', 'Resp/RESP.' + identity)
+                
+                # Extract the PAZ info from response file
+                paz = readRESP(response_file, unit = input['corr_unit'])
+                
+                poles = paz['poles']
+                zeros = paz['zeros']
+                scale_fac = paz['gain']
+                sensitivity = paz['sensitivity']
             
-            response_file = os.path.join(input['first_path'], '..', 'Resp/RESP.' + identity)
             
-            # Extract the PAZ info from response file
-            paz = readRESP(response_file, unit = input['corr_unit'])
-            
-            poles = paz['poles']
-            zeros = paz['zeros']
-            scale_fac = paz['gain']
-            sensitivity = paz['sensitivity']
-            
-            # Convert Poles and Zeros (PAZ) to frequency response.
-            h, f = pazToFreqResp(poles, zeros, scale_fac, \
-                            1./tr1.stats.sampling_rate, 16384, freq=True)
-            # Use the evalresp library to extract 
-            # instrument response information from a SEED RESP-file.
-            resp = invsim.evalresp(t_samp = 1./tr1.stats.sampling_rate, \
-                    nfft = 16384, filename = response_file, \
-                    date = tr1.stats.starttime, units = input['corr_unit'].upper())
+                # Convert Poles and Zeros (PAZ) to frequency response.
+                h, f = pazToFreqResp(poles, zeros, scale_fac, \
+                                1./tr1.stats.sampling_rate, tr1.stats.npts*2, freq=True)
+                # Use the evalresp library to extract 
+                # instrument response information from a SEED RESP-file.
+                resp = invsim.evalresp(t_samp = 1./tr1.stats.sampling_rate, \
+                        nfft = tr1.stats.npts*2, filename = response_file, \
+                        date = tr1.stats.starttime, units = input['corr_unit'].upper())
             
             # Keep the current identity in a new variable
             id_name = identity
@@ -302,7 +380,12 @@ def single_comparison():
                 identity = input['corr_unit'] + '.' + tr1.stats.station + '.' + \
                         tr1.stats.location + '.' + tr1.stats.channel
                 tr2 = read(os.path.join(input['second_path'], identity))[0]
+            '''
+            t_cut_1 = tr2.stats.starttime + t_phase - 30
+            t_cut_2 = tr2.stats.starttime + t_phase + 80
             
+            tr2.trim(starttime = t_cut_1, endtime = t_cut_2)
+            '''
             # create time arrays for tr1, tr2 and tr3
             time_tr1 = np.arange(0, tr1.stats.npts/tr1.stats.sampling_rate, \
                                                 1./tr1.stats.sampling_rate)
@@ -310,7 +393,7 @@ def single_comparison():
                                                 1./tr2.stats.sampling_rate)
             time_tr3 = np.arange(0, tr3.stats.npts/tr3.stats.sampling_rate, \
                                                 1./tr3.stats.sampling_rate)
-
+            
             # label for plotting
             label_tr1 = ls_first[i].split('/')[-2]
             label_tr2 = ls_second[i].split('/')[-2]
@@ -322,10 +405,14 @@ def single_comparison():
             tr1_data = tr1.data/abs(maxi)
             tr2_data = tr2.data/abs(maxi)
             tr3_data = tr3.data/abs(maxi)
-            
-            # start plotting
-            plt.figure()
-            plt.subplot(311)
+            '''
+            tr1_data = tr1.data/abs(max(tr1.data))
+            tr2_data = tr2.data/abs(max(tr2.data))
+            '''
+            if input['resp_paz'] == 'Y':
+                # start plotting
+                plt.figure()
+                plt.subplot(311)
             
             plt.plot(time_tr1, tr1_data, color = 'blue', label = label_tr1)
             plt.plot(time_tr2, tr2_data, color = 'red', label = label_tr2)
@@ -334,11 +421,11 @@ def single_comparison():
             plt.xlabel('Time (sec)', fontsize = 'large', weight = 'bold')
             
             if input['corr_unit'] == 'dis':
-                ylabel_str = 'Displacement (nm)'
+                ylabel_str = 'Relative Dis'
             elif input['corr_unit'] == 'vel':
-                ylabel_str = 'Velocity'
+                ylabel_str = 'Relative Vel'
             elif input['corr_unit'] == 'acc':
-                ylabel_str = 'Acceleration'
+                ylabel_str = 'Relative Acc'
             
             plt.ylabel(ylabel_str, fontsize = 'large', weight = 'bold')
             
@@ -349,6 +436,7 @@ def single_comparison():
             
             #-------------------Cross Correlation
             # 5 seconds as total length of samples to shift for cross correlation.
+            
             cc_np = tr1.stats.sampling_rate * 5
             
             np_shift, coeff = cross_correlation.xcorr(tr1, tr2, int(cc_np))
@@ -364,79 +452,80 @@ def single_comparison():
                         '\n' + id_name, \
                         fontsize = 'large', weight = 'bold')
             
-            # -----------------------
-            plt.subplot(323)
-            
-            plt.plot(np.log10(f), np.log10(abs(resp)), \
-                                        color = 'blue', label = 'RESP')
-            plt.plot(np.log10(f), np.log10(abs(h) * sensitivity), \
-                                        color = 'red', label = 'PAZ')
-            
-            #for j in [0.008, 0.012, 0.025, 0.5, 1, 2, 3, 4]:
-            for j in [0.5]:
-                plt.axvline(np.log10(j), linestyle = '--')
+            if input['resp_paz'] == 'Y':
+                # -----------------------
+                plt.subplot(323)
+                
+                plt.plot(np.log10(f), np.log10(abs(resp)), \
+                                            color = 'blue', label = 'RESP')
+                plt.plot(np.log10(f), np.log10(abs(h) * sensitivity), \
+                                            color = 'red', label = 'PAZ')
+                
+                #for j in [0.008, 0.012, 0.025, 0.5, 1, 2, 3, 4]:
+                for j in [0.5]:
+                    plt.axvline(np.log10(j), linestyle = '--')
 
-            plt.xlabel('Frequency [Hz] -- power of 10')
-            plt.ylabel('Amplitude -- power of 10')
+                plt.xlabel('Frequency [Hz] -- power of 10')
+                plt.ylabel('Amplitude -- power of 10')
 
-            plt.legend()
-            
-            # -----------------------
-            plt.subplot(324)
-            #take negative of imaginary part
-            phase_paz = np.unwrap(np.arctan2(h.imag, h.real))
-            phase_resp = np.unwrap(np.arctan2(resp.imag, resp.real))
-            plt.plot(np.log10(f), phase_resp, color = 'blue', label = 'RESP')
-            plt.plot(np.log10(f), phase_paz, color = 'red', label = 'PAZ')
-            
-            #for j in [0.008, 0.012, 0.025, 0.5, 1, 2, 3, 4]:
-            for j in [0.5]:
-                plt.axvline(np.log10(j), linestyle = '--')
+                plt.legend()
+                
+                # -----------------------
+                plt.subplot(324)
+                #take negative of imaginary part
+                phase_paz = np.unwrap(np.arctan2(h.imag, h.real))
+                phase_resp = np.unwrap(np.arctan2(resp.imag, resp.real))
+                plt.plot(np.log10(f), phase_resp, color = 'blue', label = 'RESP')
+                plt.plot(np.log10(f), phase_paz, color = 'red', label = 'PAZ')
+                
+                #for j in [0.008, 0.012, 0.025, 0.5, 1, 2, 3, 4]:
+                for j in [0.5]:
+                    plt.axvline(np.log10(j), linestyle = '--')
 
-            plt.xlabel('Frequency [Hz] -- power of 10')
-            plt.ylabel('Phase [radian]')
+                plt.xlabel('Frequency [Hz] -- power of 10')
+                plt.ylabel('Phase [radian]')
 
-            plt.legend()
+                plt.legend()
 
-            # title, centered above both subplots
-            # make more room in between subplots for the ylabel of right plot
-            plt.subplots_adjust(wspace=0.3)
-            
-            # -----------------------
-            plt.subplot(325)
-            
-            plt.plot(np.log10(f), abs(resp) - abs(h) * 1.e9, \
-                                    color = 'black', label = 'RESP - PAZ')
+                # title, centered above both subplots
+                # make more room in between subplots for the ylabel of right plot
+                plt.subplots_adjust(wspace=0.3)
+                
+                # -----------------------
+                plt.subplot(325)
+                
+                plt.plot(np.log10(f), abs(resp) - abs(h) * 1.e9, \
+                                        color = 'black', label = 'RESP - PAZ')
 
-            for j in [0.008, 0.012, 0.025, 0.5, 1, 2, 3, 4]:
-                plt.axvline(np.log10(j), linestyle = '--')
+                for j in [0.008, 0.012, 0.025, 0.5, 1, 2, 3, 4]:
+                    plt.axvline(np.log10(j), linestyle = '--')
 
-            plt.xlabel('Frequency [Hz] -- power of 10')
-            plt.ylabel('Amplitude')
+                plt.xlabel('Frequency [Hz] -- power of 10')
+                plt.ylabel('Amplitude')
 
-            plt.legend()
-            
-            # -----------------------
-            plt.subplot(326)
-            #take negative of imaginary part
-            phase_paz = np.unwrap(np.arctan2(h.imag, h.real))
-            phase_resp = np.unwrap(np.arctan2(resp.imag, resp.real))
-            plt.plot(np.log10(f), phase_resp - phase_paz, \
-                                    color = 'black', label = 'RESP - PAZ')
+                plt.legend()
+                
+                # -----------------------
+                plt.subplot(326)
+                #take negative of imaginary part
+                phase_paz = np.unwrap(np.arctan2(h.imag, h.real))
+                phase_resp = np.unwrap(np.arctan2(resp.imag, resp.real))
+                plt.plot(np.log10(f), phase_resp - phase_paz, \
+                                        color = 'black', label = 'RESP - PAZ')
 
-            for j in [0.008, 0.012, 0.025, 0.5, 1, 2, 3, 4]:
-                plt.axvline(np.log10(j), linestyle = '--')
+                for j in [0.008, 0.012, 0.025, 0.5, 1, 2, 3, 4]:
+                    plt.axvline(np.log10(j), linestyle = '--')
 
-            plt.xlabel('Frequency [Hz] -- power of 10')
-            plt.ylabel('Phase [radian]')
+                plt.xlabel('Frequency [Hz] -- power of 10')
+                plt.ylabel('Phase [radian]')
 
-            plt.legend()
+                plt.legend()
 
-            # title, centered above both subplots
-            # make more room in between subplots for the ylabel of right plot
-            plt.subplots_adjust(wspace=0.3)
+                # title, centered above both subplots
+                # make more room in between subplots for the ylabel of right plot
+                plt.subplots_adjust(wspace=0.3)
             plt.show()
-            
+                
             
             print str(i+1) + '/' + str(len(ls_first))
             print ls_first[i]
@@ -600,6 +689,7 @@ def read_cc(max_coeff = 0.99, width = 0.01, max_ts = 5.):
     
     t_shift_array = np.array([])
     num_stas = 0
+    num_cc_tt = 0
     zero_count = 0
     
     cc_open = open('./cc.txt', 'r')
@@ -618,6 +708,9 @@ def read_cc(max_coeff = 0.99, width = 0.01, max_ts = 5.):
         if abs(coeff) > max_coeff and cc_read[i][3] == 'Y':
             t_shift_array = np.append(t_shift_array, t_shift)
             num_stas += 1
+        
+        if abs(coeff) > max_coeff and abs(t_shift) <= width:
+            num_cc_tt += 1
         
         if abs(t_shift) >= width or abs(coeff) <= max_coeff or cc_read[i][3] == 'N':
             cc_error_open.writelines(cc_read[i][0] + ',' + \
@@ -651,27 +744,45 @@ def read_cc(max_coeff = 0.99, width = 0.01, max_ts = 5.):
                 str(width) + ':   ' + str(zero_count), \
                 fontsize = 'large', weight = 'bold')
     
+    print 'Number of stations with good phase shift'
+    print num_cc_tt
+    
     plt.show()
 
 ###################### readRESP ########################################
 
-def readRESP(resp_file, unit, clients = 'iris'):
-    
-    """
-    parse the response file
-    now two different formats are supported
-    """
-    
+def readRESP(resp_file, unit):
+
     resp_open = open(resp_file)
     resp_read = resp_open.readlines()
-
+    
+    check_resp = []
+    
+    for resp_line in resp_read:
+        if "velocity in meters per second" in resp_line.lower() or \
+            "velocity in meters/second" in resp_line.lower() or \
+            "m/s -" in resp_line.lower():
+            check_resp.append('M/S')
+        
+        elif "m/s**2 - acceleration" in resp_line.lower():
+            check_resp.append('M/S**2')
+    
+    if check_resp == []:
+        print '\n*****************************************************'
+        print 'The response file is not in the right dimension (M/S)'
+        print 'This could cause problems in the instrument correction.'
+        print 'Please check the response file:'
+        print resp_file
+        print '*****************************************************'
+        sys.exit()
+    
     gain_num = []
     A0_num = []
     poles_num = []
     poles = []
     zeros = []
     zeros_num = []
-    
+    #if clients == 'iris':
     if resp_read[0].find('obspy.xseed') == -1:
         for i in range(0, len(resp_read)):
             if resp_read[i].find('B058F04') != -1:  
@@ -683,6 +794,7 @@ def readRESP(resp_file, unit, clients = 'iris'):
             if resp_read[i].find('B053F15-18') != -1:  
                 poles_num.append(i)
                 
+    #elif clients == 'arc':
     elif resp_read[0].find('obspy.xseed') != -1:
         for i in range(0, len(resp_read)):
             if resp_read[i].find('B058F04') != -1:  
@@ -693,7 +805,7 @@ def readRESP(resp_file, unit, clients = 'iris'):
                 zeros_num.append(i)
             if resp_read[i].find('B043F16-19') != -1:  
                 poles_num.append(i)
-    
+        
     list_sensitivity = resp_read[gain_num[-1]].split('\n')[0].split(' ')
     list_new_sensitivity = [x for x in list_sensitivity if x]
     sensitivity = eval(list_new_sensitivity[-1])
@@ -721,13 +833,17 @@ def readRESP(resp_file, unit, clients = 'iris'):
         zeros_i = eval(list_new_zeros[-3])
         zeros.append(complex(zeros_r, zeros_i))
             
-            
-    if unit.lower() == 'dis':
-        zeros.append(0j)
-    #if unit.lower() == 'vel':
-    #    zeros = [0j, 0j]
-    #if unit.lower() == 'acc':
-    #    zeros = [0j]
+    if check_resp[0] == 'M/S':
+        if unit.lower() == 'dis':
+            zeros.append(0j)
+        #if unit.lower() == 'vel':
+        #    zeros = [0j, 0j]
+        #if unit.lower() == 'acc':
+        #    zeros = [0j]
+    elif check_resp[0] == 'M/S**2':
+        if unit.lower() == 'dis':
+            zeros.append(0j)
+            zeros.append(0j)
     
     paz = {\
     'poles': poles,
@@ -735,9 +851,7 @@ def readRESP(resp_file, unit, clients = 'iris'):
     'gain': A0,
     'sensitivity': sensitivity\
     }
-    
-    print paz
-    
+ 
     return paz
 
 ########################################################################

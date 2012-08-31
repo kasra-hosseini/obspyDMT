@@ -396,6 +396,18 @@ def command_parse():
     parser.add_option("--max_date", action="store",
                       dest="max_date", help=helpmsg)
     
+    helpmsg = "event catalog (EMSC or IRIS). " + \
+                "[Default: 'EMSC']"
+    parser.add_option("--event_catalog", action="store",
+                      dest="event_catalog", help=helpmsg)
+    
+    helpmsg = "magnitude type. Some common types (there are many) " + \
+                "include 'Ml' (local/Richter magnitude), " + \
+                "'Ms' (surface magnitude), 'mb' (body wave magnitude), " + \
+                "'Mw' (moment magnitude). [Default: 'Mw']"
+    parser.add_option("--mag_type", action="store",
+                      dest="mag_type", help=helpmsg)
+    
     helpmsg = "minimum magnitude. [Default: 5.5]"
     parser.add_option("--min_mag", action="store",
                       dest="min_mag", help=helpmsg)
@@ -417,6 +429,14 @@ def command_parse():
                 "[Default: -180.0/+180.0/-90.0/+90.0]"
     parser.add_option("--event_rect", action="store", dest="event_rect",
                         help=helpmsg)
+    
+    helpmsg = "search for all the events within the defined " + \
+                "circle, syntax: <lon>/<lat>/<rmin>/<rmax>. " + \
+                "May not be used together with rectangular " + \
+                "bounding box event restrictions (event_rect). " + \
+                "[currently just IRIS support this option]"
+    parser.add_option("--event_circle", action="store",
+                      dest="event_circle", help=helpmsg)
     
     helpmsg = "maximum number of events to be requested. [Default: 2500]"
     parser.add_option("--max_result", action="store",
@@ -808,6 +828,9 @@ def read_input_command(parser, **kwargs):
                 
                 'min_date': str(UTCDateTime() - 60 * 60 * 24 * 10 * 1),
                 'max_date': str(UTCDateTime() - 60 * 60 * 24 * 5 * 1),
+                
+                'event_catalog': 'EMSC',
+                'mag_type': 'Mw',
                 'min_mag': 5.5, 'max_mag': 9.9,
                 'min_depth': +10.0, 'max_depth': -6000.0,
                 
@@ -827,6 +850,9 @@ def read_input_command(parser, **kwargs):
                 
                 'evlatmin': -90.0, 'evlatmax': +90.0, 
                 'evlonmin': -180.0, 'evlonmax': +180.0,
+                
+                'evlat': 0.0, 'evlon': 0.0, 
+                'evradmin': 0.0, 'evradmax': +180.0,
                 
                 'max_result': 2500,
                 
@@ -890,7 +916,7 @@ def read_input_command(parser, **kwargs):
         reset = "\033[0;0m"
         print '\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *' 
-        print '\t\t' + '*' + '\t\t' + bold + '2.0' + reset + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + bold + '2.1' + reset + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -992,6 +1018,21 @@ def read_input_command(parser, **kwargs):
             print "Erroneous rectangle given."
             sys.exit(2)
     
+    # circular event restriction option parsing
+    if options.event_circle:
+        try:
+            options.event_circle = options.event_circle.split('/')
+            if len(options.event_circle) != 4:
+                print "Erroneous circle given."
+                sys.exit(2)
+            options.evlon = float(options.event_circle[0])
+            options.evlat = float(options.event_circle[1])
+            options.evradmin = float(options.event_circle[2])
+            options.evradmax = float(options.event_circle[3])
+        except:
+            print "Erroneous circle given."
+            sys.exit(2)
+    
     # extract min. and max. longitude and latitude if the user has given the
     # coordinates with -g (GMT syntax)
     if options.station_rect:
@@ -1050,6 +1091,9 @@ def read_input_command(parser, **kwargs):
     
     input['min_date'] = str(UTCDateTime(options.min_date))
     input['max_date'] = str(UTCDateTime(options.max_date))
+    
+    input['event_catalog'] = options.event_catalog.upper()
+    input['mag_type'] = options.mag_type
     input['min_mag'] = float(options.min_mag)
     input['max_mag'] = float(options.max_mag)
     input['min_depth'] = float(options.min_depth)
@@ -1059,6 +1103,11 @@ def read_input_command(parser, **kwargs):
     input['evlonmax'] = options.evlonmax
     input['evlatmin'] = options.evlatmin
     input['evlatmax'] = options.evlatmax
+    
+    input['evlat'] = options.evlat
+    input['evlon'] = options.evlon
+    input['evradmax'] = options.evradmax
+    input['evradmin'] = options.evradmin
     
     input['preset'] = float(options.preset)
     input['offset'] = float(options.offset)
@@ -1660,23 +1709,77 @@ def events_info(request):
     
     if request == 'event-based':
         
-        print '\n###############################'
-        print 'Start sending the event request'
-        print '###############################\n'
+        print '\n###################################'
+        print 'Start sending the event request to:'
         
-        client_neries = Client_neries()
+        if input['event_catalog'] == 'EMSC':
+            
+            print 'EMSC'
+            print '###################################\n'
+            
+            client_neries = Client_neries()
+            
+            events = client_neries.getEvents(min_datetime=input['min_date'], \
+                max_datetime=input['max_date'], min_magnitude=input['min_mag'], \
+                max_magnitude=input['max_mag'], min_latitude=input['evlatmin'], \
+                max_latitude=input['evlatmax'], min_longitude=input['evlonmin'], \
+                max_longitude=input['evlonmax'], min_depth = input['min_depth'], \
+                max_depth=input['max_depth'], magnitude_type=input['mag_type'],
+                max_results=input['max_result'])
         
-        events = client_neries.getEvents(min_datetime=input['min_date'], \
-            max_datetime=input['max_date'], min_magnitude=input['min_mag'], \
-            max_magnitude=input['max_mag'], min_latitude=input['evlatmin'], \
-            max_latitude=input['evlatmax'], min_longitude=input['evlonmin'], \
-            max_longitude=input['evlonmax'], min_depth = input['min_depth'], \
-            max_depth=input['max_depth'], max_results=input['max_result'])
-        
+        elif input['event_catalog'] == 'IRIS':
+            try:
+                print 'IRIS'
+                print '###################################\n'
+                
+                client_iris = Client_iris()
+                
+                events_QML = client_iris.getEvents(\
+                        minlat=input['evlatmin'],maxlat=input['evlatmax'],\
+                        minlon=input['evlonmin'],maxlon=input['evlonmax'],\
+                        lat=input['evlat'],lon=input['evlon'],\
+                        maxradius=input['evradmax'],minradius=input['evradmin'],\
+                        mindepth=-input['min_depth'],maxdepth=-input['max_depth'],\
+                        starttime=input['min_date'],endtime=input['max_date'],\
+                        minmag=input['min_mag'],maxmag=input['max_mag'],\
+                        magtype=input['mag_type'])
+                
+                events = []
+                for i in range(0, len(events_QML)):
+                    event_time = events_QML.events[i].origins[0].time
+                    if event_time.month < 10:
+                        event_time_month = '0' + str(event_time.month)
+                    else:
+                        event_time_month = str(event_time.month)
+                    if event_time.day < 10:
+                        event_time_day = '0' + str(event_time.day)
+                    else:
+                        event_time_day = str(event_time.day)
+                    events.append({\
+                        'author': \
+                            events_QML.events[i].magnitudes[0].creation_info.author, \
+                        'event_id': str(event_time.year) + event_time_month + \
+                                     event_time_day + '_' + str(i), \
+                        'origin_id': 'NAN', \
+                        'longitude': events_QML.events[i].origins[0].longitude, \
+                        'latitude': events_QML.events[i].origins[0].latitude, \
+                        'datetime': event_time, \
+                        'depth': -events_QML.events[i].origins[0].depth, \
+                        'magnitude': events_QML.events[i].magnitudes[0].mag, \
+                        'magnitude_type': \
+                            events_QML.events[i].magnitudes[0].magnitude_type.lower(), \
+                        'flynn_region': 'NAN'})
+            except Exception, e:
+                print 30*'-'
+                print e
+                print 30*'-'
+                events = []
+                
         for i in range(0, len(events)):
+            #client_iris.flinnengdahl(lat=-1.196, lon=121.33, rtype="code")
             events[i]['t1'] = events[i]['datetime'] - input['preset']
             events[i]['t2'] = events[i]['datetime'] + input['offset']
-    
+
     elif request == 'continuous':
         
         print '\n###############################'
@@ -2801,7 +2904,6 @@ def IC_core(ls_saved_stas, clients, address, BH_file, inform):
                 BP_filter = input['pre_filt'], inform = inform)
             """
             
-            
             rt_c = RTR(stream = ls_saved_stas, degree = 2)
             tr = read(ls_saved_stas)[0]
             tr.data = rt_c
@@ -2994,7 +3096,7 @@ def SAC_fullresp(trace, resp_file, address, BH_file = 'BH', unit = 'DIS', \
 
 ###################### readRESP ########################################
 
-def readRESP(resp_file, unit, clients):
+def readRESP(resp_file, unit):
 
     resp_open = open(resp_file)
     resp_read = resp_open.readlines()
@@ -3003,17 +3105,20 @@ def readRESP(resp_file, unit, clients):
     
     for resp_line in resp_read:
         if "velocity in meters per second" in resp_line.lower() or \
-            "velocity in meters/second" in resp_line.lower():
-                
-            check_resp.append('M/S exists in the response file!')
+            "velocity in meters/second" in resp_line.lower() or \
+            "m/s -" in resp_line.lower():
+            check_resp.append('M/S')
+        
+        elif "m/s**2 - acceleration" in resp_line.lower():
+            check_resp.append('M/S**2')
     
     if check_resp == []:
-        print '\n*****************************************************'
-        print 'The response file is not in the right dimension (M/S)'
+        print '\n***************************************************************'
+        print 'The response file is not in the right dimension (M/S) or (M/S**2)'
         print 'This could cause problems in the instrument correction.'
         print 'Please check the response file:'
         print resp_file
-        print '*****************************************************'
+        print '*****************************************************************'
         sys.exit()
     
     gain_num = []
@@ -3073,13 +3178,17 @@ def readRESP(resp_file, unit, clients):
         zeros_i = eval(list_new_zeros[-3])
         zeros.append(complex(zeros_r, zeros_i))
             
-            
-    if unit.lower() == 'dis':
-        zeros.append(0j)
-    #if unit.lower() == 'vel':
-    #    zeros = [0j, 0j]
-    #if unit.lower() == 'acc':
-    #    zeros = [0j]
+    if check_resp[0] == 'M/S':
+        if unit.lower() == 'dis':
+            zeros.append(0j)
+        #if unit.lower() == 'vel':
+        #    zeros = [0j, 0j]
+        #if unit.lower() == 'acc':
+        #    zeros = [0j]
+    elif check_resp[0] == 'M/S**2':
+        if unit.lower() == 'dis':
+            zeros.append(0j)
+            zeros.append(0j)
     
     paz = {\
     'poles': poles,
@@ -3097,7 +3206,7 @@ def obspy_PAZ(trace, resp_file, Address, clients, unit = 'DIS', \
     
     try:
         
-        paz = readRESP(resp_file, unit, clients)
+        paz = readRESP(resp_file, unit)
         
         trace.data = seisSim(data = trace.data, \
             samp_rate = trace.stats.sampling_rate,paz_remove=paz, \

@@ -107,12 +107,16 @@ def command_parse():
     # given with dest="var"
     # * you need to provide every possible option here.
     
+    helpmsg = "show how to run managing_node.py and exit"
+    parser.add_option("--how", action="store_true",
+                      dest="how", help=helpmsg)
+    
     helpmsg = "Create a netCDF4 file out of the event folder(s) " + \
                 "specified here [Default: 'N']"
     parser.add_option("--ncCreate", action="store",
                         dest="ncCreate", help=helpmsg)
     
-    helpmsg = "Managing address where the managing_node.nc is located " + \
+    helpmsg = "Managing address where the managing_node.nc will be located " + \
                 "[Default: '.' (current folder)]"
     parser.add_option("--managing_address", action="store",
                         dest="managing_address", help=helpmsg)
@@ -143,7 +147,7 @@ def command_parse():
     parser.add_option("--data_type", action="store",
                         dest="data_type", help=helpmsg)
     
-    helpmsg = "Select required stations and events from a netCDF4 file" + \
+    helpmsg = "Select required stations and events from a netCDF4 file " + \
                 "specified here [Default: 'N']"
     parser.add_option("--ncSelect", action="store",
                         dest="ncSelect", help=helpmsg)
@@ -271,6 +275,27 @@ def read_input_command(parser, **kwargs):
         # assigning kwargs to entries of OptionParser object
         for arg in kwargs:
             exec("options.%s = kwargs[arg]") % arg
+    
+    if options.how:
+        print '\n===================================================================================='
+        print 'To run managing_node:'
+        
+        print '\n1. To Create a netCDF4 file out of the event folder(s) specified here:'
+        print '\t./managing_node.py --ncCreate address'
+        print 'To change the address where managing_node.nc will be located:'
+        print '\t./managing_node.py --ncCreate address --managing_address managing_address\n'
+        print '----------'
+        print '\n2. To Select the data from the managing_node.nc file:'
+        print '\t./managing_node.py --ncSelect address_of_managing_node.nc --options'
+        print '--options here means station and event location, event magnitude, event depth, '
+        print 'station elevation, station burrial. To know more about each please refer to:'
+        print '\t./managing_node.py --help\n'
+        print '----------'
+        print '\n3. managing_node.py could also plot your selected event-station pairs:'
+        print '\t./managing_node.py --plot address'
+        print 'Here address is the location where *.txt files were created (previous section).'
+        print '====================================================================================\n'
+        sys.exit(2)
     
     if options.ncCreate != 'N':
         if not os.path.isabs(options.ncCreate):
@@ -1112,10 +1137,6 @@ def read_station_event(address):
             sta_file_open = open(os.path.join(target_add[k],\
                                                     'station_event'), 'r')
         else:
-            print '====================================='
-            print 'station_event could not be found'
-            print 'Start Creating the station_event file'
-            print '====================================='
             create_station_event(address = target_add[k])
             sta_file_open = open(os.path.join(target_add[k],\
                                                     'station_event'), 'r')
@@ -1134,6 +1155,11 @@ def create_station_event(address):
     Creates the station_event file ("info" folder)
     """
     
+    print '====================================='
+    print 'station_event could not be found'
+    print 'Start Creating the station_event file'
+    print '====================================='
+    
     event_address = os.path.dirname(address)
     if os.path.isdir(os.path.join(event_address, 'BH_RAW')):
         sta_address = os.path.join(event_address, 'BH_RAW')
@@ -1141,14 +1167,17 @@ def create_station_event(address):
         sta_address = os.path.join(event_address, 'BH')
     ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
     
+    print len(ls_stas)
     for i in range(0, len(ls_stas)):
+        print i,
         sta_file_open = open(os.path.join(address, 'station_event'), 'a')
+        
         try:
             sta = read(ls_stas[i])[0]
         except Exception, e:
             print e
             print 'could not read the waveform data'
-            
+        
         sta_stats = sta.stats
         
         try:
@@ -1173,6 +1202,8 @@ def create_station_event(address):
         
         sta_file_open.writelines(sta_info)
         sta_file_open.close()
+    
+    print '\n--------------------------'
 
 ########################################################################
 ########################################################################
