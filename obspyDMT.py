@@ -62,7 +62,18 @@ global descrip
 
 descrip = []
 
-from obspy.core import __version__ as obs_ver
+try:
+    from obspy import __version__ as obs_ver
+except Exception, error:
+    try:
+        from obspy.core import __version__ as obs_ver
+    except Exception, error:
+        print error
+        print '------------------------------------------------------'
+        print 'Do you have ObsPy properly installed on your computer?'
+        print '------------------------------------------------------'
+        sys.exit(2)
+
 from obspy.core import read, UTCDateTime
 from obspy.signal import seisSim, invsim
 from obspy.xseed import Parser
@@ -2078,9 +2089,16 @@ def IRIS_waveform(input, Sta_req, i, type):
             'Request' + '\n')
         report_parallel_open.writelines(\
             'Number of Nodes: ' + str(input['req_np']) + '\n')
+        
+        size = getFolderSize(os.path.join(add_event[i])) 
+        ti = str(t_wave.seconds) + ',' + str(t_wave.microseconds) \
+                + ',' + str(size/1.e6) + ',+,\n'
+                
         report_parallel_open.writelines(\
             'Total Time     : ' + str(t_wave) + '\n')
-            
+        report_parallel_open.writelines(ti)
+        report_parallel_open.close()
+        
     print "\n------------------------"
     print 'IRIS for event-' + str(i+1) + ' is Done'
     print 'Time:'
@@ -2436,8 +2454,15 @@ def ARC_waveform(input, Sta_req, i, type):
             'Request' + '\n')
         report_parallel_open.writelines(\
             'Number of Nodes: ' + str(input['req_np']) + '\n')
+        
+        size = getFolderSize(os.path.join(add_event[i])) 
+        ti = str(t_wave.seconds) + ',' + str(t_wave.microseconds) \
+                + ',' + str(size/1.e6) + ',+,\n'
+                
         report_parallel_open.writelines(\
             'Total Time     : ' + str(t_wave) + '\n')
+        report_parallel_open.writelines(ti)
+        report_parallel_open.close()
     
     print "\n------------------------"
     print 'ArcLink for event-' + str(i+1) + ' is Done'
@@ -2903,7 +2928,7 @@ def IC_core(ls_saved_stas, clients, address, BH_file, inform):
                 address = address, BH_file = BH_file, unit = input['corr_unit'], \
                 BP_filter = input['pre_filt'], inform = inform)
             """
-            
+            """ 
             rt_c = RTR(stream = ls_saved_stas, degree = 2)
             tr = read(ls_saved_stas)[0]
             tr.data = rt_c
@@ -2920,19 +2945,36 @@ def IC_core(ls_saved_stas, clients, address, BH_file, inform):
                 clients = clients, unit = input['corr_unit'], \
                 BP_filter = input['pre_filt'], inform = inform)
             check_quit()
-            
             """
+            
             if clients == 'iris':
                 paz_file = os.path.join(address, 'Resp', 'PAZ' + '.' + \
                                 ls_saved_stas.split('/')[-1] + '.' + 'full')
-            
+ 
                 SAC_PAZ(trace = ls_saved_stas, paz_file = paz_file, \
                     address = address, BH_file = BH_file, unit = input['corr_unit'], \
                     BP_filter = input['pre_filt'], inform = inform)
                 check_quit()
             
             if clients == 'arc':
+                rt_c = RTR(stream = ls_saved_stas, degree = 2)
+                tr = read(ls_saved_stas)[0]
+                tr.data = rt_c
                 
+                # Tapering
+                taper = invsim.cosTaper(len(tr.data))
+                tr.data *= taper
+                
+                resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
+                                            ls_saved_stas.split('/')[-1])
+            
+                obspy_PAZ(trace = tr, resp_file = resp_file, \
+                    Address = os.path.join(address, BH_file), \
+                    clients = clients, unit = input['corr_unit'], \
+                    BP_filter = input['pre_filt'], inform = inform)
+                check_quit()
+            
+                """
                 rt_c = RTR(stream = ls_saved_stas, degree = 2)
                 tr = read(ls_saved_stas)[0]
                 tr.data = rt_c
@@ -2954,7 +2996,8 @@ def IC_core(ls_saved_stas, clients, address, BH_file, inform):
                     Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
                     BP_filter = input['pre_filt'], inform = inform)
                 check_quit()
-            """
+                """
+            
     except Exception, e:
         print e
 
@@ -3670,17 +3713,28 @@ def plot_dt(input, address_events):
                     MB_all.append(MB_single)
 
                     if dt_read[k][7] == '+':
-                        plt.scatter(time_single, MB_single, s = 1, \
-                                    c = 'b', edgecolors = 'b', marker = 'o')
+                        single_succ = plt.scatter(time_single, MB_single, s = 1, \
+                                    c = 'b', edgecolors = 'b', marker = 'o', \
+                                    label = 'Serial (successful)')
                         succ += 1
                     elif dt_read[k][7] == '-':
-                        plt.scatter(time_single, MB_single, s = 1, \
-                                    c = 'r', edgecolors = 'r', marker = 'o')
+                        single_fail = plt.scatter(time_single, MB_single, s = 1, \
+                                    c = 'r', edgecolors = 'r', marker = 'o', \
+                                    label = 'Serial (failed)')
                         fail += 1
-                """
+                
                 if input['req_parallel'] == 'Y':
-                    rep_par_open = open(os.path.join(address_events[i], 'info', report_parallel))
-                """
+                    rep_par_open = open(os.path.join(address_events[i], \
+                                                    'info', 'report_parallel'))
+                    rep_par_read = rep_par_open.readlines()
+                    time_parallel = eval(rep_par_read[4].split(',')[0]) + \
+                                    eval(rep_par_read[4].split(',')[1])/1.e6
+                    MB_parallel = eval(rep_par_read[4].split(',')[2])
+                    trans_rate_parallel = MB_parallel/time_parallel*60
+                    parallel_succ = plt.scatter(time_parallel, MB_parallel, s = 30, \
+                                    c = 'r', edgecolors = 'r', marker = 'o', \
+                                    label = 'Parallel')
+                
                 time_array = np.array(time_all)
                 MB_array = np.array(MB_all)
                 
@@ -3691,8 +3745,11 @@ def plot_dt(input, address_events):
                 trans_rate = (poly(time_array[-1])-poly(time_array[0]))/ \
                                         (time_array[-1]-time_array[0])*60
                 
-                plt.xlabel('sec')
-                plt.ylabel('MB')
+                plt.xlabel('Time (sec)', size = 'large', weight = 'bold')
+                plt.ylabel('Stored Data (MB)', size = 'large', weight = 'bold')
+                plt.xticks(size = 'large', weight = 'bold')
+                plt.yticks(size = 'large', weight = 'bold')
+                
                 plt.title(client.split('_')[1].upper() + '\n' + \
                             'All: ' + str(succ + fail) + '--' + \
                             'Succ: ' + str(succ) + ' ' + '(' + \
@@ -3701,8 +3758,18 @@ def plot_dt(input, address_events):
                             'Fail: ' + str(fail) + ' ' + '(' + \
                             str(round(float(fail)/(succ + fail)*100., 1)) + '%)' + \
                             '--' + \
-                             str(round(trans_rate, 2)) + 'MB/min')
-
+                             str(round(trans_rate, 2)) + 'MB/min', size = 'x-large')
+                """
+                plt.title(client.split('_')[1].upper() + '\n' + \
+                             'Serial: ' + str(round(trans_rate, 2)) + 'MB/min -- ' + \
+                             'Parallel: ' + str(round(trans_rate_parallel, 2)) + 'MB/min', \
+                             size = 'large', weight = 'bold')
+                """
+                
+                if input['req_parallel'] == 'Y':
+                    plt.legend([single_succ, parallel_succ], \
+                            ['Serial', 'Parallel'], loc=4)
+                
                 plt.savefig(os.path.join(address_events[i], 'info', \
                             'Data-Time_' + client.split('_')[1] + \
                             '.' + input['plot_format']))

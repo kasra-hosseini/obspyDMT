@@ -77,11 +77,11 @@ def COMPARE_DMT(**kwargs):
     # ------------------Cross Correlation-------------------------------
     if input['cc'] == 'Y' or input['cc_parallel'] == 'Y':
         cross_corr()
-        read_cc()
+        read_cc(max_coeff = input['max_cc'])
     
     # ------------------Read Cross Correlation File---------------------
     if input['read_cc'] == 'Y':
-        read_cc()
+        read_cc(max_coeff = input['max_cc'])
     
     
 ########################################################################
@@ -159,6 +159,10 @@ def command_parse():
     parser.add_option("--cc", action="store_true",
                       dest="cc", help=helpmsg)
     
+    helpmsg = "Maximum Cross Correlation Coefficient for plotting"
+    parser.add_option("--max_cc", action="store",
+                      dest="max_cc", help=helpmsg)
+    
     helpmsg = "Parallel Cross Correlation"
     parser.add_option("--cc_parallel", action="store_true",
                       dest="cc_parallel", help=helpmsg)
@@ -170,6 +174,42 @@ def command_parse():
     helpmsg = "Read cc.txt file [refer to --cc] and create some plots"
     parser.add_option("--read_cc", action="store_true",
                       dest="read_cc", help=helpmsg)
+    
+    helpmsg = "Required phases to search for. format: 'Pdiff'"
+    parser.add_option("--phase", action="store",
+                      dest="phase", help=helpmsg)
+    
+    helpmsg = "Cut a time window around the requested phase"
+    parser.add_option("--tw", action="store_true",
+                      dest="tw", help=helpmsg)
+    
+    helpmsg = "Time parameter in seconds which determines how close " + \
+                "the time series data (waveform) will be cropped " + \
+                "before the estimated time of the phase. Default: 5.0 seconds."
+    parser.add_option("--preset", action="store",
+                      dest="preset", help=helpmsg)
+    
+    helpmsg = "Time parameter in seconds which determines how close " + \
+                "the time series data (waveform) will be cropped " + \
+                "after the estimated time of the phase. Default: 5.0 seconds."
+    parser.add_option("--offset", action="store",
+                      dest="offset", help=helpmsg)
+    
+    helpmsg = "Filter all the traces with two types (lowpass and highpass)"
+    parser.add_option("--filter", action="store_true",
+                      dest="hlfilter", help=helpmsg)
+    
+    helpmsg = "Lower Frequency (for highpass filter)"
+    parser.add_option("--lfreq", action="store",
+                      dest="lfreq", help=helpmsg)
+    
+    helpmsg = "Higher Frequency (for lowpass filter)"
+    parser.add_option("--hfreq", action="store",
+                      dest="hfreq", help=helpmsg)
+    
+    helpmsg = "Resample all the traces with sampling rate specified here"
+    parser.add_option("--resample", action="store",
+                      dest="resample", help=helpmsg)
     
     # parse command line options
     (options, args) = parser.parse_args()
@@ -198,7 +238,18 @@ def read_input_command(parser, **kwargs):
                 'corr_unit': 'dis',
                 'net': '*', 'sta': '*', 'loc': '*', 'cha': '*',
                 
+                'max_cc': 0.99,
                 'cc_np': 4,
+                
+                'phase': 'N',
+                
+                'preset': 10,
+                'offset': 40,
+                
+                'lfreq': 0.008,
+                'hfreq': 4.0,
+                
+                'resample': 'N'
             }
     
     # feed input dictionary of defaults into parser object
@@ -283,6 +334,8 @@ def read_input_command(parser, **kwargs):
     if options.cc: options.cc = 'Y'
     input['cc'] = options.cc
     
+    input['max_cc'] = float(options.max_cc)
+    
     if options.cc_parallel: options.cc_parallel = 'Y'
     input['cc_parallel'] = options.cc_parallel
     
@@ -290,6 +343,21 @@ def read_input_command(parser, **kwargs):
     
     if options.read_cc: options.read_cc = 'Y'
     input['read_cc'] = options.read_cc
+    
+    input['phase'] = options.phase
+    
+    if options.tw: options.tw = 'Y'
+    input['tw'] = options.tw
+    input['preset'] = float(options.preset)
+    input['offset'] = float(options.offset)
+    
+    if options.hlfilter: options.hlfilter = 'Y'
+    input['hlfilter'] = options.hlfilter
+    input['lfreq'] = float(options.lfreq)
+    input['hfreq'] = float(options.hfreq)
+    
+    if options.resample != 'N': options.resample = float(options.resample)
+    input['resample'] = options.resample
     
 ###################### single_comparison ###############################
 
@@ -312,41 +380,39 @@ def single_comparison():
     for i in range(0, len(ls_first)):
         try:
             tr1 = read(ls_first[i])[0]
-            '''
-            evsta_dist = util.locations2degrees(lat1 = tr1.stats.sac.evla, \
-                                    long1 = tr1.stats.sac.evlo, lat2 = tr1.stats.sac.stla, \
-                                    long2 = tr1.stats.sac.stlo)
+    
+            if input['phase'] != 'N':
+                evsta_dist = util.locations2degrees(lat1 = tr1.stats.sac.evla, \
+                                        long1 = tr1.stats.sac.evlo, lat2 = tr1.stats.sac.stla, \
+                                        long2 = tr1.stats.sac.stlo)
+                
+                taup_tt = taup.getTravelTimes(delta = evsta_dist, depth = tr1.stats.sac.evdp)
+                
+                phase_exist = 'N'
+                
+                for tt_item in taup_tt:
+                    if tt_item['phase_name'] == input['phase']:
+                        print 'Requested phase:'
+                        print input['phase']
+                        print '------'
+                        print tt_item['phase_name']
+                        print 'exists in the waveform!'
+                        print '-----------------------'
+                        t_phase = tt_item['time']
+                        
+                        phase_exist = 'Y'
+                        break
+                        
+                if phase_exist != 'Y':
+                    continue
             
-            taup_tt = taup.getTravelTimes(delta = evsta_dist, depth = tr1.stats.sac.evdp)
-            
-            phase_exist = 'N'
-            
-            for tt_item in taup_tt:
-                if tt_item['phase_name'] == 'Pdiff':
-                    t_phase = tt_item['time']
-                    t_cut_1 = tr1.stats.starttime + t_phase - 30
-                    t_cut_2 = tr1.stats.starttime + t_phase + 80
-                    tr1.trim(starttime = t_cut_1, endtime = t_cut_2)
-                    
-                    phase_exist = 'Y'
-            
-            if phase_exist != 'Y':
-                continue
-            '''
             # identity of the current waveform
             identity = tr1.stats.network + '.' + tr1.stats.station + '.' + \
                         tr1.stats.location + '.' + tr1.stats.channel
             
             # tr1: first path, tr2: second path, tr3: Raw data
-            tr3 = read(os.path.join(input['first_path'], '..', 'BH_RAW', identity))[0]
-            '''
-            tr1.filter('lowpass', freq=0.1, corners=2)
-            tr1.filter('lowpass', freq=0.1, corners=2)
-            tr1.filter('lowpass', freq=0.1, corners=2)
-            tr1.filter('lowpass', freq=0.1, corners=2)
-            tr1.filter('highpass', freq=0.012, corners=2)
-            tr1.filter('highpass', freq=0.012, corners=2)
-            '''
+            #tr3 = read(os.path.join(input['first_path'], '..', 'BH_RAW', identity))[0]
+            
             if input['resp_paz'] == 'Y':
                 response_file = os.path.join(input['first_path'], '..', 'Resp/RESP.' + identity)
                 
@@ -358,7 +424,8 @@ def single_comparison():
                 scale_fac = paz['gain']
                 sensitivity = paz['sensitivity']
             
-            
+                print paz
+                
                 # Convert Poles and Zeros (PAZ) to frequency response.
                 h, f = pazToFreqResp(poles, zeros, scale_fac, \
                                 1./tr1.stats.sampling_rate, tr1.stats.npts*2, freq=True)
@@ -380,43 +447,67 @@ def single_comparison():
                 identity = input['corr_unit'] + '.' + tr1.stats.station + '.' + \
                         tr1.stats.location + '.' + tr1.stats.channel
                 tr2 = read(os.path.join(input['second_path'], identity))[0]
-            '''
-            t_cut_1 = tr2.stats.starttime + t_phase - 30
-            t_cut_2 = tr2.stats.starttime + t_phase + 80
             
-            tr2.trim(starttime = t_cut_1, endtime = t_cut_2)
-            '''
+            if input['resample'] != 'N':
+                tr1.resample(input['resample'])
+                tr2.resample(input['resample'])
+            
+            if input['tw'] == 'Y':
+                t_cut_1 = tr1.stats.starttime + t_phase - input['preset']
+                t_cut_2 = tr1.stats.starttime + t_phase + input['offset']
+                tr1.trim(starttime = t_cut_1, endtime = t_cut_2)
+                
+                t_cut_1 = tr2.stats.starttime + t_phase - input['preset']
+                t_cut_2 = tr2.stats.starttime + t_phase + input['offset']
+                tr2.trim(starttime = t_cut_1, endtime = t_cut_2)
+            
+            
+            if input['hlfilter'] == 'Y':
+                tr1.filter('lowpass', freq=input['hfreq'], corners=2)
+                tr2.filter('lowpass', freq=input['hfreq'], corners=2)
+                tr1.filter('highpass', freq=input['lfreq'], corners=2)
+                tr2.filter('highpass', freq=input['lfreq'], corners=2)
+            
+            # normalization of all three waveforms to the 
+            # max(max(tr1), max(tr2), max(tr3)) to keep the scales
+            #maxi = max(abs(tr1.data).max(), abs(tr2.data).max(), abs(tr3.data).max())
+            
+            #maxi = max(abs(tr1.data).max(), abs(tr2.data).max())
+            #tr1_data = tr1.data/abs(maxi)
+            #tr2_data = tr2.data/abs(maxi)
+            #tr3_data = tr3.data/abs(maxi)
+            
+            tr1_data = tr1.data/abs(max(tr1.data))
+            tr2_data = tr2.data/abs(max(tr2.data))
+            
+            #tr1_data = tr1.data
+            #tr2_data = tr2.data*1e9
+            
+            print max(tr1.data)
+            print max(tr2.data)
+            
             # create time arrays for tr1, tr2 and tr3
             time_tr1 = np.arange(0, tr1.stats.npts/tr1.stats.sampling_rate, \
                                                 1./tr1.stats.sampling_rate)
             time_tr2 = np.arange(0, tr2.stats.npts/tr2.stats.sampling_rate, \
                                                 1./tr2.stats.sampling_rate)
-            time_tr3 = np.arange(0, tr3.stats.npts/tr3.stats.sampling_rate, \
-                                                1./tr3.stats.sampling_rate)
+            #time_tr3 = np.arange(0, tr3.stats.npts/tr3.stats.sampling_rate, \
+            #                                    1./tr3.stats.sampling_rate)
             
             # label for plotting
             label_tr1 = ls_first[i].split('/')[-2]
             label_tr2 = ls_second[i].split('/')[-2]
             label_tr3 = 'RAW'
-            
-            # normalization of all three waveforms to the 
-            # max(max(tr1), max(tr2), max(tr3)) to keep the scales
-            maxi = max(abs(tr1.data).max(), abs(tr2.data).max(), abs(tr3.data).max())
-            tr1_data = tr1.data/abs(maxi)
-            tr2_data = tr2.data/abs(maxi)
-            tr3_data = tr3.data/abs(maxi)
-            '''
-            tr1_data = tr1.data/abs(max(tr1.data))
-            tr2_data = tr2.data/abs(max(tr2.data))
-            '''
+        
             if input['resp_paz'] == 'Y':
                 # start plotting
                 plt.figure()
-                plt.subplot(311)
+                plt.subplot2grid((3,4), (0,0), colspan=4, rowspan=2)
+                #plt.subplot(211)
             
             plt.plot(time_tr1, tr1_data, color = 'blue', label = label_tr1)
             plt.plot(time_tr2, tr2_data, color = 'red', label = label_tr2)
-            plt.plot(time_tr3, tr3_data, color = 'black', ls = '--', label = label_tr3)
+            #plt.plot(time_tr3, tr3_data, color = 'black', ls = '--', label = label_tr3)
 
             plt.xlabel('Time (sec)', fontsize = 'large', weight = 'bold')
             
@@ -437,7 +528,7 @@ def single_comparison():
             #-------------------Cross Correlation
             # 5 seconds as total length of samples to shift for cross correlation.
             
-            cc_np = tr1.stats.sampling_rate * 5
+            cc_np = tr1.stats.sampling_rate * 3
             
             np_shift, coeff = cross_correlation.xcorr(tr1, tr2, int(cc_np))
             
@@ -454,11 +545,12 @@ def single_comparison():
             
             if input['resp_paz'] == 'Y':
                 # -----------------------
-                plt.subplot(323)
+                #plt.subplot(223)
+                plt.subplot2grid((3,4), (2,0), colspan=2)
                 
-                plt.plot(np.log10(f), np.log10(abs(resp)), \
+                plt.plot(np.log10(f), np.log10(abs(resp)/(sensitivity*sensitivity)), \
                                             color = 'blue', label = 'RESP')
-                plt.plot(np.log10(f), np.log10(abs(h) * sensitivity), \
+                plt.plot(np.log10(f), np.log10(abs(h)/sensitivity), \
                                             color = 'red', label = 'PAZ')
                 
                 #for j in [0.008, 0.012, 0.025, 0.5, 1, 2, 3, 4]:
@@ -468,10 +560,12 @@ def single_comparison():
                 plt.xlabel('Frequency [Hz] -- power of 10')
                 plt.ylabel('Amplitude -- power of 10')
 
-                plt.legend()
+                plt.legend(loc=2)
                 
                 # -----------------------
-                plt.subplot(324)
+                #plt.subplot(224)
+                plt.subplot2grid((3,4), (2,2), colspan=2)
+
                 #take negative of imaginary part
                 phase_paz = np.unwrap(np.arctan2(h.imag, h.real))
                 phase_resp = np.unwrap(np.arctan2(resp.imag, resp.real))
@@ -490,18 +584,19 @@ def single_comparison():
                 # title, centered above both subplots
                 # make more room in between subplots for the ylabel of right plot
                 plt.subplots_adjust(wspace=0.3)
-                
+                """
                 # -----------------------
                 plt.subplot(325)
                 
-                plt.plot(np.log10(f), abs(resp) - abs(h) * 1.e9, \
+                plt.plot(np.log10(f), np.log10(abs(resp)/(sensitivity*sensitivity)) - \
+                                        np.log10(abs(h)/sensitivity), \
                                         color = 'black', label = 'RESP - PAZ')
 
                 for j in [0.008, 0.012, 0.025, 0.5, 1, 2, 3, 4]:
                     plt.axvline(np.log10(j), linestyle = '--')
 
                 plt.xlabel('Frequency [Hz] -- power of 10')
-                plt.ylabel('Amplitude')
+                plt.ylabel('Amplitude -- power of 10')
 
                 plt.legend()
                 
@@ -510,20 +605,21 @@ def single_comparison():
                 #take negative of imaginary part
                 phase_paz = np.unwrap(np.arctan2(h.imag, h.real))
                 phase_resp = np.unwrap(np.arctan2(resp.imag, resp.real))
-                plt.plot(np.log10(f), phase_resp - phase_paz, \
+                plt.plot(np.log10(f), np.log10(phase_resp) - np.log10(phase_paz), \
                                         color = 'black', label = 'RESP - PAZ')
 
                 for j in [0.008, 0.012, 0.025, 0.5, 1, 2, 3, 4]:
                     plt.axvline(np.log10(j), linestyle = '--')
 
                 plt.xlabel('Frequency [Hz] -- power of 10')
-                plt.ylabel('Phase [radian]')
+                plt.ylabel('Phase [radian] -- power of 10')
 
                 plt.legend()
 
                 # title, centered above both subplots
                 # make more room in between subplots for the ylabel of right plot
                 plt.subplots_adjust(wspace=0.3)
+                """
             plt.show()
                 
             
@@ -625,54 +721,115 @@ def cc_core(ls_first, ls_second, identity_all, max_ts, print_sta):
         cc_open = open('./cc.txt', 'a')
         
         tr1 = read(ls_first)[0]
-        identity = tr1.stats.network + '.' + tr1.stats.station + '.' + \
-                    tr1.stats.location + '.' + tr1.stats.channel
-        
-        id_name = identity
-        
-        try:
-            tr2 = read(os.path.join(input['second_path'], identity))[0]
-        except Exception, error:
-            #print error
-            identity = input['corr_unit'] + '.' + tr1.stats.station + '.' + \
-                    tr1.stats.location + '.' + tr1.stats.channel
-            tr2 = read(os.path.join(input['second_path'], identity))[0]
-        
-        cc_np = tr1.stats.sampling_rate * max_ts
-        np_shift, coeff = cross_correlation.xcorr(tr1, tr2, int(cc_np))
-        t_shift = float(np_shift)/tr1.stats.sampling_rate
-        
-        # scale_str shows whether the scale of the waveforms are the same or not
-        # if scale_str = 'Y' then the scale is correct.
-        scale_str = 'Y'
-        
-        if abs(tr1.data).max() > 2.0 * abs(tr2.data).max():
-            label_tr1 = ls_first.split('/')[-2]
-            label_tr2 = ls_second[0].split('/')[-2]
-            print '#####################################################'
-            print "Scale is not correct! " + label_tr1 + '>' + label_tr2
-            print '#####################################################'
-            scale_str = 'N'
-        elif abs(tr2.data).max() >= 2.0 * abs(tr1.data).max():
-            label_tr1 = ls_first.split('/')[-2]
-            label_tr2 = ls_second[0].split('/')[-2]
-            print '#####################################################'
-            print "Scale is not correct! " + label_tr2 + '>' + label_tr1
-            print '#####################################################'
-            scale_str = 'N'
             
-        cc_open.writelines(id_name + ',' + str(coeff) + ',' + str(t_shift) + \
-                                            ',' + scale_str + ',' + '\n')
-                            
-        print "Cross Correlation:"
-        print id_name
-        print "Shift:       " + str(t_shift)
-        print "Coefficient: " + str(coeff)
-        print print_sta
-        print '------------------'
-   
-        cc_open.close()
-        cc_open.close()
+        if input['phase'] != 'N':
+            evsta_dist = util.locations2degrees(lat1 = tr1.stats.sac.evla, \
+                                    long1 = tr1.stats.sac.evlo, lat2 = tr1.stats.sac.stla, \
+                                    long2 = tr1.stats.sac.stlo)
+            
+            taup_tt = taup.getTravelTimes(delta = evsta_dist, depth = tr1.stats.sac.evdp)
+            
+            phase_exist = 'N'
+            
+            for tt_item in taup_tt:
+                if tt_item['phase_name'] == input['phase']:
+                    print 'Requested phase:'
+                    print input['phase']
+                    print '------'
+                    print tt_item['phase_name']
+                    print 'exists in the waveform!'
+                    print '-----------------------'
+                    t_phase = tt_item['time']
+                    
+                    phase_exist = 'Y'
+                    break
+                    
+        if input['phase'] == 'N' or (input['phase'] != 'N' and phase_exist == 'Y'):
+            
+            # identity of the current waveform
+            identity = tr1.stats.network + '.' + tr1.stats.station + '.' + \
+                        tr1.stats.location + '.' + tr1.stats.channel
+            
+            # Keep the current identity in a new variable
+            id_name = identity
+            
+            try:
+                tr2 = read(os.path.join(input['second_path'], identity))[0]
+            except Exception, error:
+                # if it is not possible to read the identity in the second path
+                # then change the network part of the identity based on
+                # correction unit
+                identity = input['corr_unit'] + '.' + tr1.stats.station + '.' + \
+                        tr1.stats.location + '.' + tr1.stats.channel
+                tr2 = read(os.path.join(input['second_path'], identity))[0]
+            
+            if input['resample'] != 'N':
+                tr1.resample(input['resample'])
+                tr2.resample(input['resample'])
+            
+            if input['tw'] == 'Y':
+                t_cut_1 = tr1.stats.starttime + t_phase - input['preset']
+                t_cut_2 = tr1.stats.starttime + t_phase + input['offset']
+                tr1.trim(starttime = t_cut_1, endtime = t_cut_2)
+                
+                t_cut_1 = tr2.stats.starttime + t_phase - input['preset']
+                t_cut_2 = tr2.stats.starttime + t_phase + input['offset']
+                tr2.trim(starttime = t_cut_1, endtime = t_cut_2)
+            
+            if input['hlfilter'] == 'Y':
+                tr1.filter('lowpass', freq=input['hfreq'], corners=2)
+                tr2.filter('lowpass', freq=input['hfreq'], corners=2)
+                tr1.filter('highpass', freq=input['lfreq'], corners=2)
+                tr2.filter('highpass', freq=input['lfreq'], corners=2)
+            
+            # normalization of all three waveforms to the 
+            # max(max(tr1), max(tr2), max(tr3)) to keep the scales
+            #maxi = max(abs(tr1.data).max(), abs(tr2.data).max(), abs(tr3.data).max())
+            '''
+            maxi = max(abs(tr1.data).max(), abs(tr2.data).max())
+            tr1_data = tr1.data/abs(maxi)
+            tr2_data = tr2.data/abs(maxi)
+            tr3_data = tr3.data/abs(maxi)
+            '''
+            tr1.data = tr1.data/abs(max(tr1.data))
+            tr2.data = tr2.data/abs(max(tr2.data))
+        
+            cc_np = tr1.stats.sampling_rate * max_ts
+            np_shift, coeff = cross_correlation.xcorr(tr1, tr2, int(cc_np))
+            t_shift = float(np_shift)/tr1.stats.sampling_rate
+            
+            # scale_str shows whether the scale of the waveforms are the same or not
+            # if scale_str = 'Y' then the scale is correct.
+            scale_str = 'Y'
+            
+            if abs(tr1.data).max() > 2.0 * abs(tr2.data).max():
+                label_tr1 = ls_first.split('/')[-2]
+                label_tr2 = ls_second[0].split('/')[-2]
+                print '#####################################################'
+                print "Scale is not correct! " + label_tr1 + '>' + label_tr2
+                print '#####################################################'
+                scale_str = 'N'
+            elif abs(tr2.data).max() >= 2.0 * abs(tr1.data).max():
+                label_tr1 = ls_first.split('/')[-2]
+                label_tr2 = ls_second[0].split('/')[-2]
+                print '#####################################################'
+                print "Scale is not correct! " + label_tr2 + '>' + label_tr1
+                print '#####################################################'
+                scale_str = 'N'
+            
+            if not str(coeff) == 'nan':
+                cc_open.writelines(id_name + ',' + str(round(coeff, 4)) + ',' + str(t_shift) + \
+                                                ',' + scale_str + ',' + '\n')
+                                
+            print "Cross Correlation:"
+            print id_name
+            print "Shift:       " + str(t_shift)
+            print "Coefficient: " + str(coeff)
+            print print_sta
+            print '------------------'
+       
+            cc_open.close()
+            cc_open.close()
     
     except Exception, error:
         print '##################'

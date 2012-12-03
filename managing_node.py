@@ -543,7 +543,7 @@ def ncCreate_core(input, ls_saved_stas, address, eventgrp):
         try:
             tr = read(ls_saved_stas[i])[0]
         except Exception, e:
-            print "\nProblem with reading the: " + ls_saved_stas[1]
+            print "\nProblem with reading the: " + ls_saved_stas[i]
             print e
             print "------------------------------------------------"
             continue
