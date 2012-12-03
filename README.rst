@@ -51,6 +51,7 @@ It won't take too long! To get the code and check the dependencies required for 
 1. clone the obspyDMT git repository (or fork obspyDMT in GitHub and clone your fork):
 
 ::
+    
     $ git clone https://github.com/kasra-hosseini/obspyDMT.git /path/to/my/obspyDMT
 
 2. go to your obspyDMT directory and run the following commands:
