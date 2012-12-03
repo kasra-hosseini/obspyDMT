@@ -44,11 +44,8 @@ Let's Get Started
 -----------------
 
 It won't take too long! To get the code and check the dependencies required for running the code properly, please:
-.. OLD:
-.. 1. download the source code from obspyDMT_ or copy this line to your shell (change $HOME/obspyDMT to the desired directory):
-.. $ svn checkout https://svn.obspy.org/trunk/apps/obspyDMT $HOME/obspyDMT
 
-1. clone the obspyDMT git repository (or fork obspyDMT in GitHub and clone your fork):
+1. clone the obspyDMT_ git repository (or fork obspyDMT_ in GitHub and clone your fork):
 
 ::
     
