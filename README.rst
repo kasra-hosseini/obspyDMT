@@ -44,18 +44,20 @@ Let's Get Started
 -----------------
 
 It won't take too long! To get the code and check the dependencies required for running the code properly, please:
+.. OLD:
+.. 1. download the source code from obspyDMT_ or copy this line to your shell (change $HOME/obspyDMT to the desired directory):
+.. $ svn checkout https://svn.obspy.org/trunk/apps/obspyDMT $HOME/obspyDMT
 
-1. download the source code from obspyDMT_ or copy this line to your shell (change $HOME/obspyDMT to the desired directory):
+1. clone the obspyDMT git repository (or fork obspyDMT in GitHub and clone your fork):
 
 ::
-
-    $ svn checkout https://svn.obspy.org/trunk/apps/obspyDMT $HOME/obspyDMT
+    $ git clone https://github.com/kasra-hosseini/obspyDMT.git /path/to/my/obspyDMT
 
 2. go to your obspyDMT directory and run the following commands:
 
 ::
 
-    $ cd $HOME/obspyDMT
+    $ cd /path/to/my/obspyDMT
     $ ./obspyDMT.py --check
 
 ------------
@@ -740,6 +742,7 @@ Please refer to the `Option Types`_ section for more info about type 1 and type 
 |                       | [Default: 'N'] (*)    |   |                       |                       |          
 +-----------------------+-----------------------+---+-----------------------+-----------------------+
 
-.. _obspyDMT: http://obspy.org/browser/obspy/trunk/apps/obspyDMT/obspyDMT.py
+.. obspyDMT: http://obspy.org/browser/obspy/trunk/apps/obspyDMT/obspyDMT.py
+.. _obspyDMT: https://github.com/kasra-hosseini/obspyDMT
 .. _IRIS: http://www.iris.edu/ws/
 .. _ArcLink: http://www.webdc.eu/arclink/
