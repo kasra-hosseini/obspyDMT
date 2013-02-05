@@ -37,7 +37,7 @@ If you use ObsPyDMT, please consider citing the code as:
 
 ::
 
-    Kasra Hosseini (2012), ObsPyDMT (Version 2.0) [software] [http://docs.obspy.org/tutorial/obspyDMT.html]
+    Kasra Hosseini (2012), ObsPyDMT (Version 0.3.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
 
 -----------------
 Let's Get Started

@@ -15,6 +15,5 @@ processing and management of massive seismic data in a fully automatic way
 which could be run in serial or in parallel. 
 Moreover, complementary processing and managing tools have been designed 
 and introduced in addition to the ObsPyDMT options. 
-
 Because of the modular nature, different functionalities could be added easily 
 and/or each scripts can be used as a module for other programs.

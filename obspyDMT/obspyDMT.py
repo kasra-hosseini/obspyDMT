@@ -943,7 +943,7 @@ def read_input_command(parser, **kwargs):
         reset = "\033[0;0m"
         print '\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *' 
-        print '\t\t' + '*' + '\t\t' + bold + '3.0' + reset + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + bold + '0.3.0' + reset + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)

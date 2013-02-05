@@ -1,8 +1,8 @@
 from distutils.core import setup
 
 setup(
-    name = "ObsPyDMT",
-    version = "3.0",
+    name = "obspydmt",
+    version = "0.3.0",
     description = "Retrieving, Processing and Management of Massive Seismic Data (Serial and Parallel)",
     author = "Kasra Hosseini",
     author_email = "hosseini@geophysik.uni-muenchen.de",
