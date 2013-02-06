@@ -1,0 +1,7 @@
+0.3.0:
+  - obspyDMT:
+    * adding parallel retrieving and processing functionalities.
+    * fixing instrument correction using SAC and obspy.
+    * adding GMT 5 plots
+    * adding seismicity option
+    * adding IRIS event catalog

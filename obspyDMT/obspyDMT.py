@@ -3,7 +3,7 @@
 
 #-------------------------------------------------------------------
 #   Filename:  obspyDMT.py
-#   Purpose:   ObsPyDMT main program 
+#   Purpose:   obspyDMT main program 
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -185,7 +185,7 @@ def obspyDMT(**kwargs):
             '---------------------'
     bold = "\033[1m"
     reset = "\033[0;0m"
-    print '\t\t' + bold + 'ObsPyDMT ' + reset + '(' + bold + 'ObsPy D' + \
+    print '\t\t' + bold + 'obspyDMT ' + reset + '(' + bold + 'ObsPy D' + \
         reset + 'ata '+ bold + 'M' + reset + 'anagement ' + bold + 'T' + \
         reset + 'ool)' + reset + '\n'
     print '\t' + 'Automatic tool for Downloading, Processing and Management'
@@ -342,7 +342,7 @@ def obspyDMT(**kwargs):
     print 'Thanks for using:' + '\n' 
     bold = "\033[1m"
     reset = "\033[0;0m"
-    print '\t\t' + bold + 'ObsPyDMT ' + reset + '(' + bold + 'ObsPy D' + \
+    print '\t\t' + bold + 'obspyDMT ' + reset + '(' + bold + 'ObsPy D' + \
         reset + 'ata '+ bold + 'M' + reset + 'anagement ' + bold + 'T' + \
         reset + 'ool)' + reset + '\n'
     print '------------------------------------------------------------'

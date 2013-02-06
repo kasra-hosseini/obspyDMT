@@ -3,7 +3,7 @@
 
 #-------------------------------------------------------------------
 #   Filename:  compareDMT.py
-#   Purpose:   ObsPyDMT Instrument Correction Analyser
+#   Purpose:   obspyDMT Instrument Correction Analyser
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
