@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(
-    name = "obspydmt",
+    name = "obspyDMT",
     version = "0.3.0",
     description = "Retrieving, Processing and Management of Massive Seismic Data (Serial and Parallel)",
     author = "Kasra Hosseini",
@@ -12,7 +12,11 @@ setup(
     packages=["obspyDMT"],
     entry_points = {
         'console_scripts': [
-            'obspyDMT = obspyDMT.obspyDMT:main']
+            'obspyDMT = obspyDMT.obspyDMT:main',
+            'compareDMT = obspyDMT.compareDMT:main',
+            'obspyDMT_managing_node = obspyDMT.obspyDMT_managing_node:main',
+            'obspyNC = obspyDMT.obspyNC:main',
+        ],
     },
     classifiers = [
         "Programming Language :: Python",
@@ -29,6 +33,6 @@ which could be run in serial or in parallel.
 Moreover, complementary processing and managing tools have been 
 designed and introduced in addition to the ObsPyDMT options. 
 Because of the modular nature, different functionalities could be added 
-easily and/or each scripts can be used as a module for other programs.
+easily and/or each obspyDMT can be used as a module for other programs.
 """
 )

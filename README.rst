@@ -1,46 +1,50 @@
-=========================================================================
-ObsPyDMT: Retrieving, Processing and Management of Large Seismic Datasets
-=========================================================================
+===========================================================================
+obspyDMT: Retrieving, Processing and Management of Massive Seismic Datasets
+===========================================================================
 
 Welcome!
 
-obspyDMT_ (ObsPy Data Management Tool) is a command line tool for retrieving, processing and management of large seismic datasets. This tool was developed to deal with the following tasks in a fully automatic way:
+obspyDMT_ (ObsPy Data Management Tool) is a command line tool for retrieving, processing and management of massive seismic data in a fully automatic way which could be run in serial or in parallel. 
+Moreover, complementary processing and managing tools have been designed and introduced in addition to the obspyDMT options.
+
+This tool is developed to mainly address the following tasks in a fully automatic way:
 
 1. Retrieval of waveforms (MSEED or SAC), response files and metadata from IRIS_ and ArcLink_ archives. This could be done for single or large requests.
 2. Extracting the information of all the events via user-defined options (time span, magnitude, depth and event location).
-3. Supports the event-based and continuous requests (refer to the "Event-Based Request" and "Continuous Request" sections in this tutorial).
-4. Updating the existing folders (waveform, response and metadata).
-5. Applying "Instrument Correction" to a large dataset. (correction for Displacement, Velocity and Acceleration)
-6. Plotting tools: Currently you are able to plot all the events and/or station locations, Ray coverage (event-station pair) and epicentral-distance plots for all archived waveforms.
+3. Supports the event-based and continuous requests (refer to the "event-based request" and "continuous request" sections in this tutorial).
+4. Updating the existing archives (waveform, response and metadata).
+5. Processing the data (e.g. "Instrument correction").
+6. Management of large seismic datasets.
+6. Plotting tools (events and/or station locations, Ray coverage (event-station pair) and epicentral-distance plots for all archived waveforms)
 
 
 This tutorial has been divided into the following sections: 
 
-1.  `How to Cite ObsPyDMT`_
-2.  `Let's Get Started`_: download obspyDMT code and check your local machine for required dependencies.
-3.  `Option Types`_: there are two types of options for obspyDMT which are explained in this section.
-4.  `Event-Info Request`_: if you are looking for some events and you want to get info about them.
-5.  `Event-Based Request`_: retrieve the waveforms, response files and meta-data of all the requested stations for all the events found in the archive.
-6.  `Continuous Request`_: retrieve the waveforms, response files and meta-data of all the requested stations for all the specified time span.
-7.  `Geographical Restriction`_: if you are interested in the events happened in a specific geographical coordinate and/or retrieving the data from the stations in a specific circular or rectangular bounding area.
-8.  `Instrument Correction`_: instrument correction for displacement, velocity and acceleration.
-9.  `Update`_: if you want to continue an interrupted request or complete your existing folder.
+1.  `How to cite obspyDMT`_
+2.  `Let's get started`_: download obspyDMT code and check your local machine for required dependencies.
+3.  `Option types`_: there are two types of options for obspyDMT which are explained in this section.
+4.  `event-info request`_: if you are looking for some events and you want to get info about them.
+5.  `event-based request`_: retrieve the waveforms, response files and meta-data of all the requested stations for all the events found in the archive.
+6.  `continuous request`_: retrieve the waveforms, response files and meta-data of all the requested stations for all the specified time span.
+7.  `Geographical restriction`_: if you are interested in the events happened in a specific geographical coordinate and/or retrieving the data from the stations in a specific circular or rectangular bounding area.
+8.  `Instrument correction`_: instrument correction for displacement, velocity and acceleration.
+9.  `Update`_: if you want to continue an interrupted request or complete your existing archive.
 10.  `Plot`_: for an existing folder, you could plot all the events and/or all the stations, ray path for event-station pairs and epicentral-distance/time for the waveforms.
-11. `Folder Structure`_: the way that obspyDMT organize your retrieved and processed data.
-12. `Available Options`_: all options currently available in obspyDMT have been shown in the form of a table.
+11. `Folder structure`_: the way that obspyDMT organize your retrieved and processed data.
+12. `Available options`_: all options currently available in obspyDMT have been shown in the form of a table.
 
 --------------------
-How to Cite ObsPyDMT
+How to cite obspyDMT
 --------------------
 
-If you use ObsPyDMT, please consider citing the code as:
+If you use obspyDMT, please consider citing the code as:
 
 ::
 
-    Kasra Hosseini (2012), ObsPyDMT (Version 0.3.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
+    Kasra Hosseini (2012), obspyDMT (Version 0.3.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
 
 -----------------
-Let's Get Started
+Let's get started
 -----------------
 
 It won't take too long! To get the code and check the dependencies required for running the code properly, please:
@@ -59,52 +63,50 @@ It won't take too long! To get the code and check the dependencies required for 
     $ ./obspyDMT.py --check
 
 ------------
-Option Types
+Option types
 ------------
 
-This is the general way to define your inputs for obspyDMT:
+There are two option types in obspyDMT: option-1 (with value) and option-2 (without value). In the first type, user should provide value/s which will be stored and be used in the program as input. However, by adding type-2 options, which does not required any value, one feature will be activated or deactivated (e.g. if you enter "--check" (refer to `Let's get started`_ section), the program will check all the dependencies required for running the code properly.).
+The general form to enter your input (i.e. change the default value) is as follow:
 
 ::
 
     $ ./obspyDMT.py --option-1 'value' --option-2
 
-* option-1 (with value): this value will be stored and be used in the program as an input.
-* option-2 (without value): if you enter an option-2 in your request, the required task will be performed. For example, if you enter "--check" (refer to `Let's Get Started`_ section), the program will check all the dependencies required for running the code properly.
-
-If you want info about all the available options, you should type:
+To show all the available options with short descriptions:
 
 ::
 
     $ ./obspyDMT.py --help 
 
-or refer to the "Available Options" section in this tutorial. In this section, the options marked with "*" are the first option type (option-1), and the options marked with "**" are the second type (option-2).
+or refer to the `Available options`_ section in this tutorial. In this section, the options marked with "*" are the first option type (option-1), and the options marked with "**" are the second type (option-2).
 
 ONE GOOD THING: the order of options is commutative!
 
 ------------------
-Event-Info Request
+event-info request
 ------------------
 
 In this type of request, obspyDMT will search for all the available events based on the options specified by the user, then print the results and create an event catalogue.
 
-The following lines show how to send an "Event-Info Request" with ObsPyDMT and present some examples.
+The following lines show how to send an `event-info request`_ with obspyDMT and present some examples.
 
-The general way to define an "Event-Info Request" is:
+The general way to define an `event-info request`_ is:
 
 ::
 
-    $ ./obspyDMT.py --iris 'N' --arc 'N' --option-1 'value' --option-2
+    $ ./obspyDMT.py --event_info --option-1 'value' --option-2
 
-The flags "--iris 'N'" and "--arc 'N'", force the code to skip the process of retrieving the waveforms, response files and metadata from IRIS and ArcLink since we are only interested in the event info here.
-For details on option-1 and option-2 please refer to `Option Types`_ section.
+The "--event_info" flag forces the code to just retrieve the event information and create an event catalog.
+For details on option-1 and option-2 please refer to `Option types`_ section.
 
 Example 1: run with the default values:
 
 ::
 
-    $ ./obspyDMT.py --iris 'N' --arc 'N'
+    $ ./obspyDMT.py --event_info
 
-When the job starts, a folder called "obspyDMT-data" will be created in "$HOME/obspyDMT". This folder will contain the info about the events set in the default request. To access the event information for this example, go to "$HOME/obspyDMT/obspyDMT-data/2012-06-23_2012-06-28_5.5_9.9/EVENT" [the folder names will change based on your request] and check the "EVENT-CATALOG" text file (Please refer to the `Folder Structure`_ section for more information)
+When the job starts, a folder called "obspyDMT-data" will be created in "/path/to/my/obspyDMT". This folder will contain the info about the events set in the default request. To access the event information for this example, go to "/path/to/my/obspyDMT/obspyDMT-data/2012-06-23_2012-06-28_5.5_9.9/EVENT" [the folder names will change based on your request] and check the "EVENT-CATALOG" text file (Please refer to the `Folder structure`_ section for more information)
 
 Example 2: by adding flags to the above command, one can change the default values and add/remove functionalities of the code. As an example, the following command shows how to get the info of all the events with magnitude more than Mw 7.0 occured after 2011-03-01 and before 2012-03-01:
 
@@ -113,7 +115,7 @@ Example 2: by adding flags to the above command, one can change the default valu
     $ ./obspyDMT.py --iris 'N' --arc 'N' --min_mag '7.0' --min_date '2011-03-01' --max_date '2012-03-01'
 
 -------------------
-Event-Based Request
+event-based request
 -------------------
 
 In this type of request, the following steps will be done automatically:
@@ -121,17 +123,17 @@ In this type of request, the following steps will be done automatically:
 1. Search for all available events based on the options specified by the user.
 2. Check the availability of the requested stations for each event.
 3. Start to retrieve the waveforms and/or response files for each event and for all available stations. (default: waveforms, response files and metadata will be retrieved.)
-4. Instrument Correction to all saved waveforms based on the specified options.
+4. Instrument correction to all saved waveforms based on the specified options.
 
-The following lines show how to send an "Event-Based Request" with ObsPyDMT and present two short examples.
+The following lines show how to send an `event-based request`_ with obspyDMT and present two short examples.
 
-The general way to define an "Event-Based Request" is:
+The general way to define an `event-based request`_ is:
 
 ::
 
     $ ./obspyDMT.py --option-1 'value' --option-2
 
-For details on option-1 and option-2 please refer to `Option Types`_ section.
+For details on option-1 and option-2 please refer to `Option types`_ section.
 
 Example 1: to test the code with the defualt values run:
 
@@ -141,7 +143,7 @@ Example 1: to test the code with the defualt values run:
 
 if you take away the option "--test '20'", the default values could result in a huge amount of requests. This option set the code to send "20" requests to IRIS and ArcLink which is suitable for testing.
 
-When the job starts, a folder called "obspyDMT-data" will be created in "$HOME/obspyDMT" and the data will be organized there. (Please refer to the `Folder Structure`_ section)
+When the job starts, a folder called "obspyDMT-data" will be created in "/path/to/my/obspyDMT" and the data will be organized there. (Please refer to the `Folder structure`_ section)
 
 Example 2: by adding flags to the above command, one can change the default values and add/remove functionalities of the code. As an example, the following commands show how to get all the waveforms, response files and metadata of "BHZ" channels available in "TA" network with station names start with "Z" for the great Tohoku-oki earthquake of magnitude Mw 9.0:
 
@@ -182,7 +184,7 @@ Example 5: the default values for the preset (how close the time series data (wa
     $ ./obspyDMT.py --preset time_before --offset time_after --option-1 value --option-2 
 
 ------------------
-Continuous Request
+continuous request
 ------------------
 
 In this type of request, the following steps will be done automatically:
@@ -190,18 +192,18 @@ In this type of request, the following steps will be done automatically:
 1. Get the time span from input and in case of the large time span, divide it into small intervals.
 2. Check the availability of the requested stations for each interval.
 3. Start to retrieve the waveforms and/or response files for each interval and for all the available stations. (default: waveforms, response files and metadata will be retrieved.)
-4. Instrument Correction to all saved waveforms based on the specified options.
+4. Instrument correction to all saved waveforms based on the specified options.
 5. Merging the small retrieved time intervals to get the original input time span and save the final product.
 
-The following lines show how to send a "Continuous Request" with ObsPyDMT and present two short examples.
+The following lines show how to send a `continuous request`_ with obspyDMT and present two short examples.
 
-The general way to define a "Continuous Request" is:
+The general way to define a `continuous request`_ is:
 
 ::
 
     $ ./obspyDMT.py --continuous --option-1 value --option-2
 
-For details on option-1 and option-2 please refer to `Option Types`_ section.
+For details on option-1 and option-2 please refer to `Option types`_ section.
 
 Example 1: to test the code with the defualt values run:
 
@@ -211,7 +213,7 @@ Example 1: to test the code with the defualt values run:
 
 if you take away the option "--test '20'", the default values could result in a huge amount of requests. This option set the code to send "20" requests to IRIS and ArcLink which is suitable for testing.
 
-When the job starts, a folder called "obspyDMT-data" will be created in "$HOME/obspyDMT" and the data will be organized there. (Please refer to the `Folder Structure`_ section)
+When the job starts, a folder called "obspyDMT-data" will be created in "/path/to/my/obspyDMT" and the data will be organized there. (Please refer to the `Folder structure`_ section)
 
 Example 2: by adding flags to the above command, one can change the default values and add/remove functionalities of the code. As an example, the following command lines show how to get all the waveforms, response files and metadata of the "BHZ" channels available in "TA" network with station names start with "Z" for the specified time span:
 
@@ -246,7 +248,7 @@ Example 4: for downloading just the raw waveforms without response file and inst
     $ ./obspyDMT.py --continuous --identity 'TA.Z*.*.BHZ' --arc 'N' --min_date '2011-01-01' --max_date '2011-01-03' --SAC --response 'N' --ic_no
 
 ------------------------
-Geographical Restriction
+Geographical restriction
 ------------------------
 
 If you are interested in the events happened in a specific geographical coordinate and/or retrieving the data from the stations in a specific circular or rectangular bounding area, you are in the right section! Here, we have two examples:
@@ -264,7 +266,7 @@ Example 2: to get all the waveforms, response files and metadata of "BHZ" channe
     $ ./obspyDMT.py --min_mag '8.9' --min_date '2011-03-01' --cha 'BHZ' --station_rect '125.0/70.0/25.0/45.0'
 
 ---------------------
-Instrument Correction
+Instrument correction
 ---------------------
 
 When obspyDMT retrieves waveforms and their response files, by default it applies the instrument correction to the waveform with displacement as the correction unit. To change the correction unit to Velocity or Acceleration:
@@ -276,7 +278,7 @@ When obspyDMT retrieves waveforms and their response files, by default it applie
 
 where option-1 and option-2 are the ones related to your requests as was shown in the previous sections.
 
-Please note that all the commands presented in this section could be applied to `Continuous Request`_ as well but with slightly changes (refer to the "Continuous Request" section).
+Please note that all the commands presented in this section could be applied to `continuous request`_ as well but with slightly changes (refer to the `continuous request`_ section).
 
 Before applying the instrument correction, a bandpass filter will be applied to the data with this default values: '(0.008, 0.012, 3.0, 4.0)'. If you want to apply another band pass filter:
 
@@ -315,7 +317,7 @@ Step 1: to get all the waveforms, response files and metadata of "BHZ" channels 
 
     $ ./obspyDMT.py --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N'
 
-Step 2: to correct the raw waveforms for velocity already stored for this example in "./obspyDMT-data/2011-03-01_2012-05-24_8.9_9.9" [the folder names will change based on your request]:
+Step 2: to correct the raw waveforms for velocity already stored for this example in "/path/to/my/obspyDMT/obspyDMT-data/2011-03-01_2012-05-24_8.9_9.9" [the folder names will change based on your request]:
 
 ::
 
@@ -333,7 +335,7 @@ If you want to continue an interrupted request or complete your existing folder,
     $ ./obspyDMT.py --arc_update 'address' --option-1 value --option-2
     $ ./obspyDMT.py --update_all 'address' --option-1 value --option-2
 
-Please note that all the commands presented in this section could be applied to "Continuous Request" as well but with slightly changes (refer to the "Continuous Request" section).
+Please note that all the commands presented in this section could be applied to `continuous request`_ as well but with slightly changes (refer to the `continuous request`_ section).
 
 Example 1: first, lets retrieve all the waveforms, response files and metadata of "BHZ" channels available in "TA" network for the great Tohoku-oki earthquake of magnitude Mw 9.0, the command line will be:
 
@@ -386,7 +388,7 @@ Example 2: in this example, we want to plot the ray path for event-station pairs
     $ ./obspyDMT.py --plot_ray './obspyDMT-data' --plot_format 'pdf' --plot_save '$HOME/Desktop'
 
 ----------------
-Folder Structure
+Folder structure
 ----------------
 
 Here, we will talk more about how obspyDMT organizes your retrieved and processed data in your local machine. Basically, when you want to run the code, you could specify a directory in which all the data will be organized:
@@ -400,7 +402,7 @@ obspyDMT will create the folder ("mydata") in the desired address and then start
 "Under Construction"
 
 -----------------
-Available Options
+Available options
 -----------------
 
 All the options currently available in obspyDMT are shown in the table below. Additionally, they could be seen by:
@@ -410,7 +412,7 @@ In the description part, options have been marked by (*) or (**) which are:
 (*): option type 1 (with value)
 (**): option type 2 (without value)
 
-Please refer to the `Option Types`_ section for more info about type 1 and type 2
+Please refer to the `Option types`_ section for more info about type 1 and type 2
 
 +-----------------------+-----------------------+---+-----------------------+-----------------------+
 | options               | description           |   | options               | description           |

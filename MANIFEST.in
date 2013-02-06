@@ -1,3 +1,2 @@
 include LICENSE.txt
-include obspyDMT.py
-include README.*
+include README.txt
