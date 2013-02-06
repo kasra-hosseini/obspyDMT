@@ -1967,7 +1967,7 @@ def IRIS_network(input):
                 str(input['min_mag']) + '_' + str(input['max_mag'])
     eventpath = os.path.join(input['datapath'], Period)
     
-    create_foders_files(events, eventpath)
+    create_folders_files(events, eventpath)
 
     print 'IRIS-Folders are Created!'
     print "-------------------------"
@@ -2421,7 +2421,7 @@ def ARC_network(input):
     eventpath = os.path.join(input['datapath'], Period)
     
     if input['IRIS'] != 'Y':
-        create_foders_files(events, eventpath)           
+        create_folders_files(events, eventpath)           
         
     print 'ArcLink-Folders are Created!'
     print "----------------------------"
@@ -4064,9 +4064,9 @@ def XML_list_avail(xmlfile):
     
     return sta_req
 
-###################### create_foders_files #############################
+###################### create_folders_files ############################
 
-def create_foders_files(events, eventpath):
+def create_folders_files(events, eventpath):
     
     """
     Create required folders and files in the event folder(s)
