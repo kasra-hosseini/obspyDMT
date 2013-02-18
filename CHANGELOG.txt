@@ -1,3 +1,8 @@
+0.3.3:
+  - obspyDMT:
+    * Adding a new flag --tour to run a quick obspyDMT tour.
+    * if pprocess is not installed, the program will switch to serial mode.
+
 0.3.2:
   - obspyDMT:
     * fixing the issue with try-exception in downloading cores (IRIS and ArcLink) [in case there is any problem with initializing]
