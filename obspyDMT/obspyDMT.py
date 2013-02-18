@@ -943,7 +943,7 @@ def read_input_command(parser, **kwargs):
         reset = "\033[0;0m"
         print '\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *' 
-        print '\t\t' + '*' + '\t\t' + bold + '0.3.0' + reset + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + bold + '0.3.1' + reset + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -3756,29 +3756,50 @@ def plot_se_ray(input, ls_saved_stas):
     m.drawparallels(np.arange(-90.,120.,30.))
     m.drawmeridians(np.arange(0.,420.,60.))
     m.drawmapboundary()
-        
+    
+    pattern_sta = input['sta'] + '.' + input['loc'] + '.' + input['cha']
+    
     for i in range(0, len(ls_saved_stas)):
         print str(i + 1) + '/' + str(len(ls_saved_stas))
         print '---------'
         
+        ls_stas = ls_saved_stas[i]
+        
+        if not input['evlatmin']<=float(ls_stas[0][9])<=input['evlatmax'] or \
+           not input['evlonmin']<=float(ls_stas[0][10])<=input['evlonmax'] or \
+           not input['max_depth']<=float(ls_stas[0][11])<=input['min_depth'] or \
+           not input['min_mag']<=float(ls_stas[0][12])<=input['max_mag']:
+            continue
+        
         if input['plot_se'] != 'N' or \
                             input['plot_ev'] != 'N' or \
                             input['plot_ray'] != 'N':   
-            x_ev, y_ev = m(float(ls_saved_stas[i][0][10]), \
-                           float(ls_saved_stas[i][0][9]))
+            x_ev, y_ev = m(float(ls_stas[0][10]), \
+                           float(ls_stas[0][9]))
             m.scatter(x_ev, y_ev, \
-                        math.log(float(ls_saved_stas[i][0][12])) ** 6, \
+                        math.log(float(ls_stas[0][12])) ** 6, \
                         color="red", marker="o", \
                         edgecolor="black", zorder=10)
         
-        for j in range(0, len(ls_saved_stas[i])):
+        for j in range(0, len(ls_stas)):
             try:           
                 
-                st_lat = float(ls_saved_stas[i][j][4])
-                st_lon = float(ls_saved_stas[i][j][5])
-                ev_lat = float(ls_saved_stas[i][j][9])
-                ev_lon = float(ls_saved_stas[i][j][10])
-                ev_mag = float(ls_saved_stas[i][j][12])
+                station_name = ls_stas[j][1] + '.' + ls_stas[j][2] + \
+                            '.' + ls_stas[j][3]
+                station_ID = ls_stas[j][0] + '.' + station_name
+
+                if not fnmatch.fnmatch(station_name, pattern_sta):
+                    continue
+                
+                if not input['mlat_rbb']<=float(ls_stas[j][4])<=input['Mlat_rbb'] or \
+                   not input['mlon_rbb']<=float(ls_stas[j][5])<=input['Mlon_rbb']:
+                    continue
+                
+                st_lat = float(ls_stas[j][4])
+                st_lon = float(ls_stas[j][5])
+                ev_lat = float(ls_stas[j][9])
+                ev_lon = float(ls_stas[j][10])
+                ev_mag = float(ls_stas[j][12])
 
                 if input['plot_ray'] != 'N':
                     m.drawgreatcircle(ev_lon, ev_lat, st_lon, st_lat, \
@@ -3819,6 +3840,8 @@ def plot_ray_gmt(input, ls_saved_stas):
     ls_sta = []
     
     for i in range(0, len(ls_saved_stas)):
+        print str(i + 1) + '/' + str(len(ls_saved_stas))
+        print '---------'
         
         ls_stas = ls_saved_stas[i]
         

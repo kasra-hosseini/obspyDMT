@@ -1,3 +1,7 @@
+0.3.1:
+  - obspyDMT:
+    * --plot_ray now supports event and station restrictions as well. (similar to --plot_ray_gmt)
+
 0.3.0:
   - obspyDMT:
     * adding parallel retrieving and processing functionalities.

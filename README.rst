@@ -8,31 +8,36 @@ Welcome!
 obspyDMT_ (ObsPy Data Management Tool) is a command line tool for retrieving, processing and management of massive seismic data in a fully automatic way which could be run in serial or in parallel. 
 Moreover, complementary processing and managing tools have been designed and introduced in addition to the obspyDMT options.
 
-This tool is developed to mainly address the following tasks in a fully automatic way:
+This tool is developed to mainly address the following tasks automatically: 
 
-1. Retrieval of waveforms (MSEED or SAC), response files and metadata from IRIS_ and ArcLink_ archives. This could be done for single or large requests.
-2. Extracting the information of all the events via user-defined options (time span, magnitude, depth and event location).
-3. Supports the event-based and continuous requests (refer to the `event-based request`_ and `continuous request`_ sections in this tutorial).
-4. Updating the existing archives (waveform, response and metadata).
-5. Processing the data (e.g. *Instrument correction*).
+1. Retrieval of waveforms (MSEED or SAC), response files and metadata from IRIS_ and ORFEUS_ (via ArcLink_) archives. This could be done for single or large requests.
+2. Extracting the information of all the events via user-defined options (time span, magnitude, depth and event location) from IRIS_ and EMSC_ (European Mediterranean Seismological Centre).
+3. Supports event-based and continuous requests.
+4. Updating the existing archives (waveforms, response files and metadata).
+5. Processing the data (e.g. *Tapering, removing the trend of the time series, filtering and Instrument correction*).
 6. Management of large seismic datasets.
 7. Plotting tools (events and/or station locations, Ray coverage (event-station pair) and epicentral-distance plots for all archived waveforms).
 
 
 This tutorial has been divided into the following sections: 
 
-1.  `How to cite obspyDMT`_
-2.  `Lets get started`_: download obspyDMT code and check your local machine for required dependencies.
-3.  `Option types`_: there are two types of options for obspyDMT which are explained in this section.
-4.  `event-info request`_: if you are looking for some events and you want to get info about them.
-5.  `event-based request`_: retrieve the waveforms, response files and meta-data of all the requested stations for all the events found in the archive.
-6.  `continuous request`_: retrieve the waveforms, response files and meta-data of all the requested stations for the specified time span.
-7.  `Geographical restriction`_: if you are interested in the events happened in a specific geographical coordinate and/or retrieving the data from the stations in a specific circular or rectangular bounding area.
-8.  `Instrument correction`_: instrument correction for displacement, velocity and acceleration.
-9.  `Update`_: if you want to continue an interrupted request or complete your existing archive.
-10.  `Plot`_: for an existing folder, you could plot all the events and/or all the stations, ray path for event-station pairs and epicentral-distance/time for the waveforms.
-11. `Folder structure`_: the way that obspyDMT organize your retrieved and processed data.
-12. `Available options`_: all options currently available in obspyDMT have been shown in the form of a table.
+1.  `Quick tour`_
+2.  `How to cite obspyDMT`_
+3.  `Lets get started`_: install obspyDMT and check your local machine for required dependencies.
+4.  `Option types`_: there are two types of options for obspyDMT: *option-1* (with value) and *option-2* (without value)
+5.  `event-info request`_: if you are looking for some events and you want to get info about them without downloading waveforms.
+6.  `event-based request`_: retrieve the waveforms, response files and meta-data of all the requested stations for all the events found in the archive.
+7.  `continuous request`_: retrieve the waveforms, response files and meta-data of all the requested stations for the specified time span.
+8.  `Geographical restriction`_: if you are interested in the events happened in a specific geographical coordinate and/or retrieving the data from the stations in a specific circular or rectangular bounding area.
+9.  `Instrument correction`_: instrument correction for displacement, velocity and acceleration with full response file or Poles And Zeros *(PAZ)*.
+10.  `Update`_: if you want to continue an interrupted request or complete your existing archive.
+11.  `Plot`_: for an existing folder, you could plot all the events and/or all the stations, ray path for event-station pairs and epicentral-distance/time for the waveforms using GMT-5 or basemap tools.
+12. `Folder structure`_: the way that obspyDMT organize your retrieved and processed data in the file-based mode.
+13. `Available options`_: all options currently available in obspyDMT.
+
+----------
+Quick tour
+----------
 
 --------------------
 How to cite obspyDMT
@@ -42,13 +47,15 @@ If you use obspyDMT, please consider citing the code as:
 
 ::
 
-    Kasra Hosseini (2012), obspyDMT (Version 0.3.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
+    Kasra Hosseini (2013), obspyDMT (Version 0.3.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
 
 -----------------
 Lets get started
 -----------------
 
-Once a working Python and ObsPy environment is installed, there are two possible ways to have obspyDMT:
+**???? review the paper!**
+
+Once a working Python and ObsPy_ environment is installed, there are two possible ways to have obspyDMT:
 
 1. Prepackaged Modules from Python Package Index (PyPI):
 
@@ -68,7 +75,7 @@ Once a working Python and ObsPy environment is installed, there are two possible
     $ cd /path/to/my/obspyDMT
     $ python setup.py install
 
-In case that none of these worked for you, the source code could be downloaded directly from either PyPI_ or GitHub_ websites:
+In case that none of these worked for you, the source code could be downloaded directly from either PyPI_ or GitHub_ websites.
 
 Finally, to check the dependencies required for running the code properly:
 
@@ -76,7 +83,7 @@ Finally, to check the dependencies required for running the code properly:
 
     $ obspyDMT --check
 
-ATTENTION: if obspyDMT is installed on your machine, it could be easily run from everywhere. However, if you want to use the source code instead:
+**ATTENTION:** if obspyDMT is installed on your machine, it could be easily run from everywhere. However, if you want to use the source code instead:
 
 ::
 
@@ -87,7 +94,7 @@ ATTENTION: if obspyDMT is installed on your machine, it could be easily run from
 Option types
 ------------
 
-There are two option types in obspyDMT: option-1 (with value) and option-2 (without value). In the first type, user should provide value/s which will be stored and be used in the program as input. However, by adding type-2 options, which does not require any value, one feature will be activated or deactivated (e.g. if you enter '--check', refer to `Lets get started`_ section, the program will check all the dependencies required for running the code properly).
+There are two types of options in obspyDMT: option-1 (with value) and option-2 (without value). In the first type, user should provide value/s which will be stored and be used in the program as input. However, by adding type-2 options, which does not require any value, one feature will be activated or deactivated (e.g. if you enter '--check', refer to `Lets get started`_ section, the program will check all the dependencies required for running the code properly).
 
 The general form to enter your input (i.e. change the default values) is as follow:
 
@@ -101,6 +108,7 @@ To show all the available options with short descriptions:
 
     $ obspyDMT --help 
 
+**maybe remove this!**
 or refer to the `Available options`_ section in this tutorial in which the options marked with '*' are the first option type (option-1), and the options marked with '**' are the second type (option-2).
 
 **ONE GOOD THING:** the order of options is commutative!
@@ -766,7 +774,10 @@ Please refer to `Option types`_ section for more info about type 1 and type 2
 
 .. obspyDMT: http://obspy.org/browser/obspy/trunk/apps/obspyDMT/obspyDMT.py
 .. _obspyDMT: https://github.com/kasra-hosseini/obspyDMT
+.. _ObsPy: https://github.com/obspy/obspy/wiki
 .. _IRIS: http://www.iris.edu/ws/
+.. _ORFEUS: http://www.orfeus-eu.org/
+.. _EMSC: http://www.emsc-csem.org/
 .. _ArcLink: http://www.webdc.eu/arclink/
 .. _http://pypi.python.org/pypi/obspyDMT: http://pypi.python.org/pypi/obspyDMT
 .. _PyPI: http://pypi.python.org/pypi/obspyDMT
