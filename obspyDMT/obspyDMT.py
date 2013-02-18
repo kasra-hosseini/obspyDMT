@@ -38,6 +38,14 @@ from datetime import datetime
 from lxml import objectify
 from optparse import OptionParser
 from datetime import datetime
+
+try:
+    import pprocess
+except Exception, error:
+    print "\n**************************"
+    print "Unable to import pprocess."
+    print "**************************\n"
+    
 try:
     import smtplib
 except Exception, error:
@@ -183,11 +191,7 @@ def obspyDMT(**kwargs):
     
     print '\n------------------------------------------------------------' + \
             '---------------------'
-    bold = "\033[1m"
-    reset = "\033[0;0m"
-    print '\t\t' + bold + 'obspyDMT ' + reset + '(' + bold + 'ObsPy D' + \
-        reset + 'ata '+ bold + 'M' + reset + 'anagement ' + bold + 'T' + \
-        reset + 'ool)' + reset + '\n'
+    print '\t\t' + 'obspyDMT (ObsPy Data Management Tool)' + '\n'
     print '\t' + 'Automatic tool for Downloading, Processing and Management'
     print '\t\t\t' + 'of Large Seismic Datasets'
     print '\n'
@@ -337,16 +341,6 @@ def obspyDMT(**kwargs):
         
         send_email()
 
-    # ------------------------------------------------------------------
-    print '------------------------------------------------------------'
-    print 'Thanks for using:' + '\n' 
-    bold = "\033[1m"
-    reset = "\033[0;0m"
-    print '\t\t' + bold + 'obspyDMT ' + reset + '(' + bold + 'ObsPy D' + \
-        reset + 'ata '+ bold + 'M' + reset + 'anagement ' + bold + 'T' + \
-        reset + 'ool)' + reset + '\n'
-    print '------------------------------------------------------------'
-    
     done = True
 
 ########################################################################
@@ -379,7 +373,11 @@ def command_parse():
                                         "on the local machine and exit"
     parser.add_option("--check", action="store_true",
                       dest="check", help=helpmsg)
-                      
+    
+    helpmsg = "Run a quick tour!"
+    parser.add_option("--tour", action="store_true",
+                      dest="tour", help=helpmsg)
+    
     helpmsg = "type of the input ('command' or 'file') to be read by " + \
                 "obspyDMT. Please note that for \"--type 'file'\" an " + \
                 "external file ('INPUT.cfg') should exist in the same " + \
@@ -939,26 +937,36 @@ def read_input_command(parser, **kwargs):
             exec("options.%s = kwargs[arg]") % arg
     
     if options.version: 
-        bold = "\033[1m"
-        reset = "\033[0;0m"
         print '\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *' 
-        print '\t\t' + '*' + '\t\t' + bold + '0.3.2' + reset + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.3.2' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
     
     # Check whether it is possible to import all required modules
     if options.check:
-        bold = "\033[1m"
-        reset = "\033[0;0m"
-        print "***************************"
-        print bold + "Check all the dependencies:" + reset
+        print "*********************************"
+        print "Check all the BASIC dependencies:"
         for i in range(0, len(descrip)):
             print descrip[i]
-        print "***************************"
+        print "*********************************\n"
         sys.exit(2)
         
+    if options.tour:
+        print '\n########################################'
+        print 'obspyDMT Quick Tour will start in 5 sec!'
+        print '########################################\n'
+        time.sleep(5)
+        options.datapath = './DMT-Tour-Data'
+        options.min_date = '2011-03-10'
+        options.max_date = '2011-03-12'
+        options.min_mag = '8.9'
+        options.identity = 'TA.1*.*.BHZ'
+        options.event_catalog = 'IRIS'
+        options.req_parallel = True
+        options.ArcLink = 'N'
+    
     # parse datapath (check if given absolute or relative)
     if options.datapath:
         if not os.path.isabs(options.datapath):
@@ -1031,8 +1039,7 @@ def read_input_command(parser, **kwargs):
     if options.plot_save != 'N':
         if not os.path.isabs(options.plot_save):
             options.plot_save = os.path.join(os.getcwd(), options.plot_save)
-    
-    
+        
     # extract min. and max. longitude and latitude if the user has given the
     # coordinates with -r (GMT syntax)
     if options.event_rect:
@@ -1348,7 +1355,19 @@ def read_input_command(parser, **kwargs):
         input['iris_merge_auto'] = 'N'
         input['arc_merge_auto'] = 'N'
         input['max_result'] = 1000000
-        
+     
+    if input['req_parallel'] == 'Y' or input['ic_parallel'] == 'Y':
+        try:
+            import pprocess
+        except Exception, error:
+            print '***************************************************'
+            print 'WARNING:'
+            print 'ppross is not installed on your machine!'
+            print 'for more info: http://pypi.python.org/pypi/pprocess'
+            print '\nobspyDMT will work in Serial mode.'
+            print '***************************************************'
+            input['req_parallel'] = 'N'; input['ic_parallel'] = 'N'
+            
 ###################### read_input_file #################################
 
 def read_input_file():  
@@ -2133,7 +2152,6 @@ def IRIS_waveform(input, Sta_req, i, type):
     dic = {}                
     
     if input['req_parallel'] == 'Y':
-        import pprocess
         
         print "###################"
         print "Parallel Request"
@@ -2543,7 +2561,6 @@ def ARC_waveform(input, Sta_req, i, type):
     dic = {}
     
     if input['req_parallel'] == 'Y':
-        import pprocess
         
         print "################"
         print "Parallel Request"
@@ -2967,7 +2984,6 @@ def inst_correct(input, ls_saved_stas, address, clients):
         pass
     
     if input['ic_parallel'] == 'Y':
-        import pprocess
         
         print "##############################"
         print "Parallel Instrument Correction"
@@ -4895,11 +4911,12 @@ def main():
        
         t_pro = time.time() - t1_pro
         
-        print "Following folder contains %f MB of data."  % (size)
+        print "\n\n--------------------------------------------------"
+        print "Info:"
+        print "* The following folder contains %f MB of data."  % (size)
         print input['datapath']
-        print "\nTotal time for last request (everything is included):"
+        print "\n* Total time:"
         print "%f sec" % (t_pro)
-        print "--------------------------------------------------"
         
        # -------------------------------------------------------------------
         Period = input['min_date'].split('T')[0] + '_' + \
@@ -4913,8 +4930,9 @@ def main():
         for i in range(0, len_events):
             address.append(os.path.join(eventpath, events[i]['event_id']))
        # -------------------------------------------------------------------
+        print "--------------------------------------------------"
         if address != []:
-            print "Address of the stored events:"
+            print "* Address of the stored events:"
             for i in range(0, len_events):
                 print address[i]
             print "--------------------------------------------------"
@@ -4923,7 +4941,7 @@ def main():
         print e
         pass
     
-    print "Press any key to quit"
+    print "Press any key to quit\n"
     # pass the return of main to the command line.
     sys.exit(status)
 
