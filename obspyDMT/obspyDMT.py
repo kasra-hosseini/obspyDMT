@@ -2260,6 +2260,8 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
     print str(i+1) + '/' + str(len_events) + '-' + str(j+1) + '/' + \
             str(len(Sta_req)) + '-' + input['cha']
     try:
+
+        dummy = 'Initializing'
         
         client_iris = Client_iris()
         
@@ -2637,6 +2639,8 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
             str(len(Sta_req)) + '-' + input['cha']
     
     try:
+
+        dummy = 'Initializing'
         
         client_arclink = Client_arclink(timeout=5)
         
