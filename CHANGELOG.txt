@@ -1,3 +1,7 @@
+0.3.2:
+  - obspyDMT:
+    * fixing the issue with try-exception in downloading cores (IRIS and ArcLink) [in case there is any problem with initializing]
+
 0.3.1:
   - obspyDMT:
     * --plot_ray now supports event and station restrictions as well. (similar to --plot_ray_gmt)
