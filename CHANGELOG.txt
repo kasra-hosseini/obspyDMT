@@ -1,3 +1,7 @@
+0.3.4:
+  - obspyDMT:
+    * Fixing the "rm_duplicate" module for cases that there is no available station
+
 0.3.3:
   - obspyDMT:
     * Adding a new flag --tour to run a quick obspyDMT tour.
