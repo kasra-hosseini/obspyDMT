@@ -4917,7 +4917,7 @@ def main():
         print input['datapath']
         print "\n* Total time:"
         print "%f sec" % (t_pro)
-        
+        print "--------------------------------------------------"
        # -------------------------------------------------------------------
         Period = input['min_date'].split('T')[0] + '_' + \
                     input['max_date'].split('T')[0] + '_' + \
@@ -4930,7 +4930,6 @@ def main():
         for i in range(0, len_events):
             address.append(os.path.join(eventpath, events[i]['event_id']))
        # -------------------------------------------------------------------
-        print "--------------------------------------------------"
         if address != []:
             print "* Address of the stored events:"
             for i in range(0, len_events):
