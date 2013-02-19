@@ -2857,8 +2857,14 @@ def IRIS_update(input, address):
             print 'IRIS-bulkfile for event    : ' + str(i+1) + str('/') + \
                                     str(len_events) + '  ---> ' + 'DONE'
         
-        Stas_req = rm_duplicate(Stas_iris, \
+        if Stas_iris != [[]]:
+            Stas_req = rm_duplicate(Stas_iris, \
                             address = os.path.join(address_events[i]))
+        else:
+            Stas_req = [[]]
+            print '------------------------------------------'
+            print 'There is no available station!'
+            print '------------------------------------------'
         if not os.path.isdir(os.path.join(address_events[i], 'BH_RAW')):
             os.makedirs(os.path.join(address_events[i], 'BH_RAW'))
     
@@ -2892,8 +2898,14 @@ def ARC_update(input, address):
         print 'ArcLink-Availability for event: ' + str(i+1) + str('/') + \
                                     str(len_events) + '  --->' + 'DONE'
         
-        Stas_req = rm_duplicate(Stas_arc, \
+        if Stas_arc != [[]]:
+            Stas_req = rm_duplicate(Stas_arc, \
                             address = os.path.join(address_events[i]))
+        else:
+            Stas_req = [[]]
+            print '------------------------------------------'
+            print 'There is no available station!'
+            print '------------------------------------------'
         if not os.path.isdir(os.path.join(address_events[i], 'BH_RAW')):
             os.makedirs(os.path.join(address_events[i], 'BH_RAW'))
         
