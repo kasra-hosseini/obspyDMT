@@ -63,9 +63,7 @@ Once a working Python and ObsPy_ environment is installed, there are two possibl
     $ cd /path/to/my/obspyDMT
     $ python setup.py install
 
-:: 
-
-    Alternatively:
+Alternatively:
 
 ::
     
@@ -114,7 +112,7 @@ The retrieved raw counts could be plotted:
 
     $ obspyDMT --plot_epi 'DMT-Tour-Data'
 
-or the corrected waveforms:
+for plotting the corrected waveforms:
 
 ::
 
@@ -470,13 +468,16 @@ obspyDMT will create the folder (*/path/to/my/desired/address*) then start to cr
 Available options
 -----------------
 
-All the options currently available in obspyDMT are shown in the table below. Additionally, they could be seen by:
+All the options currently available in obspyDMT could be seen by:
 
 ::
 
     $ obspyDMT --help
 
-In the description part, options have been marked by (*) or (**) which are:
+The options specified by *--option=OPTION* are type-1 (with value) and *--option* are type-2 (without value).
+
+Here, you could also find some of the options (and not all) available in obspyDMT with a short description.
+Options marked by (*) or (**) are:
 
 (*): *option-1* (with value)
 (**): *option-2* (without value)
