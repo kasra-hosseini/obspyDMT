@@ -10,20 +10,20 @@ Moreover, complementary processing and managing tools have been designed and int
 
 This tool is developed to mainly address the following tasks automatically: 
 
-1. Retrieval of waveforms (MSEED or SAC), response files and metadata from IRIS_ and ORFEUS_ (via ArcLink_) archives. This could be done for single or large requests.
-2. Extracting the information of all the events via user-defined options (time span, magnitude, depth and event location) from IRIS_ and EMSC_ (European Mediterranean Seismological Centre).
-3. Supports event-based and continuous requests.
+1. Retrieval of waveforms (MSEED or SAC), response files and metadata from IRIS_ and ORFEUS_ (via ArcLink_) archives. This could be done in *serial* or in *parallel* for single or large requests.
+2. Supports event-based and continuous requests.
+3. Extracting the information of all the events via user-defined options (time span, magnitude, depth and event location) from IRIS_ and EMSC_ (European Mediterranean Seismological Centre).
 4. Updating the existing archives (waveforms, response files and metadata).
-5. Processing the data (e.g. *Tapering, removing the trend of the time series, filtering and Instrument correction*).
+5. Processing the data in *serial* or in *parallel* (e.g. *Tapering, removing the trend of the time series, filtering and Instrument correction*).
 6. Management of large seismic datasets.
 7. Plotting tools (events and/or station locations, Ray coverage (event-station pair) and epicentral-distance plots for all archived waveforms).
 
 
 This tutorial has been divided into the following sections: 
 
-1.  `Quick tour`_
-2.  `How to cite obspyDMT`_
-3.  `Lets get started`_: install obspyDMT and check your local machine for required dependencies.
+1.  `How to cite obspyDMT`_
+2.  `Lets get started`_: install obspyDMT and check your local machine for required dependencies.
+3.  `Quick tour`_: run a quick tour for obspyDMT.
 4.  `Option types`_: there are two types of options for obspyDMT: *option-1* (with value) and *option-2* (without value)
 5.  `event-info request`_: if you are looking for some events and you want to get info about them without downloading waveforms.
 6.  `event-based request`_: retrieve the waveforms, response files and meta-data of all the requested stations for all the events found in the archive.
@@ -34,10 +34,6 @@ This tutorial has been divided into the following sections:
 11.  `Plot`_: for an existing folder, you could plot all the events and/or all the stations, ray path for event-station pairs and epicentral-distance/time for the waveforms using GMT-5 or basemap tools.
 12. `Folder structure`_: the way that obspyDMT organize your retrieved and processed data in the file-based mode.
 13. `Available options`_: all options currently available in obspyDMT.
-
-----------
-Quick tour
-----------
 
 --------------------
 How to cite obspyDMT
@@ -53,17 +49,9 @@ If you use obspyDMT, please consider citing the code as:
 Lets get started
 -----------------
 
-**???? review the paper!**
-
 Once a working Python and ObsPy_ environment is installed, there are two possible ways to have obspyDMT:
-
-1. Prepackaged Modules from Python Package Index (PyPI):
-
-::
-    
-    $ easy_install -N obspyDMT
-  
-2. Manually from Source Code:
+ 
+1. Manually from the source code:
 
 ::
 
@@ -75,6 +63,22 @@ Once a working Python and ObsPy_ environment is installed, there are two possibl
     $ cd /path/to/my/obspyDMT
     $ python setup.py install
 
+:: 
+
+    Alternatively:
+
+::
+    
+    $ git clone https://github.com/kasra-hosseini/obspyDMT.git /path/to/my/obspyDMT
+    $ cd /path/to/my/obspyDMT
+    $ pip install -v -e .
+
+2. Prepackaged Modules from Python Package Index (PyPI):
+
+::
+    
+    $ easy_install -N obspyDMT
+ 
 In case that none of these worked for you, the source code could be downloaded directly from either PyPI_ or GitHub_ websites.
 
 Finally, to check the dependencies required for running the code properly:
@@ -90,13 +94,45 @@ Finally, to check the dependencies required for running the code properly:
     $ cd /path/to/my/obspyDMT.py
     $ ./obspyDMT.py --check
 
+In all the following examples, we assume that obspyDMT is already installed.
+
+----------
+Quick tour
+----------
+
+To run a quick tour for obspyDMT:
+
+::
+
+    $ obspyDMT --tour
+
+*DMT-Tour-Data* directory will be created in the current path and the retrieved/processed data will be organized there. (Please refer to `Folder structure`_ section for more information)
+
+The retrieved raw counts could be plotted:
+
+::
+
+    $ obspyDMT --plot_epi 'DMT-Tour-Data'
+
+or the corrected waveforms:
+
+::
+
+    $ obspyDMT --plot_epi 'DMT-Tour-Data' --plot_type corrected
+
+obspyDMT plots the ray coverage (ray path between each event-station pair) by:
+
+::
+
+    $ obspyDMT --plot_ray 'DMT-Tour-Data'
+    
 ------------
 Option types
 ------------
 
 There are two types of options in obspyDMT: option-1 (with value) and option-2 (without value). In the first type, user should provide value/s which will be stored and be used in the program as input. However, by adding type-2 options, which does not require any value, one feature will be activated or deactivated (e.g. if you enter '--check', refer to `Lets get started`_ section, the program will check all the dependencies required for running the code properly).
 
-The general form to enter your input (i.e. change the default values) is as follow:
+The general form to enter the input (i.e. change the default values) is as follow:
 
 ::
 
@@ -108,8 +144,9 @@ To show all the available options with short descriptions:
 
     $ obspyDMT --help 
 
-**maybe remove this!**
-or refer to the `Available options`_ section in this tutorial in which the options marked with '*' are the first option type (option-1), and the options marked with '**' are the second type (option-2).
+.. or refer to the `Available options`_ section in this tutorial in which the options marked with '*' are the first option type (option-1), and the options marked with '**' are the second type (option-2).
+
+The options specified by *--option=OPTION* are type-1 (with value) and *--option* are type-2 (without value).
 
 **ONE GOOD THING:** the order of options is commutative!
 
@@ -117,7 +154,7 @@ or refer to the `Available options`_ section in this tutorial in which the optio
 event-info request
 ------------------
 
-In this type of request, obspyDMT will search for all the available events based on the options specified by the user, then print the results and create an event catalogue.
+In this type of request, obspyDMT will search for all the available events based on the options specified by the user, print the results and create an event catalogue.
 
 The following lines show how to send an `event-info request`_ with obspyDMT and present some examples.
 
@@ -155,6 +192,8 @@ In this type of request, the following steps will be done automatically:
 3. Start to retrieve the waveforms and/or response files for each event and for all available stations. (default: waveforms, response files and metadata will be retrieved.)
 4. Instrument correction to all saved waveforms based on the specified options.
 
+Retrieving and processing could be done in **serial** or in **parallel**.
+
 The following lines show how to send an `event-based request`_ with obspyDMT and present short examples.
 
 The general way to define an `event-based request`_ is:
@@ -165,51 +204,54 @@ The general way to define an `event-based request`_ is:
 
 For details on *option-1* and *option-2* please refer to `Option types`_ section.
 
-**Example 1:** to test the code with the defualt values run:
+**Example 1:** 
 
-::
 
-    $ obspyDMT --test '20'
-
-if you take away the option *--test '20'*, the default values could result in a huge amount of requests. This option set the code to send *20* requests to IRIS and ArcLink which is suitable for testing.
-
-When the job starts, a folder will be created with the address specified for *--datapath* flag (by default: *obspyDMT-data* in the current directory). [refer to `Folder structure`_ section]
-
-**Example 2:** by adding flags to the above command, one can change the default values and add/remove functionalities of the code. As an example, the following commands show how to get all the waveforms, response files and metadata of *BHZ* channels available in *TA* network with station names start with *Z* for the great Tohoku-oki earthquake of magnitude Mw 9.0:
-
-::
-
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ'
-
-or instead of using *identity* option:
-
-::
-
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --net 'TA' --sta 'Z*' --cha 'BHZ'
-
-In the case that you know from which data provider you want to retrieve the data, it is better to exclude the non-relevant one. For instance, in this example since we know that *TA* network is within IRIS, it makes more sense to exclude ArcLink by:
-
-::
-
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N'
-
-**Example 3:** By default, obspyDMT saves the waveforms in *SAC* format. In this case, it will fill out the station location (stla and stlo), station elevation (stel), station depth (stdp), event location (evla and evlo), event depth (evdp) and event magnitude (mag) in the SAC headers. However, if the desired format is *MSEED*: (for downloading the same event and station identity as *Example 2*)
-
-::
-
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N' --mseed
-
-**Example 4:** for downloading just the raw waveforms without response file and instrument correction:
-
-::
-
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N' --mseed --response 'N' --ic_no
-
-**Example 5:** the default values for the preset (how close the time series data (waveform) will be cropped before the origin time of the event) and the offset (how close the time series data (waveform) will be cropped after the origin time of the event) are 0 and 1800 seconds. You could change them by adding the following flags:
-
-::
-
-    $ obspyDMT --preset time_before --offset time_after --option-1 value --option-2 
+.. **Example 1:** to test the code with the defualt values run:
+.. 
+.. ::
+.. 
+..     $ obspyDMT --test '20'
+.. 
+.. if you take away the option *--test '20'*, the default values could result in a huge amount of requests. This option set the code to send *20* requests to IRIS and ArcLink which is suitable for testing.
+.. 
+.. When the job starts, a folder will be created with the address specified for *--datapath* flag (by default: *obspyDMT-data* in the current directory). [refer to `Folder structure`_ section]
+.. 
+.. **Example 2:** by adding flags to the above command, one can change the default values and add/remove functionalities of the code. As an example, the following commands show how to get all the waveforms, response files and metadata of *BHZ* channels available in *TA* network with station names start with *Z* for the great Tohoku-oki earthquake of magnitude Mw 9.0:
+.. 
+.. ::
+.. 
+..     $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ'
+.. 
+.. or instead of using *identity* option:
+.. 
+.. ::
+.. 
+..     $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --net 'TA' --sta 'Z*' --cha 'BHZ'
+.. 
+.. In the case that you know from which data provider you want to retrieve the data, it is better to exclude the non-relevant one. For instance, in this example since we know that *TA* network is within IRIS, it makes more sense to exclude ArcLink by:
+.. 
+.. ::
+.. 
+..     $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N'
+.. 
+.. **Example 3:** By default, obspyDMT saves the waveforms in *SAC* format. In this case, it will fill out the station location (stla and stlo), station elevation (stel), station depth (stdp), event location (evla and evlo), event depth (evdp) and event magnitude (mag) in the SAC headers. However, if the desired format is *MSEED*: (for downloading the same event and station identity as *Example 2*)
+.. 
+.. ::
+.. 
+..     $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N' --mseed
+.. 
+.. **Example 4:** for downloading just the raw waveforms without response file and instrument correction:
+.. 
+.. ::
+.. 
+..     $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N' --mseed --response 'N' --ic_no
+.. 
+.. **Example 5:** the default values for the preset (how close the time series data (waveform) will be cropped before the origin time of the event) and the offset (how close the time series data (waveform) will be cropped after the origin time of the event) are 0 and 1800 seconds. You could change them by adding the following flags:
+.. 
+.. ::
+.. 
+..     $ obspyDMT --preset time_before --offset time_after --option-1 value --option-2 
 
 ------------------
 continuous request
