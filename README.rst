@@ -204,54 +204,51 @@ The general way to define an `event-based request`_ is:
 
 For details on *option-1* and *option-2* please refer to `Option types`_ section.
 
-**Example 1:** 
+**Example 1:** to test the code with the defualt values run:
 
+::
 
-.. **Example 1:** to test the code with the defualt values run:
-.. 
-.. ::
-.. 
-..     $ obspyDMT --test '20'
-.. 
-.. if you take away the option *--test '20'*, the default values could result in a huge amount of requests. This option set the code to send *20* requests to IRIS and ArcLink which is suitable for testing.
-.. 
-.. When the job starts, a folder will be created with the address specified for *--datapath* flag (by default: *obspyDMT-data* in the current directory). [refer to `Folder structure`_ section]
-.. 
-.. **Example 2:** by adding flags to the above command, one can change the default values and add/remove functionalities of the code. As an example, the following commands show how to get all the waveforms, response files and metadata of *BHZ* channels available in *TA* network with station names start with *Z* for the great Tohoku-oki earthquake of magnitude Mw 9.0:
-.. 
-.. ::
-.. 
-..     $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ'
-.. 
-.. or instead of using *identity* option:
-.. 
-.. ::
-.. 
-..     $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --net 'TA' --sta 'Z*' --cha 'BHZ'
-.. 
-.. In the case that you know from which data provider you want to retrieve the data, it is better to exclude the non-relevant one. For instance, in this example since we know that *TA* network is within IRIS, it makes more sense to exclude ArcLink by:
-.. 
-.. ::
-.. 
-..     $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N'
-.. 
-.. **Example 3:** By default, obspyDMT saves the waveforms in *SAC* format. In this case, it will fill out the station location (stla and stlo), station elevation (stel), station depth (stdp), event location (evla and evlo), event depth (evdp) and event magnitude (mag) in the SAC headers. However, if the desired format is *MSEED*: (for downloading the same event and station identity as *Example 2*)
-.. 
-.. ::
-.. 
-..     $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N' --mseed
-.. 
-.. **Example 4:** for downloading just the raw waveforms without response file and instrument correction:
-.. 
-.. ::
-.. 
-..     $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N' --mseed --response 'N' --ic_no
-.. 
-.. **Example 5:** the default values for the preset (how close the time series data (waveform) will be cropped before the origin time of the event) and the offset (how close the time series data (waveform) will be cropped after the origin time of the event) are 0 and 1800 seconds. You could change them by adding the following flags:
-.. 
-.. ::
-.. 
-..     $ obspyDMT --preset time_before --offset time_after --option-1 value --option-2 
+    $ obspyDMT --test '20'
+
+if you take away the option *--test '20'*, the default values could result in a huge amount of requests. This option set the code to send *20* requests to IRIS and ArcLink which is suitable for testing.
+
+When the job starts, a folder will be created with the address specified for *--datapath* flag (by default: *obspyDMT-data* in the current directory). [refer to `Folder structure`_ section]
+
+**Example 2:** by adding flags to the above command, one can change the default values and add/remove functionalities of the code. As an example, the following commands show how to get all the waveforms, response files and metadata of *BHZ* channels available in *TA* network with station names start with *Z* for the great Tohoku-oki earthquake of magnitude Mw 9.0:
+
+::
+
+    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ'
+
+or instead of using *identity* option:
+
+::
+
+    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --net 'TA' --sta 'Z*' --cha 'BHZ'
+
+In the case that you know from which data provider you want to retrieve the data, it is better to exclude the non-relevant one. For instance, in this example since we know that *TA* network is within IRIS, it makes more sense to exclude ArcLink by:
+
+::
+
+    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N'
+
+**Example 3:** By default, obspyDMT saves the waveforms in *SAC* format. In this case, it will fill out the station location (stla and stlo), station elevation (stel), station depth (stdp), event location (evla and evlo), event depth (evdp) and event magnitude (mag) in the SAC headers. However, if the desired format is *MSEED*: (for downloading the same event and station identity as *Example 2*)
+
+::
+
+    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N' --mseed
+
+**Example 4:** for downloading just the raw waveforms without response file and instrument correction:
+
+::
+
+    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N' --mseed --response 'N' --ic_no
+
+**Example 5:** the default values for the preset (how close the time series data (waveform) will be cropped before the origin time of the event) and the offset (how close the time series data (waveform) will be cropped after the origin time of the event) are 0 and 1800 seconds. You could change them by adding the following flags:
+
+::
+
+    $ obspyDMT --preset time_before --offset time_after --option-1 value --option-2 
 
 ------------------
 continuous request
