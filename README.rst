@@ -476,10 +476,11 @@ All the options currently available in obspyDMT could be seen by:
 
 The options specified by *--option=OPTION* are type-1 (with value) and *--option* are type-2 (without value).
 
-Here, you could also find some of the options (and not all) available in obspyDMT with a short description.
+Here, you could also find some of the options available in obspyDMT with a short description.
 Options marked by (*) or (**) are:
 
 (*): *option-1* (with value)
+
 (**): *option-2* (without value)
 
 Please refer to `Option types`_ section for more info about type 1 and type 2
