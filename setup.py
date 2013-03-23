@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name = "obspyDMT",
-    version = "0.3.0",
+    version = "0.4.0",
     description = "Retrieving, Processing and Management of Massive Seismic Data (Serial and Parallel)",
     author = "Kasra Hosseini",
     author_email = "hosseini@geophysik.uni-muenchen.de",
