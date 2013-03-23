@@ -233,7 +233,7 @@ def obspyDMT(**kwargs):
 ########################################################################
 ###################### Functions are defined here ######################
 ########################################################################
-
+    
 ###################### command_parse ###################################
 
 def command_parse():
@@ -242,7 +242,6 @@ def command_parse():
     """
     # create command line option parser
     parser = OptionParser("%prog [options]")
-    
     # configure command line options
     # action=".." tells OptionsParser what to save:
     # store_true saves bool TRUE,
@@ -1362,6 +1361,8 @@ def get_Events(input, request):
         os.makedirs(eventpath)
     events = events_info(request)
     os.makedirs(os.path.join(eventpath, 'EVENTS-INFO'))
+    # logging the inputs
+    input_logger(argus = sys.argv, address = os.path.join(eventpath, 'EVENTS-INFO', 'logger.txt'))
     len_events = len(events)
     for i in range(0, len_events):
         print "-------------------------------------------------"
@@ -1534,6 +1535,19 @@ def events_info(request):
                             'flynn_region': 'NAN'})
         print 'DONE'
     return events
+
+###################### input_logger ###################################
+
+def input_logger(argus, address):
+    """
+    log the entered command line!
+    """
+    st_argus = 'Command line:\n' 
+    for item in argus:
+        st_argus += item + ' '
+    logger_open = open(address, 'w')
+    logger_open.write(st_argus)
+    logger_open.close()
 
 ###################### seismicity ######################################
 
@@ -2477,7 +2491,7 @@ def inst_correct(input, ls_saved_stas, address, clients):
     
     if input['ic_parallel'] == 'Y':
        
-        print '\nParallel Instrument Correction with %s processes.\n' %(inp['ic_np'])
+        print '\nParallel Instrument Correction with %s processes.\n' %(input['ic_np'])
         #!! Still do not know which one is the best: 
         #parallel_results = pprocess.Queue(limit=input['req_np'])
         #parallel_job = parallel_results.manage(pprocess.MakeParallel(IC_core))
