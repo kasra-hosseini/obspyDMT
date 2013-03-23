@@ -1,3 +1,13 @@
+0.4.0:
+  - obspyDMT:
+    * Preparing the code for the first stable version
+    * Implementation of parallel bulkdataselect for IRIS
+    * Debugging all the geographical restrictions (reported by Viviana)
+    * Changing the format of outputs to be more readable
+    * running some tests for different modules and options
+  - README:
+    * Adding some new topics (parallel, seismicity and bulkdataselect)
+
 0.3.4:
   - obspyDMT:
     * Fixing the "rm_duplicate" module for cases that there is no available station
