@@ -45,7 +45,7 @@ If you use obspyDMT, please consider citing the code as:
 
 ::
 
-    Kasra Hosseini (2013), obspyDMT (Version 0.3.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
+    Kasra Hosseini (2013), obspyDMT (Version 0.4.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
 
 -----------------
 Lets get started
@@ -136,6 +136,8 @@ The retrieved raw counts could be plotted:
     $ obspyDMT --plot_epi 'DMT-Tour-Data'
 
 .. image:: figures/tourepiraw.png
+   :scale: 60%
+   :align: center
 
 for plotting the corrected waveforms:
 
@@ -144,6 +146,8 @@ for plotting the corrected waveforms:
     $ obspyDMT --plot_epi 'DMT-Tour-Data' --plot_type corrected
 
 .. image:: figures/tourepicorrected.png
+   :scale: 60%
+   :align: center
 
 obspyDMT plots the ray coverage (ray path between each event-station pair) by:
 
@@ -152,6 +156,8 @@ obspyDMT plots the ray coverage (ray path between each event-station pair) by:
     $ obspyDMT --plot_ray 'DMT-Tour-Data'
    
 .. image:: figures/tourray.png
+   :scale: 75%
+   :align: center
     
 ------------
 Option types
@@ -510,6 +516,8 @@ All the examples showed in this section are based on the folder created by the f
     $ obspyDMT --plot_se './obspyDMT-data'
 
 .. image:: figures/plotse.png
+   :scale: 75%
+   :align: center
 
 the default format is *png*, but assume that we want *pdf* for our figures, then:
 
@@ -524,6 +532,18 @@ the default format is *png*, but assume that we want *pdf* for our figures, then
     $ obspyDMT --plot_ray './obspyDMT-data' --plot_format 'pdf' --plot_save '$HOME/Desktop'
 
 .. image:: figures/plotray.png
+   :scale: 75%
+   :align: center
+
+**Example 3:** obspyDMT supports GMT plots as well. For this reason, GMT5_ should be installed on your machine. In this example, we want to plot the ray path for event-station pairs (similat to *Example 2*) by using GMT5_:
+
+::
+
+    $ obspyDMT --plot_ray_gmt './obspyDMT-data'
+
+.. image:: figures/plotraygmt.png
+   :scale: 50%
+   :align: center
 
 ----------
 Seismicity
@@ -540,6 +560,8 @@ Geographical and historical distribution of earthquake activities (seismicity) c
 *--datapath* is the address where the event catalog will be created, *--seismicity* enables the seismicity mode and *--event_catalog* changes the searching catalog (*EMSC* by default) to *IRIS*, *--min_mag*, *--min_date*, *--max_date* and *--event_rect* are event search parameters.
 
 .. image:: figures/seismicity.png
+   :scale: 50%
+   :align: center
 
 ----------------
 Folder structure
@@ -554,6 +576,8 @@ obspyDMT organizes the retrieved and processed data in a homogeneous way. Basica
 obspyDMT will create the folder (*/path/to/my/desired/address*) then start to create folders and files during retrieving and processing as it is shown in the following figure: 
 
 .. image:: figures/Folderstruct.png
+   :scale: 80%
+   :align: center
 
 -----------------
 Available options
@@ -917,3 +941,4 @@ Please refer to `Option types`_ section for more info about type 1 and type 2
 .. _PyPI: http://pypi.python.org/pypi/obspyDMT
 .. _GitHub: https://github.com/kasra-hosseini/obspyDMT
 .. _pprocess: https://pypi.python.org/pypi/pprocess
+.. _GMT5: http://gmt.soest.hawaii.edu/
