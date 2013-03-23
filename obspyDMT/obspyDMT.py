@@ -786,7 +786,7 @@ def read_input_command(parser, **kwargs):
     if options.version: 
         print '\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *' 
-        print '\t\t' + '*' + '\t\t' + '0.3.3' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.4.0' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -1361,8 +1361,10 @@ def get_Events(input, request):
         os.makedirs(eventpath)
     events = events_info(request)
     os.makedirs(os.path.join(eventpath, 'EVENTS-INFO'))
-    # logging the inputs
-    input_logger(argus = sys.argv, address = os.path.join(eventpath, 'EVENTS-INFO', 'logger.txt'))
+    # logging the command line
+    input_logger(argus = sys.argv, 
+                 address = os.path.join(eventpath, 'EVENTS-INFO', 'logger.txt'),
+                 inputs = input)
     len_events = len(events)
     for i in range(0, len_events):
         print "-------------------------------------------------"
@@ -1538,13 +1540,20 @@ def events_info(request):
 
 ###################### input_logger ###################################
 
-def input_logger(argus, address):
+def input_logger(argus, address, inputs):
     """
     log the entered command line!
     """
-    st_argus = 'Command line:\n' 
+    st_argus = 'Command line:\n-------------\n' 
     for item in argus:
         st_argus += item + ' '
+    st_argus += '\n\ninputs:\n-------\n'
+    items = []
+    for item in inputs:
+        items.append(item)
+    items.sort()
+    for item in items:
+        st_argus += str(item) + ': ' + str(inputs[item]) + '\n'
     logger_open = open(address, 'w')
     logger_open.write(st_argus)
     logger_open.close()
