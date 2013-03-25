@@ -1694,7 +1694,7 @@ def IRIS_available(input, event, target_path, event_number):
                             maxlon=input['Mlon_rbb'], \
                             filename = os.path.join(target_path,\
                                         'info', 'bulkdata.txt'), 
-                            output='bulk')
+                            output='bulkdataselect')
     except Exception, e:
         Exception_file = open(os.path.join(target_path, \
             'info', 'exception'), 'a+')
@@ -1751,8 +1751,8 @@ def IRIS_waveform(input, Sta_req, i, type):
             
             print '\nbulkdataselect request is sent for event ' + \
                                     str(i+1) + '/' + str(len_events)
-            parallel_results = pprocess.Map(limit=2, reuse=1)
-            parallel_job = parallel_results.manage(pprocess.MakeReusable(bulk_download_core))
+            parallel_results = pprocess.Map(limit=2)
+            parallel_job = parallel_results.manage(pprocess.MakeParallel(bulk_download_core))
             for bulk_num in range(0, bulk_num_files):
                 parallel_job(os.path.join(add_event[i], 'info', \
                         "bulk_split_%d.txt"%(bulk_num)), add_event[i])
