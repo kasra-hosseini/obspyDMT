@@ -363,6 +363,14 @@ def command_parse():
     helpmsg = "Number of processors to be used in --req_parallel. [Default: 4]"
     parser.add_option("--req_np", action="store",
                         dest="req_np", help=helpmsg)
+   
+    helpmsg = "Use a station list instead of checking the availability."
+    parser.add_option("--list_stas", action="store",
+                      dest="list_stas", help=helpmsg)
+    
+    helpmsg = "Retrieve synthetic waveforms of SPECFEM3D."
+    parser.add_option("--specfem3D", action="store_true",
+                      dest="specfem3D", help=helpmsg)
     
     helpmsg = "using the IRIS bulkdataselect Web service. Since this " + \
                 "method returns multiple channels of time series data " + \
@@ -732,6 +740,7 @@ def read_input_command(parser, **kwargs):
                 'get_events': 'Y',
                 'interval': 3600*24,
                 'req_np': 4,
+                'list_stas': False,
                 'waveform': 'Y', 'response': 'Y',
                 'IRIS': 'Y', 'ArcLink': 'Y',
                 'SAC': 'Y',
@@ -1006,8 +1015,11 @@ def read_input_command(parser, **kwargs):
     if options.req_parallel: options.req_parallel = 'Y'
     input['req_parallel'] = options.req_parallel
     input['req_np'] = int(options.req_np)
+    input['list_stas'] = options.list_stas
     if options.iris_bulk: options.iris_bulk = 'Y'
     input['iris_bulk'] = options.iris_bulk
+    if options.specfem3D: options.specfem3D = 'Y'
+    input['specfem3D'] = options.specfem3D
     input['waveform'] = options.waveform
     input['response'] = options.response
     if options.paz: options.paz = 'Y'
@@ -1641,7 +1653,10 @@ def IRIS_network(input):
     for i in range(0, len_events):
         t_iris_1 = datetime.now()
         target_path = os.path.join(eventpath, events[i]['event_id'])
-        Stas_iris = IRIS_available(input, events[i], target_path, event_number = i)
+        if not input['list_stas']:
+            Stas_iris = IRIS_available(input, events[i], target_path, event_number = i)
+        else:
+            Stas_iris = read_list_stas(input['list_stas'], input['specfem3D'])
         if input['iris_bulk'] != 'Y':
             print '\nIRIS-Availability for event: ' + str(i+1) + str('/') + \
                                     str(len_events) + '  ---> ' + 'DONE'
@@ -1705,7 +1720,43 @@ def IRIS_available(input, event, target_path, event_number):
     if len(Sta_iris) == 0:
         Sta_iris.append([])
     return Sta_iris
-    
+
+###################### read_list_stas ##################################
+
+def read_list_stas(add_list, specfem3D):
+    """
+    read a list of stations.
+    """
+    if specfem3D == 'Y':
+        list_stas_fio = open(add_list)
+        list_stas = list_stas_fio.readlines()
+        for sta in range(len(list_stas)):
+            if not list_stas[sta].startswith('\n'):
+                list_stas[sta] = list_stas[sta].split()
+        final_list = []
+        for sta in range(len(list_stas)):
+            for chan in ['MXE', 'MXN', 'MXZ']:
+                final_list.append(['SY', list_stas[sta][0], 'S3', chan, 
+                                    list_stas[sta][2], list_stas[sta][3], 
+                                    list_stas[sta][4]])
+    else:
+        list_stas_fio = open(add_list)
+        list_stas = list_stas_fio.readlines()
+        for sta in range(len(list_stas)):
+            if not list_stas[sta].startswith('\n'):
+                list_stas[sta] = list_stas[sta].split()
+        final_list = []
+        for sta in range(len(list_stas)):
+            for chan in ['BHE', 'BHN', 'BHZ']:
+                final_list.append([list_stas[sta][1], list_stas[sta][0], 
+                                    '', chan, list_stas[sta][2], 
+                                    list_stas[sta][3], 
+                                    list_stas[sta][4]])
+
+        #print 'Not supported!!'
+        #sys.exit()
+    return final_list
+
 ###################### IRIS_waveform ###############################
 
 def IRIS_waveform(input, Sta_req, i, type):
