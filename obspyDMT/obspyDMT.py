@@ -1480,7 +1480,8 @@ def events_info(request):
                         magtype=input['mag_type'])
                 events = []
                 for i in range(0, len(events_QML)):
-                    event_time = events_QML.events[i].origins[0].time
+                    event_time = events_QML.events[i].preferred_origin().time or \
+										events_QML.events[i].origins[0].time
                     if event_time.month < 10:
                         event_time_month = '0' + str(event_time.month)
                     else:
@@ -1491,17 +1492,24 @@ def events_info(request):
                         event_time_day = str(event_time.day)
                     events.append({\
                         'author': \
-                            events_QML.events[i].magnitudes[0].creation_info.author, \
+                            events_QML.events[i].preferred_magnitude().creation_info.author or \
+								events_QML.events[i].magnitudes[0].creation_info.author, \
                         'event_id': str(event_time.year) + event_time_month + \
                                      event_time_day + '_' + str(i), \
-                        'origin_id': 'NAN', \
-                        'longitude': events_QML.events[i].origins[0].longitude, \
-                        'latitude': events_QML.events[i].origins[0].latitude, \
+                        'origin_id': events_QML.events[i].preferred_origin_id or \
+										events_QML.events[i].origins[0].resource_id.resource_id, \
+                        'longitude': events_QML.events[i].preferred_origin().longitude or \
+										events_QML.events[i].origins[0].longitude, \
+                        'latitude': events_QML.events[i].preferred_origin().latitude or \
+										events_QML.events[i].origins[0].latitude, \
                         'datetime': event_time, \
-                        'depth': -events_QML.events[i].origins[0].depth, \
-                        'magnitude': events_QML.events[i].magnitudes[0].mag, \
+                        'depth': -events_QML.events[i].preferred_origin().depth or \
+										-events_QML.events[i].origins[0].depth, \
+                        'magnitude': events_QML.events[i].preferred_magnitude().mag or \
+										events_QML.events[i].magnitudes[0].mag, \
                         'magnitude_type': \
-                            events_QML.events[i].magnitudes[0].magnitude_type.lower(), \
+                            events_QML.events[i].preferred_magnitude().magnitude_type.lower() or \
+										events_QML.events[i].magnitudes[0].magnitude_type.lower(), \
                         'flynn_region': 'NAN'})
             except Exception, e:
                 print 30*'-'
