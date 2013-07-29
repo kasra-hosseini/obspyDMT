@@ -2787,7 +2787,7 @@ def obspy_fullresp(trace, resp_file, Address, unit = 'DIS', \
         if input['mseed'] == 'N':
             trace.write(os.path.join(Address, unit.lower() + '.' +
                                         trace_identity), format = 'SAC')
-       else: 
+        else: 
             trace.write(os.path.join(Address, unit.lower() + '.' +
                                         trace_identity), format = 'MSEED')
         
