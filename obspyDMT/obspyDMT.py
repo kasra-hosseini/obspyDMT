@@ -3208,8 +3208,12 @@ def merge_stream(ls_address, ls_sta, network_name):
                 trace_identity = trace.stats['network'] + '.' + \
                         trace.stats['station'] + '.' + \
                         trace.stats['location'] + '.' + trace.stats['channel']
-                st.write(os.path.join(address, 'MERGED' + '-' + network_name, \
+                if input['SAC'] == 'Y':
+                    st.write(os.path.join(address, 'MERGED' + '-' + network_name,
                                         trace_identity), format = 'SAC')     
+                else:
+                    st.write(os.path.join(address, 'MERGED' + '-' + network_name,
+                                        trace_identity), format = 'MSEED') 
                 break
 
 ###################### PLOT ############################################
@@ -3309,7 +3313,6 @@ def plot_se_ray(input, ls_saved_stas):
 
     plt.clf()
     
-    #import ipdb; ipdb.set_trace()
     m = Basemap(projection='aeqd', lon_0=-100, lat_0=40, \
                                                 resolution='c')
     m.drawcoastlines()
@@ -3398,7 +3401,6 @@ def plot_ray_gmt(input, ls_saved_stas):
     Plot: stations, events and ray paths for the specified directory
     using GMT
     """
-    #import ipdb; ipdb.set_trace()
     evsta_info_open = open(os.path.join(input['plot_save'], 'evsta_info.txt'), 'w')
     evsta_plot_open = open(os.path.join(input['plot_save'], 'evsta_plot.txt'), 'w')
     ev_plot_open = open(os.path.join(input['plot_save'], 'ev_plot.txt'), 'w')
