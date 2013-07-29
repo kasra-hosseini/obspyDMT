@@ -1025,7 +1025,11 @@ def read_input_command(parser, **kwargs):
     if options.paz: options.paz = 'Y'
     input['paz'] = options.paz
     input['SAC'] = options.SAC
-    if options.mseed: input['SAC'] = 'N'
+    if options.mseed: 
+        input['SAC'] = 'N'
+        input['mseed'] = 'Y'
+    else:
+        input['mseed'] = 'N'
     input['IRIS'] = options.IRIS
     input['ArcLink'] = options.ArcLink
     if options.NERIES: options.NERIES = 'Y'
@@ -2780,8 +2784,12 @@ def obspy_fullresp(trace, resp_file, Address, unit = 'DIS', \
         trace.data *= 1.e9
         trace_identity = trace.stats['station'] + '.' + \
                 trace.stats['location'] + '.' + trace.stats['channel']
-        trace.write(os.path.join(Address, unit.lower() + '.' + \
+        if input['mseed'] == 'N':
+            trace.write(os.path.join(Address, unit.lower() + '.' +
                                         trace_identity), format = 'SAC')
+       else: 
+            trace.write(os.path.join(Address, unit.lower() + '.' +
+                                        trace_identity), format = 'MSEED')
         
         if unit.lower() == 'dis':
             unit_print = 'displacement'
@@ -2991,8 +2999,12 @@ def obspy_PAZ(trace, resp_file, Address, clients, unit = 'DIS', \
         
         trace_identity = trace.stats['station'] + '.' + \
                 trace.stats['location'] + '.' + trace.stats['channel']
-        trace.write(os.path.join(Address, unit.lower() + '.' + \
+        if input['mseed'] == 'N':
+            trace.write(os.path.join(Address, unit.lower() + '.' +
                                         trace_identity), format = 'SAC')
+        else:
+            trace.write(os.path.join(Address, unit.lower() + '.' +
+                                        trace_identity), format = 'MSEED')
         
         if unit.lower() == 'dis':
             unit_print = 'displacement'
@@ -3208,7 +3220,7 @@ def merge_stream(ls_address, ls_sta, network_name):
                 trace_identity = trace.stats['network'] + '.' + \
                         trace.stats['station'] + '.' + \
                         trace.stats['location'] + '.' + trace.stats['channel']
-                if input['SAC'] == 'Y':
+                if input['mseed'] == 'N':
                     st.write(os.path.join(address, 'MERGED' + '-' + network_name,
                                         trace_identity), format = 'SAC')     
                 else:
