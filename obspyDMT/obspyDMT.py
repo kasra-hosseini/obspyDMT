@@ -2857,6 +2857,12 @@ def SAC_fullresp(trace, resp_file, address, BH_file = 'BH', unit = 'DIS', \
         
         out = p.communicate(s)
         print out[0]
+        if input['mseed'] == 'Y':
+            tr_mseed = read('%s.%s.%s.%s' %(unit.lower(), trace_info[1], 
+                                                trace_info[2], trace_info[3]))
+            tr_mseed.write('%s.%s.%s.%s' %(unit.lower(), trace_info[1],
+                                                trace_info[2], trace_info[3]), 
+                                                format='MSEED')
         os.chdir(pwd)
                             
         if unit.lower() == 'dis':
@@ -3073,6 +3079,12 @@ def SAC_PAZ(trace, paz_file, address, BH_file = 'BH', unit = 'DIS', \
         
         out = p.communicate(s)
         print out[0]
+        if input['mseed'] == 'Y':
+            tr_mseed = read('%s.%s.%s.%s' %(unit.lower(), trace_info[1], 
+                                                trace_info[2], trace_info[3]))
+            tr_mseed.write('%s.%s.%s.%s' %(unit.lower(), trace_info[1],
+                                                trace_info[2], trace_info[3]), 
+                                                format='MSEED')
         os.chdir(pwd)
                             
         if unit.lower() == 'dis':
