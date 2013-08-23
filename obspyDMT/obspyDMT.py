@@ -84,7 +84,7 @@ except Exception, error:
     print error
     print "*************************************\n"
     from obspy.taup.taup import locations2degrees
-    
+from obspy.taup import taup
 import numpy as np
 descrip.append('numpy ver: ' + np.__version__)
 import scipy
@@ -277,6 +277,13 @@ def command_parse():
                                         "[Default: './obspyDMT-data']"
     parser.add_option("--datapath", action="store",
                       dest="datapath", help=helpmsg)
+   
+    helpmsg = "Consider the first phase arrival (P, Pdiff, PKIKP) to " + \
+                "use as the reference time, i.e. " + \
+                "--min_date and --max_date will be calculated from " + \
+                "the first phase arrival."
+    parser.add_option("--cut_time_phase", action="store_true",
+                      dest="cut_time_phase", help=helpmsg)
     
     helpmsg = "start time, syntax: Y-M-D-H-M-S (eg: " + \
                 "'2010-01-01-00-00-00') or just Y-M-D [Default: 10 days ago]"
@@ -982,6 +989,8 @@ def read_input_command(parser, **kwargs):
             sys.exit(2)
     
     input['datapath'] = options.datapath
+    if options.cut_time_phase: input['cut_time_phase'] = True
+    else: input['cut_time_phase'] = False
     input['min_date'] = str(UTCDateTime(options.min_date))
     input['max_date'] = str(UTCDateTime(options.max_date))
     input['event_catalog'] = options.event_catalog.upper()
@@ -1973,6 +1982,12 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
         info_req = '['+str(i+1)+'/'+str(len_events)+'-'+\
                     str(j+1)+'/'+str(len(Sta_req))+'-'+input['cha']+'] ' 
 
+        if input['cut_time_phase']:
+            t_start, t_end = calculate_time_phase(events[i], Sta_req[j])
+        else:
+            t_start = events[i]['t1']
+            t_end = events[i]['t2']
+        
         if input['waveform'] == 'Y':                    
             dummy = 'Waveform'
             client_iris.saveWaveform(os.path.join(add_event[i], 'BH_RAW', \
@@ -1980,7 +1995,7 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
                 Sta_req[j][2] + '.' + Sta_req[j][3]), \
                 Sta_req[j][0], Sta_req[j][1], \
                 Sta_req[j][2], Sta_req[j][3], \
-                events[i]['t1'], events[i]['t2'])
+                t_start, t_end)
             print str(info_req) + "Saving Waveform for: " + Sta_req[j][0] + \
                 '.' + Sta_req[j][1] + '.' + \
                 Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"  
@@ -1993,7 +2008,7 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
                 Sta_req[j][2] + '.' + Sta_req[j][3]), \
                 Sta_req[j][0], Sta_req[j][1], \
                 Sta_req[j][2], Sta_req[j][3], \
-                events[i]['t1'], events[i]['t2'])
+                t_start, t_end)
             print str(info_req) + "Saving Response for: " + Sta_req[j][0] + \
                 '.' + Sta_req[j][1] + '.' + \
                 Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"   
@@ -2002,7 +2017,7 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
             dummy = 'PAZ'
             client_iris.sacpz(Sta_req[j][0], Sta_req[j][1], \
                 Sta_req[j][2], Sta_req[j][3], \
-                events[i]['t1'], events[i]['t2'], \
+                t_start, t_end, \
                 filename = os.path.join(add_event[i], 'Resp', \
                 'PAZ' + '.' + Sta_req[j][0] + '.' + \
                 Sta_req[j][1] + '.' + \
@@ -2085,6 +2100,38 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
         Exception_file.writelines(ee)
         Exception_file.close()
         print e
+
+###################### calculate_time_phase ##################################
+
+def calculate_time_phase(event, sta):
+    
+    """
+    calculate arrival time of the requested phase to use in 
+    retrieving waveforms.
+    """
+    ev_lat = event['latitude']
+    ev_lon = event['longitude']
+    ev_dp = abs(float(event['depth']))
+    sta_lat = float(sta[4])
+    sta_lon = float(sta[5])
+    delta = locations2degrees(ev_lat, ev_lon, sta_lat, sta_lon)
+    tt = taup.getTravelTimes(delta, ev_dp)
+    phase_list = ['P', 'Pdiff', 'PKIKP']
+    flag = False
+    for ph in phase_list:
+        for i in range(len(tt)):
+            if tt[i]['phase_name'] == ph: 
+                flag = True
+                time = tt[i]['time']
+                break
+            else: 
+                continue
+        if flag:
+            print '%s exists in this station-event set-up!' %(ph)
+            break
+    t_start = event['t1'] + time
+    t_end = event['t2'] + time
+    return t_start, t_end 
 
 ###################### Arclink_network #################################
 
@@ -2276,6 +2323,13 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
         t11 = datetime.now()
         info_req = '['+str(i+1)+'/'+str(len_events)+'-'+\
                     str(j+1)+'/'+str(len(Sta_req))+'-'+input['cha']+'] ' 
+        
+        if input['cut_time_phase']:
+            t_start, t_end = calculate_time_phase(events[i], Sta_req[j])
+        else:
+            t_start = events[i]['t1']
+            t_end = events[i]['t2']
+        
         if input['waveform'] == 'Y':
             dummy = 'Waveform'
             try:
@@ -2285,7 +2339,7 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
                     Sta_req[j][2] + '.' + Sta_req[j][3]), \
                     Sta_req[j][0], Sta_req[j][1], \
                     Sta_req[j][2], Sta_req[j][3], \
-                    events[i]['t1'], events[i]['t2'])
+                    t_start, t_end)
             except Exception, e: 
                 print e
                 if input['NERIES'] == 'Y':
@@ -2296,7 +2350,7 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
                         Sta_req[j][2] + '.' + Sta_req[j][3]), \
                         Sta_req[j][0], Sta_req[j][1], \
                         Sta_req[j][2], Sta_req[j][3], \
-                        events[i]['t1'], events[i]['t2'])
+                        t_start, t_end)
             check_file = open(os.path.join(add_event[i], 'BH_RAW', \
                 Sta_req[j][0] + '.' + Sta_req[j][1] + '.' + \
                 Sta_req[j][2] + '.' + Sta_req[j][3]))
@@ -2313,7 +2367,7 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
                 Sta_req[j][2] + '.' + Sta_req[j][3]), \
                 Sta_req[j][0], Sta_req[j][1], \
                 Sta_req[j][2], Sta_req[j][3], \
-                events[i]['t1'], events[i]['t2'])
+                t_start, t_end)
             sp = Parser(os.path.join(add_event[i], \
                 'Resp', 'RESP' + '.' + Sta_req[j][0] + \
                 '.' + Sta_req[j][1] + '.' + \
@@ -2328,7 +2382,7 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
             paz_arc = client_arclink.getPAZ(\
                 Sta_req[j][0], Sta_req[j][1], \
                 Sta_req[j][2], Sta_req[j][3], \
-                time = events[i]['t1'])
+                time = t_start)
             paz_file = open(\
                 os.path.join(add_event[i], 'Resp', 'PAZ' + '.' + \
                 Sta_req[j][0] + '.' + Sta_req[j][1] + '.' + \
