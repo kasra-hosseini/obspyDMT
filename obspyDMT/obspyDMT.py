@@ -363,6 +363,18 @@ def command_parse():
     parser.add_option("--interval", action="store",
                       dest="interval", help=helpmsg)
     
+    helpmsg = "Preset defined for EACH continuous request, i.e. " + \
+                "time before EACH interval (refer to '--interval' option) " + \
+                "in continuous request."
+    parser.add_option("--preset_cont", action="store",
+                      dest="preset_cont", help=helpmsg)
+
+    helpmsg = "Offset defined for EACH continuous request, i.e. " + \
+                "time after EACH interval (refer to '--interval' option) " + \
+                "in continuous request."
+    parser.add_option("--offset_cont", action="store",
+                      dest="offset_cont", help=helpmsg)
+
     helpmsg = "Parallel waveform/response/paz request"
     parser.add_option("--req_parallel", action="store_true",
                       dest="req_parallel", help=helpmsg)
@@ -746,6 +758,8 @@ def read_input_command(parser, **kwargs):
                 'min_depth': +10.0, 'max_depth': -6000.0,
                 'get_events': 'Y',
                 'interval': 3600*24,
+                'preset_cont': 0,
+                'offset_cont': 0,
                 'req_np': 4,
                 'list_stas': False,
                 'waveform': 'Y', 'response': 'Y',
@@ -1021,6 +1035,8 @@ def read_input_command(parser, **kwargs):
     else:
         input['get_continuous'] = 'N'
     input['interval'] = float(options.interval)
+    input['preset_cont'] = float(options.preset_cont)
+    input['offset_cont'] = float(options.offset_cont)
     if options.req_parallel: options.req_parallel = 'Y'
     input['req_parallel'] = options.req_parallel
     input['req_np'] = int(options.req_np)
@@ -1546,15 +1562,15 @@ def events_info(request):
                 events.append({'author': 'NAN', 'event_id': 'continuous' + str(i), \
                             'origin_id': -12345.0, 'longitude': -12345.0, \
                             'datetime': m_date + i*input['interval'], \
-                            't1': m_date + i*input['interval'],\
-                            't2': m_date + (i+1)*input['interval'] + 60.0,\
+                            't1': m_date + i*input['interval'] + input['preset_cont'],\
+                            't2': m_date + (i+1)*input['interval'] + input['offset_cont'],\
                             'depth': -12345.0, 'magnitude': -12345.0, \
                             'magnitude_type': 'NAN', 'latitude': -12345.0, \
                             'flynn_region': 'NAN'})
             events.append({'author': 'NAN', 'event_id': 'continuous' + str(i+1), \
                             'origin_id': -12345.0, 'longitude': -12345.0, \
                             'datetime': m_date + (i+1)*input['interval'], \
-                            't1': m_date + (i+1)*input['interval'],\
+                            't1': m_date + (i+1)*input['interval'] + input['preset_cont'],\
                             't2': M_date,\
                             'depth': -12345.0, 'magnitude': -12345.0, \
                             'magnitude_type': 'NAN', 'latitude': -12345.0, \
