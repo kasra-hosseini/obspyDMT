@@ -1,6 +1,6 @@
-====================================================================================
-obspyDMT: Parallel Retrieving, Processing and Management of Massive Seismic Datasets
-====================================================================================
+==========================================================================================
+obspyDMT: Parallel Retrieving, Processing and Management of Massive Seismological Datasets
+==========================================================================================
 
 
 Welcome!
@@ -377,7 +377,7 @@ Geographical restriction
 
 If you are interested in the events happened in a specific geographical coordinate and/or retrieving the data from the stations in a specific circular or rectangular bounding area, you are in the right section! Here, we have two examples:
 
-**Example 1:** to extract the info of all the events occured in 2010 in a rectangular area (*lon1=44.38E* *lon2=63.41E* *lat1=24.21N* *lat2=40.01N*) with magnitude more than 3.0 and maximum depth of 80 km: (395 events should be found!)
+**Example 1:** to extract the info of all the events occured in 2010 in a rectangular area (*lon1=44.38E* *lon2=63.41E* *lat1=24.21N* *lat2=40.01N*) with magnitude more than 3.0 and maximum depth of 80 km:
 
 ::
 
