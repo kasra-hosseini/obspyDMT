@@ -1784,11 +1784,11 @@ def read_list_stas(add_list, specfem3D):
                 list_stas[sta] = list_stas[sta].split()
         final_list = []
         for sta in range(len(list_stas)):
-            for chan in ['BHE', 'BHN', 'BHZ']:
-                final_list.append([list_stas[sta][1], list_stas[sta][0], 
-                                    '', chan, list_stas[sta][2], 
-                                    list_stas[sta][3], 
-                                    list_stas[sta][4]])
+            #for chan in ['BH1', 'BH2', 'BHE', 'BHN', 'BHZ']:
+            final_list.append([list_stas[sta][1], list_stas[sta][0], 
+                                list_stas[sta][2], list_stas[sta][3], 
+                                list_stas[sta][4], list_stas[sta][5],
+                                list_stas[sta][6]])
 
         #print 'Not supported!!'
         #sys.exit()
@@ -2470,7 +2470,7 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
                 str(size/(1024.**2)) + ',-,\n'
             time_file.writelines(ti)
             time_file.close()
-        
+
         if len(Sta_req[j]) != 0: 
             print str(info_req) + dummy + '---' + Sta_req[j][0] + '.' + Sta_req[j][1] + \
                             '.' +Sta_req[j][2] + '.' + Sta_req[j][3]
