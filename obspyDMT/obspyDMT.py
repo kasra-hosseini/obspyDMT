@@ -418,11 +418,23 @@ def command_parse():
     helpmsg = "send request (waveform/response) to ArcLink. [Default: 'Y']"
     parser.add_option("--arc", action="store",
                       dest="ArcLink", help=helpmsg)
-    
+  
     helpmsg = "send request (waveform) to NERIES if ArcLink fails. [Default: 'N']"
     parser.add_option("--neries", action="store_true",
                       dest="NERIES", help=helpmsg)
-                 
+
+    helpmsg = "Timeout for sending request (availability) to ArcLink. [Default: 40]"
+    parser.add_option("--arc_avai_timeout", action="store",
+                      dest="arc_avai_timeout", help=helpmsg)
+
+    helpmsg = "Timeout for sending request (waveform/response) to ArcLink. [Default: 2]"
+    parser.add_option("--arc_wave_timeout", action="store",
+                      dest="arc_wave_timeout", help=helpmsg)
+
+    helpmsg = "Timeout for sending request (waveform/response) to NERIES. [Default: 2]"
+    parser.add_option("--neries_timeout", action="store",
+                      dest="neries_timeout", help=helpmsg)
+
     helpmsg = "SAC format for saving the waveforms. Station location " + \
                 "(stla and stlo), station elevation (stel), " + \
                 "station depth (stdp), event location (evla and evlo), " + \
@@ -764,6 +776,9 @@ def read_input_command(parser, **kwargs):
                 'list_stas': False,
                 'waveform': 'Y', 'response': 'Y',
                 'IRIS': 'Y', 'ArcLink': 'Y',
+                'arc_avai_timeout': 40,
+                'arc_wave_timeout': 2,
+                'neries_timeout': 2,
                 'SAC': 'Y',
                 'preset': 0.0, 'offset': 1800.0,
                 'net': '*', 'sta': '*', 'loc': '*', 'cha': '*',
@@ -816,7 +831,7 @@ def read_input_command(parser, **kwargs):
     if options.version: 
         print '\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *' 
-        print '\t\t' + '*' + '\t\t' + '0.4.0' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.4.1' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -1057,6 +1072,11 @@ def read_input_command(parser, **kwargs):
         input['mseed'] = 'N'
     input['IRIS'] = options.IRIS
     input['ArcLink'] = options.ArcLink
+    
+    input['arc_avai_timeout'] = float(options.arc_avai_timeout)
+    input['arc_wave_timeout'] = float(options.arc_wave_timeout)
+    input['neries_timeout'] = float(options.neries_timeout)
+    
     if options.NERIES: options.NERIES = 'Y'
     input['NERIES'] = options.NERIES
     if options.time_iris: options.time_iris = 'Y'
@@ -1411,6 +1431,7 @@ def get_Events(input, request):
         print "-------------------------------------------------"
         print "Event No:" + " " + str(i+1)
         print "Date Time:" + " " + str(events[i]['datetime'])
+        print "Catalog:" + " " + str(events[i]['author'])
         print "Depth:" + " " + str(events[i]['depth'])
         print "Event-ID:" + " " + events[i]['event_id']
         try:
@@ -1442,6 +1463,7 @@ def get_Events(input, request):
     for j in range(0, len_events):
         Event_cat = open(os.path.join(eventpath, 'EVENTS-INFO', 'EVENT-CATALOG'), 'a')
         Event_cat.writelines("Event No: " + str(j) + '\n')
+        Event_cat.writelines("Catalog: " + events[j]['author'] + '\n')
         Event_cat.writelines("Event-ID: " + str(events[j]['event_id']) + '\n')
         Event_cat.writelines("Date Time: " + str(events[j]['datetime']) + '\n')
         Event_cat.writelines("Magnitude: " + str(events[j]['magnitude']) + '\n')
@@ -2172,7 +2194,8 @@ def ARC_network(input):
         print 'DONE'
     for i in range(0, len_events):
         t_arc_1 = datetime.now()
-        Stas_arc = ARC_available(input, events[i], eventpath, event_number = i)
+        target_path = os.path.join(eventpath, events[i]['event_id'])
+        Stas_arc = ARC_available(input, events[i], target_path, event_number = i)
         print '\nArcLink-Availability for event: ' + str(i+1) + str('/') + \
                                     str(len_events) + '  --->' + 'DONE'
         t_arc_2 = datetime.now()
@@ -2192,7 +2215,7 @@ def ARC_available(input, event, target_path, event_number):
     Check the availablity of the ArcLink stations
     """
     
-    client_arclink = Client_arclink()
+    client_arclink = Client_arclink(timeout=input['arc_avai_timeout'])
     Sta_arc = []
     try:
         inventories = client_arclink.getInventory(network=input['net'], \
@@ -2246,8 +2269,8 @@ def ARC_waveform(input, Sta_req, i, type):
     """
     t_wave_1 = datetime.now()
     global events
-    client_arclink = Client_arclink()
-    client_neries = Client_neries(user='test@obspy.org')
+    client_arclink = Client_arclink(timeout=input['arc_wave_timeout'])
+    client_neries = Client_neries(user='test@obspy.org', timeout=input['neries_timeout'])
     add_event = []
     if type == 'save':
         Period = input['min_date'].split('T')[0] + '_' + \
@@ -2335,7 +2358,8 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
  
     try:
         dummy = 'Initializing'
-        client_arclink = Client_arclink()
+        client_arclink = Client_arclink(timeout=input['arc_wave_timeout'])
+        client_neries = Client_neries(user='test@obspy.org', timeout=input['neries_timeout'])
         t11 = datetime.now()
         info_req = '['+str(i+1)+'/'+str(len_events)+'-'+\
                     str(j+1)+'/'+str(len(Sta_req))+'-'+input['cha']+'] ' 
@@ -2532,7 +2556,7 @@ def ARC_update(input, address):
     """
     
     t_update_1 = datetime.now()
-    client_arclink = Client_arclink()
+    client_arclink = Client_arclink(timeout=input['arc_avai_timeout'])
     events, address_events = quake_info(address, 'info')
     len_events = len(events)
     for i in range(0, len_events):
