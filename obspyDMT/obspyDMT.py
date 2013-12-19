@@ -831,7 +831,7 @@ def read_input_command(parser, **kwargs):
     if options.version: 
         print '\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *' 
-        print '\t\t' + '*' + '\t\t' + '0.4.1' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.4.2' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -2776,53 +2776,55 @@ def IC_core(ls_saved_stas, clients, address, BH_file, inform):
                 BP_filter = input['pre_filt'], inform = inform)
             """
             
-            if clients == 'iris':
-                paz_file = os.path.join(address, 'Resp', 'PAZ' + '.' + \
-                                ls_saved_stas.split('/')[-1] + '.' + 'full')
+            #if clients == 'iris':
+            #    paz_file = os.path.join(address, 'Resp', 'PAZ' + '.' + \
+            #                    ls_saved_stas.split('/')[-1] + '.' + 'full')
  
-                SAC_PAZ(trace = ls_saved_stas, paz_file = paz_file, \
-                    address = address, BH_file = BH_file, unit = input['corr_unit'], \
-                    BP_filter = input['pre_filt'], inform = inform)
+            #    SAC_PAZ(trace = ls_saved_stas, paz_file = paz_file, \
+            #        address = address, BH_file = BH_file, unit = input['corr_unit'], \
+            #        BP_filter = input['pre_filt'], inform = inform)
             
-            if clients == 'arc':
-                rt_c = RTR(stream = ls_saved_stas, degree = 2)
-                tr = read(ls_saved_stas)[0]
-                tr.data = rt_c
-                
-                # Tapering
-                taper = invsim.cosTaper(len(tr.data))
-                tr.data *= taper
-                
-                resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
-                                            ls_saved_stas.split('/')[-1])
+            #if clients == 'arc':
+
+            print "instrument correction using PAZ"
+            rt_c = RTR(stream = ls_saved_stas, degree = 2)
+            tr = read(ls_saved_stas)[0]
+            tr.data = rt_c
             
-                obspy_PAZ(trace = tr, resp_file = resp_file, \
-                    Address = os.path.join(address, BH_file), \
-                    clients = clients, unit = input['corr_unit'], \
-                    BP_filter = input['pre_filt'], inform = inform)
+            # Tapering
+            taper = invsim.cosTaper(len(tr.data))
+            tr.data *= taper
             
-                """
-                rt_c = RTR(stream = ls_saved_stas, degree = 2)
-                tr = read(ls_saved_stas)[0]
-                tr.data = rt_c
-                
-                # Tapering
-                taper = invsim.cosTaper(len(tr.data))
-                tr.data *= taper
-                
-                paz_file_open = open(os.path.join(address, 'Resp', 'PAZ' + '.' + \
-                                ls_saved_stas.split('/')[-1] + '.' + 'paz'))
-                paz_file = pickle.load(paz_file_open)
-                
-                paz_dic = {\
-                'poles': paz_file['poles'], \
-                'zeros': paz_file['zeros'], \
-                'gain': paz_file['gain']}
-                
-                obspy_PAZ(trace = tr, paz_dic = paz_dic, \
-                    Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
-                    BP_filter = input['pre_filt'], inform = inform)
-                """
+            resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
+                                        ls_saved_stas.split('/')[-1])
+        
+            obspy_PAZ(trace = tr, resp_file = resp_file, \
+                Address = os.path.join(address, BH_file), \
+                clients = clients, unit = input['corr_unit'], \
+                BP_filter = input['pre_filt'], inform = inform)
+        
+            """
+            rt_c = RTR(stream = ls_saved_stas, degree = 2)
+            tr = read(ls_saved_stas)[0]
+            tr.data = rt_c
+            
+            # Tapering
+            taper = invsim.cosTaper(len(tr.data))
+            tr.data *= taper
+            
+            paz_file_open = open(os.path.join(address, 'Resp', 'PAZ' + '.' + \
+                            ls_saved_stas.split('/')[-1] + '.' + 'paz'))
+            paz_file = pickle.load(paz_file_open)
+            
+            paz_dic = {\
+            'poles': paz_file['poles'], \
+            'zeros': paz_file['zeros'], \
+            'gain': paz_file['gain']}
+            
+            obspy_PAZ(trace = tr, paz_dic = paz_dic, \
+                Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
+                BP_filter = input['pre_filt'], inform = inform)
+            """
             
     except Exception, e:
         print e
