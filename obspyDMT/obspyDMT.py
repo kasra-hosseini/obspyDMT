@@ -73,6 +73,7 @@ from obspy.xseed import Parser
 
 # Required Clients from Obspy will be imported here.
 from obspy.neries import Client as Client_neries
+from obspy.fdsn import Client as Client_fdsn
 from obspy.iris import Client as Client_iris
 from obspy.arclink import Client as Client_arclink
     
@@ -221,6 +222,9 @@ def obspyDMT(**kwargs):
                 PLOT(input, clients = 'iris')
             if input['plot_arc'] == 'Y':
                 PLOT(input, clients = 'arc')
+    
+    if input['plot_all_events']:
+        raw_input('Press enter to continue....')
     
     # ------------------Email-------------------------------------------    
     if input['email'] != 'N':
@@ -1208,6 +1212,9 @@ def read_input_command(parser, **kwargs):
         input['arc_ic_auto'] = 'N'
         input['iris_merge_auto'] = 'N'
         input['arc_merge_auto'] = 'N'
+        input['plot_all_events'] = True
+    else:
+        input['plot_all_events'] = False
     
     if options.seismicity:
         input['IRIS'] = 'N'
@@ -1513,22 +1520,29 @@ def events_info(request):
                 max_results=input['max_result'])
         elif input['event_catalog'] == 'IRIS':
             try:
-                if input['evlat']==None:
-                    evlat=0.0;evlon=0.0;evradmax=180.0;evradmin=0.0
-                else:
-                    evlat=input['evlat'];evlon=input['evlon']
-                    evradmax=input['evradmax'];evradmin=input['evradmin']
+                
+                evlatmin=input['evlatmin'];evlatmax=input['evlatmax']
+                evlonmin=input['evlonmin'];evlonmax=input['evlonmax']
+                evlat=input['evlat'];evlon=input['evlon']
+                evradmax=input['evradmax'];evradmin=input['evradmin']
+                
                 print 'IRIS'
-                client_iris = Client_iris()
-                events_QML = client_iris.getEvents(\
-                        minlat=evlatmin,maxlat=evlatmax,\
-                        minlon=evlonmin,maxlon=evlonmax,\
-                        lat=evlat,lon=evlon,\
+                client_fdsn = Client_fdsn("IRIS")
+                events_QML = client_fdsn.get_events(\
+                        minlatitude=evlatmin,maxlatitude=evlatmax,\
+                        minlongitude=evlonmin,maxlongitude=evlonmax,\
+                        latitude=evlat,longitude=evlon,\
                         maxradius=evradmax,minradius=evradmin,\
                         mindepth=-input['min_depth'],maxdepth=-input['max_depth'],\
                         starttime=input['min_date'],endtime=input['max_date'],\
-                        minmag=input['min_mag'],maxmag=input['max_mag'],\
-                        magtype=input['mag_type'])
+                        minmagnitude=input['min_mag'],\
+                        maxmagnitude=input['max_mag'])
+                        #magnitudetype=input['mag_type'])
+                
+                if input['plot_all_events']: 
+                    plt.ion()
+                    events_QML.plot()
+                
                 events = []
                 for i in range(0, len(events_QML)):
                     event_time = events_QML.events[i].preferred_origin().time or \
