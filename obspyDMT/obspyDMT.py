@@ -2229,7 +2229,8 @@ def ARC_available(input, event, target_path, event_number):
     Check the availablity of the ArcLink stations
     """
     
-    client_arclink = Client_arclink(timeout=input['arc_avai_timeout'])
+    client_arclink = Client_arclink(user='test@obspy.org', 
+                                    timeout=input['arc_avai_timeout'])
     Sta_arc = []
     try:
         inventories = client_arclink.getInventory(network=input['net'], \
@@ -2283,7 +2284,8 @@ def ARC_waveform(input, Sta_req, i, type):
     """
     t_wave_1 = datetime.now()
     global events
-    client_arclink = Client_arclink(timeout=input['arc_wave_timeout'])
+    client_arclink = Client_arclink(user='test@obspy.org', 
+                                    timeout=input['arc_wave_timeout'])
     client_neries = Client_neries(user='test@obspy.org', timeout=input['neries_timeout'])
     add_event = []
     if type == 'save':
@@ -2372,7 +2374,8 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
  
     try:
         dummy = 'Initializing'
-        client_arclink = Client_arclink(timeout=input['arc_wave_timeout'])
+        client_arclink = Client_arclink(user='test@obspy.org', 
+                                timeout=input['arc_wave_timeout'])
         client_neries = Client_neries(user='test@obspy.org', timeout=input['neries_timeout'])
         t11 = datetime.now()
         info_req = '['+str(i+1)+'/'+str(len_events)+'-'+\
@@ -2570,7 +2573,8 @@ def ARC_update(input, address):
     """
     
     t_update_1 = datetime.now()
-    client_arclink = Client_arclink(timeout=input['arc_avai_timeout'])
+    client_arclink = Client_arclink(user='test@obspy.org', 
+                                timeout=input['arc_avai_timeout'])
     events, address_events = quake_info(address, 'info')
     len_events = len(events)
     for i in range(0, len_events):
@@ -2884,6 +2888,7 @@ def obspy_fullresp(trace, resp_file, Address, unit = 'DIS', \
     
     try:
         
+        import ipdb; ipdb.set_trace()
         trace.data = seisSim(data = trace.data, \
             samp_rate = trace.stats.sampling_rate,paz_remove=None, \
             paz_simulate = None, remove_sensitivity=True, \
