@@ -139,10 +139,7 @@ def obspyDMT(**kwargs):
     (options, args, parser) = command_parse()
     
     # ------------------Read INPUT file (Parameters)--------------------
-    if options.type == 'file':
-        read_input_file()
-    else:
-        read_input_command(parser, **kwargs)
+    read_input_command(parser, **kwargs)
    
     # ------------------Getting List of Events/Continuous requests------
     if input['get_events'] == 'Y':
@@ -265,13 +262,6 @@ def command_parse():
     helpmsg = "Run a quick tour!"
     parser.add_option("--tour", action="store_true",
                       dest="tour", help=helpmsg)
-    
-    helpmsg = "type of the input ('command' or 'file') to be read by " + \
-                "obspyDMT. Please note that for \"--type 'file'\" an " + \
-                "external file ('INPUT.cfg') should exist in the same " + \
-                "directory as obspyDMT.py [Default: command] "
-    parser.add_option("--type", action="store",
-                      dest="type", help=helpmsg)
     
     helpmsg = "if the datapath is found deleting it before running obspyDMT."
     parser.add_option("--reset", action="store_true",
@@ -1237,165 +1227,11 @@ def read_input_command(parser, **kwargs):
             print '***************************************************'
             input['req_parallel'] = 'N'; input['ic_parallel'] = 'N'
             
-###################### read_input_file #################################
-
-def read_input_file():  
-    
-    """
-    #SHOULD BE CHANGED!
-    Read inputs from INPUT.cfg file.
-    
-    This module will read the INPUT.cfg file which is 
-    located in the same folder as obspyDMT.py
-    
-    Please note that if you choose (nodes = Y) then:
-    * min_datetime
-    * max_datetime
-    * min_magnitude
-    * max_magnitude
-    will be selected based on INPUT-Periods file.
-    """
-    
-    global input
-    
-    config = ConfigParser.RawConfigParser()
-    config.read(os.path.join(os.getcwd(), 'INPUT.cfg'))
-
-    input = {}
-    input['datapath'] = config.get('Address_info', 'datapath')
-    input['inter_address'] = config.get('Address_info', 'interactive_address')
-    input['target_folder'] = config.get('Address_info', 'target_folder')
-    input['save_folder'] = config.get('Address_info', 'save_folder')
-    
-    if not os.path.isabs(input['datapath']):
-        input['datapath'] = os.path.join(os.getcwd(), input['datapath'])
-    
-    if not os.path.isabs(input['inter_address']):
-        input['inter_address'] = os.path.join(os.getcwd(), input['inter_address'])
-    
-    if not os.path.isabs(input['target_folder']):
-        input['target_folder'] = os.path.join(os.getcwd(), input['target_folder'])
-    
-    if not os.path.isabs(input['save_folder']):
-        input['save_folder'] = os.path.join(os.getcwd(), input['save_folder'])
-        
-    
-    input['min_date'] = str(eval(config.get('Event_Request', 'min_datetime')))
-    input['max_date'] = str(eval(config.get('Event_Request', 'max_datetime')))
-    input['min_mag'] = config.getfloat('Event_Request', 'min_magnitude')
-    input['max_mag'] = config.getfloat('Event_Request', 'max_magnitude')
-    input['min_depth'] = config.getfloat('Event_Request', 'min_depth')
-    input['max_depth'] = config.getfloat('Event_Request', 'max_depth')
-    input['evlonmin'] = config.getfloat('Event_Request', 'evlonmin')
-    input['evlonmax'] = config.getfloat('Event_Request', 'evlonmax')
-    input['evlatmin'] = config.getfloat('Event_Request', 'evlatmin')
-    input['evlatmax'] = config.getfloat('Event_Request', 'evlatmax')
-    input['preset'] = config.getfloat('Event_Request', 'preset')
-    input['offset'] = config.getfloat('Event_Request', 'offset')
-    input['max_result'] = config.getint('Event_Request', 'max_results')
-    
-    input['get_events'] = config.get('Request', 'get_events')
-    input['input_period'] = config.get('Parallel', 'input_period')
-    input['IRIS'] = config.get('Request', 'IRIS')
-    input['ArcLink'] = config.get('Request', 'ArcLink')
-    input['time_iris'] = config.get('Request', 'time_iris')
-    input['time_arc'] = config.get('Request', 'time_arc')
-    
-    input['nodes'] = config.get('Parallel', 'nodes')
-
-    input['waveform'] = config.get('Request', 'waveform')
-    input['response'] = config.get('Request', 'response')
-    input['SAC'] = config.get('Request', 'SAC')
-    
-    input['net'] = config.get('specifications_request', 'network')
-    input['sta'] = config.get('specifications_request', 'station')
-    
-    if config.get('specifications_request', 'location') == "''":
-        input['loc'] = ''
-    elif config.get('specifications_request', 'location') == '""':
-        input['loc'] = ''
-    else:
-        input['loc'] = config.get('specifications_request', 'location')
-    
-    input['cha'] = config.get('specifications_request', 'channel')
-
-    if config.get('specifications_request', 'lat') == 'None':
-        input['lat_cba'] = None
-    else:
-        input['lat_cba'] = config.get('specifications_request', 'lat')
-        
-    if config.get('specifications_request', 'lon') == 'None':
-        input['lon_cba'] = None
-    else:
-        input['lon_cba'] = config.get('specifications_request', 'lon')
-    
-    if config.get('specifications_request', 'minradius') == 'None':
-        input['mr_cba'] = None
-    else:
-        input['mr_cba'] = config.get('specifications_request', 'minradius')
-    
-    if config.get('specifications_request', 'maxradius') == 'None':
-        input['Mr_cba'] = None
-    else:
-        input['Mr_cba'] = config.get('specifications_request', 'maxradius')
-    
-        
-    if config.get('specifications_request', 'minlat') == 'None':
-        input['mlat_rbb'] = None
-    else:
-        input['mlat_rbb'] = config.get('specifications_request', 'minlat')
-    
-    if config.get('specifications_request', 'maxlat') == 'None':
-        input['Mlat_rbb'] = None
-    else:
-        input['Mlat_rbb'] = config.get('specifications_request', 'maxlat')
-    
-    if config.get('specifications_request', 'minlon') == 'None':
-        input['mlon_rbb'] = None
-    else:
-        input['mlon_rbb'] = config.get('specifications_request', 'minlon')
-    
-    if config.get('specifications_request', 'maxlon') == 'None':
-        input['Mlon_rbb'] = None
-    else:
-        input['Mlon_rbb'] = config.get('specifications_request', 'maxlon')
-
-    
-    input['test'] = config.get('test', 'test')
-    input['test_num'] = config.getint('test', 'test_num')
-    
-    input['update_interactive'] = config.get('update', 'update_interactive')
-    input['iris_update'] = config.get('update', 'iris_update')
-    input['arc_update'] = config.get('update', 'arc_update')
-
-    input['QC_IRIS'] = config.get('QC', 'QC_IRIS')
-    input['QC_ARC'] = config.get('QC', 'QC_ARC')
-    
-    input['email'] = config.get('email', 'email')
-    input['email_address'] = config.get('email', 'email_address')
-    
-    input['report'] = config.get('report', 'report')
-    
-    input['corr_unit'] = config.get('instrument_correction', 'corr_unit')
-    input['pre_filt'] = config.get('instrument_correction', 'pre_filter')
-    
-    input['plt_event'] = config.get('ObsPyPT', 'plot_event')
-    input['plt_sta'] = config.get('ObsPyPT', 'plot_sta')
-    input['plt_ray'] = config.get('ObsPyPT', 'plot_ray')
-
-    input['llcrnrlon'] = config.getfloat('ObsPyPT', 'llcrnrlon')
-    input['urcrnrlon'] = config.getfloat('ObsPyPT', 'urcrnrlon')
-    input['llcrnrlat'] = config.getfloat('ObsPyPT', 'llcrnrlat')
-    input['urcrnrlat'] = config.getfloat('ObsPyPT', 'urcrnrlat')
-    
-    input['lon_0'] = config.getfloat('ObsPyPT', 'lon_0')
-    input['lat_0'] = config.getfloat('ObsPyPT', 'lat_0')
-
 ###################### get_Events ######################################
 
 def get_Events(input, request):
     """
-    Getting list of events from NERIES
+    Getting list of events from NERIES or IRIS
     
     NERIES: a client for the Seismic Data Portal (http://www.seismicportal.eu) 
     which was developed under the European Commission-funded NERIES project. 
@@ -1502,14 +1338,16 @@ def events_info(request):
     """
     global input
     if request == 'event-based':
-        if input['evlatmin']==None:
-            evlatmin=-90.0;evlatmax=+90.0;evlonmin=-180.0;evlonmax=+180.0
-        else:
-            evlatmin=input['evlatmin'];evlatmax=input['evlatmax']
-            evlonmin=input['evlonmin'];evlonmax=input['evlonmax']
         print 'Event Catalog: ',
         if input['event_catalog'] == 'EMSC':
             print 'EMSC'
+
+            if input['evlatmin']==None:
+                evlatmin=-90.0;evlatmax=+90.0;evlonmin=-180.0;evlonmax=+180.0
+            else:
+                evlatmin=input['evlatmin'];evlatmax=input['evlatmax']
+                evlonmin=input['evlonmin'];evlonmax=input['evlonmax']
+
             client_neries = Client_neries()
             events = client_neries.getEvents(min_datetime=input['min_date'], \
                 max_datetime=input['max_date'], min_magnitude=input['min_mag'], \
@@ -1520,13 +1358,13 @@ def events_info(request):
                 max_results=input['max_result'])
         elif input['event_catalog'] == 'IRIS':
             try:
+                print 'IRIS'
                 
                 evlatmin=input['evlatmin'];evlatmax=input['evlatmax']
                 evlonmin=input['evlonmin'];evlonmax=input['evlonmax']
                 evlat=input['evlat'];evlon=input['evlon']
                 evradmax=input['evradmax'];evradmin=input['evradmin']
                 
-                print 'IRIS'
                 client_fdsn = Client_fdsn("IRIS")
                 events_QML = client_fdsn.get_events(\
                         minlatitude=evlatmin,maxlatitude=evlatmax,\
@@ -1536,8 +1374,10 @@ def events_info(request):
                         mindepth=-input['min_depth'],maxdepth=-input['max_depth'],\
                         starttime=input['min_date'],endtime=input['max_date'],\
                         minmagnitude=input['min_mag'],\
-                        maxmagnitude=input['max_mag'])
-                        #magnitudetype=input['mag_type'])
+                        maxmagnitude=input['max_mag'],
+                        limit=input['max_result'],
+                        orderby='time',
+                        magnitudetype=input['mag_type'])
                 
                 if input['plot_all_events']: 
                     plt.ion()
@@ -1546,7 +1386,7 @@ def events_info(request):
                 events = []
                 for i in range(0, len(events_QML)):
                     event_time = events_QML.events[i].preferred_origin().time or \
-										events_QML.events[i].origins[0].time
+						events_QML.events[i].origins[0].time
                     if event_time.month < 10:
                         event_time_month = '0' + str(event_time.month)
                     else:
@@ -1555,26 +1395,27 @@ def events_info(request):
                         event_time_day = '0' + str(event_time.day)
                     else:
                         event_time_day = str(event_time.day)
+                    
                     events.append({\
                         'author': \
                             events_QML.events[i].preferred_magnitude().creation_info.author or \
-								events_QML.events[i].magnitudes[0].creation_info.author, \
+					    events_QML.events[i].magnitudes[0].creation_info.author, \
                         'event_id': str(event_time.year) + event_time_month + \
                                      event_time_day + '_' + str(i), \
                         'origin_id': events_QML.events[i].preferred_origin_id or \
-										events_QML.events[i].origins[0].resource_id.resource_id, \
+					    events_QML.events[i].origins[0].resource_id.resource_id, \
                         'longitude': events_QML.events[i].preferred_origin().longitude or \
-										events_QML.events[i].origins[0].longitude, \
+					    events_QML.events[i].origins[0].longitude, \
                         'latitude': events_QML.events[i].preferred_origin().latitude or \
-										events_QML.events[i].origins[0].latitude, \
+					    events_QML.events[i].origins[0].latitude, \
                         'datetime': event_time, \
                         'depth': -events_QML.events[i].preferred_origin().depth or \
-										-events_QML.events[i].origins[0].depth, \
+					    -events_QML.events[i].origins[0].depth, \
                         'magnitude': events_QML.events[i].preferred_magnitude().mag or \
-										events_QML.events[i].magnitudes[0].mag, \
+					    events_QML.events[i].magnitudes[0].mag, \
                         'magnitude_type': \
                             events_QML.events[i].preferred_magnitude().magnitude_type.lower() or \
-										events_QML.events[i].magnitudes[0].magnitude_type.lower(), \
+					    events_QML.events[i].magnitudes[0].magnitude_type.lower(), \
                         'flynn_region': 'NAN'})
             except Exception, e:
                 print 30*'-'
@@ -1582,7 +1423,6 @@ def events_info(request):
                 print 30*'-'
                 events = []
         for i in range(0, len(events)):
-            #client_iris.flinnengdahl(lat=-1.196, lon=121.33, rtype="code")
             events[i]['t1'] = events[i]['datetime'] - input['preset']
             events[i]['t2'] = events[i]['datetime'] + input['offset']
     elif request == 'continuous':
@@ -1622,26 +1462,6 @@ def events_info(request):
                             'flynn_region': 'NAN'})
         print 'DONE'
     return events
-
-###################### input_logger ###################################
-
-def input_logger(argus, address, inputs):
-    """
-    log the entered command line!
-    """
-    st_argus = 'Command line:\n-------------\n' 
-    for item in argus:
-        st_argus += item + ' '
-    st_argus += '\n\ninputs:\n-------\n'
-    items = []
-    for item in inputs:
-        items.append(item)
-    items.sort()
-    for item in items:
-        st_argus += str(item) + ': ' + str(inputs[item]) + '\n'
-    logger_open = open(address, 'w')
-    logger_open.write(st_argus)
-    logger_open.close()
 
 ###################### seismicity ######################################
 
@@ -1726,10 +1546,12 @@ def IRIS_network(input):
     for i in range(0, len_events):
         t_iris_1 = datetime.now()
         target_path = os.path.join(eventpath, events[i]['event_id'])
+        
         if not input['list_stas']:
             Stas_iris = IRIS_available(input, events[i], target_path, event_number = i)
         else:
             Stas_iris = read_list_stas(input['list_stas'], input['specfem3D'])
+        
         if input['iris_bulk'] != 'Y':
             print '\nIRIS-Availability for event: ' + str(i+1) + str('/') + \
                                     str(len_events) + '  ---> ' + 'DONE'
@@ -1752,19 +1574,39 @@ def IRIS_available(input, event, target_path, event_number):
     Check the availablity of the IRIS stations
     """
     client_iris = Client_iris()
+    client_fdsn = Client_fdsn('IRIS')
     Sta_iris = []
+    
     try:       
-        available = client_iris.availability(network=input['net'], \
+        available = client_fdsn.get_stations(network=input['net'], \
             station=input['sta'], location=input['loc'], \
             channel=input['cha'], \
             starttime=UTCDateTime(event['t1']), \
             endtime=UTCDateTime(event['t2']), \
-            lat=input['lat_cba'], \
-            lon=input['lon_cba'], minradius=input['mr_cba'], \
-            maxradius=input['Mr_cba'], minlat=input['mlat_rbb'], \
-            maxlat=input['Mlat_rbb'], minlon=input['mlon_rbb'], \
-            maxlon=input['Mlon_rbb'], output='xml')
-        Sta_iris = XML_list_avail(xmlfile = available)
+            latitude=input['lat_cba'], \
+            longitude=input['lon_cba'], minradius=input['mr_cba'], \
+            maxradius=input['Mr_cba'], minlatitude=input['mlat_rbb'], \
+            maxlatitude=input['Mlat_rbb'], minlongitude=input['mlon_rbb'], \
+            maxlongitude=input['Mlon_rbb'], level='channel')
+
+        # JUST FOR TEST!
+        #Sta_iris = []
+        #for network in available.networks:
+        #    for station in networks:
+        #        for channel in station:
+        #for i in range(len(available.networks)):
+        #    for j in range(len(available.networks[i].stations)):
+        #        for k in range(len(available.networks[i].stations[j].channels)):
+        #            Sta_iris.append([available.networks[i].code, available.networks[i].stations[j].code, 
+        #                    available.networks[i].stations[j].channels[k].location_code,
+        #                    available.networks[i].stations[j].channels[k].code,
+        #                    available.networks[i].stations[j].channels[k].latitude,
+        #                    available.networks[i].stations[j].channels[k].longitude, 
+        #                    available.networks[i].stations[j].channels[k].elevation, 
+        #                    available.networks[i].stations[j].channels[k].depth])
+
+        #import ipdb; ipdb.set_trace()
+        #Sta_iris = XML_list_avail(xmlfile = available)
         if input['iris_bulk'] == 'Y':
             if os.path.exists(os.path.join(target_path,\
                                     'info', 'bulkdata.txt')):
@@ -2028,6 +1870,7 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
     try:
         dummy = 'Initializing'
         client_iris = Client_iris()
+        client_fdsn = Client_fdsn('IRIS')
         t11 = datetime.now()
         if Sta_req[j][2] == '--' or Sta_req[j][2] == '  ':
                 Sta_req[j][2] = ''
@@ -2042,12 +1885,13 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
         
         if input['waveform'] == 'Y':                    
             dummy = 'Waveform'
-            client_iris.saveWaveform(os.path.join(add_event[i], 'BH_RAW', \
-                Sta_req[j][0] + '.' + Sta_req[j][1] + '.' + \
-                Sta_req[j][2] + '.' + Sta_req[j][3]), \
+            client_fdsn.get_waveforms(
                 Sta_req[j][0], Sta_req[j][1], \
                 Sta_req[j][2], Sta_req[j][3], \
-                t_start, t_end)
+                t_start, t_end,\
+                filename=os.path.join(add_event[i], 'BH_RAW', \
+                Sta_req[j][0] + '.' + Sta_req[j][1] + '.' + \
+                Sta_req[j][2] + '.' + Sta_req[j][3]))
             print str(info_req) + "Saving Waveform for: " + Sta_req[j][0] + \
                 '.' + Sta_req[j][1] + '.' + \
                 Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"  
@@ -4459,6 +4303,26 @@ def send_email():
     
     server = smtplib.SMTP('localhost')
     server.sendmail(fromaddr, toaddrs, msg)
+
+###################### input_logger ###################################
+
+def input_logger(argus, address, inputs):
+    """
+    log the entered command line!
+    """
+    st_argus = 'Command line:\n-------------\n' 
+    for item in argus:
+        st_argus += item + ' '
+    st_argus += '\n\ninputs:\n-------\n'
+    items = []
+    for item in inputs:
+        items.append(item)
+    items.sort()
+    for item in items:
+        st_argus += str(item) + ': ' + str(inputs[item]) + '\n'
+    logger_open = open(address, 'w')
+    logger_open.write(st_argus)
+    logger_open.close()
 
 ###################### getFolderSize ###################################
 
