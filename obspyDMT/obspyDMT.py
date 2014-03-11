@@ -17,77 +17,74 @@
 
 # Added this line for python 2.5 compatibility
 from __future__ import with_statement
-import sys
-import os
-import math as math
-import operator
-import fnmatch
+import commands
+from datetime import datetime
 import fileinput
-import time
+import fnmatch
+import glob
+from lxml import objectify
+import math as math
+from optparse import OptionParser
+import os
+import pickle
 import random
 import shutil
-import pickle
-import glob
-import ConfigParser
-import commands
 import subprocess
+import sys
 import tarfile
-from datetime import datetime
-import multiprocessing
-from lxml import objectify
-from optparse import OptionParser
-from datetime import datetime
+import time
 
-try:
-    import pprocess
-except Exception, error:
-    print "\n**************************"
-    print "Unable to import pprocess."
-    print "**************************\n"
-    
-try:
-    import smtplib
-except Exception, error:
-    print "\n********************************************************"
-    print "Unable to import smtplib. Sending email is not possible!"
-    print "********************************************************\n"
-    
-global descrip
-descrip = []
-
+############### obspy modules will be imported here
 try:
     from obspy import __version__ as obs_ver
-except Exception, error:
+except Exception as error:
     try:
         from obspy.core import __version__ as obs_ver
-    except Exception, error:
-        print error
+    except Exception as error:
         print '---------------------------------------------------'
         print 'Have you properly installed ObsPy on your computer?'
+        print 'Error: %s' % error
         print '---------------------------------------------------'
         sys.exit(2)
 
 from obspy import read_inventory
 from obspy.core import read, UTCDateTime
 from obspy.signal import seisSim, invsim
+from obspy.taup import taup
 from obspy.xseed import Parser
 
 # Required Clients from Obspy will be imported here.
-from obspy.neries import Client as Client_neries
-from obspy.fdsn import Client as Client_fdsn
-from obspy.iris import Client as Client_iris
 from obspy.arclink import Client as Client_arclink
-    
+from obspy.fdsn import Client as Client_fdsn
+from obspy.neries import Client as Client_neries
+############### END obspy modules
+
+try:
+    import pprocess
+except Exception as error:
+    print "\n**************************"
+    print "Unable to import pprocess."
+    print "Error: %s" % error
+    print "**************************\n"
+
+try:
+    import smtplib
+except Exception as error:
+    print "\n********************************************************"
+    print "Unable to import smtplib. Sending email is not possible!"
+    print "Error: %s" % error
+    print "********************************************************\n"
+
+############### Fill in descrip list
+descrip = []
 descrip.append('obspy ver: ' + obs_ver)
 try:
     from obspy.core.util import locations2degrees
-except Exception, error:
+except Exception as error:
     print "\n*************************************"
-    print error
+    print "ERROR: %s" % error
     print "*************************************\n"
-    from obspy.taup.taup import locations2degrees
 
-from obspy.taup import taup
 import numpy as np
 descrip.append('numpy ver: ' + np.__version__)
 import scipy
@@ -98,28 +95,27 @@ try:
     from matplotlib import __version__ as mat_ver
     import matplotlib.pyplot as plt
     descrip.append('matplotlib ver: ' + mat_ver)
-except Exception, error:
-    descrip.append('matplotlib: ' + 'not installed' + '\n\n' + \
-                    'error:' + '\n' + str(error) + '\n')
+except Exception as error:
+    descrip.append('matplotlib: not installed\n\nerror:\n%s\n' % error)
+
 try:
     from mpl_toolkits.basemap import __version__ as base_ver
     from mpl_toolkits.basemap import Basemap
     descrip.append('Basemap ver: ' + base_ver)
-except Exception, error:
-    descrip.append('Basemap: ' + 'not installed' + '\n\n' + \
-                    'error:' + '\n' + str(error) + '\n' + \
-                    'You could not use the Plot module')
+except Exception as error:
+    descrip.append('Basemap: not installed\n\nerror:\n%s\nYou could not use all the plot options' % error)
+############### END Fill in descrip list
 
 ########################################################################
 ############################# Main Program #############################
 ########################################################################
 
 def obspyDMT(**kwargs):
-    
+
     """
     obspyDMT: is the function dedicated to the main part of the code.
-    """ 
-    
+    """
+
     print '\n------------------------------------------------------------' + \
             '---------------------'
     print '\t\t' + 'obspyDMT (ObsPy Data Management Tool)' + '\n'
@@ -135,41 +131,41 @@ def obspyDMT(**kwargs):
     print '(http://www.gnu.org/licenses/gpl-3.0-standalone.html)'
     print '------------------------------------------------------------' + \
             '---------------------'
-    
+
     # global variables
     global input, events
-       
+
     # ------------------Parsing command-line options--------------------
     (options, args, parser) = command_parse()
-    
+
     # ------------------Read INPUT file (Parameters)--------------------
     read_input_command(parser, **kwargs)
-   
+
     # ------------------Getting List of Events/Continuous requests------
     if input['get_events'] == 'Y':
         get_Events(input, request = 'event-based')
-    
+
     if input['get_continuous'] == 'Y':
         get_Events(input, request = 'continuous')
-    
+
     # ------------------Seismicity--------------------------------------
     if input['seismicity'] == 'Y':
         seismicity()
-       
+
     # ------------------IRIS--------------------------------------------
     if input['IRIS'] == 'Y':
         print '\n********************************************************'
         print 'IRIS -- Download waveforms, response files and meta-data'
         print '********************************************************'
         IRIS_network(input)
-        
+
     # ------------------Arclink-----------------------------------------
     if input['ArcLink'] == 'Y':
         print '\n***********************************************************'
         print 'ArcLink -- Download waveforms, response files and meta-data'
         print '***********************************************************'
         ARC_network(input)
-                
+
     # ------------------IRIS-Updating-----------------------------------
     if input['iris_update'] != 'N':
         print '\n*********************'
@@ -183,37 +179,37 @@ def obspyDMT(**kwargs):
         print 'ArcLink -- Updating Mode'
         print '************************'
         ARC_update(input, address = input['arc_update'])
-    
+
     # ------------------IRIS-instrument---------------------------------
     if input['iris_ic'] != 'N' or input['iris_ic_auto'] == 'Y':
         print '\n*****************************'
         print 'IRIS -- Instrument Correction'
         print '*****************************'
         IRIS_ARC_IC(input, clients = 'iris')
-    
+
     # ------------------Arclink-instrument------------------------------
     if input['arc_ic'] != 'N' or input['arc_ic_auto'] == 'Y':
         print '\n********************************'
         print 'ArcLink -- Instrument Correction'
         print '********************************'
         IRIS_ARC_IC(input, clients = 'arc')
-    
+
     # ------------------IRIS-merge--------------------------------------    
     if input['iris_merge'] != 'N' or input['iris_merge_auto'] == 'Y':
         print '\n*****************************'
         print 'IRIS -- Merging the waveforms'
         print '*****************************'
         IRIS_ARC_merge(input, clients = 'iris')
-    
+
     # ------------------ArcLink-merge-----------------------------------    
     if input['arc_merge'] != 'N' or input['arc_merge_auto'] == 'Y':
         print '\n********************************'
         print 'ArcLink -- Merging the waveforms'
         print '********************************'
         IRIS_ARC_merge(input, clients = 'arc')
-    
+
     # ------------------PLOT--------------------------------------------    
-    ls_plot_options = ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray', 
+    ls_plot_options = ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray',
                         'plot_ray_gmt', 'plot_epi', 'plot_dt']
     for plt_opt in ls_plot_options:
         if input[plt_opt] != 'N':
@@ -224,10 +220,10 @@ def obspyDMT(**kwargs):
                 PLOT(input, clients = 'iris')
             if input['plot_arc'] == 'Y':
                 PLOT(input, clients = 'arc')
-    
+
     if input['plot_all_events']:
         raw_input('Press enter to continue....')
-    
+
     # ------------------Email-------------------------------------------    
     if input['email'] != 'N':
         print '\n*********************************************'
@@ -239,7 +235,7 @@ def obspyDMT(**kwargs):
 ########################################################################
 ###################### Functions are defined here ######################
 ########################################################################
-    
+
 ###################### command_parse ###################################
 
 def command_parse():
@@ -254,62 +250,62 @@ def command_parse():
     # store_false saves bool FALSE, store saves string; into the variable
     # given with dest="var"
     # * you need to provide every possible option here.
-    
+
     helpmsg = "show the obspyDMT version and exit"
     parser.add_option("--version", action="store_true",
                       dest="version", help=helpmsg)
-    
+
     helpmsg = "check all the dependencies and their installed versions " + \
                                         "on the local machine and exit"
     parser.add_option("--check", action="store_true",
                       dest="check", help=helpmsg)
-    
+
     helpmsg = "Run a quick tour!"
     parser.add_option("--tour", action="store_true",
                       dest="tour", help=helpmsg)
-    
+
     helpmsg = "if the datapath is found deleting it before running obspyDMT."
     parser.add_option("--reset", action="store_true",
                       dest="reset", help=helpmsg)
-    
+
     helpmsg = "the path where obspyDMT will store the data " + \
                                         "[Default: './obspyDMT-data']"
     parser.add_option("--datapath", action="store",
                       dest="datapath", help=helpmsg)
-   
+
     helpmsg = "Consider the first phase arrival (P, Pdiff, PKIKP) to " + \
                 "use as the reference time, i.e. " + \
                 "--min_date and --max_date will be calculated from " + \
                 "the first phase arrival."
     parser.add_option("--cut_time_phase", action="store_true",
                       dest="cut_time_phase", help=helpmsg)
-    
+
     helpmsg = "start time, syntax: Y-M-D-H-M-S (eg: " + \
                 "'2010-01-01-00-00-00') or just Y-M-D [Default: 10 days ago]"
     parser.add_option("--min_date", action="store",
                       dest="min_date", help=helpmsg)
-    
+
     helpmsg = "end time, syntax: Y-M-D-H-M-S (eg: " + \
                 "'2011-01-01-00-00-00') or just Y-M-D [Default: 5 days ago]"
     parser.add_option("--max_date", action="store",
                       dest="max_date", help=helpmsg)
-    
+
     helpmsg = "event catalog (EMSC or IRIS). " + \
                 "[Default: 'EMSC']"
     parser.add_option("--event_catalog", action="store",
                       dest="event_catalog", help=helpmsg)
-    
+
     helpmsg = "magnitude type. Some common types (there are many) " + \
                 "include 'Ml' (local/Richter magnitude), " + \
                 "'Ms' (surface magnitude), 'mb' (body wave magnitude), " + \
                 "'Mw' (moment magnitude). [Default: 'Mw']"
     parser.add_option("--mag_type", action="store",
                       dest="mag_type", help=helpmsg)
-    
+
     helpmsg = "minimum magnitude. [Default: 5.5]"
     parser.add_option("--min_mag", action="store",
                       dest="min_mag", help=helpmsg)
-    
+
     helpmsg = "maximum magnitude. [Default: 9.9]"
     parser.add_option("--max_mag", action="store",
                       dest="max_mag", help=helpmsg)
@@ -317,17 +313,17 @@ def command_parse():
     helpmsg = "minimum depth. [Default: +10.0 (above the surface!)]"
     parser.add_option("--min_depth", action="store",
                       dest="min_depth", help=helpmsg)
-    
+
     helpmsg = "maximum depth. [Default: -6000.0]"
     parser.add_option("--max_depth", action="store",
                       dest="max_depth", help=helpmsg)
-                      
+
     helpmsg = "search for all the events within the defined rectangle, " + \
                 "GMT syntax: <lonmin>/<lonmax>/<latmin>/<latmax> " + \
                 "[Default: -180.0/+180.0/-90.0/+90.0]"
     parser.add_option("--event_rect", action="store", dest="event_rect",
                         help=helpmsg)
-    
+
     helpmsg = "search for all the events within the defined " + \
                 "circle, syntax: <lon>/<lat>/<rmin>/<rmax>. " + \
                 "May not be used together with rectangular " + \
@@ -335,33 +331,33 @@ def command_parse():
                 "[currently just IRIS support this option]"
     parser.add_option("--event_circle", action="store",
                       dest="event_circle", help=helpmsg)
-    
+
     helpmsg = "maximum number of events to be requested. [Default: 2500]"
     parser.add_option("--max_result", action="store",
                       dest="max_result", help=helpmsg)
-    
+
     helpmsg = "Just retrieve the event information and create an event archive."
     parser.add_option("--event_info", action="store_true",
                       dest="event_info", help=helpmsg)
-    
+
     helpmsg = "Create a seismicity map according to the event and " + \
                 "location specifications."
     parser.add_option("--seismicity", action="store_true",
                       dest="seismicity", help=helpmsg)
-    
+
     helpmsg = "event-based request (please refer to the tutorial). [Default: 'Y']"
     parser.add_option("--get_events", action="store",
                       dest="get_events", help=helpmsg)
-    
+
     helpmsg = "continuous request (please refer to the tutorial)."
     parser.add_option("--continuous", action="store_true",
                       dest="get_continuous", help=helpmsg)
-    
+
     helpmsg = "time interval for dividing the continuous request. " + \
                 "[Default: 86400 sec (1 day)]"
     parser.add_option("--interval", action="store",
                       dest="interval", help=helpmsg)
-    
+
     helpmsg = "Preset defined for EACH continuous request, i.e. " + \
                 "time before EACH interval (refer to '--interval' option) " + \
                 "in continuous request."
@@ -377,19 +373,19 @@ def command_parse():
     helpmsg = "Parallel waveform/response/paz request"
     parser.add_option("--req_parallel", action="store_true",
                       dest="req_parallel", help=helpmsg)
-    
+
     helpmsg = "Number of processors to be used in --req_parallel. [Default: 4]"
     parser.add_option("--req_np", action="store",
                         dest="req_np", help=helpmsg)
-   
+
     helpmsg = "Use a station list instead of checking the availability."
     parser.add_option("--list_stas", action="store",
                       dest="list_stas", help=helpmsg)
-    
+
     helpmsg = "Retrieve synthetic waveforms of SPECFEM3D."
     parser.add_option("--specfem3D", action="store_true",
                       dest="specfem3D", help=helpmsg)
-    
+
     helpmsg = "using the IRIS bulkdataselect Web service. Since this " + \
                 "method returns multiple channels of time series data " + \
                 "for specified time ranges in one request, it speeds up " + \
@@ -397,27 +393,27 @@ def command_parse():
                 "two. [RECOMMENDED]"
     parser.add_option("--iris_bulk", action="store_true",
                       dest="iris_bulk", help=helpmsg)
-    
+
     helpmsg = "retrieve the waveform. [Default: 'Y']"
     parser.add_option("--waveform", action="store",
                       dest="waveform", help=helpmsg)
-    
+
     helpmsg = "retrieve the response file. [Default: 'Y']"
     parser.add_option("--response", action="store",
                       dest="response", help=helpmsg)
-    
+
     helpmsg = "retrieve the PAZ."
     parser.add_option("--paz", action="store_true",
                       dest="paz", help=helpmsg)
-    
+
     helpmsg = "send request (waveform/response) to IRIS. [Default: 'Y']"
     parser.add_option("--iris", action="store",
                       dest="IRIS", help=helpmsg)
-    
+
     helpmsg = "send request (waveform/response) to ArcLink. [Default: 'Y']"
     parser.add_option("--arc", action="store",
                       dest="ArcLink", help=helpmsg)
-  
+
     helpmsg = "send request (waveform) to NERIES if ArcLink fails. [Default: 'N']"
     parser.add_option("--neries", action="store_true",
                       dest="NERIES", help=helpmsg)
@@ -441,66 +437,66 @@ def command_parse():
                 "will be stored in the SAC headers. [Default: 'Y'] "
     parser.add_option("--SAC", action="store",
                       dest="SAC", help=helpmsg)
-    
+
     helpmsg = "MSEED format for saving the waveforms."
     parser.add_option("--mseed", action="store_true",
                       dest="mseed", help=helpmsg)
-    
+
     helpmsg = "generate a data-time file for an IRIS request. " + \
                 "This file shows the required time for each request " + \
                 "and the stored data in the folder."
     parser.add_option("--time_iris", action="store_true",
                       dest="time_iris", help=helpmsg)
-    
+
     helpmsg = "generate a data-time file for an ArcLink request. " + \
                 "This file shows the required time for each request " + \
                 "and the stored data in the folder."
     parser.add_option("--time_arc", action="store_true",
                       dest="time_arc", help=helpmsg)
-    
+
     helpmsg = "time parameter in seconds which determines how close " + \
                 "the time series data (waveform) will be cropped " + \
                 "before the origin time of the event. Default: 0.0 seconds."
     parser.add_option("--preset", action="store",
                       dest="preset", help=helpmsg)
-    
+
     helpmsg = "time parameter in seconds which determines how close " + \
                 "the time series data (waveform) will be cropped " + \
                 "after the origin time of the event. Default: 1800.0 seconds."
     parser.add_option("--offset", action="store",
                       dest="offset", help=helpmsg)
-    
+
     helpmsg = "identity code restriction, syntax: net.sta.loc.cha " + \
                 "(eg: TA.*.*.BHZ to search for all BHZ channels in " + \
                 "TA network). [Default: *.*.*.*]"
     parser.add_option("--identity", action="store", dest="identity",
                         help=helpmsg)
-    
+
     helpmsg = "network code. [Default: *]"
     parser.add_option("--net", action="store",
                       dest="net", help=helpmsg)
-    
+
     helpmsg = "station code. [Default: *]"
     parser.add_option("--sta", action="store",
                       dest="sta", help=helpmsg)
-    
+
     helpmsg = "location code. [Default: *]"
     parser.add_option("--loc", action="store",
                       dest="loc", help=helpmsg)
-    
+
     helpmsg = "channel code. [Default: *]"
     parser.add_option("--cha", action="store",
                       dest="cha", help=helpmsg)
-       
+
     helpmsg = "search for all the stations within the defined " + \
                 "rectangle, GMT syntax: " + \
                 "<lonmin>/<lonmax>/<latmin>/<latmax>. May not be " + \
                 "used together with circular bounding box station " + \
                 "restrictions (station_circle) " + \
                 "[Default: -180.0/+180.0/-90.0/+90.0]"
-    parser.add_option("--station_rect", action="store", 
+    parser.add_option("--station_rect", action="store",
                       dest="station_rect", help=helpmsg)
-    
+
     helpmsg = "search for all the stations within the defined " + \
                 "circle, syntax: <lon>/<lat>/<rmin>/<rmax>. " + \
                 "May not be used together with rectangular " + \
@@ -508,85 +504,85 @@ def command_parse():
                 " Currently, ArcLink does not support this option!"
     parser.add_option("--station_circle", action="store",
                       dest="station_circle", help=helpmsg)
-   
+
     helpmsg = "test the program for the desired number of requests, " + \
                 "eg: '--test 10' will test the program for 10 requests. " + \
                 "[Default: 'N']"
     parser.add_option("--test", action="store",
                       dest="test", help=helpmsg)
-    
+
     helpmsg = "update the specified folder for IRIS, syntax: " + \
                 "--iris_update address_of_the_target_folder. [Default: 'N']"
     parser.add_option("--iris_update", action="store",
                       dest="iris_update", help=helpmsg)
-    
+
     helpmsg = "update the specified folder for ArcLink, syntax: " + \
                 "--arc_update address_of_the_target_folder. [Default: 'N']"
     parser.add_option("--arc_update", action="store",
                       dest="arc_update", help=helpmsg)
-    
+
     helpmsg = "update the specified folder for both IRIS and ArcLink, " + \
                 "syntax: --update_all address_of_the_target_folder. " + \
                 "[Default: 'N']"
     parser.add_option("--update_all", action="store",
                       dest="update_all", help=helpmsg)
-    
+
     helpmsg = "apply instrument correction to the specified folder " + \
                 "for the downloaded waveforms from IRIS, " + \
                 "syntax: --iris_ic address_of_the_target_folder. " + \
                 "[Default: 'N']"
     parser.add_option("--iris_ic", action="store",
                         dest="iris_ic", help=helpmsg)
-    
+
     helpmsg = "apply instrument correction to the specified folder " + \
                 "for the downloaded waveforms from ArcLink, " + \
                 "syntax: --arc_ic address_of_the_target_folder. " + \
                 "[Default: 'N']"
     parser.add_option("--arc_ic", action="store",
                         dest="arc_ic", help=helpmsg)
-                        
+
     helpmsg = "apply instrument correction automatically after " + \
                 "downloading the waveforms from IRIS. [Default: 'Y']"
     parser.add_option("--iris_ic_auto", action="store",
                         dest="iris_ic_auto", help=helpmsg)
-    
+
     helpmsg = "apply instrument correction automatically after " + \
                 "downloading the waveforms from ArcLink. [Default: 'Y']"
     parser.add_option("--arc_ic_auto", action="store",
                         dest="arc_ic_auto", help=helpmsg)
-    
+
     helpmsg = "apply instrument correction to the specified folder " + \
                 "for all the waveforms (IRIS and ArcLink), " + \
                 "syntax: --ic_all address_of_the_target_folder. [Default: 'N']"
     parser.add_option("--ic_all", action="store",
                         dest="ic_all", help=helpmsg)
-    
+
     helpmsg = "do not apply instrument correction automatically. " + \
                 "This is equivalent to: \"--iris_ic_auto N --arc_ic_auto N\""
     parser.add_option("--ic_no", action="store_true",
                         dest="ic_no", help=helpmsg)
-    
+
     helpmsg = "Parallel Instrument Correction. "
     parser.add_option("--ic_parallel", action="store_true",
                         dest="ic_parallel", help=helpmsg)
-    
+
     helpmsg = "Number of processors to be used in --ic_parallel. [Default: 20]"
     parser.add_option("--ic_np", action="store",
                         dest="ic_np", help=helpmsg)
-    
+
     helpmsg = "Instrument Correction (full response), using obspy modules"
     parser.add_option("--ic_obspy_full", action="store",
                       dest="ic_obspy_full", help=helpmsg)
-    
+
     helpmsg = "Instrument Correction (full response), using SAC"
     parser.add_option("--ic_sac_full", action="store_true",
                       dest="ic_sac_full", help=helpmsg)
-    
+
     helpmsg = "Instrument Correction (Poles And Zeros), " + \
                 "using SAC (for IRIS) and obspy (for ArcLink)"
     parser.add_option("--ic_paz", action="store_true",
                       dest="ic_paz", help=helpmsg)
-    
+
     helpmsg = "apply a bandpass filter to the data trace before " + \
                 "deconvolution ('None' if you do not need pre_filter), " + \
                 "syntax: '(f1,f2,f3,f4)' which are the four corner " + \
@@ -595,100 +591,100 @@ def command_parse():
                 "[Default: '(0.008, 0.012, 3.0, 4.0)']"
     parser.add_option("--pre_filt", action="store",
                       dest="pre_filt", help=helpmsg)
-    
+
     helpmsg = "correct the raw waveforms for DIS (m), VEL (m/s) or " + \
                 "ACC (m/s^2). [Default: DIS]"
     parser.add_option("--corr_unit", action="store",
                       dest="corr_unit", help=helpmsg)
-    
+
     helpmsg = "compress the raw-waveform files after applying " + \
                 "instrument correction."
     parser.add_option("--zip_w", action="store_true",
                         dest="zip_w", help=helpmsg)
-    
+
     helpmsg = "compress the response files after applying " + \
                 "instrument correction."
     parser.add_option("--zip_r", action="store_true",
                         dest="zip_r", help=helpmsg)
-    
+
     helpmsg = "merge the IRIS waveforms in the specified folder, " + \
                 "syntax: --iris_merge address_of_the_target_folder. " + \
                 "[Default: 'N']"
     parser.add_option("--iris_merge", action="store",
                         dest="iris_merge", help=helpmsg)
-    
+
     helpmsg = "merge the ArcLink waveforms in the specified folder, " + \
                 "syntax: --arc_merge address_of_the_target_folder. " + \
                 "[Default: 'N']"
     parser.add_option("--arc_merge", action="store",
                         dest="arc_merge", help=helpmsg)
-    
+
     helpmsg = "merge automatically after downloading the waveforms " + \
                 "from IRIS. [Default: 'Y']"
     parser.add_option("--iris_merge_auto", action="store",
                         dest="iris_merge_auto", help=helpmsg)
-    
+
     helpmsg = "merge automatically after downloading the waveforms " + \
                 "from ArcLink. [Default: 'Y']"
     parser.add_option("--arc_merge_auto", action="store",
                         dest="arc_merge_auto", help=helpmsg)
-    
+
     helpmsg = "merge all waveforms (IRIS and ArcLink) in the " + \
                 "specified folder, syntax: --merge_all " + \
                 "address_of_the_target_folder. [Default: 'N']"
     parser.add_option("--merge_all", action="store",
                       dest="merge_all", help=helpmsg)
-        
+
     helpmsg = "do not merge automatically. This is equivalent " + \
                 "to: \"--iris_merge_auto N --arc_merge_auto N\""
     parser.add_option("--merge_no", action="store_true",
                       dest="merge_no", help=helpmsg)
-    
+
     helpmsg = "merge 'raw' or 'corrected' waveforms. [Default: 'raw']"
     parser.add_option("--merge_type", action="store",
                         dest="merge_type", help=helpmsg)
-    
+
     helpmsg = "plot waveforms downloaded from IRIS."
     parser.add_option("--plot_iris", action="store_true",
                       dest="plot_iris", help=helpmsg)
-    
+
     helpmsg = "plot waveforms downloaded from ArcLink."
     parser.add_option("--plot_arc", action="store_true",
                       dest="plot_arc", help=helpmsg)
-    
+
     helpmsg = "plot all waveforms (IRIS and ArcLink). [Default: 'Y']"
     parser.add_option("--plot_all", action="store",
                       dest="plot_all", help=helpmsg)
-    
+
     helpmsg = "plot 'raw' or 'corrected' waveforms. [Default: 'raw']"
     parser.add_option("--plot_type", action="store",
                         dest="plot_type", help=helpmsg)
-    
+
     helpmsg = "plot all the events, stations and ray path between them " + \
                 "found in the specified folder, " + \
                 "syntax: --plot_ray_gmt address_of_the_target_folder. " + \
                 "[Default: 'N']"
     parser.add_option("--plot_ray_gmt", action="store",
                       dest="plot_ray_gmt", help=helpmsg)
-    
+
     helpmsg = "plot all the events found in the specified folder, " + \
                 "syntax: --plot_ev address_of_the_target_folder. " + \
                 "[Default: 'N']"
     parser.add_option("--plot_ev", action="store",
                       dest="plot_ev", help=helpmsg)
-                      
+
     helpmsg = "plot all the stations found in the specified folder, " + \
                 "syntax: --plot_sta address_of_the_target_folder. " + \
                 "[Default: 'N']"
     parser.add_option("--plot_sta", action="store",
                       dest="plot_sta", help=helpmsg)
-                      
+
     helpmsg = "plot both all the stations and all the events found " + \
                 "in the specified folder, syntax: --plot_se " + \
                 "address_of_the_target_folder. [Default: 'N']"
     parser.add_option("--plot_se", action="store",
                       dest="plot_se", help=helpmsg)
-                      
+
     helpmsg = "plot the ray coverage for all the station-event " + \
                 "pairs found in the specified folder, syntax: " + \
                 "--plot_ray address_of_the_target_folder. [Default: 'N']"
@@ -701,19 +697,19 @@ def command_parse():
                 "[Default: 'N']"
     parser.add_option("--plot_epi", action="store",
                       dest="plot_epi", help=helpmsg)
-                      
+
     helpmsg = "plot \"epicentral distance-time\" (refer to " + \
                 "'--plot_epi') for all the waveforms with " + \
                 "epicentral-distance >= min_epi. [Default: 0.0]"
     parser.add_option("--min_epi", action="store",
                       dest="min_epi", help=helpmsg)
-    
+
     helpmsg = "plot \"epicentral distance-time\" (refer to " + \
                 "'--plot_epi') for all the waveforms with " + \
                 "epicentral-distance <= max_epi. [Default: 180.0]"
     parser.add_option("--max_epi", action="store",
                       dest="max_epi", help=helpmsg)
-    
+
     helpmsg = "plot \"Data(MB)-Time(Sec)\" -- ATTENTION: " + \
                 "\"time_iris\" and/or \"time_arc\" should exist in the " + \
                 "\"info\" folder [refer to " + \
@@ -721,27 +717,27 @@ def command_parse():
                 "[Default: 'N']"
     parser.add_option("--plot_dt", action="store",
                       dest="plot_dt", help=helpmsg)
-    
+
     helpmsg = "the path where obspyDMT will store " + \
                 "the plots [Default: '.' (the same directory " + \
                 "as obspyDMT.py)]"
     parser.add_option("--plot_save", action="store",
                       dest="plot_save", help=helpmsg)
-    
+
     helpmsg = "format of the plots saved on the local machine " + \
                 "[Default: 'png']"
     parser.add_option("--plot_format", action="store",
                       dest="plot_format", help=helpmsg)
-    
+
     helpmsg = "send an email to the specified email-address after " + \
                 "completing the job, syntax: --email " + \
                 "email_address. [Default: 'N']"
     parser.add_option("--email", action="store",
                       dest="email", help=helpmsg)
-    
+
     # parse command line options
     (options, args) = parser.parse_args()
-    
+
     return options, args, parser
 
 ###################### read_input_command ##############################
@@ -753,7 +749,7 @@ def read_input_command(parser, **kwargs):
     [same in INPUT-default.cfg]
     """
     global input, descrip
-    
+
     # Defining the default values. 
     # Each of these values could be changed
     # by defining the required command-line flag (if you use 
@@ -779,14 +775,14 @@ def read_input_command(parser, **kwargs):
                 'SAC': 'Y',
                 'preset': 0.0, 'offset': 1800.0,
                 'net': '*', 'sta': '*', 'loc': '*', 'cha': '*',
-                'evlatmin': None, 'evlatmax': None, 
+                'evlatmin': None, 'evlatmax': None,
                 'evlonmin': None, 'evlonmax': None,
-                'evlat': None, 'evlon': None, 
+                'evlat': None, 'evlon': None,
                 'evradmin': None, 'evradmax': None,
                 'max_result': 2500,
-                'lat_cba': None, 'lon_cba': None, 
+                'lat_cba': None, 'lon_cba': None,
                 'mr_cba': None, 'Mr_cba': None,
-                'mlat_rbb': None, 'Mlat_rbb': None, 
+                'mlat_rbb': None, 'Mlat_rbb': None,
                 'mlon_rbb': None, 'Mlon_rbb': None,
                 'test': 'N',
                 'iris_update': 'N', 'arc_update': 'N', 'update_all': 'N',
@@ -810,29 +806,29 @@ def read_input_command(parser, **kwargs):
                 'plot_save': '.', 'plot_format': 'png',
                 'min_epi': 0.0, 'max_epi': 180.0,
             }
-    
+
     # feed input dictionary of defaults into parser object
     parser.set_defaults(**input)
-    
+
     # parse command line options
     (options, args) = parser.parse_args()
     # command line options can now be accessed via options.varname.
-    
+
     # Check if keyword arguments have been passed to the main function from
     # another script and parse here:
     if kwargs:
         # assigning kwargs to entries of OptionParser object
         for arg in kwargs:
             exec("options.%s = kwargs[arg]") % arg
-    
-    if options.version: 
+
+    if options.version:
         print '\t\t' + '*********************************'
-        print '\t\t' + '*        obspyDMT version:      *' 
+        print '\t\t' + '*        obspyDMT version:      *'
         print '\t\t' + '*' + '\t\t' + '0.4.2' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
-    
+
     # Check whether it is possible to import all required modules
     if options.check:
         print "*********************************"
@@ -841,7 +837,7 @@ def read_input_command(parser, **kwargs):
             print descrip[i]
         print "*********************************\n"
         sys.exit(2)
-        
+
     if options.tour:
         print '\n########################################'
         print 'obspyDMT Quick Tour will start in 5 sec!'
@@ -855,80 +851,80 @@ def read_input_command(parser, **kwargs):
         options.event_catalog = 'IRIS'
         options.req_parallel = True
         options.ArcLink = 'N'
-    
+
     # parse datapath (check if given absolute or relative)
     if options.datapath:
         if not os.path.isabs(options.datapath):
             options.datapath = os.path.join(os.getcwd(), options.datapath)
-    
+
     if options.iris_update != 'N':
         if not os.path.isabs(options.iris_update):
             options.iris_update = os.path.join(os.getcwd(), options.iris_update)
-    
+
     if options.arc_update != 'N':
         if not os.path.isabs(options.arc_update):
             options.arc_update = os.path.join(os.getcwd(), options.arc_update)
-    
+
     if options.update_all != 'N':
         if not os.path.isabs(options.update_all):
             options.update_all = os.path.join(os.getcwd(), options.update_all)
-    
+
     if options.iris_ic != 'N':
         if not os.path.isabs(options.iris_ic):
             options.iris_ic = os.path.join(os.getcwd(), options.iris_ic)
-    
+
     if options.arc_ic != 'N':
         if not os.path.isabs(options.arc_ic):
             options.arc_ic = os.path.join(os.getcwd(), options.arc_ic)
-    
+
     if options.ic_all != 'N':
         if not os.path.isabs(options.ic_all):
             options.ic_all = os.path.join(os.getcwd(), options.ic_all)
-    
+
     if options.iris_merge != 'N':
         if not os.path.isabs(options.iris_merge):
             options.iris_merge = os.path.join(os.getcwd(), options.iris_merge)
-    
+
     if options.arc_merge != 'N':
         if not os.path.isabs(options.arc_merge):
             options.arc_merge = os.path.join(os.getcwd(), options.arc_merge)
-    
+
     if options.merge_all != 'N':
         if not os.path.isabs(options.merge_all):
             options.merge_all = os.path.join(os.getcwd(), options.merge_all)
-    
+
     if options.plot_ev != 'N':
         if not os.path.isabs(options.plot_ev):
             options.plot_ev = os.path.join(os.getcwd(), options.plot_ev)
-            
+
     if options.plot_sta != 'N':
         if not os.path.isabs(options.plot_sta):
             options.plot_sta = os.path.join(os.getcwd(), options.plot_sta)
-    
+
     if options.plot_se != 'N':
         if not os.path.isabs(options.plot_se):
             options.plot_se = os.path.join(os.getcwd(), options.plot_se)
-    
+
     if options.plot_ray != 'N':
         if not os.path.isabs(options.plot_ray):
             options.plot_ray = os.path.join(os.getcwd(), options.plot_ray)
-    
+
     if options.plot_ray_gmt != 'N':
         if not os.path.isabs(options.plot_ray_gmt):
             options.plot_ray_gmt = os.path.join(os.getcwd(), options.plot_ray_gmt)
-    
+
     if options.plot_epi != 'N':
         if not os.path.isabs(options.plot_epi):
             options.plot_epi = os.path.join(os.getcwd(), options.plot_epi)
-    
+
     if options.plot_dt != 'N':
         if not os.path.isabs(options.plot_dt):
             options.plot_dt = os.path.join(os.getcwd(), options.plot_dt)
-    
+
     if options.plot_save != 'N':
         if not os.path.isabs(options.plot_save):
             options.plot_save = os.path.join(os.getcwd(), options.plot_save)
-        
+
     # extract min. and max. longitude and latitude if the user has given the
     # coordinates with -r (GMT syntax)
     if options.event_rect:
@@ -944,7 +940,7 @@ def read_input_command(parser, **kwargs):
         except:
             print "Erroneous rectangle given."
             sys.exit(2)
-    
+
     # circular event restriction option parsing
     if options.event_circle:
         try:
@@ -959,7 +955,7 @@ def read_input_command(parser, **kwargs):
         except:
             print "Erroneous circle given."
             sys.exit(2)
-    
+
     # extract min. and max. longitude and latitude if the user has given the
     # coordinates with -g (GMT syntax)
     if options.station_rect:
@@ -975,7 +971,7 @@ def read_input_command(parser, **kwargs):
         except:
             print "Erroneous rectangle given."
             sys.exit(2)
-    
+
     # circular station restriction option parsing
     if options.station_circle:
         try:
@@ -990,7 +986,7 @@ def read_input_command(parser, **kwargs):
         except:
             print "Erroneous circle given."
             sys.exit(2)
-    
+
     # delete data path if -R or --reset args are given at cmdline
     if options.reset:
         # try-except so we don't get an exception if path doesnt exist
@@ -1003,7 +999,7 @@ def read_input_command(parser, **kwargs):
             print '----------------------------------'
         except:
             pass
-    
+
     # Extract network, station, location, channel if the user has given an
     # identity code (-i xx.xx.xx.xx)
     if options.identity:
@@ -1013,7 +1009,7 @@ def read_input_command(parser, **kwargs):
         except:
             print "Erroneous identity code given."
             sys.exit(2)
-    
+
     input['datapath'] = options.datapath
     if options.cut_time_phase: input['cut_time_phase'] = True
     else: input['cut_time_phase'] = False
@@ -1062,18 +1058,18 @@ def read_input_command(parser, **kwargs):
     if options.paz: options.paz = 'Y'
     input['paz'] = options.paz
     input['SAC'] = options.SAC
-    if options.mseed: 
+    if options.mseed:
         input['SAC'] = 'N'
         input['mseed'] = 'Y'
     else:
         input['mseed'] = 'N'
     input['IRIS'] = options.IRIS
     input['ArcLink'] = options.ArcLink
-    
+
     input['arc_avai_timeout'] = float(options.arc_avai_timeout)
     input['arc_wave_timeout'] = float(options.arc_wave_timeout)
     input['neries_timeout'] = float(options.neries_timeout)
-    
+
     if options.NERIES: options.NERIES = 'Y'
     input['NERIES'] = options.NERIES
     if options.time_iris: options.time_iris = 'Y'
@@ -1096,7 +1092,7 @@ def read_input_command(parser, **kwargs):
     input['mlon_rbb'] = options.mlon_rbb
     input['Mlon_rbb'] = options.Mlon_rbb
     input['mlat_rbb'] = options.mlat_rbb
-    input['Mlat_rbb'] = options.Mlat_rbb    
+    input['Mlat_rbb'] = options.Mlat_rbb
     if options.test != 'N':
         input['test'] = 'Y'
         input['test_num'] = int(options.test)
@@ -1155,7 +1151,7 @@ def read_input_command(parser, **kwargs):
     input['plot_save'] = options.plot_save
     input['plot_format'] = options.plot_format
     input['email'] = options.email
-    
+
     #--------------------------------------------------------
     if input['get_continuous'] == 'N':
         input['iris_merge_auto'] = 'N'
@@ -1164,7 +1160,7 @@ def read_input_command(parser, **kwargs):
         input['iris_merge_auto'] = options.iris_merge_auto
         input['arc_merge_auto'] = options.arc_merge_auto
         input['merge_type'] = options.merge_type
-        
+
     for opts in ['iris_update', 'arc_update', 'iris_ic', 'arc_ic',
                 'iris_merge', 'arc_merge', 'plot_se', 'plot_sta',
                 'plot_ev', 'plot_ray', 'plot_ray_gmt', 'plot_epi',
@@ -1179,7 +1175,7 @@ def read_input_command(parser, **kwargs):
             input['arc_ic_auto'] = 'N'
             input['iris_merge_auto'] = 'N'
             input['arc_merge_auto'] = 'N'
-    
+
     if options.IRIS == 'N':
         input['iris_ic_auto'] = 'N'
         input['iris_merge_auto'] = 'N'
@@ -1187,18 +1183,18 @@ def read_input_command(parser, **kwargs):
     if options.ArcLink == 'N':
         input['arc_ic_auto'] = 'N'
         input['arc_merge_auto'] = 'N'
-    
+
     if options.ic_no:
         input['iris_ic_auto'] = 'N'
         input['arc_ic_auto'] = 'N'
-    
+
     if options.merge_no:
         input['iris_merge_auto'] = 'N'
         input['arc_merge_auto'] = 'N'
-    
+
     if input['plot_iris'] == 'Y' or input['plot_arc'] == 'Y':
         input['plot_all'] = 'N'
-    
+
     if options.event_info:
         input['IRIS'] = 'N'
         input['ArcLink'] = 'N'
@@ -1209,7 +1205,7 @@ def read_input_command(parser, **kwargs):
         input['plot_all_events'] = True
     else:
         input['plot_all_events'] = False
-    
+
     if options.seismicity:
         input['IRIS'] = 'N'
         input['ArcLink'] = 'N'
@@ -1218,19 +1214,20 @@ def read_input_command(parser, **kwargs):
         input['iris_merge_auto'] = 'N'
         input['arc_merge_auto'] = 'N'
         input['max_result'] = 1000000
-     
+
     if input['req_parallel'] == 'Y' or input['ic_parallel'] == 'Y':
         try:
             import pprocess
-        except Exception, error:
+        except Exception as error:
             print '***************************************************'
             print 'WARNING:'
             print 'ppross is not installed on your machine!'
             print 'for more info: http://pypi.python.org/pypi/pprocess'
             print '\nobspyDMT will work in Serial mode.'
+            print 'ERROR: %s' %error
             print '***************************************************'
             input['req_parallel'] = 'N'; input['ic_parallel'] = 'N'
-            
+
 ###################### get_Events ######################################
 
 def get_Events(input, request):
@@ -1254,14 +1251,14 @@ def get_Events(input, request):
     if os.path.exists(eventpath) == True:
         print '\n\n********************************************************'
         if raw_input('Directory for the requested period already exists:\n' +
-            str(eventpath) + '\n\n' + 
-            'Options:\nN: Close the program and try the updating mode.\n' + 
-            'Y: Remove the tree, continue the program ' + 
+            str(eventpath) + '\n\n' +
+            'Options:\nN: Close the program and try the updating mode.\n' +
+            'Y: Remove the tree, continue the program ' +
             'and re-download.\n').upper() == 'Y':
             print '********************************************************'
             shutil.rmtree(eventpath)
             os.makedirs(eventpath)
-        
+
         else:
             print 'EXIT'
             sys.exit()
@@ -1270,7 +1267,7 @@ def get_Events(input, request):
     events = events_info(request)
     os.makedirs(os.path.join(eventpath, 'EVENTS-INFO'))
     # logging the command line
-    input_logger(argus = sys.argv, 
+    input_logger(argus = sys.argv,
                  address = os.path.join(eventpath, 'EVENTS-INFO', 'logger.txt'),
                  inputs = input)
     len_events = len(events)
@@ -1283,7 +1280,7 @@ def get_Events(input, request):
         print "Event-ID:" + " " + events[i]['event_id']
         try:
             print "Flynn-Region:" + " " + events[i]['flynn_region']
-        except Exception, e:
+        except:
             print "Flynn-Region:" + " " + "NONE"
         print "Latitude:" + " " + str(events[i]['latitude'])
         print "Longitude:" + " " + str(events[i]['longitude'])
@@ -1306,7 +1303,7 @@ def get_Events(input, request):
     Event_cat.writelines('max depth: ' + str(input['max_depth']) + '\n')
     Event_cat.writelines('-------------------------------------' + '\n\n')
     Event_cat.close()
-    
+
     for j in range(0, len_events):
         Event_cat = open(os.path.join(eventpath, 'EVENTS-INFO', 'EVENT-CATALOG'), 'a')
         Event_cat.writelines("Event No: " + str(j) + '\n')
@@ -1317,11 +1314,11 @@ def get_Events(input, request):
         Event_cat.writelines("Depth: " + str(events[j]['depth']) + '\n')
         Event_cat.writelines("Latitude: " + str(events[j]['latitude']) + '\n')
         Event_cat.writelines("Longitude: " + str(events[j]['longitude']) + '\n')
-        
+
         try:
             Event_cat.writelines("Flynn-Region: " + \
                                 str(events[j]['flynn_region']) + '\n')
-        except Exception, e:
+        except Exception:
             Event_cat.writelines("Flynn-Region: " + 'None' + '\n')
         Event_cat.writelines('-------------------------------------' + '\n')
         Event_cat.close()
@@ -1363,12 +1360,12 @@ def events_info(request):
         elif input['event_catalog'] == 'IRIS':
             try:
                 print 'IRIS'
-                
+
                 evlatmin=input['evlatmin'];evlatmax=input['evlatmax']
                 evlonmin=input['evlonmin'];evlonmax=input['evlonmax']
                 evlat=input['evlat'];evlon=input['evlon']
                 evradmax=input['evradmax'];evradmin=input['evradmin']
-                
+
                 client_fdsn = Client_fdsn("IRIS")
                 events_QML = client_fdsn.get_events(\
                         minlatitude=evlatmin,maxlatitude=evlatmax,\
@@ -1382,11 +1379,11 @@ def events_info(request):
                         limit=input['max_result'],
                         orderby='time',
                         magnitudetype=input['mag_type'])
-                
-                if input['plot_all_events']: 
+
+                if input['plot_all_events']:
                     plt.ion()
                     events_QML.plot()
-                
+
                 events = []
                 for i in range(0, len(events_QML)):
                     event_time = events_QML.events[i].preferred_origin().time or \
@@ -1399,7 +1396,7 @@ def events_info(request):
                         event_time_day = '0' + str(event_time.day)
                     else:
                         event_time_day = str(event_time.day)
-                    
+
                     events.append({\
                         'author': \
                             events_QML.events[i].preferred_magnitude().creation_info.author or \
@@ -1421,7 +1418,7 @@ def events_info(request):
                             events_QML.events[i].preferred_magnitude().magnitude_type.lower() or \
 					    events_QML.events[i].magnitudes[0].magnitude_type.lower(), \
                         'flynn_region': 'NAN'})
-            except Exception, e:
+            except Exception as e:
                 print 30*'-'
                 print e
                 print 30*'-'
@@ -1488,7 +1485,7 @@ def seismicity():
     m.drawparallels(np.arange(-90.,120.,30.))
     m.drawmeridians(np.arange(0.,420.,60.))
     m.drawmapboundary()
-    
+
     # Defining Labels:
     x_ev, y_ev = m(-360, 0)
     m.scatter(x_ev, y_ev, 20, color='red', marker="o", \
@@ -1497,7 +1494,7 @@ def seismicity():
                 edgecolor="black", zorder=10, label = '70-300km')
     m.scatter(x_ev, y_ev, 20, color='blue', marker="o", \
                 edgecolor="black", zorder=10, label = '300< km')
-    
+
     m.scatter(x_ev, y_ev, 5, color='white', marker="o", \
                 edgecolor="black", zorder=10, label = '<=4.0')
     m.scatter(x_ev, y_ev, 20, color='white', marker="o", \
@@ -1506,7 +1503,7 @@ def seismicity():
                 edgecolor="black", zorder=10, label = '5.0-6.0')
     m.scatter(x_ev, y_ev, 50, color='white', marker="o", \
                 edgecolor="black", zorder=10, label = '6.0<')
-    
+
     for i in range(0, len(events)):
         x_ev, y_ev = m(float(events[i]['longitude']), float(events[i]['latitude']))
         if abs(float(events[i]['depth'])) <= 70.0:
@@ -1515,7 +1512,7 @@ def seismicity():
             color = 'green'
         elif 300.0 < abs(float(events[i]['depth'])) <= 1000.0:
             color = 'blue'
-        
+
         if float(events[i]['magnitude']) <= 4.0:
             size = 5
         elif 4.0 < float(events[i]['magnitude']) <= 5.0:
@@ -1524,7 +1521,7 @@ def seismicity():
             size = 35
         elif 6.0 < float(events[i]['magnitude']):
             size = 50
-        
+
         m.scatter(x_ev, y_ev, size,\
                 color=color, marker="o", \
                 edgecolor="black", zorder=10)
@@ -1545,21 +1542,21 @@ def IRIS_network(input):
                             str(input['min_mag']),
                             str(input['max_mag']))
     eventpath = os.path.join(input['datapath'], Period)
-    
+
     print 'Create folders...',
     create_folders_files(events, eventpath)
     print 'DONE'
-    
+
     for i in range(len_events):
         t_iris_1 = datetime.now()
         target_path = os.path.join(eventpath, events[i]['event_id'])
-        
-        if not input['list_stas']: 
+
+        if not input['list_stas']:
             Stas_iris = IRIS_available(input, events[i], \
                                         target_path, event_number = i)
-        else: 
+        else:
             Stas_iris = read_list_stas(input['list_stas'], input['specfem3D'])
-        
+
         if input['iris_bulk'] != 'Y':
             print '\nIRIS-Availability for event: %s/%s ---> DONE' \
                         %(i+1, len_events)
@@ -1568,7 +1565,7 @@ def IRIS_network(input):
                         %(i+1, len_events)
         t_iris = datetime.now() - t_iris_1
         print 'Time for checking the availability: %s' %(t_iris)
-        
+
         if Stas_iris:
             IRIS_waveform(input, Stas_iris, i, type = 'save')
         else:
@@ -1582,11 +1579,10 @@ def IRIS_available(input, event, target_path, event_number):
     Check the availablity of the IRIS stations
     """
     print "Check the availablity of the IRIS stations"
-    client_iris = Client_iris()
     client_fdsn = Client_fdsn('IRIS')
     Sta_iris = []
-    
-    try:       
+
+    try:
         available = client_fdsn.get_stations(network=input['net'], \
             station=input['sta'], location=input['loc'], \
             channel=input['cha'], \
@@ -1602,7 +1598,7 @@ def IRIS_available(input, event, target_path, event_number):
         for network in available.networks:
             for station in network:
                 for channel in station:
-                    Sta_iris.append([network.code, station.code, 
+                    Sta_iris.append([network.code, station.code,
                         channel.location_code, channel.code,
                         channel.latitude, channel.longitude,
                         channel.elevation, channel.depth])
@@ -1613,17 +1609,17 @@ def IRIS_available(input, event, target_path, event_number):
                 print 'bulkdata.txt exists in the directory!'
             else:
                 print 'Start creating a list for bulk request'
-                bulk_list = [] 
+                bulk_list = []
                 for bulk_sta in Sta_iris:
-                    bulk_list.append((bulk_sta[0], bulk_sta[1], 
-                                        bulk_sta[2], bulk_sta[3], 
+                    bulk_list.append((bulk_sta[0], bulk_sta[1],
+                                        bulk_sta[2], bulk_sta[3],
                                         UTCDateTime(event['t1']),
                                         UTCDateTime(event['t2'])))
                 bulk_list_fio = open(os.path.join(target_path,'info', 'bulkdata_list'), 'a+')
                 pickle.dump(bulk_list, bulk_list_fio)
                 bulk_list_fio.close()
-    
-    except Exception, e:
+
+    except Exception as e:
         Exception_file = open(os.path.join(target_path, \
             'info', 'exception'), 'a+')
         ee = 'iris -- Event:' + str(event_number) + '---' + str(e) + '\n'
@@ -1649,8 +1645,8 @@ def read_list_stas(add_list, specfem3D):
         final_list = []
         for sta in range(len(list_stas)):
             for chan in ['MXE', 'MXN', 'MXZ']:
-                final_list.append(['SY', list_stas[sta][0], 'S3', chan, 
-                                    list_stas[sta][2], list_stas[sta][3], 
+                final_list.append(['SY', list_stas[sta][0], 'S3', chan,
+                                    list_stas[sta][2], list_stas[sta][3],
                                     list_stas[sta][4]])
     else:
         list_stas_fio = open(add_list)
@@ -1661,8 +1657,8 @@ def read_list_stas(add_list, specfem3D):
         final_list = []
         for sta in range(len(list_stas)):
             #for chan in ['BH1', 'BH2', 'BHE', 'BHN', 'BHZ']:
-            final_list.append([list_stas[sta][1], list_stas[sta][0], 
-                                list_stas[sta][2], list_stas[sta][3], 
+            final_list.append([list_stas[sta][1], list_stas[sta][0],
+                                list_stas[sta][2], list_stas[sta][3],
                                 list_stas[sta][4], list_stas[sta][5],
                                 list_stas[sta][6]])
 
@@ -1679,7 +1675,6 @@ def IRIS_waveform(input, Sta_req, i, type):
     """
     t_wave_1 = datetime.now()
     global events
-    client_iris = Client_iris()
     add_event = []
     if type == 'save':
         Period = '%s_%s_%s_%s' %(input['min_date'].split('T')[0],
@@ -1689,13 +1684,13 @@ def IRIS_waveform(input, Sta_req, i, type):
         eventpath = os.path.join(input['datapath'], Period)
         for k in range(0, len(events)):
             add_event.append(os.path.join(eventpath, \
-                                        events[k]['event_id'])) 
+                                        events[k]['event_id']))
     elif type == 'update':
         events, add_event = quake_info(input['iris_update'], target = 'info')
     len_events = len(events)
     if input['test'] == 'Y':
         len_req_iris = input['test_num']
-    else:   
+    else:
         len_req_iris = len(Sta_req)
 
     if input['iris_bulk'] == 'Y':
@@ -1704,7 +1699,7 @@ def IRIS_waveform(input, Sta_req, i, type):
         bulk_list_fio = open(os.path.join(add_event[i],
                                 'info', 'bulkdata_list'))
         bulk_list = pickle.load(bulk_list_fio)
-        bulk_smgrs = client_fdsn.get_waveforms_bulk(bulk_list) 
+        bulk_smgrs = client_fdsn.get_waveforms_bulk(bulk_list)
         print 'Saving the retrieved waveforms...',
         for bulk_st in bulk_smgrs:
             bulk_st.stats = bulk_st.stats
@@ -1714,7 +1709,7 @@ def IRIS_waveform(input, Sta_req, i, type):
                                 bulk_st.stats['location'],
                                 bulk_st.stats['channel'])), 'MSEED')
         print 'DONE'
-        
+
         #if input['req_parallel'] == 'Y':
         #    num_lines=1000; bulk_enum=0; bulk_num_files=1
         #    bulkfile_new=open(os.path.join(add_event[i], 'info', 'bulk_split_0.txt'), 'wb')
@@ -1757,10 +1752,10 @@ def IRIS_waveform(input, Sta_req, i, type):
         t22 = datetime.now()
         print '\nbulkdataselect request is done for event: %s/%s in %s' \
                                     %(i+1, len_events, t22-t11)
-    
-    dic = {}                
+
+    dic = {}
     print '\nIRIS-Event: %s/%s' %(i+1, len_events)
-    
+
     #if input['req_parallel'] == 'Y':
     #    parallel_len_req_iris = range(0, len_req_iris)
     #    lol = [parallel_len_req_iris[n:n+input['req_np']] for n in range(0, len(parallel_len_req_iris), input['req_np'])]
@@ -1799,7 +1794,7 @@ def IRIS_waveform(input, Sta_req, i, type):
             input['req_parallel'] = 'Y'
     except:
         pass
-   
+
     if input['iris_bulk'] == 'Y':
         input['waveform'] = 'Y'
         sta_saved_path = glob.glob(os.path.join(add_event[i], 'BH_RAW', '*.*.*.*'))
@@ -1822,7 +1817,7 @@ def IRIS_waveform(input, Sta_req, i, type):
         print '\nConverting the MSEED files to SAC...',
         writesac_all(i = i, events = events, address_events = add_event)
         print 'DONE'
-   
+
     #len_sta_ev_open=open(os.path.join(add_event[i], 'info', 'station_event'), 'r')
     #len_sta_ev=len(len_sta_ev_open.readlines())
     len_sta_ev=[]
@@ -1839,15 +1834,15 @@ def IRIS_waveform(input, Sta_req, i, type):
             ' and for event' + '-' + str(i) + ':     ' + str(len_sta_ev) + '\n'
     Report.writelines(rep)
     Report.writelines('----------------------------------' + '\n')
-        
+
     t_wave_2 = datetime.now()
     t_wave = t_wave_2 - t_wave_1
-        
+
     rep = "Time for " + type + "ing Waveforms from IRIS: " + str(t_wave) + '\n'
     Report.writelines(rep)
     Report.writelines('----------------------------------' + '\n')
     Report.close()
-    
+
     if input['req_parallel'] == 'Y':
         report_parallel_open = open(os.path.join(add_event[i], \
                                     'info', 'report_parallel'), 'a')
@@ -1862,59 +1857,40 @@ def IRIS_waveform(input, Sta_req, i, type):
             report_parallel_open.writelines(\
                 'Number of Nodes: ' + str(input['req_np']) + '\n')
 
-        size = getFolderSize(os.path.join(add_event[i])) 
+        size = getFolderSize(os.path.join(add_event[i]))
         ti = str(t_wave.seconds) + ',' + str(t_wave.microseconds) \
                 + ',' + str(size/(1024.**2)) + ',+,\n'
-                
+
         report_parallel_open.writelines(\
             'Total Time     : ' + str(t_wave) + '\n')
         report_parallel_open.writelines(ti)
         report_parallel_open.close()
-        
+
     print "\n------------------------"
     print 'IRIS for event-' + str(i+1) + ' is Done'
     print 'Total Time: %s' %(t_wave)
     print "------------------------"
 
-###################### bulk_download_core ##################################
-
-def bulk_download_core(bulk_file, add_event):
-    
-    client_iris = Client_iris()
-    print "Send bulkdatarequest for: %s" %(bulk_file)
-    bulk_st=client_iris.bulkdataselect(bulk_file)
-    print "* bulkdataselect request for %s ... DONE" %(bulk_file.split('/')[-1])
-    print '* Saving the retrieved waveforms of '+bulk_file.split('/')[-1]+'...',
-    for m in range(0, len(bulk_st)):
-        bulk_st_info = bulk_st[m].stats
-        bulk_st[m].write(os.path.join(add_event,
-            'BH_RAW', bulk_st_info['network'] + '.' +
-            bulk_st_info['station'] + '.' +
-            bulk_st_info['location'] + '.' +
-            bulk_st_info['channel']), 'MSEED')
-    print 'DONE'
-
 ###################### IRIS_download_core ##################################
 
 def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, input):
-    
+
     try:
         dummy = 'Initializing'
-        client_iris = Client_iris()
         client_fdsn = Client_fdsn('IRIS')
         t11 = datetime.now()
         if Sta_req[j][2] == '--' or Sta_req[j][2] == '  ':
                 Sta_req[j][2] = ''
         info_req = '['+str(i+1)+'/'+str(len_events)+'-'+\
-                    str(j+1)+'/'+str(len(Sta_req))+'-'+input['cha']+'] ' 
+                    str(j+1)+'/'+str(len(Sta_req))+'-'+input['cha']+'] '
 
         if input['cut_time_phase']:
             t_start, t_end = calculate_time_phase(events[i], Sta_req[j])
         else:
             t_start = events[i]['t1']
             t_end = events[i]['t2']
-        
-        if input['waveform'] == 'Y':                    
+
+        if input['waveform'] == 'Y':
             dummy = 'Waveform'
             client_fdsn.get_waveforms(
                 Sta_req[j][0], Sta_req[j][1], \
@@ -1925,8 +1901,8 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
                 Sta_req[j][2] + '.' + Sta_req[j][3]))
             print str(info_req) + "Saving Waveform for: " + Sta_req[j][0] + \
                 '.' + Sta_req[j][1] + '.' + \
-                Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"  
-        
+                Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"
+
         if input['response'] == 'Y':
             dummy = 'Response'
             client_fdsn.get_stations(
@@ -1937,18 +1913,11 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
                 'STXML.' + Sta_req[j][0] + '.' + Sta_req[j][1] + '.' + \
                 Sta_req[j][2] + '.' + Sta_req[j][3]),
                 level='response')
-            
-            #client_iris.saveResponse(os.path.join(add_event[i], \
-            #    'Resp', 'RESP' + '.' + \
-            #    Sta_req[j][0] +  '.' + Sta_req[j][1] + '.' + \
-            #    Sta_req[j][2] + '.' + Sta_req[j][3]), \
-            #    Sta_req[j][0], Sta_req[j][1], \
-            #    Sta_req[j][2], Sta_req[j][3], \
-            #    t_start, t_end)
+
             print str(info_req) + "Saving Response for: " + Sta_req[j][0] + \
                 '.' + Sta_req[j][1] + '.' + \
-                Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"   
-               
+                Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"
+
         dummy = 'Meta-data'
         dic[j] ={'info': Sta_req[j][0] + '.' + Sta_req[j][1] + \
             '.' + Sta_req[j][2] + '.' + Sta_req[j][3], \
@@ -1960,7 +1929,7 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
                                 'station_event'), 'a')
         syn = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,iris,\n' %(
                 dic[j]['net'], dic[j]['sta'], dic[j]['loc'], dic[j]['cha'],
-                dic[j]['latitude'], dic[j]['longitude'], 
+                dic[j]['latitude'], dic[j]['longitude'],
                 dic[j]['elevation'], 0,
                 events[i]['event_id'], events[i]['latitude'],
                 events[i]['longitude'], events[i]['depth'],
@@ -1977,13 +1946,13 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
         print str(info_req) + "Saving Metadata for: " + Sta_req[j][0] + \
             '.' + Sta_req[j][1] + '.' + \
             Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"
-        
+
         t22 = datetime.now()
         if input['time_iris'] == 'Y':
             time_iris = t22 - t11
             time_file = open(os.path.join(add_event[i], 'info', \
                 'time_iris'), 'a')
-            size = getFolderSize(os.path.join(add_event[i])) 
+            size = getFolderSize(os.path.join(add_event[i]))
             print size/(1024.**2)
             ti = Sta_req[j][0] + ',' + Sta_req[j][1] + ',' + \
                 Sta_req[j][2] + ',' + Sta_req[j][3] + ',' + \
@@ -1991,13 +1960,13 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
                 + ',' + str(size/(1024.**2)) + ',+,\n'
             time_file.writelines(ti)
             time_file.close()
-    except Exception, e:    
+    except Exception as e:
         t22 = datetime.now()
         if input['time_iris'] == 'Y':
             time_iris = t22 - t11
             time_file = open(os.path.join(add_event[i], \
                             'info', 'time_iris'), 'a')
-            size = getFolderSize(os.path.join(add_event[i])) 
+            size = getFolderSize(os.path.join(add_event[i]))
             print size/(1024.**2)
             ti = Sta_req[j][0] + ',' + Sta_req[j][1] + ',' + \
                 Sta_req[j][2] + ',' + Sta_req[j][3] + ',' + \
@@ -2006,8 +1975,8 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
                 str(size/(1024.**2)) + ',-,\n'
             time_file.writelines(ti)
             time_file.close()
-        
-        if len(Sta_req[j]) != 0: 
+
+        if len(Sta_req[j]) != 0:
             print str(info_req) + dummy + '---' + Sta_req[j][0] + '.' + Sta_req[j][1] + \
                             '.' +Sta_req[j][2] + '.' + Sta_req[j][3]
             ee = 'iris -- ' + dummy + '---' + str(i) + '-' + str(j) + '---' + \
@@ -2025,7 +1994,7 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
 ###################### calculate_time_phase ##################################
 
 def calculate_time_phase(event, sta):
-    
+
     """
     calculate arrival time of the requested phase to use in 
     retrieving waveforms.
@@ -2041,37 +2010,37 @@ def calculate_time_phase(event, sta):
     flag = False
     for ph in phase_list:
         for i in range(len(tt)):
-            if tt[i]['phase_name'] == ph: 
+            if tt[i]['phase_name'] == ph:
                 flag = True
                 time = tt[i]['time']
                 break
-            else: 
+            else:
                 continue
         if flag:
             print '%s exists in this station-event set-up!' %(ph)
             break
     t_start = event['t1'] + time
     t_end = event['t2'] + time
-    return t_start, t_end 
+    return t_start, t_end
 
 ###################### Arclink_network #################################
 
 def ARC_network(input):
-    
+
     """
     Returns information about what time series data is available 
     at the ArcLink nodes for all requested events
     """
-    
+
     global events
-    
+
     len_events = len(events)
     Period = '%s_%s_%s_%s' %(input['min_date'].split('T')[0],
                             input['max_date'].split('T')[0],
                             str(input['min_mag']),
                             str(input['max_mag']))
     eventpath = os.path.join(input['datapath'], Period)
-    
+
     if input['IRIS'] != 'Y':
         print 'Create folders...',
         create_folders_files(events, eventpath)
@@ -2085,7 +2054,7 @@ def ARC_network(input):
         t_arc_2 = datetime.now()
         t_arc_21 = t_arc_2 - t_arc_1
         print 'Time for checking the availability: ' + str(t_arc_21)
-        
+
         if Stas_arc:
             ARC_waveform(input, Stas_arc, i, type = 'save')
         else:
@@ -2094,12 +2063,12 @@ def ARC_network(input):
 ###################### ARC_available ###################################
 
 def ARC_available(input, event, target_path, event_number):
-    
+
     """
     Check the availablity of the ArcLink stations
     """
-    
-    client_arclink = Client_arclink(user='test@obspy.org', 
+
+    client_arclink = Client_arclink(user='test@obspy.org',
                                     timeout=input['arc_avai_timeout'])
     Sta_arc = []
     try:
@@ -2113,36 +2082,36 @@ def ARC_available(input, event, target_path, event_number):
             min_longitude=None, max_longitude=None, \
             restricted=False, permanent=None, modified_after=None)
         for j in inventories.keys():
-            netsta = j.split('.') 
+            netsta = j.split('.')
             if len(netsta) == 4:
                 sta = netsta[0] + '.' + netsta[1]
                 if inventories[sta]['depth'] == None:
                     inventories[sta]['depth'] = 0.0
                 if input['mlat_rbb']==None:
-                    mlatrbb=-90.0;Mlatrbb=+90.0 
+                    mlatrbb=-90.0;Mlatrbb=+90.0
                     mlonrbb=-180.0;Mlonrbb=+180.0
                 else:
                     mlatrbb=input['mlat_rbb']
                     Mlatrbb=input['Mlat_rbb']
-                    mlonrbb=input['mlon_rbb'] 
-                    Mlonrbb=input['Mlon_rbb'] 
+                    mlonrbb=input['mlon_rbb']
+                    Mlonrbb=input['Mlon_rbb']
                 if mlatrbb <= inventories[sta]['latitude'] <= Mlatrbb and \
                     mlonrbb <= inventories[sta]['longitude'] <= Mlonrbb:
                     Sta_arc.append([netsta[0], netsta[1], netsta[2], netsta[3],\
                             inventories[sta]['latitude'], inventories[sta]['longitude'],\
                             inventories[sta]['elevation'], inventories[sta]['depth']])
-                
+
         if len(Sta_arc) == 0:
             Sta_arc.append([])
         Sta_arc.sort()
-    except Exception, e:
+    except Exception as e:
         Exception_file = open(os.path.join(target_path, \
             'info', 'exception'), 'a+')
         ee = 'arclink -- Event:' + str(event_number) + '---' + str(e) + '\n'
         Exception_file.writelines(ee)
         Exception_file.close()
         print e
-    
+
     return Sta_arc
 
 ###################### Arclink_waveform ############################
@@ -2154,7 +2123,7 @@ def ARC_waveform(input, Sta_req, i, type):
     """
     t_wave_1 = datetime.now()
     global events
-    client_arclink = Client_arclink(user='test@obspy.org', 
+    client_arclink = Client_arclink(user='test@obspy.org',
                                     timeout=input['arc_wave_timeout'])
     client_neries = Client_neries(user='test@obspy.org', timeout=input['neries_timeout'])
     add_event = []
@@ -2166,14 +2135,14 @@ def ARC_waveform(input, Sta_req, i, type):
         eventpath = os.path.join(input['datapath'], Period)
         for k in range(0, len(events)):
             add_event.append(os.path.join(eventpath, \
-                                        events[k]['event_id']))  
+                                        events[k]['event_id']))
     elif type == 'update':
         events, add_event = quake_info(input['arc_update'], target = 'info')
     len_events = len(events)
     if input['test'] == 'Y':
         len_req_arc = input['test_num']
-    else:    
-        len_req_arc = len(Sta_req)       
+    else:
+        len_req_arc = len(Sta_req)
     dic = {}
     print '\nArcLink-Event: %s/%s' %(i+1, len_events)
     if input['req_parallel'] == 'Y':
@@ -2226,14 +2195,14 @@ def ARC_waveform(input, Sta_req, i, type):
             'Request' + '\n')
         report_parallel_open.writelines(\
             'Number of Nodes: ' + str(input['req_np']) + '\n')
-        size = getFolderSize(os.path.join(add_event[i])) 
+        size = getFolderSize(os.path.join(add_event[i]))
         ti = str(t_wave.seconds) + ',' + str(t_wave.microseconds) \
                 + ',' + str(size/(1024.**2)) + ',+,\n'
         report_parallel_open.writelines(\
             'Total Time     : ' + str(t_wave) + '\n')
         report_parallel_open.writelines(ti)
         report_parallel_open.close()
-    
+
     print "\n------------------------"
     print 'ArcLink for event-' + str(i+1) + ' is Done'
     print 'Total Time: %s' %(t_wave)
@@ -2242,22 +2211,22 @@ def ARC_waveform(input, Sta_req, i, type):
 ###################### ARC_download_core ###############################
 
 def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, input):
- 
+
     try:
         dummy = 'Initializing'
-        client_arclink = Client_arclink(user='test@obspy.org', 
+        client_arclink = Client_arclink(user='test@obspy.org',
                                 timeout=input['arc_wave_timeout'])
         client_neries = Client_neries(user='test@obspy.org', timeout=input['neries_timeout'])
         t11 = datetime.now()
         info_req = '['+str(i+1)+'/'+str(len_events)+'-'+\
-                    str(j+1)+'/'+str(len(Sta_req))+'-'+input['cha']+'] ' 
-        
+                    str(j+1)+'/'+str(len(Sta_req))+'-'+input['cha']+'] '
+
         if input['cut_time_phase']:
             t_start, t_end = calculate_time_phase(events[i], Sta_req[j])
         else:
             t_start = events[i]['t1']
             t_end = events[i]['t2']
-        
+
         if input['waveform'] == 'Y':
             dummy = 'Waveform'
             try:
@@ -2268,7 +2237,7 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
                     Sta_req[j][0], Sta_req[j][1], \
                     Sta_req[j][2], Sta_req[j][3], \
                     t_start, t_end)
-            except Exception, e: 
+            except Exception as e:
                 print e
                 if input['NERIES'] == 'Y':
                     print "\nWaveform is not available in ArcLink, trying NERIES!\n"
@@ -2285,8 +2254,8 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
             check_file.close()
             print str(info_req) + "Saving Waveform for: " + Sta_req[j][0] + \
                 '.' + Sta_req[j][1] + '.' + \
-                Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"  
-        
+                Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"
+
         if input['response'] == 'Y':
             dummy = 'Response'
             client_arclink.saveResponse(os.path.join(add_event[i], \
@@ -2304,8 +2273,8 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
             print str(info_req) + "Saving Response for: " + Sta_req[j][0] + \
                 '.' + Sta_req[j][1] + '.' + \
                 Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"
-        
-        if input['paz'] == 'Y':                    
+
+        if input['paz'] == 'Y':
             dummy = 'PAZ'
             paz_arc = client_arclink.getPAZ(\
                 Sta_req[j][0], Sta_req[j][1], \
@@ -2321,7 +2290,7 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
             print str(info_req) + "Saving PAZ for     : " + Sta_req[j][0] + \
                 '.' + Sta_req[j][1] + '.' + \
                 Sta_req[j][2] + '.' + Sta_req[j][3] + "  ---> DONE"
-        
+
         dummy = 'Meta-data'
         dic[j] ={'info': Sta_req[j][0] + '.' + Sta_req[j][1] + \
             '.' + Sta_req[j][2] + '.' + Sta_req[j][3], \
@@ -2366,8 +2335,8 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
                 str(size/(1024.**2)) + ',+,\n'
             time_file.writelines(ti)
             time_file.close()
-        
-    except Exception, e:    
+
+    except Exception as e:
         t22 = datetime.now()
         if input['time_arc'] == 'Y':
             time_arc = t22 - t11
@@ -2383,7 +2352,7 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
             time_file.writelines(ti)
             time_file.close()
 
-        if len(Sta_req[j]) != 0: 
+        if len(Sta_req[j]) != 0:
             print str(info_req) + dummy + '---' + Sta_req[j][0] + '.' + Sta_req[j][1] + \
                             '.' +Sta_req[j][2] + '.' + Sta_req[j][3]
             ee = 'arclink -- ' + dummy + '---' + str(i) + '-' + str(j) + '---' + \
@@ -2399,15 +2368,14 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
         print e
 
 ###################### IRIS_update #####################################
-    
+
 def IRIS_update(input, address):
-    
+
     """
     Initialize folders and required stations for IRIS update requests
     """
-    
+
     t_update_1 = datetime.now()
-    client_iris = Client_iris()
     events, address_events = quake_info(address, 'info')
     len_events = len(events)
     for i in range(0, len_events):
@@ -2436,15 +2404,15 @@ def IRIS_update(input, address):
             continue
 
 ###################### ARC_update ######################################
-    
+
 def ARC_update(input, address):
-    
+
     """
     Initialize folders and required stations for ARC update requests
     """
-    
+
     t_update_1 = datetime.now()
-    client_arclink = Client_arclink(user='test@obspy.org', 
+    client_arclink = Client_arclink(user='test@obspy.org',
                                 timeout=input['arc_avai_timeout'])
     events, address_events = quake_info(address, 'info')
     len_events = len(events)
@@ -2453,7 +2421,7 @@ def ARC_update(input, address):
         Stas_arc = ARC_available(input, events[i], target_path[i], event_number = i)
         print '\nArcLink-Availability for event: ' + str(i+1) + str('/') + \
                                     str(len_events) + '  --->' + 'DONE'
-        
+
         if Stas_arc != [[]]:
             Stas_req = rm_duplicate(Stas_arc, \
                             address = os.path.join(address_events[i]))
@@ -2469,17 +2437,17 @@ def ARC_update(input, address):
         else:
             'No available station in ArcLink for your request!'
             continue
-    
+
 ###################### IRIS_ARC_IC #####################################
 
 def IRIS_ARC_IC(input, clients):
-    
+
     """
     Call "inst_correct" function based on the channel request.
     """
-    
+
     if input[clients + '_ic_auto'] == 'Y':
-        global events        
+        global events
         Period = '%s_%s_%s_%s' %(input['min_date'].split('T')[0],
                                 input['max_date'].split('T')[0],
                                 str(input['min_mag']),
@@ -2488,39 +2456,39 @@ def IRIS_ARC_IC(input, clients):
         address = eventpath
     elif input[clients + '_ic'] != 'N':
         address = input[clients + '_ic']
-    
+
     events, address_events = quake_info(address, 'info')
 
     for i in range(0, len(events)):
         sta_ev = read_station_event(address_events[i])
         ls_saved_stas_tmp = []
         ls_saved_stas = []
-        
+
         for j in range(0, len(sta_ev[0])):
             if clients == sta_ev[0][j][13]:
                 station_id = sta_ev[0][j][0] + '.' + sta_ev[0][j][1] + '.' + \
                              sta_ev[0][j][2] + '.' + sta_ev[0][j][3]
                 ls_saved_stas_tmp.append(os.path.join(address_events[i], 'BH_RAW',\
                                         station_id))
-        
+
         pattern_sta = '%s.%s.%s.%s' %(input['net'], input['sta'],
                                         input['loc'], input['cha'])
-        
+
         for k in range(0, len(ls_saved_stas_tmp)):
             if fnmatch.fnmatch(ls_saved_stas_tmp[k].split('/')[-1], pattern_sta):
                 ls_saved_stas.append(ls_saved_stas_tmp[k])
-        
-        if len(ls_saved_stas) != 0:        
+
+        if len(ls_saved_stas) != 0:
             print '\nevent: ' + str(i+1) + '/' + str(len(events)) + \
                                              ' -- ' + clients + '\n'
-            inst_correct(input, ls_saved_stas, address_events[i], clients) 
+            inst_correct(input, ls_saved_stas, address_events[i], clients)
         else:
             print "There is no station in the folder to correct!"
 
 ###################### inst_correct ###############################
-    
+
 def inst_correct(input, ls_saved_stas, address, clients):
-    
+
     """
     Apply Instrument Coorection on all available stations in the folder
     This scrips uses 'seisSim' from obspy.signal for this reason
@@ -2532,21 +2500,21 @@ def inst_correct(input, ls_saved_stas, address, clients):
         
     Remove the instrument type by deconvolution using spectral division.
     """
-    
+
     t_inst_1 = datetime.now()
-    
+
     if input['corr_unit'] == 'DIS':
         BH_file = 'BH'
     else:
         BH_file = 'BH_' + input['corr_unit']
-    
+
     try:
         os.makedirs(os.path.join(address, BH_file))
-    except Exception, e:
+    except Exception as e:
         pass
-    
+
     if input['ic_parallel'] == 'Y':
-       
+
         print '\nParallel Instrument Correction with %s processes.\n' %(input['ic_np'])
         #!! Still do not know which one is the best: 
         #parallel_results = pprocess.Queue(limit=input['req_np'])
@@ -2570,7 +2538,7 @@ def inst_correct(input, ls_saved_stas, address, clients):
                     BH_file = BH_file, \
                     inform = clients + ' -- ' + \
                     str(i+1) + '/' + str(len(ls_saved_stas)))
-    
+
     # ---------Creating Tar files (Response files)
     if input['zip_w'] == 'Y':
         print '\nCompressing Raw files...',
@@ -2587,7 +2555,7 @@ def inst_correct(input, ls_saved_stas, address, clients):
         files = '*.*.*.*'
         compress_gzip(path = path, tar_file = tar_file, files = files)
         print 'DONE'
-    
+
     t_inst_2 = datetime.now()
     if input['ic_parallel'] == 'Y':
         report_parallel_open = open(os.path.join(address, \
@@ -2608,46 +2576,46 @@ def inst_correct(input, ls_saved_stas, address, clients):
 ###################### IC_core #########################################
 
 def IC_core(ls_saved_stas, clients, address, BH_file, inform):
-    
+
     global input
-    
+
     try:
-        
+
         if input['ic_obspy_full'] == 'Y':
             # Removing the trend
             rt_c = RTR(stream = ls_saved_stas, degree = 2)
             tr = read(ls_saved_stas)[0]
             tr.data = rt_c
-            
+
             # Tapering
             taper = invsim.cosTaper(len(tr.data))
             tr.data *= taper
-            
+
             if clients.lower() != 'arc':
                 stxml_file = os.path.join(address, 'Resp', 'STXML.' +
                                         ls_saved_stas.split('/')[-1])
                 obspy_fullresp_STXML(trace = tr, stxml_file = stxml_file,
-                    Address = os.path.join(address, BH_file), 
-                    unit = input['corr_unit'], BP_filter = input['pre_filt'], 
+                    Address = os.path.join(address, BH_file),
+                    unit = input['corr_unit'], BP_filter = input['pre_filt'],
                     inform = inform)
             else:
                 resp_file = os.path.join(address, 'Resp', 'DATALESS.' +
                                         ls_saved_stas.split('/')[-1])
                 obspy_fullresp_RESP(trace = tr, resp_file = resp_file,
-                    Address = os.path.join(address, BH_file), 
-                    unit = input['corr_unit'], BP_filter = input['pre_filt'], 
+                    Address = os.path.join(address, BH_file),
+                    unit = input['corr_unit'], BP_filter = input['pre_filt'],
                     inform = inform)
 
-        
+
         if input['ic_sac_full'] == 'Y':
-            
+
             resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
                                         ls_saved_stas.split('/')[-1])
-        
+
             SAC_fullresp(trace = ls_saved_stas, resp_file = resp_file, \
                 address = address, BH_file = BH_file, unit = input['corr_unit'], \
                 BP_filter = input['pre_filt'], inform = inform)
-        
+
         if input['ic_paz'] == 'Y':
             """
             paz_file = os.path.join(address, 'Resp', 'PAZ' + '.' + \
@@ -2674,34 +2642,34 @@ def IC_core(ls_saved_stas, clients, address, BH_file, inform):
                 clients = clients, unit = input['corr_unit'], \
                 BP_filter = input['pre_filt'], inform = inform)
             """
-            
+
             #if clients == 'iris':
             #    paz_file = os.path.join(address, 'Resp', 'PAZ' + '.' + \
             #                    ls_saved_stas.split('/')[-1] + '.' + 'full')
- 
+
             #    SAC_PAZ(trace = ls_saved_stas, paz_file = paz_file, \
             #        address = address, BH_file = BH_file, unit = input['corr_unit'], \
             #        BP_filter = input['pre_filt'], inform = inform)
-            
+
             #if clients == 'arc':
 
             print "instrument correction using PAZ"
             rt_c = RTR(stream = ls_saved_stas, degree = 2)
             tr = read(ls_saved_stas)[0]
             tr.data = rt_c
-            
+
             # Tapering
             taper = invsim.cosTaper(len(tr.data))
             tr.data *= taper
-            
+
             resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
                                         ls_saved_stas.split('/')[-1])
-        
+
             obspy_PAZ(trace = tr, resp_file = resp_file, \
                 Address = os.path.join(address, BH_file), \
                 clients = clients, unit = input['corr_unit'], \
                 BP_filter = input['pre_filt'], inform = inform)
-        
+
             """
             rt_c = RTR(stream = ls_saved_stas, degree = 2)
             tr = read(ls_saved_stas)[0]
@@ -2724,39 +2692,39 @@ def IC_core(ls_saved_stas, clients, address, BH_file, inform):
                 Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
                 BP_filter = input['pre_filt'], inform = inform)
             """
-            
-    except Exception, e:
+
+    except Exception as e:
         print e
 
 ###################### RTR #############################################
 
 def RTR(stream, degree = 2):
-    
+
     """
     Remove the trend by Fitting a linear function to the trace 
     with least squares and subtracting it
     """
-    
+
     raw_f = read(stream)
 
     t = []
     b0 = 0
     inc = []
-    
+
     b = raw_f[0].stats['starttime']
 
     for i in range(0, raw_f[0].stats['npts']):
         inc.append(b0)
-        b0 = b0+1.0/raw_f[0].stats['sampling_rate'] 
+        b0 = b0+1.0/raw_f[0].stats['sampling_rate']
         b0 = round(b0, 4)
-        
+
     A = np.vander(inc, degree)
     (coeffs, residuals, rank, sing_vals) = np.linalg.lstsq(A, raw_f[0].data)
-    
+
     f = np.poly1d(coeffs)
     y_est = f(inc)
     rt_c = raw_f[0].data-y_est
-    
+
     return rt_c
 
 ###################### obspy_fullresp_STXML ######################################
@@ -2778,18 +2746,18 @@ def obspy_fullresp_STXML(trace, stxml_file, Address, unit = 'DIS',
         if input['mseed'] == 'N':
             trace.write(os.path.join(Address, unit.lower() + '.' +
                                         trace_identity), format = 'SAC')
-        else: 
+        else:
             trace.write(os.path.join(Address, unit.lower() + '.' +
                                         trace_identity), format = 'MSEED')
-        
+
         if unit.lower() == 'disp': unit_print = 'displacement'
         if unit.lower() == 'vel': unit_print = 'velocity'
         if unit.lower() == 'acc':  unit_print = 'acceleration'
 
         print inform + ' -- Instrument Correction to ' + unit_print + \
-                                            ' for: ' + trace_identity 
-        
-    except Exception, e:
+                                            ' for: ' + trace_identity
+
+    except Exception as e:
         print inform + ' -- ' + str(e)
 
 ###################### obspy_fullresp_RESP #######################################
@@ -2800,25 +2768,25 @@ def obspy_fullresp_RESP(trace, resp_file, Address, unit = 'DIS',
     date = trace.stats['starttime']
     dataless_parser = Parser(resp_file)
     seedresp = {'filename': dataless_parser, 'units':unit}
-    
+
     try:
         trace.simulate(seedresp=seedresp, paz_remove=None,
-                paz_simulate = None, remove_sensitivity=True, 
+                paz_simulate = None, remove_sensitivity=True,
                 simulate_sensitivity = False, water_level = 600.0,
-                zero_mean = True, taper = False, 
-                pre_filt=eval(BP_filter), 
+                zero_mean = True, taper = False,
+                pre_filt=eval(BP_filter),
                 pitsasim=False, sacsim = True)
-        
+
         trace.data *= 1.e9
         trace_identity = trace.stats['station'] + '.' + \
                 trace.stats['location'] + '.' + trace.stats['channel']
         if input['mseed'] == 'N':
             trace.write(os.path.join(Address, unit.lower() + '.' +
                                         trace_identity), format = 'SAC')
-        else: 
+        else:
             trace.write(os.path.join(Address, unit.lower() + '.' +
                                         trace_identity), format = 'MSEED')
-        
+
         if unit.lower() == 'dis':
             unit_print = 'displacement'
         if unit.lower() == 'vel':
@@ -2827,16 +2795,16 @@ def obspy_fullresp_RESP(trace, resp_file, Address, unit = 'DIS',
             unit_print = 'acceleration'
 
         print inform + ' -- Instrument Correction to ' + unit_print + \
-                                            ' for: ' + trace_identity 
-        
-    except Exception, e:
+                                            ' for: ' + trace_identity
+
+    except Exception as e:
         print inform + ' -- ' + str(e)
 
 ###################### SAC_fullresp ####################################
 
 def SAC_fullresp(trace, resp_file, address, BH_file = 'BH', unit = 'DIS', \
                     BP_filter = (0.008, 0.012, 3.0, 4.0), inform = 'N/N'):
-    
+
     """
     This script runs SAC program for instrument correction
     Instrument Correction will be done for all waveforms in the BH_RAW folder
@@ -2847,31 +2815,31 @@ def SAC_fullresp(trace, resp_file, address, BH_file = 'BH', unit = 'DIS', \
     2) tapering
     3) pre-filtering and deconvolution of Resp file from Raw counts
     """
-    
+
     try:
-        
+
         trace_info = trace.split('/')[-1].split('.')
-        
+
         if unit.lower() == 'dis':
             unit_sac = 'NONE'
         if unit.lower() == 'vel':
             unit_sac = 'VEL'
         if unit.lower() == 'acc':
             unit_sac = 'ACC'
-        
+
         BP_filter_tuple = eval(BP_filter)
         freqlim = str(BP_filter_tuple[0]) + ' ' +  str(BP_filter_tuple[1]) \
                     + ' ' + str(BP_filter_tuple[2]) + ' ' + \
                     str(BP_filter_tuple[3])
-        
+
         pwd = commands.getoutput('pwd')
         os.chdir(os.path.join(address, BH_file))
-        
+
         p = subprocess.Popen(['sac'],
                              stdout = subprocess.PIPE,
                              stdin  = subprocess.PIPE,
                              stderr = subprocess.STDOUT )
-                             
+
         s = \
         'setbb resp ../Resp/' + resp_file.split('/')[-1] + '\n' + \
         'read ../BH_RAW/' + trace.split('/')[-1] + '\n' + \
@@ -2882,17 +2850,17 @@ def SAC_fullresp(trace, resp_file, address, BH_file = 'BH', unit = 'DIS', \
         'write ' + unit.lower() + '.' + trace_info[1] + '.' + trace_info[2] + \
                                             '.' + trace_info[3] + '\n' + \
         'quit\n'
-        
+
         out = p.communicate(s)
         print out[0]
         if input['mseed'] == 'Y':
-            tr_mseed = read('%s.%s.%s.%s' %(unit.lower(), trace_info[1], 
+            tr_mseed = read('%s.%s.%s.%s' %(unit.lower(), trace_info[1],
                                                 trace_info[2], trace_info[3]))
             tr_mseed.write('%s.%s.%s.%s' %(unit.lower(), trace_info[1],
-                                                trace_info[2], trace_info[3]), 
+                                                trace_info[2], trace_info[3]),
                                                 format='MSEED')
         os.chdir(pwd)
-                            
+
         if unit.lower() == 'dis':
             unit_print = 'displacement'
         if unit.lower() == 'vel':
@@ -2902,10 +2870,10 @@ def SAC_fullresp(trace, resp_file, address, BH_file = 'BH', unit = 'DIS', \
 
         print inform + ' -- Instrument Correction to ' + unit_print + \
                         ' for: ' + trace_info[0] + '.' + trace_info[1] + \
-                        '.' + trace_info[2] + '.' + trace_info[3] 
+                        '.' + trace_info[2] + '.' + trace_info[3]
         print "-----------------------------------"
-                                            
-    except Exception, e:
+
+    except Exception as e:
         print inform + ' -- ' + str(e)
 
 ###################### readRESP ########################################
@@ -2914,18 +2882,18 @@ def readRESP(resp_file, unit):
 
     resp_open = open(resp_file)
     resp_read = resp_open.readlines()
-    
+
     check_resp = []
-    
+
     for resp_line in resp_read:
         if "velocity in meters per second" in resp_line.lower() or \
             "velocity in meters/second" in resp_line.lower() or \
             "m/s -" in resp_line.lower():
             check_resp.append('M/S')
-        
+
         elif "m/s**2 - acceleration" in resp_line.lower():
             check_resp.append('M/S**2')
-    
+
     if check_resp == []:
         print '\n***************************************************************'
         print 'The response file is not in the right dimension (M/S) or (M/S**2)'
@@ -2934,7 +2902,7 @@ def readRESP(resp_file, unit):
         print resp_file
         print '*****************************************************************'
         sys.exit()
-    
+
     gain_num = []
     A0_num = []
     poles_num = []
@@ -2944,54 +2912,54 @@ def readRESP(resp_file, unit):
     #if clients == 'iris':
     if resp_read[0].find('obspy.xseed') == -1:
         for i in range(0, len(resp_read)):
-            if resp_read[i].find('B058F04') != -1:  
+            if resp_read[i].find('B058F04') != -1:
                 gain_num.append(i)
-            if resp_read[i].find('B053F07') != -1:  
+            if resp_read[i].find('B053F07') != -1:
                 A0_num.append(i)
-            if resp_read[i].find('B053F10-13') != -1:  
+            if resp_read[i].find('B053F10-13') != -1:
                 zeros_num.append(i)
-            if resp_read[i].find('B053F15-18') != -1:  
+            if resp_read[i].find('B053F15-18') != -1:
                 poles_num.append(i)
-                
+
     #elif clients == 'arc':
     elif resp_read[0].find('obspy.xseed') != -1:
         for i in range(0, len(resp_read)):
-            if resp_read[i].find('B058F04') != -1:  
+            if resp_read[i].find('B058F04') != -1:
                 gain_num.append(i)
-            if resp_read[i].find('B043F08') != -1:  
+            if resp_read[i].find('B043F08') != -1:
                 A0_num.append(i)
-            if resp_read[i].find('B043F11-14') != -1:  
+            if resp_read[i].find('B043F11-14') != -1:
                 zeros_num.append(i)
-            if resp_read[i].find('B043F16-19') != -1:  
+            if resp_read[i].find('B043F16-19') != -1:
                 poles_num.append(i)
-        
+
     list_sensitivity = resp_read[gain_num[-1]].split('\n')[0].split(' ')
     list_new_sensitivity = [x for x in list_sensitivity if x]
     sensitivity = eval(list_new_sensitivity[-1])
-    
+
     list_A0 = resp_read[A0_num[0]].split('\n')[0].split(' ')
     list_new_A0 = [x for x in list_A0 if x]
     A0 = eval(list_new_A0[-1])
 
-    
+
     for i in range(0, len(poles_num)):
-        
+
         list_poles = resp_read[poles_num[i]].split('\n')[0].split(' ')
         list_new_poles = [x for x in list_poles if x]
-        
+
         poles_r = eval(list_new_poles[-4])
         poles_i = eval(list_new_poles[-3])
         poles.append(complex(poles_r, poles_i))
-    
+
     for i in range(0, len(zeros_num)):
-        
+
         list_zeros = resp_read[zeros_num[i]].split('\n')[0].split(' ')
         list_new_zeros = [x for x in list_zeros if x]
-        
+
         zeros_r = eval(list_new_zeros[-4])
         zeros_i = eval(list_new_zeros[-3])
         zeros.append(complex(zeros_r, zeros_i))
-            
+
     if check_resp[0] == 'M/S':
         if unit.lower() == 'dis':
             zeros.append(0j)
@@ -3003,34 +2971,34 @@ def readRESP(resp_file, unit):
         if unit.lower() == 'dis':
             zeros.append(0j)
             zeros.append(0j)
-    
+
     paz = {\
     'poles': poles,
     'zeros': zeros,
     'gain': A0,
     'sensitivity': sensitivity\
     }
- 
+
     return paz
 
 ###################### obspy_PAZ #######################################
 
 def obspy_PAZ(trace, resp_file, Address, clients, unit = 'DIS', \
             BP_filter = (0.008, 0.012, 3.0, 4.0), inform = 'N/N'):
-    
+
     try:
-        
+
         paz = readRESP(resp_file, unit)
-        
+
         trace.data = seisSim(data = trace.data, \
             samp_rate = trace.stats.sampling_rate,paz_remove=paz, \
             paz_simulate = None, remove_sensitivity=True, \
             simulate_sensitivity = False, water_level = 600.0, \
             zero_mean = True, taper = False, pre_filt=eval(BP_filter), \
             seedresp=None, pitsasim=False, sacsim = True)
-        
+
         trace.data *= 1.e9
-        
+
         trace_identity = trace.stats['station'] + '.' + \
                 trace.stats['location'] + '.' + trace.stats['channel']
         if input['mseed'] == 'N':
@@ -3039,7 +3007,7 @@ def obspy_PAZ(trace, resp_file, Address, clients, unit = 'DIS', \
         else:
             trace.write(os.path.join(Address, unit.lower() + '.' +
                                         trace_identity), format = 'MSEED')
-        
+
         if unit.lower() == 'dis':
             unit_print = 'displacement'
         if unit.lower() == 'vel':
@@ -3048,16 +3016,16 @@ def obspy_PAZ(trace, resp_file, Address, clients, unit = 'DIS', \
             unit_print = 'acceleration'
 
         print inform + ' -- Instrument Correction to ' + unit_print + \
-                                            ' for: ' + trace_identity 
-        
-    except Exception, e:
+                                            ' for: ' + trace_identity
+
+    except Exception as e:
         print inform + ' -- ' + str(e)
 
 ###################### SAC_PAZ #########################################
 
 def SAC_PAZ(trace, paz_file, address, BH_file = 'BH', unit = 'DIS', \
                     BP_filter = (0.008, 0.012, 3.0, 4.0), inform = 'N/N'):
-    
+
     """
     This script runs SAC program for instrument correction (PAZ)
     Instrument Correction will be done for all waveforms in the BH_RAW folder
@@ -3068,31 +3036,31 @@ def SAC_PAZ(trace, paz_file, address, BH_file = 'BH', unit = 'DIS', \
     2) tapering
     3) pre-filtering and deconvolution of PAZ from Raw counts
     """
-    
+
     try:
-        
+
         trace_info = trace.split('/')[-1].split('.')
-        
+
         if unit.lower() == 'dis':
             unit_sac = 'NONE'
         if unit.lower() == 'vel':
             unit_sac = 'VEL'
         if unit.lower() == 'acc':
             unit_sac = 'ACC'
-        
+
         BP_filter_tuple = eval(BP_filter)
         freqlim = str(BP_filter_tuple[0]) + ' ' +  str(BP_filter_tuple[1]) \
                     + ' ' + str(BP_filter_tuple[2]) + ' ' + \
                     str(BP_filter_tuple[3])
-        
+
         pwd = commands.getoutput('pwd')
         os.chdir(os.path.join(address, BH_file))
-        
+
         p = subprocess.Popen(['sac'],
                              stdout = subprocess.PIPE,
                              stdin  = subprocess.PIPE,
                              stderr = subprocess.STDOUT )
-                             
+
         s = \
         'setbb pzfile ../Resp/' + paz_file.split('/')[-1] + '\n' + \
         'read ../BH_RAW/' + trace.split('/')[-1] + '\n' + \
@@ -3104,17 +3072,17 @@ def SAC_PAZ(trace, paz_file, address, BH_file = 'BH', unit = 'DIS', \
         'write ' + unit.lower() + '.' + trace_info[1] + '.' + trace_info[2] + \
                                             '.' + trace_info[3] + '\n' + \
         'quit\n'
-        
+
         out = p.communicate(s)
         print out[0]
         if input['mseed'] == 'Y':
-            tr_mseed = read('%s.%s.%s.%s' %(unit.lower(), trace_info[1], 
+            tr_mseed = read('%s.%s.%s.%s' %(unit.lower(), trace_info[1],
                                                 trace_info[2], trace_info[3]))
             tr_mseed.write('%s.%s.%s.%s' %(unit.lower(), trace_info[1],
-                                                trace_info[2], trace_info[3]), 
+                                                trace_info[2], trace_info[3]),
                                                 format='MSEED')
         os.chdir(pwd)
-                            
+
         if unit.lower() == 'dis':
             unit_print = 'displacement'
         if unit.lower() == 'vel':
@@ -3124,9 +3092,9 @@ def SAC_PAZ(trace, paz_file, address, BH_file = 'BH', unit = 'DIS', \
 
         print inform + ' -- Instrument Correction to ' + unit_print + \
                         ' for: ' + trace_info[0] + '.' + trace_info[1] + \
-                        '.' + trace_info[2] + '.' + trace_info[3] 
-                                            
-    except Exception, e:
+                        '.' + trace_info[2] + '.' + trace_info[3]
+
+    except Exception as e:
         print inform + ' -- ' + str(e)
 """
 ###################### obspy_PAZ #######################################
@@ -3166,13 +3134,13 @@ def obspy_PAZ(trace, paz_dic, Address, unit = 'DIS', \
 ###################### IRIS_ARC_merge ##################################
 
 def IRIS_ARC_merge(input, clients):
-    
+
     """
     Call "merge_stream" function
     """
 
     if input[clients + '_merge_auto'] == 'Y':
-        global events        
+        global events
         Period = input['min_date'].split('T')[0] + '_' + \
                     input['max_date'].split('T')[0] + '_' + \
                     str(input['min_mag']) + '_' + str(input['max_mag'])
@@ -3180,7 +3148,7 @@ def IRIS_ARC_merge(input, clients):
         address = eventpath
     elif input[clients + '_merge'] != 'N':
         address = input[clients + '_merge']
-        
+
     events, address_events = quake_info(address, 'info')
     ls_saved_stas_tmp = []
     ls_saved_stas = []
@@ -3188,7 +3156,7 @@ def IRIS_ARC_merge(input, clients):
         sta_ev = read_station_event(address_events[i])
         for j in range(0, len(sta_ev[0])):
             if clients == sta_ev[0][j][13]:
-                
+
                 if input['merge_type'] == 'raw':
                     BH_file = 'BH_RAW'
                     network = sta_ev[0][j][0]
@@ -3206,7 +3174,7 @@ def IRIS_ARC_merge(input, clients):
                         BH_file = 'BH_' + input['corr_unit']
                         network = 'acc'
                         network_name = 'acc'
-                        
+
                 station_id = network + '.' + sta_ev[0][j][1] + '.' + \
                              sta_ev[0][j][2] + '.' + sta_ev[0][j][3]
                 ls_saved_stas_tmp.append(os.path.join(address_events[i], BH_file,\
@@ -3216,7 +3184,7 @@ def IRIS_ARC_merge(input, clients):
     for k in range(0, len(ls_saved_stas_tmp)):
         if fnmatch.fnmatch(ls_saved_stas_tmp[k].split('/')[-1], pattern_sta):
             ls_saved_stas.append(ls_saved_stas_tmp[k])
-    
+
     if len(ls_saved_stas) != 0:
         ls_saved_stations = []
         ls_address = []
@@ -3235,15 +3203,15 @@ def IRIS_ARC_merge(input, clients):
 ###################### merge_stream ####################################
 
 def merge_stream(ls_address, ls_sta, network_name):
-    
+
     global input
-    
+
     address = os.path.dirname(os.path.dirname(ls_address[0]))
     try:
         os.makedirs(os.path.join(address, 'MERGED' + '-' + network_name))
-    except Exception, e:
+    except Exception as e:
         pass
-    
+
     for i in range(0, len(ls_sta)):
         for j in range(0, len(ls_address)):
             if os.path.isfile(os.path.join(ls_address[j], ls_sta[i])):
@@ -3252,7 +3220,7 @@ def merge_stream(ls_address, ls_sta, network_name):
                     try:
                         st.append(read(os.path.join(ls_address[k], \
                                                         ls_sta[i]))[0])
-                    except Exception, e:
+                    except Exception as e:
                         print e
 
                 st.merge(method=1, fill_value='latest', interpolation_samples=0)
@@ -3262,39 +3230,39 @@ def merge_stream(ls_address, ls_sta, network_name):
                         trace.stats['location'] + '.' + trace.stats['channel']
                 if input['mseed'] == 'N':
                     st.write(os.path.join(address, 'MERGED' + '-' + network_name,
-                                        trace_identity), format = 'SAC')     
+                                        trace_identity), format = 'SAC')
                 else:
                     st.write(os.path.join(address, 'MERGED' + '-' + network_name,
-                                        trace_identity), format = 'MSEED') 
+                                        trace_identity), format = 'MSEED')
                 break
 
 ###################### PLOT ############################################
 
 def PLOT(input, clients):
-    
+
     """
     Plotting tools
     """
-    
-    for i in ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray', 
+
+    for i in ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray',
                 'plot_ray_gmt', 'plot_epi', 'plot_dt']:
         if input[i] != 'N':
             events, address_events = quake_info(input[i], 'info')
-    
+
     ls_saved_stas = []
     ls_add_stas = []
-    
+
     for k in ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray', 'plot_ray_gmt', \
                 'plot_epi']:
         if input[k] != 'N':
             for i in range(0, len(events)):
-                
+
                 ls_saved_stas_tmp = []
                 ls_add_stas_tmp = []
                 sta_ev = read_station_event(address_events[i])
-                
+
                 for j in range(0, len(sta_ev[0])):
-                    
+
                     if input['plot_type'] == 'raw':
                         BH_file = 'BH_RAW'
                         network = sta_ev[0][j][0]
@@ -3308,7 +3276,7 @@ def PLOT(input, clients):
                         elif input['corr_unit'] == 'ACC':
                             BH_file = 'BH_' + input['corr_unit']
                             network = 'acc'
-                            
+
                     station_id = network + ',' + sta_ev[0][j][1] + ',' + \
                          sta_ev[0][j][2] + ',' + sta_ev[0][j][3] + ',' + \
                          sta_ev[0][j][4] + ',' + sta_ev[0][j][5] + ',' + \
@@ -3334,37 +3302,37 @@ def PLOT(input, clients):
                                 sta_ev[0][j][1] + '.' + \
                                 sta_ev[0][j][2] + '.' + \
                                 sta_ev[0][j][3]))
-                
+
                 ls_saved_stas.append(ls_saved_stas_tmp)
                 ls_add_stas.append(ls_add_stas_tmp)
-            
+
             for i in range(0, len(ls_saved_stas)):
                 for j in range(0, len(ls_saved_stas[i])):
                     ls_saved_stas[i][j] = ls_saved_stas[i][j].split(',')
-    
+
     for i in ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray']:
         if input[i] != 'N':
             plot_se_ray(input, ls_saved_stas)
-    
+
     if input['plot_ray_gmt'] != 'N':
         plot_ray_gmt(input, ls_saved_stas)
-    
+
     if input['plot_epi'] != 'N':
         plot_epi(input, ls_add_stas, ls_saved_stas)
-    
+
     if input['plot_dt'] != 'N':
         plot_dt(input, address_events)
-    
+
 ###################### plot_se_ray #####################################
 
 def plot_se_ray(input, ls_saved_stas):
-    
+
     """
     Plot: station, event, both and ray path
     """
 
     plt.clf()
-    
+
     m = Basemap(projection='aeqd', lon_0=-100, lat_0=40, \
                                                 resolution='c')
     m.drawcoastlines()
@@ -3372,7 +3340,7 @@ def plot_se_ray(input, ls_saved_stas):
     m.drawparallels(np.arange(-90.,120.,30.))
     m.drawmeridians(np.arange(0.,420.,60.))
     m.drawmapboundary()
-    
+
     pattern_sta = input['sta'] + '.' + input['loc'] + '.' + input['cha']
     for i in range(0, len(ls_saved_stas)):
         sys.stdout.write('\r')
@@ -3380,31 +3348,31 @@ def plot_se_ray(input, ls_saved_stas):
                                                 100.*(i+1)/len(ls_saved_stas)))
         sys.stdout.flush()
         ls_stas = ls_saved_stas[i]
-        
+
         if input['evlatmin']==None:
             input['evlatmin']=-90
             input['evlatmax']=+90
             input['evlonmin']=-180
             input['evlonmax']=+180
         if input['plot_se'] != 'N' or input['plot_ev'] != 'N' or \
-                            input['plot_ray'] != 'N':   
+                            input['plot_ray'] != 'N':
             if not input['evlatmin']<=float(ls_stas[0][9])<=input['evlatmax'] or \
                not input['evlonmin']<=float(ls_stas[0][10])<=input['evlonmax'] or \
                not input['max_depth']<=float(ls_stas[0][11])<=input['min_depth'] or \
                not input['min_mag']<=float(ls_stas[0][12])<=input['max_mag']:
                 continue
         if input['plot_se'] != 'N' or input['plot_ev'] != 'N' or \
-                            input['plot_ray'] != 'N':   
+                            input['plot_ray'] != 'N':
             x_ev, y_ev = m(float(ls_stas[0][10]), \
                            float(ls_stas[0][9]))
             m.scatter(x_ev, y_ev, \
                         math.log(float(ls_stas[0][12])) ** 6, \
                         color="red", marker="o", \
                         edgecolor="black", zorder=10)
-        
+
         for j in range(0, len(ls_stas)):
-            try:           
-                
+            try:
+
                 station_name = ls_stas[j][1] + '.' + ls_stas[j][2] + \
                             '.' + ls_stas[j][3]
                 station_ID = ls_stas[j][0] + '.' + station_name
@@ -3412,10 +3380,10 @@ def plot_se_ray(input, ls_saved_stas):
                 if not fnmatch.fnmatch(station_name, pattern_sta):
                     continue
                 if input['mlat_rbb']==None:
-                    input['mlat_rbb']=-90.0 
-                    input['Mlat_rbb']=+90.0 
-                    input['mlon_rbb']=-180.0 
-                    input['Mlon_rbb']=+180.0 
+                    input['mlat_rbb']=-90.0
+                    input['Mlat_rbb']=+90.0
+                    input['mlon_rbb']=-180.0
+                    input['Mlon_rbb']=+180.0
                 if not input['mlat_rbb']<=float(ls_stas[j][4])<=input['Mlat_rbb'] or \
                    not input['mlon_rbb']<=float(ls_stas[j][5])<=input['Mlon_rbb']:
                     continue
@@ -3428,18 +3396,18 @@ def plot_se_ray(input, ls_saved_stas):
                 if input['plot_ray'] != 'N':
                     m.drawgreatcircle(ev_lon, ev_lat, st_lon, st_lat, \
                                     alpha = 0.1)
-                        
+
                 if input['plot_se'] != 'N' or \
                                 input['plot_sta'] != 'N' or \
                                 input['plot_ray'] != 'N':
                     x_sta, y_sta = m(st_lon, st_lat)
                     m.scatter(x_sta, y_sta, 20, color='blue', marker="o", \
                                             edgecolor="black", zorder=10)
-            
-            except Exception, e:
+
+            except Exception as e:
                 print e
                 pass
-                
+
     print '\nSaving the plot in the following address:'
     print input['plot_save'] + 'plot.' + input['plot_format']
     plt.savefig(os.path.join(input['plot_save'], 'plot.' + \
@@ -3448,7 +3416,7 @@ def plot_se_ray(input, ls_saved_stas):
 ###################### plot_ray_gmt ####################################
 
 def plot_ray_gmt(input, ls_saved_stas):
-    
+
     """
     Plot: stations, events and ray paths for the specified directory
     using GMT
@@ -3457,9 +3425,9 @@ def plot_ray_gmt(input, ls_saved_stas):
     evsta_plot_open = open(os.path.join(input['plot_save'], 'evsta_plot.txt'), 'w')
     ev_plot_open = open(os.path.join(input['plot_save'], 'ev_plot.txt'), 'w')
     sta_plot_open = open(os.path.join(input['plot_save'], 'sta_plot.txt'), 'w')
-    
+
     ls_sta = []
-    
+
     for i in range(0, len(ls_saved_stas)):
         sys.stdout.write('\r')
         sys.stdout.write("[%-100s] %d%%" % ('='*int(100.*(i+1)/len(ls_saved_stas)),
@@ -3480,27 +3448,27 @@ def plot_ray_gmt(input, ls_saved_stas):
                                 str(round(float(ls_stas[0][9]), 5)) + ' ' + \
                                 '\n')
         pattern_sta = input['sta'] + '.' + input['loc'] + '.' + input['cha']
-        
+
         for j in range(0, len(ls_stas)):
-            
+
             station_name = ls_stas[j][1] + '.' + ls_stas[j][2] + \
                                 '.' + ls_stas[j][3]
             station_ID = ls_stas[j][0] + '.' + station_name
-            
-            
+
+
             if not fnmatch.fnmatch(station_name, pattern_sta):
                 continue
             if input['mlat_rbb']==None:
-                    input['mlat_rbb']=-90.0 
-                    input['Mlat_rbb']=+90.0 
-                    input['mlon_rbb']=-180.0 
-                    input['Mlon_rbb']=+180.0 
+                    input['mlat_rbb']=-90.0
+                    input['Mlat_rbb']=+90.0
+                    input['mlon_rbb']=-180.0
+                    input['Mlon_rbb']=+180.0
             if not input['mlat_rbb']<=float(ls_stas[j][4])<=input['Mlat_rbb'] or \
                not input['mlon_rbb']<=float(ls_stas[j][5])<=input['Mlon_rbb']:
                 continue
-            
+
             evsta_info_open.writelines(ls_stas[j][8] + ' , ' + station_ID + ' , \n')
-    
+
             evsta_plot_open.writelines(\
                 '> -G' + str(int(random.random()*256)) + '/' + \
                 str(int(random.random()*256)) + '/' + str(int(random.random()*256)) + '\n' + \
@@ -3512,53 +3480,53 @@ def plot_ray_gmt(input, ls_saved_stas):
                 str(round(float(ls_stas[j][4]), 5)) + ' ' + \
                 str(random.random()) + ' ' + \
                 '\n')
-            
+
             if ls_sta == [] or not station_ID in ls_sta[:][0]:
                 ls_sta.append([station_ID, \
                     [str(round(float(ls_stas[j][4]), 5)), \
                      str(round(float(ls_stas[j][5]), 5))]])
-    
+
     for k in range(0, len(ls_sta)):
         sta_plot_open.writelines(\
                 str(round(float(ls_sta[k][1][1]), 5)) + ' ' + \
                 str(round(float(ls_sta[k][1][0]), 5)) + ' ' + \
                 '\n')
-    
+
     evsta_info_open.close()
     evsta_plot_open.close()
     ev_plot_open.close()
-    sta_plot_open.close()    
-    
+    sta_plot_open.close()
+
     pwd_str = os.getcwd()
-    
+
     os.chdir(input['plot_save'])
-    
+
     os.system('psbasemap -Rd -JK180/9i -B45g30 -K > output.ps')
     os.system('pscoast -Rd -JK180/9i -B45g30:."World-wide Ray Path Coverage": -Dc -A1000 -Glightgray -Wthinnest -t20 -O -K >> output.ps')
-    
+
     os.system('psxy ./evsta_plot.txt -JK180/9i -Rd -O -K -t100 >> output.ps')
     os.system('psxy ./sta_plot.txt -JK180/9i -Rd -Si0.14c -Gblue -O -K >> output.ps')
     os.system('psxy ./ev_plot.txt -JK180/9i -Rd -Sa0.28c -Gred -O >> output.ps')
-        
+
     os.system('ps2raster output.ps -A -P -Tf')
-    
+
     os.system('mv output.ps plot.ps')
     os.system('mv output.pdf plot.pdf')
-    
+
     os.system('xdg-open plot.pdf')
-    
+
     os.chdir(pwd_str)
-    
+
 ###################### plot_epi ########################################
 
 def plot_epi(input, ls_add_stas, ls_saved_stas):
-    
+
     """
     Plot: Epicentral distance-Time
     """
-            
+
     plt.clf()
-    
+
     for target in range(0, len(ls_add_stas)):
         sys.stdout.write('\r')
         sys.stdout.write("[%-100s] %d%%" % ('='*int(100.*(target+1)/len(ls_add_stas)),
@@ -3577,7 +3545,7 @@ def plot_epi(input, ls_add_stas, ls_saved_stas):
                     for i in range(0, len(x)):
                         x[i] = x[i]/float(tr.stats['sampling_rate'])
                     plt.plot(x, tr.data + dist, color = 'black')
-            except Exception, e:
+            except Exception as e:
                 print e
                 pass
             plt.xlabel('Time (sec)')
@@ -3590,11 +3558,11 @@ def plot_epi(input, ls_add_stas, ls_saved_stas):
 ###################### plot_dt #########################################
 
 def plot_dt(input, address_events):
-    
+
     """
     Plot: Data(MB)-Time(Sec)
     """
-            
+
     for i in range(0, len(address_events)):
         for client in ['time_iris', 'time_arc']:
             print address_events[i]
@@ -3605,7 +3573,7 @@ def plot_dt(input, address_events):
                 dt_read = dt_open.readlines()
                 for j in range(0, len(dt_read)):
                     dt_read[j] = dt_read[j].split(',')
-                
+
                 time_single = 0
                 succ = 0; fail = 0
                 MB_all = []; time_all = []
@@ -3624,7 +3592,7 @@ def plot_dt(input, address_events):
                                     c = 'r', edgecolors = 'r', marker = 'o', \
                                     label = 'Serial (failed)')
                         fail += 1
-                
+
                 if input['req_parallel'] == 'Y':
                     rep_par_open = open(os.path.join(address_events[i], \
                                                     'info', 'report_parallel'))
@@ -3636,22 +3604,22 @@ def plot_dt(input, address_events):
                     parallel_succ = plt.scatter(time_parallel, MB_parallel, s = 30, \
                                     c = 'r', edgecolors = 'r', marker = 'o', \
                                     label = 'Parallel')
-                
+
                 time_array = np.array(time_all)
                 MB_array = np.array(MB_all)
-                
+
                 poly = np.poly1d(np.polyfit(time_array, MB_array, 1))
                 time_poly = np.linspace(0, time_all[-1], len(time_all))
                 plt.plot(time_array, poly(time_array), 'k--')
-                
+
                 trans_rate = (poly(time_array[-1])-poly(time_array[0]))/ \
                                         (time_array[-1]-time_array[0])*60
-                
+
                 plt.xlabel('Time (sec)', size = 'large', weight = 'bold')
                 plt.ylabel('Stored Data (MB)', size = 'large', weight = 'bold')
                 plt.xticks(size = 'large', weight = 'bold')
                 plt.yticks(size = 'large', weight = 'bold')
-                
+
                 plt.title(client.split('_')[1].upper() + '\n' + \
                             'All: ' + str(succ + fail) + '--' + \
                             'Succ: ' + str(succ) + ' ' + '(' + \
@@ -3667,57 +3635,57 @@ def plot_dt(input, address_events):
                              'Parallel: ' + str(round(trans_rate_parallel, 2)) + 'MB/min', \
                              size = 'large', weight = 'bold')
                 """
-                
+
                 if input['req_parallel'] == 'Y':
                     plt.legend([single_succ, parallel_succ], \
                             ['Serial', 'Parallel'], loc=4)
-                
+
                 plt.savefig(os.path.join(address_events[i], 'info', \
                             'Data-Time_' + client.split('_')[1] + \
                             '.' + input['plot_format']))
-            
+
 ###################### XML_list_avail ##################################
 
 def XML_list_avail(xmlfile):
-    
+
     """
     This module changes the XML file got from availability to a list
     """
-    
+
     sta_obj = objectify.XML(xmlfile)
     sta_req = []
 
     for i in range(0, len(sta_obj.Station)):
-        
+
         station = sta_obj.Station[i]
         net = station.get('net_code')
         sta = station.get('sta_code')
-        
+
         lat = str(station.Lat)
         lon = str(station.Lon)
         ele = str(station.Elevation)
-        
+
         for j in range(0, len(station.Channel)):
             cha = station.Channel[j].get('chan_code')
             loc = station.Channel[j].get('loc_code')
-            
+
             sta_req.append([net, sta, loc, cha, lat, lon, ele])
-    
+
     return sta_req
 
 ###################### create_folders_files ############################
 
 def create_folders_files(events, eventpath):
-    
+
     """
     Create required folders and files in the event folder(s)
     """
-    
+
     len_events = len(events)
-    
+
     for i in range(0, len_events):
         if os.path.exists(os.path.join(eventpath, events[i]['event_id'])) == True:
-            
+
             if raw_input('Folder for -- the requested Period (min/max) ' + \
             'and Magnitude (min/max) -- exists in your directory.' + '\n\n' + \
             'You could either close the program and try updating your ' + \
@@ -3725,7 +3693,7 @@ def create_folders_files(events, eventpath):
             '\n' + 'Do you want to continue? (Y/N)' + '\n').upper() == 'Y':
                 print '-------------------------------------------------------------'
                 shutil.rmtree(os.path.join(eventpath, events[i]['event_id']))
-            
+
             else:
                 print '------------------------------------------------'
                 print 'So...you decided to update your folder...Ciao'
@@ -3737,36 +3705,36 @@ def create_folders_files(events, eventpath):
             os.makedirs(os.path.join(eventpath, events[i]['event_id'], 'BH_RAW'))
             os.makedirs(os.path.join(eventpath, events[i]['event_id'], 'Resp'))
             os.makedirs(os.path.join(eventpath, events[i]['event_id'], 'info'))
-        except Exception, e:
+        except Exception as e:
             pass
-    
+
     for i in range(0, len_events):
         Report = open(os.path.join(eventpath, events[i]['event_id'], \
             'info', 'report_st'), 'a+')
         Report.close()
-    
-    
+
+
     for i in range(0, len_events):
         Exception_file = open(os.path.join(eventpath, events[i]['event_id'], \
             'info', 'exception'), 'a+')
         eventsID = events[i]['event_id']
         Exception_file.writelines('\n' + eventsID + '\n')
-        
+
         Syn_file = open(os.path.join(eventpath, events[i]['event_id'], \
             'info', 'station_event'), 'a+')
         Syn_file.close()
-        
+
     for i in range(0, len_events):
         quake_file = open(os.path.join(eventpath, events[i]['event_id'],\
                             'info', 'quake'), 'a+')
-        
+
         quake_file.writelines(repr(events[i]['datetime'].year).rjust(15)\
                 + repr(events[i]['datetime'].julday).rjust(15) + '\n')
         quake_file.writelines(repr(events[i]['datetime'].hour).rjust(15)\
                 + repr(events[i]['datetime'].minute).rjust(15) + \
                 repr(events[i]['datetime'].second).rjust(15) + \
                 repr(events[i]['datetime'].microsecond).rjust(15) + '\n')
-        
+
         quake_file.writelines(\
                 ' '*(15 - len('%.5f' % events[i]['latitude'])) + '%.5f' \
                 % events[i]['latitude'] + \
@@ -3781,7 +3749,7 @@ def create_folders_files(events, eventpath):
         quake_file.writelines(\
                 ' '*(15 - len(events[i]['event_id'])) + \
                         events[i]['event_id'] + '-' + '\n')
-        
+
         quake_file.writelines(repr(events[i]['t1'].year).rjust(15)\
                 + repr(events[i]['t1'].julday).rjust(15) \
                 + repr(events[i]['t1'].month).rjust(15) \
@@ -3790,7 +3758,7 @@ def create_folders_files(events, eventpath):
                 + repr(events[i]['t1'].minute).rjust(15) + \
                 repr(events[i]['t1'].second).rjust(15) + \
                 repr(events[i]['t1'].microsecond).rjust(15) + '\n')
-        
+
         quake_file.writelines(repr(events[i]['t2'].year).rjust(15)\
                 + repr(events[i]['t2'].julday).rjust(15) \
                 + repr(events[i]['t2'].month).rjust(15) \
@@ -3803,10 +3771,10 @@ def create_folders_files(events, eventpath):
 ###################### writesac_all ####################################
 
 def writesac_all(i, events, address_events):
-    
+
     sta_ev = read_station_event(address_events[i])
     ls_saved_stas = []
-    
+
     for j in range(0, len(sta_ev[0])):
         station_id = sta_ev[0][j][0] + '.' + sta_ev[0][j][1] + '.' + \
                      sta_ev[0][j][2] + '.' + sta_ev[0][j][3]
@@ -3825,7 +3793,7 @@ def writesac_all(i, events, address_events):
                 tr.stats['sac']['stel'] = float(sta_ev[0][j][6])
             if sta_ev[0][j][7] != None:
                 tr.stats['sac']['stdp'] = float(sta_ev[0][j][7])
-            
+
             if sta_ev[0][j][9] != None:
                 tr.stats['sac']['evla'] = float(sta_ev[0][j][9])
             if sta_ev[0][j][10] != None:
@@ -3834,22 +3802,22 @@ def writesac_all(i, events, address_events):
                 tr.stats['sac']['evdp'] = float(sta_ev[0][j][11])
             if sta_ev[0][j][12] != None:
                 tr.stats['sac']['mag'] = float(sta_ev[0][j][12])
-            
+
             tr.write(ls_saved_stas[j], format = 'SAC')
-        except Exception, e:
+        except Exception as e:
             print '\n'
             print e
             print ls_saved_stas[j]
             print '------------------'
-            
+
 ###################### writesac ########################################
 
 def writesac(address_st, sta_info, ev_info):
-    
+
     st = read(address_st)
     st[0].write(address_st, format = 'SAC')
     st = read(address_st)
-    
+
     if sta_info['latitude'] != None:
         st[0].stats['sac']['stla'] = sta_info['latitude']
     if sta_info['longitude'] != None:
@@ -3858,35 +3826,35 @@ def writesac(address_st, sta_info, ev_info):
         st[0].stats['sac']['stel'] = sta_info['elevation']
     if sta_info['depth'] != None:
         st[0].stats['sac']['stdp'] = sta_info['depth']
-    
+
     if ev_info['latitude'] != None:
-        st[0].stats['sac']['evla'] = ev_info['latitude']    
+        st[0].stats['sac']['evla'] = ev_info['latitude']
     if ev_info['longitude'] != None:
-        st[0].stats['sac']['evlo'] = ev_info['longitude']   
+        st[0].stats['sac']['evlo'] = ev_info['longitude']
     if ev_info['depth'] != None:
         st[0].stats['sac']['evdp'] = ev_info['depth']
     if ev_info['magnitude'] != None:
         st[0].stats['sac']['mag'] = ev_info['magnitude']
-        
+
     st[0].write(address_st, format = 'SAC')
 
 ###################### rm_duplicate ####################################
 
 def rm_duplicate(Sta_all, address):
-    
+
     """
     remove duplicates and give back the required list for updating
     """
-        
+
     sta_all = []
     saved = []
-        
+
     for i in Sta_all:
         if i[2] == '--' or i[2] == '  ':
             i[2] = ''
         for j in range(0, len(i)):
             if i[j] != str(i[j]):
-                i[j] = str(i[j]) 
+                i[j] = str(i[j])
         if len(i) == 7:
             sta_all.append(str(i[0] + '_' + i[1] + '_' + i[2] + '_' + \
                             i[3] + '_' + i[4] + '_' + i[5] + '_' + i[6]))
@@ -3894,17 +3862,17 @@ def rm_duplicate(Sta_all, address):
             sta_all.append(str(i[0] + '_' + i[1] + '_' + i[2] + '_' + \
                             i[3] + '_' + i[4] + '_' + i[5] + '_' + i[6]\
                              + '_' + i[7]))
-                            
+
     sta_ev = read_station_event(address)
     ls_saved_stas = sta_ev[0]
-    
+
     for i in range(0, len(ls_saved_stas)):
         sta_info = ls_saved_stas[i]
         saved.append(sta_info[0] + '_' + sta_info[1] + '_' + \
                             sta_info[2] + '_' + sta_info[3])
-    
+
     Stas_req = sta_all
-    
+
     len_all_sta = len(sta_all)
     num = []
     for i in range(0, len(saved)):
@@ -3914,42 +3882,42 @@ def rm_duplicate(Sta_all, address):
 
     num.sort(reverse=True)
     for i in num:
-        del Stas_req[i]  
-    
+        del Stas_req[i]
+
     for m in range(0, len(Stas_req)):
         Stas_req[m] = Stas_req[m].split('_')
-    
+
     Stas_req.sort()
-    
+
     print '------------------------------------------'
     print 'Info:'
     print 'Number of all saved stations:     ' + str(len(saved))
     print 'Number of all available stations: ' + str(len_all_sta)
     print 'Number of stations to update for: ' + str(len(Stas_req))
     print '------------------------------------------'
-    
+
     return Stas_req
 
 ###################### read_station_event ##############################
 
 def read_station_event(address):
-    
+
     """
     Reads the station_event file ("info" folder)
     """
-    
+
     if address.split('/')[-1].split('.') == ['info']:
         target_add = [address]
     elif locate(address, 'info'):
         target_add = locate(address, 'info')
     else:
         print 'Error: There is no "info" folder in the address.'
-    
+
     sta_ev = []
-    
+
     for k in range(0, len(target_add)):
         sta_ev_tmp = []
-        
+
         if os.path.isfile(os.path.join(target_add[k], 'station_event')):
             sta_file_open = open(os.path.join(target_add[k],\
                                                     'station_event'), 'r')
@@ -3961,42 +3929,42 @@ def read_station_event(address):
         for i in sta_file:
             sta_ev_tmp.append(i.split(','))
         sta_ev.append(sta_ev_tmp)
-    
+
     return sta_ev
 
 ###################### create_station_event ############################
 
 def create_station_event(address):
-    
+
     """
     Creates the station_event file ("info" folder)
     """
-    
+
     print '====================================='
     print 'station_event could not be found'
     print 'Start Creating the station_event file'
     print '====================================='
-    
+
     event_address = os.path.dirname(address)
     if os.path.isdir(os.path.join(event_address, 'BH_RAW')):
         sta_address = os.path.join(event_address, 'BH_RAW')
     elif os.path.isdir(os.path.join(event_address, 'BH')):
         sta_address = os.path.join(event_address, 'BH')
     ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
-    
+
     print len(ls_stas)
     for i in range(0, len(ls_stas)):
         print i,
         sta_file_open = open(os.path.join(address, 'station_event'), 'a')
-        
+
         try:
             sta = read(ls_stas[i])[0]
-        except Exception, e:
+        except Exception as e:
             print e
             print 'could not read the waveform data'
-        
+
         sta_stats = sta.stats
-        
+
         try:
             sta_info = sta_stats.network + ',' + sta_stats.station + ',' + \
                         sta_stats.location + ',' + sta_stats.channel + ',' + \
@@ -4006,7 +3974,7 @@ def create_station_event(address):
                         str(sta_stats.sac.evla) + ',' + str(sta_stats.sac.evlo) + ',' + \
                         str(sta_stats.sac.evdp) + ',' + str(sta_stats.sac.mag) + ',' + \
                         'iris' + ',' + '\n'
-        except Exception, e:
+        except Exception as e:
             print e
             sta_info = sta_stats.network + ',' + sta_stats.station + ',' + \
                         sta_stats.location + ',' + sta_stats.channel + ',' + \
@@ -4016,23 +3984,23 @@ def create_station_event(address):
                         str(-12345.0) + ',' + str(-12345.0) + ',' + \
                         str(-12345.0) + ',' + str(-12345.0) + ',' + \
                         'iris' + ',' + '\n'
-        
+
         sta_file_open.writelines(sta_info)
         sta_file_open.close()
-    
+
     print '\n--------------------------'
-        
+
 ###################### quake_info ######################################
 
 def quake_info(address, target):
-    
+
     """
     Reads the info in quake file ("info" folder)
     """
-    
+
     events = []
     target_add = locate(address, target)
-    
+
     for k in range(0, len(target_add)):
         if not os.path.isfile(os.path.join(target_add[k], 'quake')):
             print '============================='
@@ -4044,25 +4012,25 @@ def quake_info(address, target):
         quake_file = quake_file_open.readlines()
 
         tmp = []
-        
+
         for i in quake_file:
             for j in i.split():
                 try:
                     tmp.append(float(j))
                 except ValueError:
                     pass
-        
+
         if len(tmp) < 20:
             print '====================='
             print 'Modify the quake file'
             print '====================='
             quake_modify(quake_item = tmp, address_info = target_add[k])
-            
+
             quake_file_open = open(os.path.join(target_add[k], 'quake'), 'r')
             quake_file = quake_file_open.readlines()
 
             tmp = []
-            
+
             for i in quake_file:
                 for j in i.split():
                     try:
@@ -4081,7 +4049,7 @@ def quake_info(address, target):
                 'year2': int(tmp[18]), 'julday2': int(tmp[19]), \
                 'hour2': int(tmp[22]), 'minute2': int(tmp[23]), \
                 'second2': int(tmp[24]),}
-        
+
         quake_t0 = UTCDateTime(year=quake_d['year0'], julday=quake_d['julday0'], \
                         hour=quake_d['hour0'], minute=quake_d['minute0'], \
                         second=quake_d['second0'])
@@ -4091,7 +4059,7 @@ def quake_info(address, target):
         quake_t2 = UTCDateTime(year=quake_d['year2'], julday=quake_d['julday2'], \
                         hour=quake_d['hour2'], minute=quake_d['minute2'], \
                         second=quake_d['second2'])
-        
+
         events.append({'author': 'NONE', 'datetime': quake_t0,\
                     'depth': quake_d['dp'],
                     'event_id': quake_file[5].split('-')[0].lstrip(),
@@ -4107,34 +4075,34 @@ def quake_info(address, target):
     address_event = []
     for i in range(0, len(target_add)):
         address_event.append(os.path.dirname(target_add[i]))
-    
+
     return events, address_event
 
 ###################### quake_create ####################################
 
 def quake_create(address_info):
-            
+
     """
     if there is not any quake file in the info folder
     then it will be created based on the data available 
     in the BH_RAW or BH file
     """
-    
+
     quake_file = open(os.path.join(address_info, 'quake'), 'w')
-    
+
     address = os.path.normpath(os.path.join(address_info, '..'))
-    
+
     if os.path.isdir(os.path.join(address, 'BH_RAW')):
         sta_address = os.path.join(address, 'BH_RAW')
     #elif os.path.isdir(os.path.join(address, 'BH')):
     else:
         sta_address = os.path.join(address, 'BH')
-        
+
     ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
-    
+
     sta = read(ls_stas[0])[0]
     sta_stats = sta.stats
-    
+
     try:
         quake_file.writelines(repr(sta_stats.starttime.year).rjust(15)\
                 + repr(sta_stats.starttime.julday).rjust(15) + '\n')
@@ -4156,7 +4124,7 @@ def quake_create(address_info):
         quake_file.writelines(\
                 ' '*(15 - len(address.split('/')[-1])) + \
                         address.split('/')[-1] + '-' + '\n')
-        
+
         quake_file.writelines(repr(sta_stats.starttime.year).rjust(15)\
                 + repr(sta_stats.starttime.julday).rjust(15) \
                 + repr(sta_stats.starttime.month).rjust(15) \
@@ -4165,7 +4133,7 @@ def quake_create(address_info):
                 + repr(sta_stats.starttime.minute).rjust(15) + \
                 repr(sta_stats.starttime.second).rjust(15) + \
                 repr(sta_stats.starttime.microsecond).rjust(15) + '\n')
-            
+
         sta_stats_endtime = sta_stats.starttime + sta_stats.npts/sta_stats.sampling_rate
 
         quake_file.writelines(repr(sta_stats_endtime.year).rjust(15)\
@@ -4176,8 +4144,8 @@ def quake_create(address_info):
                 + repr(sta_stats_endtime.minute).rjust(15) + \
                 repr(sta_stats_endtime.second).rjust(15) + \
                 repr(sta_stats_endtime.microsecond).rjust(15) + '\n')
-                
-    except Exception, e:
+
+    except Exception as e:
         print e
         quake_file.writelines(repr(sta_stats.starttime.year).rjust(15)\
                 + repr(sta_stats.starttime.julday).rjust(15) + '\n')
@@ -4199,7 +4167,7 @@ def quake_create(address_info):
         quake_file.writelines(\
                 ' '*(15 - len(address.split('/')[-1])) + \
                         address.split('/')[-1] + '-' + '\n')
-        
+
         quake_file.writelines(repr(sta_stats.starttime.year).rjust(15)\
                 + repr(sta_stats.starttime.julday).rjust(15) \
                 + repr(sta_stats.starttime.month).rjust(15) \
@@ -4208,7 +4176,7 @@ def quake_create(address_info):
                 + repr(sta_stats.starttime.minute).rjust(15) + \
                 repr(sta_stats.starttime.second).rjust(15) + \
                 repr(sta_stats.starttime.microsecond).rjust(15) + '\n')
-            
+
         sta_stats_endtime = sta_stats.starttime + sta_stats.npts/sta_stats.sampling_rate
 
         quake_file.writelines(repr(sta_stats_endtime.year).rjust(15)\
@@ -4230,22 +4198,22 @@ def quake_modify(quake_item, address_info):
     then it will be modified based on the data available 
     in the BH_RAW or BH file
     """
-    
+
     quake_file_new = open(os.path.join(address_info, 'quake'), 'w')
-    
+
     address = os.path.normpath(os.path.join(address_info, '..'))
-    
+
     if os.path.isdir(os.path.join(address, 'BH_RAW')):
         sta_address = os.path.join(address, 'BH_RAW')
     #elif os.path.isdir(os.path.join(address, 'BH')):
     else:
         sta_address = os.path.join(address, 'BH')
-        
+
     ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
-    
+
     sta = read(ls_stas[0])[0]
     sta_stats = sta.stats
-    
+
     try:
         quake_file_new.writelines(repr(int(quake_item[0])).rjust(15)\
                 + repr(int(quake_item[1])).rjust(15) + '\n')
@@ -4267,7 +4235,7 @@ def quake_modify(quake_item, address_info):
         quake_file_new.writelines(\
                 ' '*(15 - len(address.split('/')[-1])) + \
                         address.split('/')[-1] + '-' + '\n')
-        
+
         quake_file_new.writelines(repr(sta_stats.starttime.year).rjust(15)\
                 + repr(sta_stats.starttime.julday).rjust(15) \
                 + repr(sta_stats.starttime.month).rjust(15) \
@@ -4276,7 +4244,7 @@ def quake_modify(quake_item, address_info):
                 + repr(sta_stats.starttime.minute).rjust(15) + \
                 repr(sta_stats.starttime.second).rjust(15) + \
                 repr(sta_stats.starttime.microsecond).rjust(15) + '\n')
-            
+
         sta_stats_endtime = sta_stats.starttime + sta_stats.npts/sta_stats.sampling_rate
 
         quake_file_new.writelines(repr(sta_stats_endtime.year).rjust(15)\
@@ -4287,8 +4255,8 @@ def quake_modify(quake_item, address_info):
                 + repr(sta_stats_endtime.minute).rjust(15) + \
                 repr(sta_stats_endtime.second).rjust(15) + \
                 repr(sta_stats_endtime.microsecond).rjust(15) + '\n')
-                
-    except Exception, e:
+
+    except Exception as e:
         print e
         quake_file_new.writelines(repr(int(quake_item[0])).rjust(15)\
                 + repr(int(quake_item[1])).rjust(15) + '\n')
@@ -4310,7 +4278,7 @@ def quake_modify(quake_item, address_info):
         quake_file_new.writelines(\
                 ' '*(15 - len(address.split('/')[-1])) + \
                         address.split('/')[-1] + '-' + '\n')
-        
+
         quake_file_new.writelines(repr(sta_stats.starttime.year).rjust(15)\
                 + repr(sta_stats.starttime.julday).rjust(15) \
                 + repr(sta_stats.starttime.month).rjust(15) \
@@ -4319,7 +4287,7 @@ def quake_modify(quake_item, address_info):
                 + repr(sta_stats.starttime.minute).rjust(15) + \
                 repr(sta_stats.starttime.second).rjust(15) + \
                 repr(sta_stats.starttime.microsecond).rjust(15) + '\n')
-            
+
         sta_stats_endtime = sta_stats.starttime + sta_stats.npts/sta_stats.sampling_rate
 
         quake_file_new.writelines(repr(sta_stats_endtime.year).rjust(15)\
@@ -4331,45 +4299,45 @@ def quake_modify(quake_item, address_info):
                 repr(sta_stats_endtime.second).rjust(15) + \
                 repr(sta_stats_endtime.microsecond).rjust(15) + '\n')
     quake_file_new.close()
-    
+
 ###################### compress_gzip ###################################
 
 def compress_gzip(path, tar_file, files):
-            
+
     tar = tarfile.open(tar_file, "w:gz")
     os.chdir(path)
-    
+
     for infile in glob.glob( os.path.join(path, files) ):
-        
+
         print '------------------------------------'
         print 'Compressing:'
         print infile
-        
+
         tar.add(infile.split('/')[-1])
         os.remove(infile)
-    
+
     tar.close()
 
 ###################### send_email ######################################
 
 def send_email():
-    
+
     """
     Sending email to the specified "email" address
-    """ 
-    
+    """
+
     global input, t1_pro, t1_str
-    
+
     t2_pro = time.time()
     t2_str = datetime.now()
     t_pro = t2_pro - t1_pro
-    
+
     fromaddr = 'obspyDMT'
     toaddrs = input['email']
-    
+
     msg = "Request at: \n" + str(t1_str) + "\n\nFinished at \n" + \
             str(t2_str) + "\n\n" + "Total time: " + "\n" + str(t_pro)
-    
+
     server = smtplib.SMTP('localhost')
     server.sendmail(fromaddr, toaddrs, msg)
 
@@ -4379,7 +4347,7 @@ def input_logger(argus, address, inputs):
     """
     log the entered command line!
     """
-    st_argus = 'Command line:\n-------------\n' 
+    st_argus = 'Command line:\n-------------\n'
     for item in argus:
         st_argus += item + ' '
     st_argus += '\n\ninputs:\n-------\n'
@@ -4417,13 +4385,13 @@ def locate(root = '.', target = 'info'):
     """
     Locates a subdirectory within a directory.
     """
-    
+
     matches = []
-    
+
     for root, dirnames, filenames in os.walk(root):
         for dirnames in fnmatch.filter(dirnames, target):
             matches.append(os.path.join(root, dirnames))
-    
+
     return matches
 
 ########################################################################
@@ -4431,14 +4399,14 @@ def locate(root = '.', target = 'info'):
 ########################################################################
 
 def main():
-    
+
     global t1_pro, t1_str
-    
+
     t1_pro = time.time()
     t1_str = datetime.now()
-    
+
     status = obspyDMT()
-    
+
     try:
         global input, events
         size = getFolderSize(input['datapath'])
@@ -4455,9 +4423,9 @@ def main():
                                 str(input['min_mag']),
                                 str(input['max_mag']))
         eventpath = os.path.join(input['datapath'], Period)
-                
+
         len_events = len(events)
-        
+
         address = []
         for i in range(0, len_events):
             address.append(os.path.join(eventpath, events[i]['event_id']))
@@ -4466,8 +4434,8 @@ def main():
             for i in range(0, len_events):
                 print address[i]
             print "=================================================="
-        
-    except Exception, e:
+
+    except Exception as e:
         print e
         pass
         print "=================================================="
