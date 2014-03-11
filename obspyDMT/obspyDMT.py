@@ -76,8 +76,7 @@ except Exception as error:
     print "********************************************************\n"
 
 ############### Fill in descrip list
-descrip = []
-descrip.append('obspy ver: ' + obs_ver)
+descrip = ['obspy ver: ' + obs_ver]
 try:
     from obspy.core.util import locations2degrees
 except Exception as error:
@@ -114,25 +113,23 @@ def obspyDMT(**kwargs):
 
     """
     obspyDMT: is the function dedicated to the main part of the code.
+    It organizes all the main functions used in obspyDMT
     """
 
-    print '\n------------------------------------------------------------' + \
-            '---------------------'
-    print '\t\t' + 'obspyDMT (ObsPy Data Management Tool)' + '\n'
-    print '\t' + 'Automatic tool for Downloading, Processing and Management'
-    print '\t\t\t' + 'of Large Seismic Datasets'
-    print '\n'
+    print '\n' + 80*'-'
+    print '\t\tobspyDMT (ObsPy Data Management Tool)\n'
+    print '\tAutomatic tool for Downloading, Processing and Management'
+    print '\t\t\tof Large Seismological Datasets\n'
     print ':copyright:'
-    print 'The ObsPy Development Team (devs@obspy.org)' + '\n'
+    print 'The ObsPy Development Team (devs@obspy.org)\n'
     print 'Developed by Kasra Hosseini'
-    print 'email: hosseini@geophysik.uni-muenchen.de' + '\n'
+    print 'email: hosseini@geophysik.uni-muenchen.de\n'
     print ':license:'
     print 'GNU General Public License, Version 3'
     print '(http://www.gnu.org/licenses/gpl-3.0-standalone.html)'
-    print '------------------------------------------------------------' + \
-            '---------------------'
+    print 80*'-'
 
-    # global variables
+    # ------------------global variables-------------------
     global input, events
 
     # ------------------Parsing command-line options--------------------
@@ -143,10 +140,10 @@ def obspyDMT(**kwargs):
 
     # ------------------Getting List of Events/Continuous requests------
     if input['get_events'] == 'Y':
-        get_Events(input, request = 'event-based')
+        get_Events(input, request='event-based')
 
     if input['get_continuous'] == 'Y':
-        get_Events(input, request = 'continuous')
+        get_Events(input, request='continuous')
 
     # ------------------Seismicity--------------------------------------
     if input['seismicity'] == 'Y':
@@ -171,58 +168,57 @@ def obspyDMT(**kwargs):
         print '\n*********************'
         print 'IRIS -- Updating Mode'
         print '*********************'
-        IRIS_update(input, address = input['iris_update'])
+        IRIS_update(input, address=input['iris_update'])
 
     # ------------------ArcLink-Updating--------------------------------
     if input['arc_update'] != 'N':
         print '\n************************'
         print 'ArcLink -- Updating Mode'
         print '************************'
-        ARC_update(input, address = input['arc_update'])
+        ARC_update(input, address=input['arc_update'])
 
     # ------------------IRIS-instrument---------------------------------
     if input['iris_ic'] != 'N' or input['iris_ic_auto'] == 'Y':
         print '\n*****************************'
         print 'IRIS -- Instrument Correction'
         print '*****************************'
-        IRIS_ARC_IC(input, clients = 'iris')
+        IRIS_ARC_IC(input, clients='iris')
 
     # ------------------Arclink-instrument------------------------------
     if input['arc_ic'] != 'N' or input['arc_ic_auto'] == 'Y':
         print '\n********************************'
         print 'ArcLink -- Instrument Correction'
         print '********************************'
-        IRIS_ARC_IC(input, clients = 'arc')
+        IRIS_ARC_IC(input, clients='arc')
 
     # ------------------IRIS-merge--------------------------------------    
     if input['iris_merge'] != 'N' or input['iris_merge_auto'] == 'Y':
         print '\n*****************************'
         print 'IRIS -- Merging the waveforms'
         print '*****************************'
-        IRIS_ARC_merge(input, clients = 'iris')
+        IRIS_ARC_merge(input, clients='iris')
 
     # ------------------ArcLink-merge-----------------------------------    
     if input['arc_merge'] != 'N' or input['arc_merge_auto'] == 'Y':
         print '\n********************************'
         print 'ArcLink -- Merging the waveforms'
         print '********************************'
-        IRIS_ARC_merge(input, clients = 'arc')
+        IRIS_ARC_merge(input, clients='arc')
 
     # ------------------PLOT--------------------------------------------    
-    ls_plot_options = ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray',
-                        'plot_ray_gmt', 'plot_epi', 'plot_dt']
+    ls_plot_options = ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray', 'plot_ray_gmt', 'plot_epi', 'plot_dt']
     for plt_opt in ls_plot_options:
         if input[plt_opt] != 'N':
             print '\n********'
-            print 'Plotting'
+            print 'Plotting %s' % plt_opt
             print '********'
             if input['plot_all'] == 'Y' or input['plot_iris'] == 'Y':
-                PLOT(input, clients = 'iris')
+                PLOT(input, clients='iris')
             if input['plot_arc'] == 'Y':
-                PLOT(input, clients = 'arc')
+                PLOT(input, clients='arc')
 
     if input['plot_all_events']:
-        raw_input('Press enter to continue....')
+        raw_input('\nPress enter to continue....\n')
 
     # ------------------Email-------------------------------------------    
     if input['email'] != 'N':
@@ -238,6 +234,7 @@ def obspyDMT(**kwargs):
 
 ###################### command_parse ###################################
 
+
 def command_parse():
     """
     Parsing command-line options.
@@ -252,488 +249,326 @@ def command_parse():
     # * you need to provide every possible option here.
 
     helpmsg = "show the obspyDMT version and exit"
-    parser.add_option("--version", action="store_true",
-                      dest="version", help=helpmsg)
+    parser.add_option("--version", action="store_true", dest="version", help=helpmsg)
 
-    helpmsg = "check all the dependencies and their installed versions " + \
-                                        "on the local machine and exit"
-    parser.add_option("--check", action="store_true",
-                      dest="check", help=helpmsg)
+    helpmsg = "check all the dependencies and their installed versions on the local machine and exit"
+    parser.add_option("--check", action="store_true", dest="check", help=helpmsg)
 
     helpmsg = "Run a quick tour!"
-    parser.add_option("--tour", action="store_true",
-                      dest="tour", help=helpmsg)
+    parser.add_option("--tour", action="store_true", dest="tour", help=helpmsg)
 
     helpmsg = "if the datapath is found deleting it before running obspyDMT."
-    parser.add_option("--reset", action="store_true",
-                      dest="reset", help=helpmsg)
+    parser.add_option("--reset", action="store_true", dest="reset", help=helpmsg)
 
-    helpmsg = "the path where obspyDMT will store the data " + \
-                                        "[Default: './obspyDMT-data']"
-    parser.add_option("--datapath", action="store",
-                      dest="datapath", help=helpmsg)
+    helpmsg = "the path where obspyDMT will store the data [Default: './obspyDMT-data']"
+    parser.add_option("--datapath", action="store", dest="datapath", help=helpmsg)
 
-    helpmsg = "Consider the first phase arrival (P, Pdiff, PKIKP) to " + \
-                "use as the reference time, i.e. " + \
-                "--min_date and --max_date will be calculated from " + \
-                "the first phase arrival."
-    parser.add_option("--cut_time_phase", action="store_true",
-                      dest="cut_time_phase", help=helpmsg)
+    helpmsg = "Consider the first phase arrival (P, Pdiff, PKIKP) to use as the reference time, i.e. " \
+              "--min_date and --max_date will be calculated from the first phase arrival."
+    parser.add_option("--cut_time_phase", action="store_true", dest="cut_time_phase", help=helpmsg)
 
-    helpmsg = "start time, syntax: Y-M-D-H-M-S (eg: " + \
-                "'2010-01-01-00-00-00') or just Y-M-D [Default: 10 days ago]"
-    parser.add_option("--min_date", action="store",
-                      dest="min_date", help=helpmsg)
+    helpmsg = "start time, syntax: Y-M-D-H-M-S (eg: '2010-01-01-00-00-00') or just Y-M-D [Default: 10 days ago]"
+    parser.add_option("--min_date", action="store", dest="min_date", help=helpmsg)
 
-    helpmsg = "end time, syntax: Y-M-D-H-M-S (eg: " + \
-                "'2011-01-01-00-00-00') or just Y-M-D [Default: 5 days ago]"
-    parser.add_option("--max_date", action="store",
-                      dest="max_date", help=helpmsg)
+    helpmsg = "end time, syntax: Y-M-D-H-M-S (eg: '2011-01-01-00-00-00') or just Y-M-D [Default: 5 days ago]"
+    parser.add_option("--max_date", action="store", dest="max_date", help=helpmsg)
 
-    helpmsg = "event catalog (EMSC or IRIS). " + \
-                "[Default: 'EMSC']"
-    parser.add_option("--event_catalog", action="store",
-                      dest="event_catalog", help=helpmsg)
+    helpmsg = "event catalog (EMSC or IRIS). [Default: 'EMSC']"
+    parser.add_option("--event_catalog", action="store", dest="event_catalog", help=helpmsg)
 
-    helpmsg = "magnitude type. Some common types (there are many) " + \
-                "include 'Ml' (local/Richter magnitude), " + \
-                "'Ms' (surface magnitude), 'mb' (body wave magnitude), " + \
-                "'Mw' (moment magnitude). [Default: 'Mw']"
-    parser.add_option("--mag_type", action="store",
-                      dest="mag_type", help=helpmsg)
+    helpmsg = "magnitude type. Some common types (there are many) include 'Ml' (local/Richter magnitude), " \
+              "'Ms' (surface magnitude), 'mb' (body wave magnitude), 'Mw' (moment magnitude). [Default: 'Mw']"
+    parser.add_option("--mag_type", action="store", dest="mag_type", help=helpmsg)
 
     helpmsg = "minimum magnitude. [Default: 5.5]"
-    parser.add_option("--min_mag", action="store",
-                      dest="min_mag", help=helpmsg)
+    parser.add_option("--min_mag", action="store", dest="min_mag", help=helpmsg)
 
     helpmsg = "maximum magnitude. [Default: 9.9]"
-    parser.add_option("--max_mag", action="store",
-                      dest="max_mag", help=helpmsg)
+    parser.add_option("--max_mag", action="store", dest="max_mag", help=helpmsg)
 
     helpmsg = "minimum depth. [Default: +10.0 (above the surface!)]"
-    parser.add_option("--min_depth", action="store",
-                      dest="min_depth", help=helpmsg)
+    parser.add_option("--min_depth", action="store", dest="min_depth", help=helpmsg)
 
     helpmsg = "maximum depth. [Default: -6000.0]"
-    parser.add_option("--max_depth", action="store",
-                      dest="max_depth", help=helpmsg)
+    parser.add_option("--max_depth", action="store", dest="max_depth", help=helpmsg)
 
-    helpmsg = "search for all the events within the defined rectangle, " + \
-                "GMT syntax: <lonmin>/<lonmax>/<latmin>/<latmax> " + \
-                "[Default: -180.0/+180.0/-90.0/+90.0]"
-    parser.add_option("--event_rect", action="store", dest="event_rect",
-                        help=helpmsg)
+    helpmsg = "search for all the events within the defined rectangle, GMT syntax: " \
+              "<lonmin>/<lonmax>/<latmin>/<latmax> [Default: -180.0/+180.0/-90.0/+90.0]"
+    parser.add_option("--event_rect", action="store", dest="event_rect", help=helpmsg)
 
-    helpmsg = "search for all the events within the defined " + \
-                "circle, syntax: <lon>/<lat>/<rmin>/<rmax>. " + \
-                "May not be used together with rectangular " + \
-                "bounding box event restrictions (event_rect). " + \
-                "[currently just IRIS support this option]"
-    parser.add_option("--event_circle", action="store",
-                      dest="event_circle", help=helpmsg)
+    helpmsg = "search for all the events within the defined circle, syntax: <lon>/<lat>/<rmin>/<rmax>. May not be " \
+              "used together with rectangular bounding box event restrictions (event_rect). [currently just IRIS " \
+              "support this option]"
+    parser.add_option("--event_circle", action="store", dest="event_circle", help=helpmsg)
 
     helpmsg = "maximum number of events to be requested. [Default: 2500]"
-    parser.add_option("--max_result", action="store",
-                      dest="max_result", help=helpmsg)
+    parser.add_option("--max_result", action="store", dest="max_result", help=helpmsg)
 
     helpmsg = "Just retrieve the event information and create an event archive."
-    parser.add_option("--event_info", action="store_true",
-                      dest="event_info", help=helpmsg)
+    parser.add_option("--event_info", action="store_true", dest="event_info", help=helpmsg)
 
-    helpmsg = "Create a seismicity map according to the event and " + \
-                "location specifications."
-    parser.add_option("--seismicity", action="store_true",
-                      dest="seismicity", help=helpmsg)
+    helpmsg = "Create a seismicity map according to the event and location specifications."
+    parser.add_option("--seismicity", action="store_true", dest="seismicity", help=helpmsg)
 
     helpmsg = "event-based request (please refer to the tutorial). [Default: 'Y']"
-    parser.add_option("--get_events", action="store",
-                      dest="get_events", help=helpmsg)
+    parser.add_option("--get_events", action="store", dest="get_events", help=helpmsg)
 
     helpmsg = "continuous request (please refer to the tutorial)."
-    parser.add_option("--continuous", action="store_true",
-                      dest="get_continuous", help=helpmsg)
+    parser.add_option("--continuous", action="store_true", dest="get_continuous", help=helpmsg)
 
-    helpmsg = "time interval for dividing the continuous request. " + \
-                "[Default: 86400 sec (1 day)]"
-    parser.add_option("--interval", action="store",
-                      dest="interval", help=helpmsg)
+    helpmsg = "time interval for dividing the continuous request. [Default: 86400 sec (1 day)]"
+    parser.add_option("--interval", action="store", dest="interval", help=helpmsg)
 
-    helpmsg = "Preset defined for EACH continuous request, i.e. " + \
-                "time before EACH interval (refer to '--interval' option) " + \
-                "in continuous request."
-    parser.add_option("--preset_cont", action="store",
-                      dest="preset_cont", help=helpmsg)
+    helpmsg = "Preset defined for EACH continuous request, i.e. time before EACH interval (refer to '--interval' " \
+              "option) in continuous request."
+    parser.add_option("--preset_cont", action="store", dest="preset_cont", help=helpmsg)
 
-    helpmsg = "Offset defined for EACH continuous request, i.e. " + \
-                "time after EACH interval (refer to '--interval' option) " + \
-                "in continuous request."
-    parser.add_option("--offset_cont", action="store",
-                      dest="offset_cont", help=helpmsg)
+    helpmsg = "Offset defined for EACH continuous request, i.e. time after EACH interval (refer to '--interval' " \
+              "option) in continuous request."
+    parser.add_option("--offset_cont", action="store", dest="offset_cont", help=helpmsg)
 
     helpmsg = "Parallel waveform/response/paz request"
-    parser.add_option("--req_parallel", action="store_true",
-                      dest="req_parallel", help=helpmsg)
+    parser.add_option("--req_parallel", action="store_true", dest="req_parallel", help=helpmsg)
 
     helpmsg = "Number of processors to be used in --req_parallel. [Default: 4]"
-    parser.add_option("--req_np", action="store",
-                        dest="req_np", help=helpmsg)
+    parser.add_option("--req_np", action="store", dest="req_np", help=helpmsg)
 
     helpmsg = "Use a station list instead of checking the availability."
-    parser.add_option("--list_stas", action="store",
-                      dest="list_stas", help=helpmsg)
+    parser.add_option("--list_stas", action="store", dest="list_stas", help=helpmsg)
 
     helpmsg = "Retrieve synthetic waveforms of SPECFEM3D."
-    parser.add_option("--specfem3D", action="store_true",
-                      dest="specfem3D", help=helpmsg)
+    parser.add_option("--specfem3D", action="store_true", dest="specfem3D", help=helpmsg)
 
-    helpmsg = "using the IRIS bulkdataselect Web service. Since this " + \
-                "method returns multiple channels of time series data " + \
-                "for specified time ranges in one request, it speeds up " + \
-                "the waveform retrieving approximately by a factor of " + \
-                "two. [RECOMMENDED]"
-    parser.add_option("--iris_bulk", action="store_true",
-                      dest="iris_bulk", help=helpmsg)
+    helpmsg = "using the IRIS bulkdataselect Web service. Since this method returns multiple channels of time series " \
+              "data for specified time ranges in one request, it speeds up the waveform retrieving approximately by " \
+              "a factor of two. [RECOMMENDED]"
+    parser.add_option("--iris_bulk", action="store_true", dest="iris_bulk", help=helpmsg)
 
     helpmsg = "retrieve the waveform. [Default: 'Y']"
-    parser.add_option("--waveform", action="store",
-                      dest="waveform", help=helpmsg)
+    parser.add_option("--waveform", action="store", dest="waveform", help=helpmsg)
 
     helpmsg = "retrieve the response file. [Default: 'Y']"
-    parser.add_option("--response", action="store",
-                      dest="response", help=helpmsg)
+    parser.add_option("--response", action="store", dest="response", help=helpmsg)
 
     helpmsg = "retrieve the PAZ."
-    parser.add_option("--paz", action="store_true",
-                      dest="paz", help=helpmsg)
+    parser.add_option("--paz", action="store_true", dest="paz", help=helpmsg)
 
     helpmsg = "send request (waveform/response) to IRIS. [Default: 'Y']"
-    parser.add_option("--iris", action="store",
-                      dest="IRIS", help=helpmsg)
+    parser.add_option("--iris", action="store", dest="IRIS", help=helpmsg)
 
     helpmsg = "send request (waveform/response) to ArcLink. [Default: 'Y']"
-    parser.add_option("--arc", action="store",
-                      dest="ArcLink", help=helpmsg)
+    parser.add_option("--arc", action="store", dest="ArcLink", help=helpmsg)
 
     helpmsg = "send request (waveform) to NERIES if ArcLink fails. [Default: 'N']"
-    parser.add_option("--neries", action="store_true",
-                      dest="NERIES", help=helpmsg)
+    parser.add_option("--neries", action="store_true", dest="NERIES", help=helpmsg)
 
     helpmsg = "Timeout for sending request (availability) to ArcLink. [Default: 40]"
-    parser.add_option("--arc_avai_timeout", action="store",
-                      dest="arc_avai_timeout", help=helpmsg)
+    parser.add_option("--arc_avai_timeout", action="store", dest="arc_avai_timeout", help=helpmsg)
 
     helpmsg = "Timeout for sending request (waveform/response) to ArcLink. [Default: 2]"
-    parser.add_option("--arc_wave_timeout", action="store",
-                      dest="arc_wave_timeout", help=helpmsg)
+    parser.add_option("--arc_wave_timeout", action="store", dest="arc_wave_timeout", help=helpmsg)
 
     helpmsg = "Timeout for sending request (waveform/response) to NERIES. [Default: 2]"
-    parser.add_option("--neries_timeout", action="store",
-                      dest="neries_timeout", help=helpmsg)
+    parser.add_option("--neries_timeout", action="store", dest="neries_timeout", help=helpmsg)
 
-    helpmsg = "SAC format for saving the waveforms. Station location " + \
-                "(stla and stlo), station elevation (stel), " + \
-                "station depth (stdp), event location (evla and evlo), " + \
-                "event depth (evdp) and event magnitude (mag) " + \
-                "will be stored in the SAC headers. [Default: 'Y'] "
-    parser.add_option("--SAC", action="store",
-                      dest="SAC", help=helpmsg)
+    helpmsg = "SAC format for saving the waveforms. Station location (stla and stlo), station elevation (stel), " \
+              "station depth (stdp), event location (evla and evlo), event depth (evdp) and event magnitude (mag) " \
+              "will be stored in the SAC headers. [Default: 'Y'] "
+    parser.add_option("--SAC", action="store", dest="SAC", help=helpmsg)
 
     helpmsg = "MSEED format for saving the waveforms."
-    parser.add_option("--mseed", action="store_true",
-                      dest="mseed", help=helpmsg)
+    parser.add_option("--mseed", action="store_true", dest="mseed", help=helpmsg)
 
-    helpmsg = "generate a data-time file for an IRIS request. " + \
-                "This file shows the required time for each request " + \
-                "and the stored data in the folder."
-    parser.add_option("--time_iris", action="store_true",
-                      dest="time_iris", help=helpmsg)
+    helpmsg = "generate a data-time file for an IRIS request. This file shows the required time for each request and " \
+              "the stored data in the folder."
+    parser.add_option("--time_iris", action="store_true", dest="time_iris", help=helpmsg)
 
-    helpmsg = "generate a data-time file for an ArcLink request. " + \
-                "This file shows the required time for each request " + \
-                "and the stored data in the folder."
-    parser.add_option("--time_arc", action="store_true",
-                      dest="time_arc", help=helpmsg)
+    helpmsg = "generate a data-time file for an ArcLink request. This file shows the required time for each request " \
+              "and the stored data in the folder."
+    parser.add_option("--time_arc", action="store_true", dest="time_arc", help=helpmsg)
 
-    helpmsg = "time parameter in seconds which determines how close " + \
-                "the time series data (waveform) will be cropped " + \
-                "before the origin time of the event. Default: 0.0 seconds."
-    parser.add_option("--preset", action="store",
-                      dest="preset", help=helpmsg)
+    helpmsg = "time parameter in seconds which determines how close the time series data (waveform) will be cropped " \
+              "before the origin time of the event. Default: 0.0 seconds."
+    parser.add_option("--preset", action="store", dest="preset", help=helpmsg)
 
-    helpmsg = "time parameter in seconds which determines how close " + \
-                "the time series data (waveform) will be cropped " + \
-                "after the origin time of the event. Default: 1800.0 seconds."
-    parser.add_option("--offset", action="store",
-                      dest="offset", help=helpmsg)
+    helpmsg = "time parameter in seconds which determines how close the time series data (waveform) will be cropped " \
+              "after the origin time of the event. Default: 1800.0 seconds."
+    parser.add_option("--offset", action="store", dest="offset", help=helpmsg)
 
-    helpmsg = "identity code restriction, syntax: net.sta.loc.cha " + \
-                "(eg: TA.*.*.BHZ to search for all BHZ channels in " + \
-                "TA network). [Default: *.*.*.*]"
-    parser.add_option("--identity", action="store", dest="identity",
-                        help=helpmsg)
+    helpmsg = "identity code restriction, syntax: net.sta.loc.cha (eg: TA.*.*.BHZ to search for all BHZ channels in " \
+              "TA network). [Default: *.*.*.*]"
+    parser.add_option("--identity", action="store", dest="identity", help=helpmsg)
 
     helpmsg = "network code. [Default: *]"
-    parser.add_option("--net", action="store",
-                      dest="net", help=helpmsg)
+    parser.add_option("--net", action="store", dest="net", help=helpmsg)
 
     helpmsg = "station code. [Default: *]"
-    parser.add_option("--sta", action="store",
-                      dest="sta", help=helpmsg)
+    parser.add_option("--sta", action="store", dest="sta", help=helpmsg)
 
     helpmsg = "location code. [Default: *]"
-    parser.add_option("--loc", action="store",
-                      dest="loc", help=helpmsg)
+    parser.add_option("--loc", action="store", dest="loc", help=helpmsg)
 
     helpmsg = "channel code. [Default: *]"
-    parser.add_option("--cha", action="store",
-                      dest="cha", help=helpmsg)
+    parser.add_option("--cha", action="store", dest="cha", help=helpmsg)
 
-    helpmsg = "search for all the stations within the defined " + \
-                "rectangle, GMT syntax: " + \
-                "<lonmin>/<lonmax>/<latmin>/<latmax>. May not be " + \
-                "used together with circular bounding box station " + \
-                "restrictions (station_circle) " + \
-                "[Default: -180.0/+180.0/-90.0/+90.0]"
-    parser.add_option("--station_rect", action="store",
-                      dest="station_rect", help=helpmsg)
+    helpmsg = "search for all the stations within the defined rectangle, GMT syntax: " \
+              "<lonmin>/<lonmax>/<latmin>/<latmax>. May not be used together with circular bounding box station " \
+              "restrictions (station_circle) [Default: -180.0/+180.0/-90.0/+90.0]"
+    parser.add_option("--station_rect", action="store", dest="station_rect", help=helpmsg)
 
-    helpmsg = "search for all the stations within the defined " + \
-                "circle, syntax: <lon>/<lat>/<rmin>/<rmax>. " + \
-                "May not be used together with rectangular " + \
-                "bounding box station restrictions (station_rect)." + \
-                " Currently, ArcLink does not support this option!"
-    parser.add_option("--station_circle", action="store",
-                      dest="station_circle", help=helpmsg)
+    helpmsg = "search for all the stations within the defined circle, syntax: <lon>/<lat>/<rmin>/<rmax>. May not be " \
+              "used together with rectangular bounding box station restrictions (station_rect). Currently, " \
+              "ArcLink does not support this option!"
+    parser.add_option("--station_circle", action="store", dest="station_circle", help=helpmsg)
 
-    helpmsg = "test the program for the desired number of requests, " + \
-                "eg: '--test 10' will test the program for 10 requests. " + \
-                "[Default: 'N']"
-    parser.add_option("--test", action="store",
-                      dest="test", help=helpmsg)
+    helpmsg = "test the program for the desired number of requests, eg: '--test 10' will test the program for 10 " \
+              "requests. [Default: 'N']"
+    parser.add_option("--test", action="store", dest="test", help=helpmsg)
 
-    helpmsg = "update the specified folder for IRIS, syntax: " + \
-                "--iris_update address_of_the_target_folder. [Default: 'N']"
-    parser.add_option("--iris_update", action="store",
-                      dest="iris_update", help=helpmsg)
+    helpmsg = "update the specified folder for IRIS, syntax: --iris_update address_of_the_target_folder. [Default: 'N']"
+    parser.add_option("--iris_update", action="store", dest="iris_update", help=helpmsg)
 
-    helpmsg = "update the specified folder for ArcLink, syntax: " + \
-                "--arc_update address_of_the_target_folder. [Default: 'N']"
-    parser.add_option("--arc_update", action="store",
-                      dest="arc_update", help=helpmsg)
+    helpmsg = "update the specified folder for ArcLink, syntax: --arc_update address_of_the_target_folder. [Default: " \
+              "'N']"
+    parser.add_option("--arc_update", action="store", dest="arc_update", help=helpmsg)
 
-    helpmsg = "update the specified folder for both IRIS and ArcLink, " + \
-                "syntax: --update_all address_of_the_target_folder. " + \
-                "[Default: 'N']"
-    parser.add_option("--update_all", action="store",
-                      dest="update_all", help=helpmsg)
+    helpmsg = "update the specified folder for both IRIS and ArcLink, syntax: --update_all " \
+              "address_of_the_target_folder. [Default: 'N']"
+    parser.add_option("--update_all", action="store", dest="update_all", help=helpmsg)
 
-    helpmsg = "apply instrument correction to the specified folder " + \
-                "for the downloaded waveforms from IRIS, " + \
-                "syntax: --iris_ic address_of_the_target_folder. " + \
-                "[Default: 'N']"
-    parser.add_option("--iris_ic", action="store",
-                        dest="iris_ic", help=helpmsg)
+    helpmsg = "apply instrument correction to the specified folder for the downloaded waveforms from IRIS, " \
+              "syntax: --iris_ic address_of_the_target_folder. [Default: 'N']"
+    parser.add_option("--iris_ic", action="store", dest="iris_ic", help=helpmsg)
 
-    helpmsg = "apply instrument correction to the specified folder " + \
-                "for the downloaded waveforms from ArcLink, " + \
-                "syntax: --arc_ic address_of_the_target_folder. " + \
-                "[Default: 'N']"
-    parser.add_option("--arc_ic", action="store",
-                        dest="arc_ic", help=helpmsg)
+    helpmsg = "apply instrument correction to the specified folder for the downloaded waveforms from ArcLink, " \
+              "syntax: --arc_ic address_of_the_target_folder. [Default: 'N']"
+    parser.add_option("--arc_ic", action="store", dest="arc_ic", help=helpmsg)
 
-    helpmsg = "apply instrument correction automatically after " + \
-                "downloading the waveforms from IRIS. [Default: 'Y']"
-    parser.add_option("--iris_ic_auto", action="store",
-                        dest="iris_ic_auto", help=helpmsg)
+    helpmsg = "apply instrument correction automatically after downloading the waveforms from IRIS. [Default: 'Y']"
+    parser.add_option("--iris_ic_auto", action="store", dest="iris_ic_auto", help=helpmsg)
 
-    helpmsg = "apply instrument correction automatically after " + \
-                "downloading the waveforms from ArcLink. [Default: 'Y']"
-    parser.add_option("--arc_ic_auto", action="store",
-                        dest="arc_ic_auto", help=helpmsg)
+    helpmsg = "apply instrument correction automatically after downloading the waveforms from ArcLink. [Default: 'Y']"
+    parser.add_option("--arc_ic_auto", action="store", dest="arc_ic_auto", help=helpmsg)
 
-    helpmsg = "apply instrument correction to the specified folder " + \
-                "for all the waveforms (IRIS and ArcLink), " + \
-                "syntax: --ic_all address_of_the_target_folder. [Default: 'N']"
-    parser.add_option("--ic_all", action="store",
-                        dest="ic_all", help=helpmsg)
+    helpmsg = "apply instrument correction to the specified folder for all the waveforms (IRIS and ArcLink), " \
+              "syntax: --ic_all address_of_the_target_folder. [Default: 'N']"
+    parser.add_option("--ic_all", action="store", dest="ic_all", help=helpmsg)
 
-    helpmsg = "do not apply instrument correction automatically. " + \
-                "This is equivalent to: \"--iris_ic_auto N --arc_ic_auto N\""
-    parser.add_option("--ic_no", action="store_true",
-                        dest="ic_no", help=helpmsg)
+    helpmsg = "do not apply instrument correction automatically. This is equivalent to: \"--iris_ic_auto N " \
+              "--arc_ic_auto N\""
+    parser.add_option("--ic_no", action="store_true", dest="ic_no", help=helpmsg)
 
     helpmsg = "Parallel Instrument Correction. "
-    parser.add_option("--ic_parallel", action="store_true",
-                        dest="ic_parallel", help=helpmsg)
+    parser.add_option("--ic_parallel", action="store_true", dest="ic_parallel", help=helpmsg)
 
     helpmsg = "Number of processors to be used in --ic_parallel. [Default: 20]"
-    parser.add_option("--ic_np", action="store",
-                        dest="ic_np", help=helpmsg)
+    parser.add_option("--ic_np", action="store", dest="ic_np", help=helpmsg)
 
     helpmsg = "Instrument Correction (full response), using obspy modules"
-    parser.add_option("--ic_obspy_full", action="store",
-                      dest="ic_obspy_full", help=helpmsg)
+    parser.add_option("--ic_obspy_full", action="store", dest="ic_obspy_full", help=helpmsg)
 
     helpmsg = "Instrument Correction (full response), using SAC"
-    parser.add_option("--ic_sac_full", action="store_true",
-                      dest="ic_sac_full", help=helpmsg)
+    parser.add_option("--ic_sac_full", action="store_true", dest="ic_sac_full", help=helpmsg)
 
-    helpmsg = "Instrument Correction (Poles And Zeros), " + \
-                "using SAC (for IRIS) and obspy (for ArcLink)"
-    parser.add_option("--ic_paz", action="store_true",
-                      dest="ic_paz", help=helpmsg)
+    helpmsg = "Instrument Correction (Poles And Zeros), using SAC (for IRIS) and obspy (for ArcLink)"
+    parser.add_option("--ic_paz", action="store_true", dest="ic_paz", help=helpmsg)
 
-    helpmsg = "apply a bandpass filter to the data trace before " + \
-                "deconvolution ('None' if you do not need pre_filter), " + \
-                "syntax: '(f1,f2,f3,f4)' which are the four corner " + \
-                "frequencies of a cosine taper, one between f2 and f3 " + \
-                "and tapers to zero for f1 < f < f2 and f3 < f < f4. " + \
-                "[Default: '(0.008, 0.012, 3.0, 4.0)']"
-    parser.add_option("--pre_filt", action="store",
-                      dest="pre_filt", help=helpmsg)
+    helpmsg = "apply a bandpass filter to the data trace before deconvolution ('None' if you do not need " \
+              "pre_filter), syntax: '(f1,f2,f3,f4)' which are the four corner frequencies of a cosine taper, " \
+              "one between f2 and f3 and tapers to zero for f1 < f < f2 and f3 < f < f4. [Default: '(0.008, 0.012, " \
+              "3.0, 4.0)']"
+    parser.add_option("--pre_filt", action="store", dest="pre_filt", help=helpmsg)
 
-    helpmsg = "correct the raw waveforms for DIS (m), VEL (m/s) or " + \
-                "ACC (m/s^2). [Default: DIS]"
-    parser.add_option("--corr_unit", action="store",
-                      dest="corr_unit", help=helpmsg)
+    helpmsg = "correct the raw waveforms for DIS (m), VEL (m/s) or ACC (m/s^2). [Default: DIS]"
+    parser.add_option("--corr_unit", action="store", dest="corr_unit", help=helpmsg)
 
-    helpmsg = "compress the raw-waveform files after applying " + \
-                "instrument correction."
-    parser.add_option("--zip_w", action="store_true",
-                        dest="zip_w", help=helpmsg)
+    helpmsg = "compress the raw-waveform files after applying instrument correction."
+    parser.add_option("--zip_w", action="store_true", dest="zip_w", help=helpmsg)
 
-    helpmsg = "compress the response files after applying " + \
-                "instrument correction."
-    parser.add_option("--zip_r", action="store_true",
-                        dest="zip_r", help=helpmsg)
+    helpmsg = "compress the response files after applying instrument correction."
+    parser.add_option("--zip_r", action="store_true", dest="zip_r", help=helpmsg)
 
-    helpmsg = "merge the IRIS waveforms in the specified folder, " + \
-                "syntax: --iris_merge address_of_the_target_folder. " + \
-                "[Default: 'N']"
-    parser.add_option("--iris_merge", action="store",
-                        dest="iris_merge", help=helpmsg)
+    helpmsg = "merge the IRIS waveforms in the specified folder, syntax: --iris_merge address_of_the_target_folder. [" \
+              "Default: 'N']"
+    parser.add_option("--iris_merge", action="store", dest="iris_merge", help=helpmsg)
 
-    helpmsg = "merge the ArcLink waveforms in the specified folder, " + \
-                "syntax: --arc_merge address_of_the_target_folder. " + \
-                "[Default: 'N']"
-    parser.add_option("--arc_merge", action="store",
-                        dest="arc_merge", help=helpmsg)
+    helpmsg = "merge the ArcLink waveforms in the specified folder, syntax: --arc_merge address_of_the_target_folder" \
+              ". [Default: 'N']"
+    parser.add_option("--arc_merge", action="store", dest="arc_merge", help=helpmsg)
 
-    helpmsg = "merge automatically after downloading the waveforms " + \
-                "from IRIS. [Default: 'Y']"
-    parser.add_option("--iris_merge_auto", action="store",
-                        dest="iris_merge_auto", help=helpmsg)
+    helpmsg = "merge automatically after downloading the waveforms from IRIS. [Default: 'Y']"
+    parser.add_option("--iris_merge_auto", action="store", dest="iris_merge_auto", help=helpmsg)
 
-    helpmsg = "merge automatically after downloading the waveforms " + \
-                "from ArcLink. [Default: 'Y']"
-    parser.add_option("--arc_merge_auto", action="store",
-                        dest="arc_merge_auto", help=helpmsg)
+    helpmsg = "merge automatically after downloading the waveforms from ArcLink. [Default: 'Y']"
+    parser.add_option("--arc_merge_auto", action="store", dest="arc_merge_auto", help=helpmsg)
 
-    helpmsg = "merge all waveforms (IRIS and ArcLink) in the " + \
-                "specified folder, syntax: --merge_all " + \
-                "address_of_the_target_folder. [Default: 'N']"
-    parser.add_option("--merge_all", action="store",
-                      dest="merge_all", help=helpmsg)
+    helpmsg = "merge all waveforms (IRIS and ArcLink) in the specified folder, syntax: --merge_all " \
+              "address_of_the_target_folder. [Default: 'N']"
+    parser.add_option("--merge_all", action="store", dest="merge_all", help=helpmsg)
 
-    helpmsg = "do not merge automatically. This is equivalent " + \
-                "to: \"--iris_merge_auto N --arc_merge_auto N\""
-    parser.add_option("--merge_no", action="store_true",
-                      dest="merge_no", help=helpmsg)
+    helpmsg = "do not merge automatically. This is equivalent to: \"--iris_merge_auto N --arc_merge_auto N\""
+    parser.add_option("--merge_no", action="store_true", dest="merge_no", help=helpmsg)
 
     helpmsg = "merge 'raw' or 'corrected' waveforms. [Default: 'raw']"
-    parser.add_option("--merge_type", action="store",
-                        dest="merge_type", help=helpmsg)
+    parser.add_option("--merge_type", action="store", dest="merge_type", help=helpmsg)
 
     helpmsg = "plot waveforms downloaded from IRIS."
-    parser.add_option("--plot_iris", action="store_true",
-                      dest="plot_iris", help=helpmsg)
+    parser.add_option("--plot_iris", action="store_true", dest="plot_iris", help=helpmsg)
 
     helpmsg = "plot waveforms downloaded from ArcLink."
-    parser.add_option("--plot_arc", action="store_true",
-                      dest="plot_arc", help=helpmsg)
+    parser.add_option("--plot_arc", action="store_true", dest="plot_arc", help=helpmsg)
 
     helpmsg = "plot all waveforms (IRIS and ArcLink). [Default: 'Y']"
-    parser.add_option("--plot_all", action="store",
-                      dest="plot_all", help=helpmsg)
+    parser.add_option("--plot_all", action="store", dest="plot_all", help=helpmsg)
 
     helpmsg = "plot 'raw' or 'corrected' waveforms. [Default: 'raw']"
-    parser.add_option("--plot_type", action="store",
-                        dest="plot_type", help=helpmsg)
+    parser.add_option("--plot_type", action="store", dest="plot_type", help=helpmsg)
 
-    helpmsg = "plot all the events, stations and ray path between them " + \
-                "found in the specified folder, " + \
-                "syntax: --plot_ray_gmt address_of_the_target_folder. " + \
-                "[Default: 'N']"
-    parser.add_option("--plot_ray_gmt", action="store",
-                      dest="plot_ray_gmt", help=helpmsg)
+    helpmsg = "plot all the events, stations and ray path between them found in the specified folder, " \
+              "syntax: --plot_ray_gmt address_of_the_target_folder. [Default: 'N']"
+    parser.add_option("--plot_ray_gmt", action="store", dest="plot_ray_gmt", help=helpmsg)
 
-    helpmsg = "plot all the events found in the specified folder, " + \
-                "syntax: --plot_ev address_of_the_target_folder. " + \
-                "[Default: 'N']"
-    parser.add_option("--plot_ev", action="store",
-                      dest="plot_ev", help=helpmsg)
+    helpmsg = "plot all the events found in the specified folder, syntax: --plot_ev address_of_the_target_folder. [" \
+              "Default: 'N']"
+    parser.add_option("--plot_ev", action="store", dest="plot_ev", help=helpmsg)
 
-    helpmsg = "plot all the stations found in the specified folder, " + \
-                "syntax: --plot_sta address_of_the_target_folder. " + \
-                "[Default: 'N']"
-    parser.add_option("--plot_sta", action="store",
-                      dest="plot_sta", help=helpmsg)
+    helpmsg = "plot all the stations found in the specified folder, syntax: --plot_sta address_of_the_target_folder. " \
+              "[Default: 'N']"
+    parser.add_option("--plot_sta", action="store", dest="plot_sta", help=helpmsg)
 
-    helpmsg = "plot both all the stations and all the events found " + \
-                "in the specified folder, syntax: --plot_se " + \
-                "address_of_the_target_folder. [Default: 'N']"
-    parser.add_option("--plot_se", action="store",
-                      dest="plot_se", help=helpmsg)
+    helpmsg = "plot both all the stations and all the events found in the specified folder, syntax: --plot_se " \
+              "address_of_the_target_folder. [Default: 'N']"
+    parser.add_option("--plot_se", action="store", dest="plot_se", help=helpmsg)
 
-    helpmsg = "plot the ray coverage for all the station-event " + \
-                "pairs found in the specified folder, syntax: " + \
-                "--plot_ray address_of_the_target_folder. [Default: 'N']"
-    parser.add_option("--plot_ray", action="store",
-                      dest="plot_ray", help=helpmsg)
+    helpmsg = "plot the ray coverage for all the station-event pairs found in the specified folder, " \
+              "syntax: --plot_ray address_of_the_target_folder. [Default: 'N']"
+    parser.add_option("--plot_ray", action="store", dest="plot_ray", help=helpmsg)
 
-    helpmsg = "plot \"epicentral distance-time\" for all the " + \
-                "waveforms found in the specified folder, " + \
-                "syntax: --plot_epi address_of_the_target_folder. " + \
-                "[Default: 'N']"
-    parser.add_option("--plot_epi", action="store",
-                      dest="plot_epi", help=helpmsg)
+    helpmsg = "plot \"epicentral distance-time\" for all the waveforms found in the specified folder, " \
+              "syntax: --plot_epi address_of_the_target_folder. [Default: 'N']"
+    parser.add_option("--plot_epi", action="store", dest="plot_epi", help=helpmsg)
 
-    helpmsg = "plot \"epicentral distance-time\" (refer to " + \
-                "'--plot_epi') for all the waveforms with " + \
-                "epicentral-distance >= min_epi. [Default: 0.0]"
-    parser.add_option("--min_epi", action="store",
-                      dest="min_epi", help=helpmsg)
+    helpmsg = "plot \"epicentral distance-time\" (refer to --plot_epi') for all the waveforms with " \
+              "epicentral-distance >= min_epi. [Default: 0.0]"
+    parser.add_option("--min_epi", action="store", dest="min_epi", help=helpmsg)
 
-    helpmsg = "plot \"epicentral distance-time\" (refer to " + \
-                "'--plot_epi') for all the waveforms with " + \
-                "epicentral-distance <= max_epi. [Default: 180.0]"
-    parser.add_option("--max_epi", action="store",
-                      dest="max_epi", help=helpmsg)
+    helpmsg = "plot \"epicentral distance-time\" (refer to '--plot_epi') for all the waveforms with " \
+              "epicentral-distance <= max_epi. [Default: 180.0]"
+    parser.add_option("--max_epi", action="store", dest="max_epi", help=helpmsg)
 
-    helpmsg = "plot \"Data(MB)-Time(Sec)\" -- ATTENTION: " + \
-                "\"time_iris\" and/or \"time_arc\" should exist in the " + \
-                "\"info\" folder [refer to " + \
-                "\"time_iris\" and \"time_arc\" options] " + \
-                "[Default: 'N']"
-    parser.add_option("--plot_dt", action="store",
-                      dest="plot_dt", help=helpmsg)
+    helpmsg = "plot \"Data(MB)-Time(Sec)\" -- ATTENTION: \"time_iris\" and/or \"time_arc\" should exist in the " \
+              "\"info\" folder [refer to \"time_iris\" and \"time_arc\" options] [Default: 'N']"
+    parser.add_option("--plot_dt", action="store", dest="plot_dt", help=helpmsg)
 
-    helpmsg = "the path where obspyDMT will store " + \
-                "the plots [Default: '.' (the same directory " + \
-                "as obspyDMT.py)]"
-    parser.add_option("--plot_save", action="store",
-                      dest="plot_save", help=helpmsg)
+    helpmsg = "the path where obspyDMT will store the plots [Default: '.' (the same directory as obspyDMT.py)]"
+    parser.add_option("--plot_save", action="store", dest="plot_save", help=helpmsg)
 
-    helpmsg = "format of the plots saved on the local machine " + \
-                "[Default: 'png']"
-    parser.add_option("--plot_format", action="store",
-                      dest="plot_format", help=helpmsg)
+    helpmsg = "format of the plots saved on the local machine [Default: 'png']"
+    parser.add_option("--plot_format", action="store", dest="plot_format", help=helpmsg)
 
-    helpmsg = "send an email to the specified email-address after " + \
-                "completing the job, syntax: --email " + \
-                "email_address. [Default: 'N']"
-    parser.add_option("--email", action="store",
-                      dest="email", help=helpmsg)
+    helpmsg = "send an email to the specified email-address after completing the job, syntax: --email email_address. " \
+              "[Default: 'N']"
+    parser.add_option("--email", action="store", dest="email", help=helpmsg)
 
     # parse command line options
     (options, args) = parser.parse_args()
@@ -992,11 +827,11 @@ def read_input_command(parser, **kwargs):
         # try-except so we don't get an exception if path doesnt exist
         try:
             shutil.rmtree(options.datapath)
-            print '----------------------------------'
-            print 'The following folder has been deleted:'
+            print '\n-----------------------------------------'
+            print 'The following directory has been deleted:'
             print str(options.datapath)
-            print 'obspyDMT is going to create a new folder...'
-            print '----------------------------------'
+            print 'obspyDMT is going to re-create it...'
+            print '-----------------------------------------\n\n'
         except:
             pass
 
@@ -1161,10 +996,8 @@ def read_input_command(parser, **kwargs):
         input['arc_merge_auto'] = options.arc_merge_auto
         input['merge_type'] = options.merge_type
 
-    for opts in ['iris_update', 'arc_update', 'iris_ic', 'arc_ic',
-                'iris_merge', 'arc_merge', 'plot_se', 'plot_sta',
-                'plot_ev', 'plot_ray', 'plot_ray_gmt', 'plot_epi',
-                'plot_dt']:
+    for opts in ['iris_update', 'arc_update', 'iris_ic', 'arc_ic', 'iris_merge', 'arc_merge', 'plot_se', 'plot_sta',
+                 'plot_ev', 'plot_ray', 'plot_ray_gmt', 'plot_epi', 'plot_dt']:
         if input[opts] != 'N':
             input['datapath'] = input[opts]
             input['get_events'] = 'N'
@@ -1410,8 +1243,8 @@ def events_info(request):
                         'latitude': events_QML.events[i].preferred_origin().latitude or \
 					    events_QML.events[i].origins[0].latitude, \
                         'datetime': event_time, \
-                        'depth': -events_QML.events[i].preferred_origin().depth or \
-					    -events_QML.events[i].origins[0].depth, \
+                        'depth': -events_QML.events[i].preferred_origin().depth/1000. or \
+					    -events_QML.events[i].origins[0].depth/1000., \
                         'magnitude': events_QML.events[i].preferred_magnitude().mag or \
 					    events_QML.events[i].magnitudes[0].mag, \
                         'magnitude_type': \
@@ -1569,7 +1402,7 @@ def IRIS_network(input):
         if Stas_iris:
             IRIS_waveform(input, Stas_iris, i, type = 'save')
         else:
-            'No available station in IRIS for your request!'
+            print 'No available station in IRIS for your request!'
             continue
 
 ###################### IRIS_available ##################################
@@ -1598,23 +1431,22 @@ def IRIS_available(input, event, target_path, event_number):
         for network in available.networks:
             for station in network:
                 for channel in station:
-                    Sta_iris.append([network.code, station.code,
-                        channel.location_code, channel.code,
-                        channel.latitude, channel.longitude,
-                        channel.elevation, channel.depth])
-        #Sta_iris = XML_list_avail(xmlfile = available)
+                    Sta_iris.append([network.code, station.code, channel.location_code, channel.code,
+                                     channel.latitude, channel.longitude, channel.elevation/1000., channel.depth/1000.])
         if input['iris_bulk'] == 'Y':
-            if os.path.exists(os.path.join(target_path,\
-                                    'info', 'bulkdata.txt')):
+            if os.path.exists(os.path.join(target_path, 'info', 'bulkdata.txt')):
                 print 'bulkdata.txt exists in the directory!'
             else:
                 print 'Start creating a list for bulk request'
                 bulk_list = []
                 for bulk_sta in Sta_iris:
-                    bulk_list.append((bulk_sta[0], bulk_sta[1],
-                                        bulk_sta[2], bulk_sta[3],
-                                        UTCDateTime(event['t1']),
-                                        UTCDateTime(event['t2'])))
+                    if input['cut_time_phase']:
+                        t_start, t_end = calculate_time_phase(event, bulk_sta)
+                    else:
+                        t_start = event['t1']
+                        t_end = event['t2']
+                    bulk_list.append((bulk_sta[0], bulk_sta[1], bulk_sta[2], bulk_sta[3], t_start, t_end))
+
                 bulk_list_fio = open(os.path.join(target_path,'info', 'bulkdata_list'), 'a+')
                 pickle.dump(bulk_list, bulk_list_fio)
                 bulk_list_fio.close()
@@ -2017,7 +1849,7 @@ def calculate_time_phase(event, sta):
             else:
                 continue
         if flag:
-            print '%s exists in this station-event set-up!' %(ph)
+            print 'Phase: %s' % ph
             break
     t_start = event['t1'] + time
     t_end = event['t2'] + time
