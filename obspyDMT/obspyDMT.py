@@ -60,14 +60,6 @@ from obspy.neries import Client as Client_neries
 ############### END obspy modules
 
 try:
-    import pprocess
-except Exception as error:
-    print "\n**************************"
-    print "Unable to import pprocess."
-    print "Error: %s" % error
-    print "**************************\n"
-
-try:
     import smtplib
 except Exception as error:
     print "\n********************************************************"
@@ -577,11 +569,11 @@ def command_parse():
 
 ###################### read_input_command ##############################
 
+
 def read_input_command(parser, **kwargs):
     """
     Create input object (dictionary) based on command-line options.
     The default values are as "input" object (below) 
-    [same in INPUT-default.cfg]
     """
     global input, descrip
 
@@ -589,57 +581,57 @@ def read_input_command(parser, **kwargs):
     # Each of these values could be changed
     # by defining the required command-line flag (if you use 
     # "'./obspyDMT.py --type command'")
-    input = {   'datapath': 'obspyDMT-data',
-                'min_date': str(UTCDateTime() - 60 * 60 * 24 * 10 * 1),
-                'max_date': str(UTCDateTime() - 60 * 60 * 24 * 5 * 1),
-                'event_catalog': 'EMSC',
-                'mag_type': 'Mw',
-                'min_mag': 5.5, 'max_mag': 9.9,
-                'min_depth': +10.0, 'max_depth': -6000.0,
-                'get_events': 'Y',
-                'interval': 3600*24,
-                'preset_cont': 0,
-                'offset_cont': 0,
-                'req_np': 4,
-                'list_stas': False,
-                'waveform': 'Y', 'response': 'Y',
-                'IRIS': 'Y', 'ArcLink': 'Y',
-                'arc_avai_timeout': 40,
-                'arc_wave_timeout': 2,
-                'neries_timeout': 2,
-                'SAC': 'Y',
-                'preset': 0.0, 'offset': 1800.0,
-                'net': '*', 'sta': '*', 'loc': '*', 'cha': '*',
-                'evlatmin': None, 'evlatmax': None,
-                'evlonmin': None, 'evlonmax': None,
-                'evlat': None, 'evlon': None,
-                'evradmin': None, 'evradmax': None,
-                'max_result': 2500,
-                'lat_cba': None, 'lon_cba': None,
-                'mr_cba': None, 'Mr_cba': None,
-                'mlat_rbb': None, 'Mlat_rbb': None,
-                'mlon_rbb': None, 'Mlon_rbb': None,
-                'test': 'N',
-                'iris_update': 'N', 'arc_update': 'N', 'update_all': 'N',
-                'email': 'N',
-                'ic_all': 'N',
-                'iris_ic': 'N', 'iris_ic_auto': 'Y',
-                'arc_ic': 'N', 'arc_ic_auto': 'Y',
-                'ic_np': 20,
-                'ic_obspy_full': 'Y',
-                'pre_filt': '(0.008, 0.012, 3.0, 4.0)',
-                'corr_unit': 'DIS',
-                'merge_all': 'N',
-                'iris_merge': 'N', 'iris_merge_auto': 'Y',
-                'merge_type': 'raw',
-                'arc_merge': 'N', 'arc_merge_auto': 'Y',
-                'plot_all': 'Y',
-                'plot_type': 'raw',
-                'plot_ev': 'N', 'plot_sta': 'N', 'plot_se': 'N',
-                'plot_ray': 'N', 'plot_epi': 'N', 'plot_dt': 'N',
-                'plot_ray_gmt': 'N',
-                'plot_save': '.', 'plot_format': 'png',
-                'min_epi': 0.0, 'max_epi': 180.0,
+    input = {'datapath': 'obspyDMT-data',
+             'min_date': str(UTCDateTime() - 60 * 60 * 24 * 10 * 1),
+             'max_date': str(UTCDateTime() - 60 * 60 * 24 * 5 * 1),
+             'event_catalog': 'EMSC',
+             'mag_type': 'Mw',
+             'min_mag': 5.5, 'max_mag': 9.9,
+             'min_depth': +10.0, 'max_depth': -6000.0,
+             'get_events': 'Y',
+             'interval': 3600*24,
+             'preset_cont': 0,
+             'offset_cont': 0,
+             'req_np': 4,
+             'list_stas': False,
+             'waveform': 'Y', 'response': 'Y',
+             'IRIS': 'Y', 'ArcLink': 'Y',
+             'arc_avai_timeout': 40,
+             'arc_wave_timeout': 2,
+             'neries_timeout': 2,
+             'SAC': 'Y',
+             'preset': 0.0, 'offset': 1800.0,
+             'net': '*', 'sta': '*', 'loc': '*', 'cha': '*',
+             'evlatmin': None, 'evlatmax': None,
+             'evlonmin': None, 'evlonmax': None,
+             'evlat': None, 'evlon': None,
+             'evradmin': None, 'evradmax': None,
+             'max_result': 2500,
+             'lat_cba': None, 'lon_cba': None,
+             'mr_cba': None, 'Mr_cba': None,
+             'mlat_rbb': None, 'Mlat_rbb': None,
+             'mlon_rbb': None, 'Mlon_rbb': None,
+             'test': 'N',
+             'iris_update': 'N', 'arc_update': 'N', 'update_all': 'N',
+             'email': 'N',
+             'ic_all': 'N',
+             'iris_ic': 'N', 'iris_ic_auto': 'Y',
+             'arc_ic': 'N', 'arc_ic_auto': 'Y',
+             'ic_np': 4,
+             'ic_obspy_full': 'Y',
+             'pre_filt': '(0.008, 0.012, 3.0, 4.0)',
+             'corr_unit': 'DIS',
+             'merge_all': 'N',
+             'iris_merge': 'N', 'iris_merge_auto': 'Y',
+             'merge_type': 'raw',
+             'arc_merge': 'N', 'arc_merge_auto': 'Y',
+             'plot_all': 'Y',
+             'plot_type': 'raw',
+             'plot_ev': 'N', 'plot_sta': 'N', 'plot_se': 'N',
+             'plot_ray': 'N', 'plot_epi': 'N', 'plot_dt': 'N',
+             'plot_ray_gmt': 'N',
+             'plot_save': '.', 'plot_format': 'png',
+             'min_epi': 0.0, 'max_epi': 180.0,
             }
 
     # feed input dictionary of defaults into parser object
@@ -657,9 +649,9 @@ def read_input_command(parser, **kwargs):
             exec("options.%s = kwargs[arg]") % arg
 
     if options.version:
-        print '\t\t' + '*********************************'
+        print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '0.4.2' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.5.0' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -668,17 +660,17 @@ def read_input_command(parser, **kwargs):
     if options.check:
         print "*********************************"
         print "Check all the BASIC dependencies:"
-        for i in range(0, len(descrip)):
+        for i in range(len(descrip)):
             print descrip[i]
         print "*********************************\n"
         sys.exit(2)
 
     if options.tour:
         print '\n########################################'
-        print 'obspyDMT Quick Tour will start in 5 sec!'
+        print 'obspyDMT Quick Tour will start in 2 sec!'
         print '########################################\n'
-        time.sleep(5)
-        options.datapath = './DMT-Tour-Data'
+        time.sleep(2)
+        options.datapath = './dmt-tour-data'
         options.min_date = '2011-03-10'
         options.max_date = '2011-03-12'
         options.min_mag = '8.9'
@@ -687,80 +679,63 @@ def read_input_command(parser, **kwargs):
         options.req_parallel = True
         options.ArcLink = 'N'
 
-    # parse datapath (check if given absolute or relative)
-    if options.datapath:
-        if not os.path.isabs(options.datapath):
-            options.datapath = os.path.join(os.getcwd(), options.datapath)
+    #############Parse paths and make sure that they are all absolute path
+    if options.datapath and not os.path.isabs(options.datapath):
+        options.datapath = os.path.join(os.getcwd(), options.datapath)
 
-    if options.iris_update != 'N':
-        if not os.path.isabs(options.iris_update):
-            options.iris_update = os.path.join(os.getcwd(), options.iris_update)
+    if options.iris_update != 'N' and not os.path.isabs(options.iris_update):
+        options.iris_update = os.path.join(os.getcwd(), options.iris_update)
 
-    if options.arc_update != 'N':
-        if not os.path.isabs(options.arc_update):
-            options.arc_update = os.path.join(os.getcwd(), options.arc_update)
+    if options.arc_update != 'N' and not os.path.isabs(options.arc_update):
+        options.arc_update = os.path.join(os.getcwd(), options.arc_update)
 
-    if options.update_all != 'N':
-        if not os.path.isabs(options.update_all):
-            options.update_all = os.path.join(os.getcwd(), options.update_all)
+    if options.update_all != 'N' and not os.path.isabs(options.update_all):
+        options.update_all = os.path.join(os.getcwd(), options.update_all)
 
-    if options.iris_ic != 'N':
-        if not os.path.isabs(options.iris_ic):
-            options.iris_ic = os.path.join(os.getcwd(), options.iris_ic)
+    if options.iris_ic != 'N' and not os.path.isabs(options.iris_ic):
+        options.iris_ic = os.path.join(os.getcwd(), options.iris_ic)
 
-    if options.arc_ic != 'N':
-        if not os.path.isabs(options.arc_ic):
-            options.arc_ic = os.path.join(os.getcwd(), options.arc_ic)
+    if options.arc_ic != 'N' and not os.path.isabs(options.arc_ic):
+        options.arc_ic = os.path.join(os.getcwd(), options.arc_ic)
 
-    if options.ic_all != 'N':
-        if not os.path.isabs(options.ic_all):
-            options.ic_all = os.path.join(os.getcwd(), options.ic_all)
+    if options.ic_all != 'N' and not os.path.isabs(options.ic_all):
+        options.ic_all = os.path.join(os.getcwd(), options.ic_all)
 
-    if options.iris_merge != 'N':
-        if not os.path.isabs(options.iris_merge):
-            options.iris_merge = os.path.join(os.getcwd(), options.iris_merge)
+    if options.iris_merge != 'N' and not os.path.isabs(options.iris_merge):
+        options.iris_merge = os.path.join(os.getcwd(), options.iris_merge)
 
-    if options.arc_merge != 'N':
-        if not os.path.isabs(options.arc_merge):
-            options.arc_merge = os.path.join(os.getcwd(), options.arc_merge)
+    if options.arc_merge != 'N' and not os.path.isabs(options.arc_merge):
+        options.arc_merge = os.path.join(os.getcwd(), options.arc_merge)
 
-    if options.merge_all != 'N':
-        if not os.path.isabs(options.merge_all):
-            options.merge_all = os.path.join(os.getcwd(), options.merge_all)
+    if options.merge_all != 'N' and not os.path.isabs(options.merge_all):
+        options.merge_all = os.path.join(os.getcwd(), options.merge_all)
 
-    if options.plot_ev != 'N':
-        if not os.path.isabs(options.plot_ev):
-            options.plot_ev = os.path.join(os.getcwd(), options.plot_ev)
+    if options.plot_ev != 'N' and not os.path.isabs(options.plot_ev):
+        options.plot_ev = os.path.join(os.getcwd(), options.plot_ev)
 
-    if options.plot_sta != 'N':
-        if not os.path.isabs(options.plot_sta):
-            options.plot_sta = os.path.join(os.getcwd(), options.plot_sta)
+    if options.plot_sta != 'N' and not os.path.isabs(options.plot_sta):
+        options.plot_sta = os.path.join(os.getcwd(), options.plot_sta)
 
-    if options.plot_se != 'N':
-        if not os.path.isabs(options.plot_se):
-            options.plot_se = os.path.join(os.getcwd(), options.plot_se)
+    if options.plot_se != 'N' and not os.path.isabs(options.plot_se):
+        options.plot_se = os.path.join(os.getcwd(), options.plot_se)
 
-    if options.plot_ray != 'N':
-        if not os.path.isabs(options.plot_ray):
-            options.plot_ray = os.path.join(os.getcwd(), options.plot_ray)
+    if options.plot_ray != 'N' and not os.path.isabs(options.plot_ray):
+        options.plot_ray = os.path.join(os.getcwd(), options.plot_ray)
 
-    if options.plot_ray_gmt != 'N':
-        if not os.path.isabs(options.plot_ray_gmt):
-            options.plot_ray_gmt = os.path.join(os.getcwd(), options.plot_ray_gmt)
+    if options.plot_ray_gmt != 'N' and not os.path.isabs(options.plot_ray_gmt):
+        options.plot_ray_gmt = os.path.join(os.getcwd(), options.plot_ray_gmt)
 
-    if options.plot_epi != 'N':
-        if not os.path.isabs(options.plot_epi):
-            options.plot_epi = os.path.join(os.getcwd(), options.plot_epi)
+    if options.plot_epi != 'N' and not os.path.isabs(options.plot_epi):
+        options.plot_epi = os.path.join(os.getcwd(), options.plot_epi)
 
-    if options.plot_dt != 'N':
-        if not os.path.isabs(options.plot_dt):
-            options.plot_dt = os.path.join(os.getcwd(), options.plot_dt)
+    if options.plot_dt != 'N' and not os.path.isabs(options.plot_dt):
+        options.plot_dt = os.path.join(os.getcwd(), options.plot_dt)
 
-    if options.plot_save != 'N':
-        if not os.path.isabs(options.plot_save):
-            options.plot_save = os.path.join(os.getcwd(), options.plot_save)
+    if options.plot_save != 'N' and not os.path.isabs(options.plot_save):
+        options.plot_save = os.path.join(os.getcwd(), options.plot_save)
+    #############END Parse paths
 
-    # extract min. and max. longitude and latitude if the user has given the
+    # extract min. and max. longitude and latitude for event if the user has given the
     # coordinates with -r (GMT syntax)
     if options.event_rect:
         try:
@@ -791,7 +766,7 @@ def read_input_command(parser, **kwargs):
             print "Erroneous circle given."
             sys.exit(2)
 
-    # extract min. and max. longitude and latitude if the user has given the
+    # extract min. and max. longitude and latitude for station if the user has given the
     # coordinates with -g (GMT syntax)
     if options.station_rect:
         try:
@@ -827,11 +802,11 @@ def read_input_command(parser, **kwargs):
         # try-except so we don't get an exception if path doesnt exist
         try:
             shutil.rmtree(options.datapath)
-            print '\n-----------------------------------------'
-            print 'The following directory has been deleted:'
+            print '\n-------------------------------'
+            print 'Delete the following directory:'
             print str(options.datapath)
             print 'obspyDMT is going to re-create it...'
-            print '-----------------------------------------\n\n'
+            print '-------------------------------\n\n'
         except:
             pass
 
@@ -839,15 +814,16 @@ def read_input_command(parser, **kwargs):
     # identity code (-i xx.xx.xx.xx)
     if options.identity:
         try:
-            options.net, options.sta, options.loc, options.cha = \
-                                    options.identity.split('.')
+            options.net, options.sta, options.loc, options.cha = options.identity.split('.')
         except:
             print "Erroneous identity code given."
             sys.exit(2)
 
     input['datapath'] = options.datapath
-    if options.cut_time_phase: input['cut_time_phase'] = True
-    else: input['cut_time_phase'] = False
+    if options.cut_time_phase:
+        input['cut_time_phase'] = True
+    else:
+        input['cut_time_phase'] = False
     input['min_date'] = str(UTCDateTime(options.min_date))
     input['max_date'] = str(UTCDateTime(options.max_date))
     input['event_catalog'] = options.event_catalog.upper()
@@ -880,17 +856,21 @@ def read_input_command(parser, **kwargs):
     input['interval'] = float(options.interval)
     input['preset_cont'] = float(options.preset_cont)
     input['offset_cont'] = float(options.offset_cont)
-    if options.req_parallel: options.req_parallel = 'Y'
+    if options.req_parallel:
+        options.req_parallel = 'Y'
     input['req_parallel'] = options.req_parallel
     input['req_np'] = int(options.req_np)
     input['list_stas'] = options.list_stas
-    if options.iris_bulk: options.iris_bulk = 'Y'
+    if options.iris_bulk:
+        options.iris_bulk = 'Y'
     input['iris_bulk'] = options.iris_bulk
-    if options.specfem3D: options.specfem3D = 'Y'
+    if options.specfem3D:
+        options.specfem3D = 'Y'
     input['specfem3D'] = options.specfem3D
     input['waveform'] = options.waveform
     input['response'] = options.response
-    if options.paz: options.paz = 'Y'
+    if options.paz:
+        options.paz = 'Y'
     input['paz'] = options.paz
     input['SAC'] = options.SAC
     if options.mseed:
@@ -905,11 +885,14 @@ def read_input_command(parser, **kwargs):
     input['arc_wave_timeout'] = float(options.arc_wave_timeout)
     input['neries_timeout'] = float(options.neries_timeout)
 
-    if options.NERIES: options.NERIES = 'Y'
+    if options.NERIES:
+        options.NERIES = 'Y'
     input['NERIES'] = options.NERIES
-    if options.time_iris: options.time_iris = 'Y'
+    if options.time_iris:
+        options.time_iris = 'Y'
     input['time_iris'] = options.time_iris
-    if options.time_arc: options.time_arc = 'Y'
+    if options.time_arc:
+        options.time_arc = 'Y'
     input['time_arc'] = options.time_arc
     input['net'] = options.net
     input['sta'] = options.sta
@@ -945,22 +928,27 @@ def read_input_command(parser, **kwargs):
     if input['ic_all'] != 'N':
         input['iris_ic'] = input['ic_all']
         input['arc_ic'] = input['ic_all']
-    if options.ic_parallel: options.ic_parallel = 'Y'
+    if options.ic_parallel:
+        options.ic_parallel = 'Y'
     input['ic_parallel'] = options.ic_parallel
     input['ic_np'] = int(options.ic_np)
     input['ic_obspy_full'] = options.ic_obspy_full
-    if options.ic_sac_full: options.ic_sac_full = 'Y'
+    if options.ic_sac_full:
+        options.ic_sac_full = 'Y'
     input['ic_sac_full'] = options.ic_sac_full
-    if options.ic_paz: options.ic_paz = 'Y'
+    if options.ic_paz:
+        options.ic_paz = 'Y'
     input['ic_paz'] = options.ic_paz
     if input['ic_sac_full'] == 'Y' or input['ic_paz'] == 'Y':
         input['SAC'] = 'Y'
         input['ic_obspy_full'] = 'N'
     input['corr_unit'] = options.corr_unit
     input['pre_filt'] = options.pre_filt
-    if options.zip_w: options.zip_w = 'Y'
+    if options.zip_w:
+        options.zip_w = 'Y'
     input['zip_w'] = options.zip_w
-    if options.zip_r: options.zip_r = 'Y'
+    if options.zip_r:
+        options.zip_r = 'Y'
     input['zip_r'] = options.zip_r
     input['iris_merge'] = options.iris_merge
     input['arc_merge'] = options.arc_merge
@@ -970,9 +958,11 @@ def read_input_command(parser, **kwargs):
         input['arc_merge'] = input['merge_all']
     input['plot_type'] = options.plot_type
     input['plot_all'] = options.plot_all
-    if options.plot_iris: options.plot_iris = 'Y'
+    if options.plot_iris:
+        options.plot_iris = 'Y'
     input['plot_iris'] = options.plot_iris
-    if options.plot_arc: options.plot_arc = 'Y'
+    if options.plot_arc:
+        options.plot_arc = 'Y'
     input['plot_arc'] = options.plot_arc
     input['plot_ev'] = options.plot_ev
     input['plot_sta'] = options.plot_sta
@@ -987,17 +977,9 @@ def read_input_command(parser, **kwargs):
     input['plot_format'] = options.plot_format
     input['email'] = options.email
 
-    #--------------------------------------------------------
-    if input['get_continuous'] == 'N':
-        input['iris_merge_auto'] = 'N'
-        input['arc_merge_auto'] = 'N'
-    else:
-        input['iris_merge_auto'] = options.iris_merge_auto
-        input['arc_merge_auto'] = options.arc_merge_auto
-        input['merge_type'] = options.merge_type
-
-    for opts in ['iris_update', 'arc_update', 'iris_ic', 'arc_ic', 'iris_merge', 'arc_merge', 'plot_se', 'plot_sta',
-                 'plot_ev', 'plot_ray', 'plot_ray_gmt', 'plot_epi', 'plot_dt']:
+    #--------------Changing relevant options for some specific options
+    for opts in ['iris_update', 'arc_update', 'iris_ic', 'arc_ic', 'iris_merge', 'arc_merge',
+                 'plot_se', 'plot_sta', 'plot_ev', 'plot_ray', 'plot_ray_gmt', 'plot_epi', 'plot_dt']:
         if input[opts] != 'N':
             input['datapath'] = input[opts]
             input['get_events'] = 'N'
@@ -1008,6 +990,34 @@ def read_input_command(parser, **kwargs):
             input['arc_ic_auto'] = 'N'
             input['iris_merge_auto'] = 'N'
             input['arc_merge_auto'] = 'N'
+
+    if options.event_info:
+        input['IRIS'] = 'N'
+        input['ArcLink'] = 'N'
+        input['iris_ic_auto'] = 'N'
+        input['arc_ic_auto'] = 'N'
+        input['iris_merge_auto'] = 'N'
+        input['arc_merge_auto'] = 'N'
+        input['plot_all_events'] = True
+    else:
+        input['plot_all_events'] = False
+
+    if options.seismicity:
+        input['IRIS'] = 'N'
+        input['ArcLink'] = 'N'
+        input['iris_ic_auto'] = 'N'
+        input['arc_ic_auto'] = 'N'
+        input['iris_merge_auto'] = 'N'
+        input['arc_merge_auto'] = 'N'
+        input['max_result'] = 1e6
+
+    if input['get_continuous'] == 'N':
+        input['iris_merge_auto'] = 'N'
+        input['arc_merge_auto'] = 'N'
+    else:
+        input['iris_merge_auto'] = options.iris_merge_auto
+        input['arc_merge_auto'] = options.arc_merge_auto
+        input['merge_type'] = options.merge_type
 
     if options.IRIS == 'N':
         input['iris_ic_auto'] = 'N'
@@ -1028,26 +1038,6 @@ def read_input_command(parser, **kwargs):
     if input['plot_iris'] == 'Y' or input['plot_arc'] == 'Y':
         input['plot_all'] = 'N'
 
-    if options.event_info:
-        input['IRIS'] = 'N'
-        input['ArcLink'] = 'N'
-        input['iris_ic_auto'] = 'N'
-        input['arc_ic_auto'] = 'N'
-        input['iris_merge_auto'] = 'N'
-        input['arc_merge_auto'] = 'N'
-        input['plot_all_events'] = True
-    else:
-        input['plot_all_events'] = False
-
-    if options.seismicity:
-        input['IRIS'] = 'N'
-        input['ArcLink'] = 'N'
-        input['iris_ic_auto'] = 'N'
-        input['arc_ic_auto'] = 'N'
-        input['iris_merge_auto'] = 'N'
-        input['arc_merge_auto'] = 'N'
-        input['max_result'] = 1000000
-
     if input['req_parallel'] == 'Y' or input['ic_parallel'] == 'Y':
         try:
             import pprocess
@@ -1057,11 +1047,13 @@ def read_input_command(parser, **kwargs):
             print 'ppross is not installed on your machine!'
             print 'for more info: http://pypi.python.org/pypi/pprocess'
             print '\nobspyDMT will work in Serial mode.'
-            print 'ERROR: %s' %error
+            print 'ERROR: %s' % error
             print '***************************************************'
-            input['req_parallel'] = 'N'; input['ic_parallel'] = 'N'
+            input['req_parallel'] = 'N'
+            input['ic_parallel'] = 'N'
 
 ###################### get_Events ######################################
+
 
 def get_Events(input, request):
     """
