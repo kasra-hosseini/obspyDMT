@@ -1069,9 +1069,9 @@ def get_Events(input, request):
     global events
 
     t_event_1 = datetime.now()
-    Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
+    period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
                                               str(input['min_mag']), str(input['max_mag']))
-    eventpath = os.path.join(input['datapath'], Period)
+    eventpath = os.path.join(input['datapath'], period)
     if os.path.exists(eventpath):
         print '\n\n********************************************************'
         if raw_input('Directory for the requested period already exists:\n%s\n\n' % eventpath +
@@ -1112,7 +1112,7 @@ def get_Events(input, request):
     print "-------------------------------------------------"
 
     Event_cat = open(os.path.join(eventpath, 'EVENTS-INFO', 'EVENT-CATALOG'), 'a+')
-    Event_cat.writelines(str(Period) + '\n')
+    Event_cat.writelines(str(period) + '\n')
     Event_cat.writelines('-------------------------------------' + '\n')
     Event_cat.writelines('Information about the requested Events:' + '\n\n')
     Event_cat.writelines('Number of Events: %s\n' % len(events))
@@ -1366,9 +1366,9 @@ def IRIS_network(input):
     """
     global events
 
-    Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
+    period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
                                               str(input['min_mag']), str(input['max_mag']))
-    eventpath = os.path.join(input['datapath'], Period)
+    eventpath = os.path.join(input['datapath'], period)
 
     print 'Create folders...',
     create_folders_files(events, eventpath)
@@ -1379,24 +1379,21 @@ def IRIS_network(input):
         target_path = os.path.join(eventpath, events[i]['event_id'])
 
         if not input['list_stas']:
-            Stas_iris = IRIS_available(input, events[i], \
-                                        target_path, event_number = i)
+            Stas_iris = IRIS_available(input, events[i], target_path, event_number=i)
         else:
             Stas_iris = read_list_stas(input['list_stas'], input['specfem3D'])
 
         if input['iris_bulk'] != 'Y':
-            print '\nIRIS-Availability for event: %s/%s ---> DONE' \
-                        %(i+1, len(events))
+            print '\nIRIS-Availability for event: %s/%s ---> DONE' % (i+1, len(events))
         else:
-            print '\nIRIS-bulkfile for event: %s/%s ---> DONE' \
-                        %(i+1, len(events))
-        t_iris = datetime.now() - t_iris_1
-        print 'Time for checking the availability: %s' %(t_iris)
+            print '\nIRIS-bulkfile for event: %s/%s ---> DONE' % (i+1, len(events))
+
+        print 'Time for checking the availability: %s' % (datetime.now() - t_iris_1)
 
         if Stas_iris:
-            IRIS_waveform(input, Stas_iris, i, type = 'save')
+            IRIS_waveform(input, Stas_iris, i, type='save')
         else:
-            print 'No available station in IRIS for your request!'
+            print 'No available station in IRIS for your request and for event %s!' % i
             continue
 
 ###################### IRIS_available ##################################
@@ -1458,10 +1455,18 @@ def IRIS_available(input, event, target_path, event_number):
 
 ###################### read_list_stas ##################################
 
+
 def read_list_stas(add_list, specfem3D):
     """
     read a list of stations.
     """
+
+    print '\n---------------'
+    print 'INFO:'
+    print 'Format of the station list:'
+    print 'sta  net  loc  cha  lat  lon  ele'
+    print '---------------\n\n'
+
     if specfem3D == 'Y':
         list_stas_fio = open(add_list)
         list_stas = list_stas_fio.readlines()
@@ -1471,9 +1476,8 @@ def read_list_stas(add_list, specfem3D):
         final_list = []
         for sta in range(len(list_stas)):
             for chan in ['MXE', 'MXN', 'MXZ']:
-                final_list.append(['SY', list_stas[sta][0], 'S3', chan,
-                                    list_stas[sta][2], list_stas[sta][3],
-                                    list_stas[sta][4]])
+                final_list.append(['SY', list_stas[sta][0], 'S3', chan, list_stas[sta][2], list_stas[sta][3],
+                                   list_stas[sta][4]])
     else:
         list_stas_fio = open(add_list)
         list_stas = list_stas_fio.readlines()
@@ -1483,13 +1487,9 @@ def read_list_stas(add_list, specfem3D):
         final_list = []
         for sta in range(len(list_stas)):
             #for chan in ['BH1', 'BH2', 'BHE', 'BHN', 'BHZ']:
-            final_list.append([list_stas[sta][1], list_stas[sta][0],
-                                list_stas[sta][2], list_stas[sta][3],
-                                list_stas[sta][4], list_stas[sta][5],
-                                list_stas[sta][6]])
+            final_list.append([list_stas[sta][1], list_stas[sta][0], list_stas[sta][2], list_stas[sta][3],
+                               list_stas[sta][4], list_stas[sta][5], list_stas[sta][6]])
 
-        #print 'Not supported!!'
-        #sys.exit()
     return final_list
 
 ###################### IRIS_waveform ###############################
@@ -1503,9 +1503,9 @@ def IRIS_waveform(input, Sta_req, i, type):
     global events
     add_event = []
     if type == 'save':
-        Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
+        period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
                                                   str(input['min_mag']), str(input['max_mag']))
-        eventpath = os.path.join(input['datapath'], Period)
+        eventpath = os.path.join(input['datapath'], period)
         for k in range(0, len(events)):
             add_event.append(os.path.join(eventpath, \
                                         events[k]['event_id']))
@@ -1859,9 +1859,9 @@ def ARC_network(input):
     global events
 
     len_events = len(events)
-    Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
+    period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
                                               str(input['min_mag']), str(input['max_mag']))
-    eventpath = os.path.join(input['datapath'], Period)
+    eventpath = os.path.join(input['datapath'], period)
 
     if input['IRIS'] != 'Y':
         print 'Create folders...',
@@ -1950,9 +1950,9 @@ def ARC_waveform(input, Sta_req, i, type):
     client_neries = Client_neries(user='test@obspy.org', timeout=input['neries_timeout'])
     add_event = []
     if type == 'save':
-        Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
+        period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
                                                   str(input['min_mag']), str(input['max_mag']))
-        eventpath = os.path.join(input['datapath'], Period)
+        eventpath = os.path.join(input['datapath'], period)
         for k in range(0, len(events)):
             add_event.append(os.path.join(eventpath, \
                                         events[k]['event_id']))
@@ -2268,9 +2268,9 @@ def IRIS_ARC_IC(input, clients):
 
     if input[clients + '_ic_auto'] == 'Y':
         global events
-        Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
+        period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
                                                   str(input['min_mag']), str(input['max_mag']))
-        eventpath = os.path.join(input['datapath'], Period)
+        eventpath = os.path.join(input['datapath'], period)
         address = eventpath
     elif input[clients + '_ic'] != 'N':
         address = input[clients + '_ic']
@@ -2959,9 +2959,9 @@ def IRIS_ARC_merge(input, clients):
 
     if input[clients + '_merge_auto'] == 'Y':
         global events
-        Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
+        period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
                                                   str(input['min_mag']), str(input['max_mag']))
-        eventpath = os.path.join(input['datapath'], Period)
+        eventpath = os.path.join(input['datapath'], period)
         address = eventpath
     elif input[clients + '_merge'] != 'N':
         address = input[clients + '_merge']
@@ -4214,9 +4214,9 @@ def main():
         print input['datapath']
         print "* Total time %f sec" %(t_pro)
         print "--------------------------------------------------"
-        Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
+        period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
                                                   str(input['min_mag']), str(input['max_mag']))
-        eventpath = os.path.join(input['datapath'], Period)
+        eventpath = os.path.join(input['datapath'], period)
 
         address = []
         for i in range(len(events)):
