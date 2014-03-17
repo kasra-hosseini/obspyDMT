@@ -1075,8 +1075,8 @@ def get_Events(input, request):
     if os.path.exists(eventpath):
         print '\n\n********************************************************'
         if raw_input('Directory for the requested period already exists:\n%s\n\n' % eventpath +
-            'Options:\nN: Close the program and try the updating mode.\n' +
-            'Y: Remove the tree, continue the program and re-download.\n').upper() == 'Y':
+                        'Options:\nN: Close the program and try the updating mode.\n' +
+                        'Y: Remove the tree, continue the program and re-download.\n').upper() == 'Y':
             print '********************************************************'
             shutil.rmtree(eventpath)
             os.makedirs(eventpath)
@@ -1086,8 +1086,9 @@ def get_Events(input, request):
     else:
         os.makedirs(eventpath)
 
+    # request can be 'event-based' or continuous
     events = events_info(request)
-
+    import ipdb; ipdb.set_trace()
     os.makedirs(os.path.join(eventpath, 'EVENTS-INFO'))
     # logging the command line
     input_logger(argus=sys.argv,
@@ -1155,61 +1156,58 @@ def get_Events(input, request):
 
 ###################### events_info #####################################
 
+
 def events_info(request):
     """
     Get the event(s) info for event-based or continuous requests
     """
     global input
+
     if request == 'event-based':
         print 'Event Catalog: ',
         if input['event_catalog'] == 'EMSC':
             print 'EMSC'
 
             if input['evlatmin']==None:
-                evlatmin=-90.0;evlatmax=+90.0;evlonmin=-180.0;evlonmax=+180.0
+                evlatmin = -90.0; evlatmax = +90.0; evlonmin = -180.0; evlonmax = +180.0
             else:
-                evlatmin=input['evlatmin'];evlatmax=input['evlatmax']
-                evlonmin=input['evlonmin'];evlonmax=input['evlonmax']
+                evlatmin = input['evlatmin']; evlatmax = input['evlatmax']
+                evlonmin = input['evlonmin']; evlonmax = input['evlonmax']
 
             client_neries = Client_neries()
-            events = client_neries.getEvents(min_datetime=input['min_date'], \
-                max_datetime=input['max_date'], min_magnitude=input['min_mag'], \
-                max_magnitude=input['max_mag'], min_latitude=evlatmin, \
-                max_latitude=evlatmax, min_longitude=evlonmin, \
-                max_longitude=evlonmax, min_depth = input['min_depth'], \
-                max_depth=input['max_depth'], magnitude_type=input['mag_type'],
-                max_results=input['max_result'])
+            events = client_neries.getEvents(min_datetime=input['min_date'], max_datetime=input['max_date'],
+                                             min_magnitude=input['min_mag'], max_magnitude=input['max_mag'],
+                                             min_latitude=evlatmin, max_latitude=evlatmax, min_longitude=evlonmin,
+                                             max_longitude=evlonmax, min_depth=input['min_depth'],
+                                             max_depth=input['max_depth'], magnitude_type=input['mag_type'],
+                                             max_results=input['max_result'])
+
         elif input['event_catalog'] == 'IRIS':
             try:
                 print 'IRIS'
 
-                evlatmin=input['evlatmin'];evlatmax=input['evlatmax']
-                evlonmin=input['evlonmin'];evlonmax=input['evlonmax']
-                evlat=input['evlat'];evlon=input['evlon']
-                evradmax=input['evradmax'];evradmin=input['evradmin']
+                evlatmin = input['evlatmin']; evlatmax = input['evlatmax']
+                evlonmin = input['evlonmin']; evlonmax = input['evlonmax']
+                evlat = input['evlat']; evlon = input['evlon']
+                evradmax = input['evradmax']; evradmin = input['evradmin']
 
                 client_fdsn = Client_fdsn("IRIS")
-                events_QML = client_fdsn.get_events(\
-                        minlatitude=evlatmin,maxlatitude=evlatmax,\
-                        minlongitude=evlonmin,maxlongitude=evlonmax,\
-                        latitude=evlat,longitude=evlon,\
-                        maxradius=evradmax,minradius=evradmin,\
-                        mindepth=-input['min_depth'],maxdepth=-input['max_depth'],\
-                        starttime=input['min_date'],endtime=input['max_date'],\
-                        minmagnitude=input['min_mag'],\
-                        maxmagnitude=input['max_mag'],
-                        limit=input['max_result'],
-                        orderby='time',
-                        magnitudetype=input['mag_type'])
+                events_QML = client_fdsn.get_events(minlatitude=evlatmin, maxlatitude=evlatmax, minlongitude=evlonmin,
+                                                    maxlongitude=evlonmax, latitude=evlat, longitude=evlon,
+                                                    maxradius=evradmax,minradius=evradmin,
+                                                    mindepth=-input['min_depth'], maxdepth=-input['max_depth'],
+                                                    starttime=input['min_date'], endtime=input['max_date'],
+                                                    minmagnitude=input['min_mag'], maxmagnitude=input['max_mag'],
+                                                    limit=input['max_result'], orderby='time',
+                                                    magnitudetype=input['mag_type'])
 
                 if input['plot_all_events']:
                     plt.ion()
                     events_QML.plot()
 
                 events = []
-                for i in range(0, len(events_QML)):
-                    event_time = events_QML.events[i].preferred_origin().time or \
-						events_QML.events[i].origins[0].time
+                for i in range(len(events_QML)):
+                    event_time = events_QML.events[i].preferred_origin().time or events_QML.events[i].origins[0].time
                     if event_time.month < 10:
                         event_time_month = '0' + str(event_time.month)
                     else:
@@ -1219,70 +1217,66 @@ def events_info(request):
                     else:
                         event_time_day = str(event_time.day)
 
-                    events.append({\
-                        'author': \
-                            events_QML.events[i].preferred_magnitude().creation_info.author or \
-					    events_QML.events[i].magnitudes[0].creation_info.author, \
-                        'event_id': str(event_time.year) + event_time_month + \
-                                     event_time_day + '_' + str(i), \
-                        'origin_id': events_QML.events[i].preferred_origin_id or \
-					    events_QML.events[i].origins[0].resource_id.resource_id, \
-                        'longitude': events_QML.events[i].preferred_origin().longitude or \
-					    events_QML.events[i].origins[0].longitude, \
-                        'latitude': events_QML.events[i].preferred_origin().latitude or \
-					    events_QML.events[i].origins[0].latitude, \
-                        'datetime': event_time, \
-                        'depth': -events_QML.events[i].preferred_origin().depth/1000. or \
-					    -events_QML.events[i].origins[0].depth/1000., \
-                        'magnitude': events_QML.events[i].preferred_magnitude().mag or \
-					    events_QML.events[i].magnitudes[0].mag, \
-                        'magnitude_type': \
-                            events_QML.events[i].preferred_magnitude().magnitude_type.lower() or \
-					    events_QML.events[i].magnitudes[0].magnitude_type.lower(), \
-                        'flynn_region': 'NAN'})
+                    events.append({'author': events_QML.events[i].preferred_magnitude().creation_info.author or
+                                             events_QML.events[i].magnitudes[0].creation_info.author,
+                                   'event_id': str(event_time.year) + event_time_month + event_time_day + '_' + str(i),
+                                   'origin_id': events_QML.events[i].preferred_origin_id or
+                                                events_QML.events[i].origins[0].resource_id.resource_id,
+                                   'longitude': events_QML.events[i].preferred_origin().longitude or
+                                                events_QML.events[i].origins[0].longitude,
+                                   'latitude': events_QML.events[i].preferred_origin().latitude or
+                                               events_QML.events[i].origins[0].latitude,
+                                   'datetime': event_time,
+                                   'depth': -events_QML.events[i].preferred_origin().depth/1000. or
+                                            -events_QML.events[i].origins[0].depth/1000.,
+                                   'magnitude': events_QML.events[i].preferred_magnitude().mag or
+                                                events_QML.events[i].magnitudes[0].mag,
+                                   'magnitude_type': events_QML.events[i].preferred_magnitude().magnitude_type.lower() or
+                                                     events_QML.events[i].magnitudes[0].magnitude_type.lower(),
+                                   'flynn_region': 'NAN'})
+
             except Exception as e:
                 print 30*'-'
-                print e
+                print 'No event found with the requested criteria!'
+                print 'ERROR: %s' % e
                 print 30*'-'
                 events = []
-        for i in range(0, len(events)):
+
+        for i in range(len(events)):
             events[i]['t1'] = events[i]['datetime'] - input['preset']
             events[i]['t2'] = events[i]['datetime'] + input['offset']
+
     elif request == 'continuous':
         print 'Start identifying the intervals...',
         m_date = UTCDateTime(input['min_date'])
         M_date = UTCDateTime(input['max_date'])
         t_cont = M_date - m_date
+
         events = []
         if t_cont > input['interval']:
             num_div = int(t_cont/input['interval'])
-            t_res = t_cont - num_div*input['interval']
-            for i in range(0, num_div):
-                events.append({'author': 'NAN', 'event_id': 'continuous' + str(i), \
-                            'origin_id': -12345.0, 'longitude': -12345.0, \
-                            'datetime': m_date + i*input['interval'], \
-                            't1': m_date + i*input['interval'] + input['preset_cont'],\
-                            't2': m_date + (i+1)*input['interval'] + input['offset_cont'],\
-                            'depth': -12345.0, 'magnitude': -12345.0, \
-                            'magnitude_type': 'NAN', 'latitude': -12345.0, \
-                            'flynn_region': 'NAN'})
-            events.append({'author': 'NAN', 'event_id': 'continuous' + str(i+1), \
-                            'origin_id': -12345.0, 'longitude': -12345.0, \
-                            'datetime': m_date + (i+1)*input['interval'], \
-                            't1': m_date + (i+1)*input['interval'] + input['preset_cont'],\
-                            't2': M_date,\
-                            'depth': -12345.0, 'magnitude': -12345.0, \
-                            'magnitude_type': 'NAN', 'latitude': -12345.0, \
+            # residual time is: (has not been used here)
+            #t_res = t_cont - num_div*input['interval']
+            for i in range(num_div):
+                events.append({'author': 'NAN', 'event_id': 'continuous' + str(i), 'origin_id': -12345.0,
+                               'longitude': -12345.0, 'latitude': -12345.0,
+                               'datetime': m_date + i*input['interval'],
+                               't1': m_date + i*input['interval'] + input['preset_cont'],
+                               't2': m_date + (i+1)*input['interval'] + input['offset_cont'],
+                               'depth': -12345.0, 'magnitude': -12345.0, 'magnitude_type': 'NAN',
+                               'flynn_region': 'NAN'})
+            events.append({'author': 'NAN', 'event_id': 'continuous' + str(i+1), 'origin_id': -12345.0,
+                           'longitude': -12345.0, 'latitude': -12345.0,
+                            'datetime': m_date + (i+1)*input['interval'],
+                            't1': m_date + (i+1)*input['interval'] + input['preset_cont'],
+                            't2': M_date,
+                            'depth': -12345.0, 'magnitude': -12345.0, 'magnitude_type': 'NAN',
                             'flynn_region': 'NAN'})
         else:
-            events.append({'author': 'NAN', 'event_id': 'continuous0', \
-                            'origin_id': -12345.0, 'longitude': -12345.0, \
-                            'datetime': m_date, \
-                            't1': m_date,\
-                            't2': M_date,\
-                            'depth': -12345.0, 'magnitude': -12345.0, \
-                            'magnitude_type': 'NAN', 'latitude': -12345.0, \
-                            'flynn_region': 'NAN'})
+            events.append({'author': 'NAN', 'event_id': 'continuous0', 'origin_id': -12345.0,
+                           'longitude': -12345.0, 'latitude': -12345.0,
+                            'datetime': m_date, 't1': m_date, 't2': M_date, 'depth': -12345.0, 'magnitude': -12345.0,
+                            'magnitude_type': 'NAN', 'flynn_region': 'NAN'})
         print 'DONE'
     return events
 
