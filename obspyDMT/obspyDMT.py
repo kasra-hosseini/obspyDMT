@@ -1009,7 +1009,7 @@ def read_input_command(parser, **kwargs):
         input['arc_ic_auto'] = 'N'
         input['iris_merge_auto'] = 'N'
         input['arc_merge_auto'] = 'N'
-        input['max_result'] = 1e6
+        input['max_result'] = 1000000
 
     if input['get_continuous'] == 'N':
         input['iris_merge_auto'] = 'N'
@@ -1162,6 +1162,11 @@ def events_info(request):
     """
     global input
 
+    if input['seismicity'] == 'Y':
+        if input['event_catalog'] == 'IRIS':
+            print '\n\nWARNING: it may take a long time since IRIS is selected as the event catalog.'
+            print 'For better performance choose EMSC...\n\n'
+
     if request == 'event-based':
         print 'Event Catalog: ',
         if input['event_catalog'] == 'EMSC':
@@ -1291,65 +1296,63 @@ def events_info(request):
 
 ###################### seismicity ######################################
 
+
 def seismicity():
     """
     Create a seismicity map
     """
     global input, events
+
     print '\n##############'
     print 'Seismicity map'
     print '##############\n'
+
     if input['evlatmin'] == None:
-        input['evlatmin']=-90;input['evlatmax']=+90
-        input['evlonmin']=-180;input['evlonmax']=+180
-    m = Basemap(projection='cyl',llcrnrlat=input['evlatmin'],\
-        urcrnrlat=input['evlatmax'], llcrnrlon=input['evlonmin'],\
-        urcrnrlon=input['evlonmax'],resolution='l')
+        input['evlatmin'] = -90
+        input['evlatmax'] = +90
+        input['evlonmin'] = -180
+        input['evlonmax'] = +180
+
+    # Set-up the map
+    m = Basemap(projection='cyl', llcrnrlat=input['evlatmin'], urcrnrlat=input['evlatmax'], llcrnrlon=input['evlonmin'],
+                urcrnrlon=input['evlonmax'], resolution='l')
     m.drawcoastlines()
     m.fillcontinents()
-    m.drawparallels(np.arange(-90.,120.,30.))
-    m.drawmeridians(np.arange(0.,420.,60.))
+    m.drawparallels(np.arange(-90., 120., 30.))
+    m.drawmeridians(np.arange(0., 420., 60.))
     m.drawmapboundary()
 
     # Defining Labels:
     x_ev, y_ev = m(-360, 0)
-    m.scatter(x_ev, y_ev, 20, color='red', marker="o", \
-                edgecolor="black", zorder=10, label = '0-70km')
-    m.scatter(x_ev, y_ev, 20, color='green', marker="o", \
-                edgecolor="black", zorder=10, label = '70-300km')
-    m.scatter(x_ev, y_ev, 20, color='blue', marker="o", \
-                edgecolor="black", zorder=10, label = '300< km')
+    m.scatter(x_ev, y_ev, 20, color='red', marker="o", edgecolor="black", zorder=10, label = '0-70km')
+    m.scatter(x_ev, y_ev, 20, color='green', marker="o", edgecolor="black", zorder=10, label = '70-300km')
+    m.scatter(x_ev, y_ev, 20, color='blue', marker="o", edgecolor="black", zorder=10, label = '300< km')
 
-    m.scatter(x_ev, y_ev, 5, color='white', marker="o", \
-                edgecolor="black", zorder=10, label = '<=4.0')
-    m.scatter(x_ev, y_ev, 20, color='white', marker="o", \
-                edgecolor="black", zorder=10, label = '4.0-5.0')
-    m.scatter(x_ev, y_ev, 35, color='white', marker="o", \
-                edgecolor="black", zorder=10, label = '5.0-6.0')
-    m.scatter(x_ev, y_ev, 50, color='white', marker="o", \
-                edgecolor="black", zorder=10, label = '6.0<')
+    m.scatter(x_ev, y_ev, 5, color='white', marker="o", edgecolor="black", zorder=10, label = '<=4.0')
+    m.scatter(x_ev, y_ev, 20, color='white', marker="o", edgecolor="black", zorder=10, label = '4.0-5.0')
+    m.scatter(x_ev, y_ev, 35, color='white', marker="o", edgecolor="black", zorder=10, label = '5.0-6.0')
+    m.scatter(x_ev, y_ev, 50, color='white', marker="o", edgecolor="black", zorder=10, label = '6.0<')
 
-    for i in range(0, len(events)):
-        x_ev, y_ev = m(float(events[i]['longitude']), float(events[i]['latitude']))
-        if abs(float(events[i]['depth'])) <= 70.0:
+    for ev in events:
+        x_ev, y_ev = m(float(ev['longitude']), float(ev['latitude']))
+        if abs(float(ev['depth'])) <= 70.0:
             color = 'red'
-        elif 70.0 < abs(float(events[i]['depth'])) <= 300.0:
+        elif 70.0 < abs(float(ev['depth'])) <= 300.0:
             color = 'green'
-        elif 300.0 < abs(float(events[i]['depth'])) <= 1000.0:
+        elif 300.0 < abs(float(ev['depth'])) <= 1000.0:
             color = 'blue'
 
-        if float(events[i]['magnitude']) <= 4.0:
+        if float(ev['magnitude']) <= 4.0:
             size = 5
-        elif 4.0 < float(events[i]['magnitude']) <= 5.0:
+        elif 4.0 < float(ev['magnitude']) <= 5.0:
             size = 20
-        elif 5.0 < float(events[i]['magnitude']) <= 6.0:
+        elif 5.0 < float(ev['magnitude']) <= 6.0:
             size = 35
-        elif 6.0 < float(events[i]['magnitude']):
+        elif 6.0 < float(ev['magnitude']):
             size = 50
 
-        m.scatter(x_ev, y_ev, size,\
-                color=color, marker="o", \
-                edgecolor="black", zorder=10)
+        m.scatter(x_ev, y_ev, size, color=color, marker="o", edgecolor="black", zorder=10)
+
     plt.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0.)
     plt.show()
 
