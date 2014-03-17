@@ -1088,12 +1088,13 @@ def get_Events(input, request):
 
     # request can be 'event-based' or continuous
     events = events_info(request)
-    import ipdb; ipdb.set_trace()
+
     os.makedirs(os.path.join(eventpath, 'EVENTS-INFO'))
     # logging the command line
     input_logger(argus=sys.argv,
                  address=os.path.join(eventpath, 'EVENTS-INFO', 'logger.txt'),
                  inputs=input)
+
     for i in range(len(events)):
         print "-------------------------------------------------"
         print "Event No: %s" % (i+1)
@@ -1109,49 +1110,47 @@ def get_Events(input, request):
         print "Longitude: %s" % events[i]['longitude']
         print "Magnitude: %s" % events[i]['magnitude']
     print "-------------------------------------------------"
+
     Event_cat = open(os.path.join(eventpath, 'EVENTS-INFO', 'EVENT-CATALOG'), 'a+')
     Event_cat.writelines(str(Period) + '\n')
     Event_cat.writelines('-------------------------------------' + '\n')
     Event_cat.writelines('Information about the requested Events:' + '\n\n')
-    Event_cat.writelines('Number of Events: ' + str(len(events)) + '\n')
-    Event_cat.writelines('min datetime: ' + str(input['min_date']) + '\n')
-    Event_cat.writelines('max datetime: ' + str(input['max_date']) + '\n')
-    Event_cat.writelines('min magnitude: ' + str(input['min_mag']) + '\n')
-    Event_cat.writelines('max magnitude: ' + str(input['max_mag']) + '\n')
-    Event_cat.writelines('min latitude: ' + str(input['evlatmin']) + '\n')
-    Event_cat.writelines('max latitude: ' + str(input['evlatmax']) + '\n')
-    Event_cat.writelines('min longitude: ' + str(input['evlonmin']) + '\n')
-    Event_cat.writelines('max longitude: ' + str(input['evlonmax']) + '\n')
-    Event_cat.writelines('min depth: ' + str(input['min_depth']) + '\n')
-    Event_cat.writelines('max depth: ' + str(input['max_depth']) + '\n')
+    Event_cat.writelines('Number of Events: %s\n' % len(events))
+    Event_cat.writelines('min datetime: %s\n' % input['min_date'])
+    Event_cat.writelines('max datetime: %s\n' % input['max_date'])
+    Event_cat.writelines('min magnitude: %s\n' % input['min_mag'])
+    Event_cat.writelines('max magnitude: %s\n' % input['max_mag'])
+    Event_cat.writelines('min latitude: %s\n' % input['evlatmin'])
+    Event_cat.writelines('max latitude: %s\n' % input['evlatmax'])
+    Event_cat.writelines('min longitude: %s\n' % input['evlonmin'])
+    Event_cat.writelines('max longitude: %s\n' % input['evlonmax'])
+    Event_cat.writelines('min depth: %s\n' % input['min_depth'])
+    Event_cat.writelines('max depth: %s\n' % input['max_depth'])
     Event_cat.writelines('-------------------------------------' + '\n\n')
     Event_cat.close()
 
-    for j in range(0, len(events)):
+    for i in range(len(events)):
         Event_cat = open(os.path.join(eventpath, 'EVENTS-INFO', 'EVENT-CATALOG'), 'a')
-        Event_cat.writelines("Event No: " + str(j) + '\n')
-        Event_cat.writelines("Catalog: " + events[j]['author'] + '\n')
-        Event_cat.writelines("Event-ID: " + str(events[j]['event_id']) + '\n')
-        Event_cat.writelines("Date Time: " + str(events[j]['datetime']) + '\n')
-        Event_cat.writelines("Magnitude: " + str(events[j]['magnitude']) + '\n')
-        Event_cat.writelines("Depth: " + str(events[j]['depth']) + '\n')
-        Event_cat.writelines("Latitude: " + str(events[j]['latitude']) + '\n')
-        Event_cat.writelines("Longitude: " + str(events[j]['longitude']) + '\n')
-
+        Event_cat.writelines("Event No: %s\n" % i)
+        Event_cat.writelines("Catalog: %s\n" % events[i]['author'])
+        Event_cat.writelines("Event-ID: %s\n" % events[i]['event_id'])
+        Event_cat.writelines("Date Time: %s\n" % events[i]['datetime'])
+        Event_cat.writelines("Magnitude: %s\n" % events[i]['magnitude'])
+        Event_cat.writelines("Depth: %s\n" % events[i]['depth'])
+        Event_cat.writelines("Latitude: %s\n" % events[i]['latitude'])
+        Event_cat.writelines("Longitude: %s\n" % events[i]['longitude'])
         try:
-            Event_cat.writelines("Flynn-Region: " + \
-                                str(events[j]['flynn_region']) + '\n')
+            Event_cat.writelines("Flynn-Region: %s\n" % events[i]['flynn_region'])
         except Exception:
-            Event_cat.writelines("Flynn-Region: " + 'None' + '\n')
+            Event_cat.writelines("Flynn-Region: None\n")
         Event_cat.writelines('-------------------------------------' + '\n')
         Event_cat.close()
     Event_file = open(os.path.join(eventpath, 'EVENTS-INFO', 'event_list'), 'a+')
     pickle.dump(events, Event_file)
     Event_file.close()
+
     print 'Number of events: %s' % len(events)
-    t_event_2 = datetime.now()
-    t_event = t_event_2 - t_event_1
-    print 'Time for retrieving and saving the event info: %s' %(t_event)
+    print 'Time for retrieving and saving the event info: %s' % (datetime.now() - t_event_1)
     return events
 
 ###################### events_info #####################################
@@ -1168,11 +1167,16 @@ def events_info(request):
         if input['event_catalog'] == 'EMSC':
             print 'EMSC'
 
-            if input['evlatmin']==None:
-                evlatmin = -90.0; evlatmax = +90.0; evlonmin = -180.0; evlonmax = +180.0
+            if input['evlatmin'] == None:
+                evlatmin = -90.0
+                evlatmax = +90.0
+                evlonmin = -180.0
+                evlonmax = +180.0
             else:
-                evlatmin = input['evlatmin']; evlatmax = input['evlatmax']
-                evlonmin = input['evlonmin']; evlonmax = input['evlonmax']
+                evlatmin = input['evlatmin']
+                evlatmax = input['evlatmax']
+                evlonmin = input['evlonmin']
+                evlonmax = input['evlonmax']
 
             client_neries = Client_neries()
             events = client_neries.getEvents(min_datetime=input['min_date'], max_datetime=input['max_date'],
@@ -1186,15 +1190,20 @@ def events_info(request):
             try:
                 print 'IRIS'
 
-                evlatmin = input['evlatmin']; evlatmax = input['evlatmax']
-                evlonmin = input['evlonmin']; evlonmax = input['evlonmax']
-                evlat = input['evlat']; evlon = input['evlon']
-                evradmax = input['evradmax']; evradmin = input['evradmin']
+                evlatmin = input['evlatmin']
+                evlatmax = input['evlatmax']
+                evlonmin = input['evlonmin']
+                evlonmax = input['evlonmax']
+
+                evlat = input['evlat']
+                evlon = input['evlon']
+                evradmax = input['evradmax']
+                evradmin = input['evradmin']
 
                 client_fdsn = Client_fdsn("IRIS")
                 events_QML = client_fdsn.get_events(minlatitude=evlatmin, maxlatitude=evlatmax, minlongitude=evlonmin,
                                                     maxlongitude=evlonmax, latitude=evlat, longitude=evlon,
-                                                    maxradius=evradmax,minradius=evradmin,
+                                                    maxradius=evradmax, minradius=evradmin,
                                                     mindepth=-input['min_depth'], maxdepth=-input['max_depth'],
                                                     starttime=input['min_date'], endtime=input['max_date'],
                                                     minmagnitude=input['min_mag'], maxmagnitude=input['max_mag'],
@@ -4147,6 +4156,7 @@ def send_email():
 
 ###################### input_logger ###################################
 
+
 def input_logger(argus, address, inputs):
     """
     log the entered command line!
@@ -4160,7 +4170,7 @@ def input_logger(argus, address, inputs):
         items.append(item)
     items.sort()
     for item in items:
-        st_argus += str(item) + ': ' + str(inputs[item]) + '\n'
+        st_argus += '%s: %s\n' %(item, inputs[item])
     logger_open = open(address, 'w')
     logger_open.write(st_argus)
     logger_open.close()
