@@ -5,7 +5,38 @@ IRIS_network ---> IRIS_waveform
 
 
 
--------------------------
+===================================================
+Continuous request:
+ERROR:
+------------------------
+IRIS for event-24 is Done
+Total Time: 0:00:05.231861
+------------------------
+Check the availablity of the IRIS stations
+Start creating a list for bulk request
+
+IRIS-bulkfile for event: 25/25 ---> DONE
+Time for checking the availability: 0:00:01.691826
+Traceback (most recent call last):
+  File "./obspyDMT.py", line 4239, in <module>
+    main()
+  File "./obspyDMT.py", line 4204, in main
+    status = obspyDMT()
+  File "./obspyDMT.py", line 149, in obspyDMT
+    IRIS_network(input)
+  File "./obspyDMT.py", line 1394, in IRIS_network
+    IRIS_waveform(input, Stas_iris, i, type='save')
+  File "./obspyDMT.py", line 1526, in IRIS_waveform
+    bulk_smgrs = client_fdsn.get_waveforms_bulk(bulk_list)
+  File "/home/hosseini/local/src/obspy/obspy/fdsn/client.py", line 749, in get_waveforms_bulk
+    data=bulk.encode('ascii', 'strict'))
+  File "/home/hosseini/local/src/obspy/obspy/fdsn/client.py", line 952, in _download
+    raise FDSNException("No data available for request.")
+obspy.fdsn.header.FDSNException: No data available for request.
+
+
+
+===================================================
 LION:
 
 import obspy

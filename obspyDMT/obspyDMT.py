@@ -2260,19 +2260,21 @@ def ARC_update(input, address):
 
 ###################### IRIS_ARC_IC #####################################
 
+
 def IRIS_ARC_IC(input, clients):
-
     """
-    Call "inst_correct" function based on the channel request.
+    Call "inst_correct" function based on the request.
     """
 
+    # Following two if-conditions create address to which instrument correction should apply
+    # Please note that these two conditions can not happen at the same time
     if input[clients + '_ic_auto'] == 'Y':
         global events
         period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
                                                   str(input['min_mag']), str(input['max_mag']))
-        eventpath = os.path.join(input['datapath'], period)
-        address = eventpath
-    elif input[clients + '_ic'] != 'N':
+        address = os.path.join(input['datapath'], period)
+
+    if input[clients + '_ic'] != 'N':
         address = input[clients + '_ic']
 
     events, address_events = quake_info(address, 'info')
@@ -3787,8 +3789,8 @@ def create_station_event(address):
 
 ###################### quake_info ######################################
 
-def quake_info(address, target):
 
+def quake_info(address, target):
     """
     Reads the info in quake file ("info" folder)
     """
@@ -4176,17 +4178,16 @@ def getFolderSize(folder):
 
 ###################### locate ##########################################
 
-def locate(root = '.', target = 'info'):
 
+def locate(root='.', target='info'):
     """
     Locates a subdirectory within a directory.
     """
 
     matches = []
-
     for root, dirnames, filenames in os.walk(root):
-        for dirnames in fnmatch.filter(dirnames, target):
-            matches.append(os.path.join(root, dirnames))
+        for dirname in fnmatch.filter(dirnames, target):
+            matches.append(os.path.join(root, dirname))
 
     return matches
 
