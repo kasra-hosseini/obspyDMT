@@ -1066,56 +1066,53 @@ def get_Events(input, request):
     distributed European earthquake data provided in a unique joint 
     initiative by observatories and research institutes in and around Europe.
     """
-    t_event_1 = datetime.now()
     global events
-    Period = '%s_%s_%s_%s' %(input['min_date'].split('T')[0],
-                            input['max_date'].split('T')[0],
-                            str(input['min_mag']),
-                            str(input['max_mag']))
+
+    t_event_1 = datetime.now()
+    Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
+                                              str(input['min_mag']), str(input['max_mag']))
     eventpath = os.path.join(input['datapath'], Period)
-    if os.path.exists(eventpath) == True:
+    if os.path.exists(eventpath):
         print '\n\n********************************************************'
-        if raw_input('Directory for the requested period already exists:\n' +
-            str(eventpath) + '\n\n' +
+        if raw_input('Directory for the requested period already exists:\n%s\n\n' % eventpath +
             'Options:\nN: Close the program and try the updating mode.\n' +
-            'Y: Remove the tree, continue the program ' +
-            'and re-download.\n').upper() == 'Y':
+            'Y: Remove the tree, continue the program and re-download.\n').upper() == 'Y':
             print '********************************************************'
             shutil.rmtree(eventpath)
             os.makedirs(eventpath)
-
         else:
             print 'EXIT'
             sys.exit()
     else:
         os.makedirs(eventpath)
+
     events = events_info(request)
+
     os.makedirs(os.path.join(eventpath, 'EVENTS-INFO'))
     # logging the command line
-    input_logger(argus = sys.argv,
-                 address = os.path.join(eventpath, 'EVENTS-INFO', 'logger.txt'),
-                 inputs = input)
-    len_events = len(events)
-    for i in range(0, len_events):
+    input_logger(argus=sys.argv,
+                 address=os.path.join(eventpath, 'EVENTS-INFO', 'logger.txt'),
+                 inputs=input)
+    for i in range(len(events)):
         print "-------------------------------------------------"
-        print "Event No:" + " " + str(i+1)
-        print "Date Time:" + " " + str(events[i]['datetime'])
-        print "Catalog:" + " " + str(events[i]['author'])
-        print "Depth:" + " " + str(events[i]['depth'])
-        print "Event-ID:" + " " + events[i]['event_id']
+        print "Event No: %s" % (i+1)
+        print "Date Time: %s" % events[i]['datetime']
+        print "Catalog: %s" % events[i]['author']
+        print "Depth: %s" % events[i]['depth']
+        print "Event-ID: %s" % events[i]['event_id']
         try:
-            print "Flynn-Region:" + " " + events[i]['flynn_region']
+            print "Flynn-Region: %s" % events[i]['flynn_region']
         except:
-            print "Flynn-Region:" + " " + "NONE"
-        print "Latitude:" + " " + str(events[i]['latitude'])
-        print "Longitude:" + " " + str(events[i]['longitude'])
-        print "Magnitude:" + " " + str(events[i]['magnitude'])
+            print "Flynn-Region: NONE"
+        print "Latitude: %s" % events[i]['latitude']
+        print "Longitude: %s" % events[i]['longitude']
+        print "Magnitude: %s" % events[i]['magnitude']
     print "-------------------------------------------------"
     Event_cat = open(os.path.join(eventpath, 'EVENTS-INFO', 'EVENT-CATALOG'), 'a+')
     Event_cat.writelines(str(Period) + '\n')
     Event_cat.writelines('-------------------------------------' + '\n')
     Event_cat.writelines('Information about the requested Events:' + '\n\n')
-    Event_cat.writelines('Number of Events: ' + str(len_events) + '\n')
+    Event_cat.writelines('Number of Events: ' + str(len(events)) + '\n')
     Event_cat.writelines('min datetime: ' + str(input['min_date']) + '\n')
     Event_cat.writelines('max datetime: ' + str(input['max_date']) + '\n')
     Event_cat.writelines('min magnitude: ' + str(input['min_mag']) + '\n')
@@ -1129,7 +1126,7 @@ def get_Events(input, request):
     Event_cat.writelines('-------------------------------------' + '\n\n')
     Event_cat.close()
 
-    for j in range(0, len_events):
+    for j in range(0, len(events)):
         Event_cat = open(os.path.join(eventpath, 'EVENTS-INFO', 'EVENT-CATALOG'), 'a')
         Event_cat.writelines("Event No: " + str(j) + '\n')
         Event_cat.writelines("Catalog: " + events[j]['author'] + '\n')
@@ -1150,7 +1147,7 @@ def get_Events(input, request):
     Event_file = open(os.path.join(eventpath, 'EVENTS-INFO', 'event_list'), 'a+')
     pickle.dump(events, Event_file)
     Event_file.close()
-    print 'Number of events: %s' %(len_events)
+    print 'Number of events: %s' % len(events)
     t_event_2 = datetime.now()
     t_event = t_event_2 - t_event_1
     print 'Time for retrieving and saving the event info: %s' %(t_event)
@@ -1362,10 +1359,8 @@ def IRIS_network(input):
     """
     global events
     len_events = len(events)
-    Period = '%s_%s_%s_%s' %(input['min_date'].split('T')[0],
-                            input['max_date'].split('T')[0],
-                            str(input['min_mag']),
-                            str(input['max_mag']))
+    Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
+                                              str(input['min_mag']), str(input['max_mag']))
     eventpath = os.path.join(input['datapath'], Period)
 
     print 'Create folders...',
@@ -1501,10 +1496,8 @@ def IRIS_waveform(input, Sta_req, i, type):
     global events
     add_event = []
     if type == 'save':
-        Period = '%s_%s_%s_%s' %(input['min_date'].split('T')[0],
-                                input['max_date'].split('T')[0],
-                                str(input['min_mag']),
-                                str(input['max_mag']))
+        Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
+                                                  str(input['min_mag']), str(input['max_mag']))
         eventpath = os.path.join(input['datapath'], Period)
         for k in range(0, len(events)):
             add_event.append(os.path.join(eventpath, \
@@ -1859,10 +1852,8 @@ def ARC_network(input):
     global events
 
     len_events = len(events)
-    Period = '%s_%s_%s_%s' %(input['min_date'].split('T')[0],
-                            input['max_date'].split('T')[0],
-                            str(input['min_mag']),
-                            str(input['max_mag']))
+    Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
+                                              str(input['min_mag']), str(input['max_mag']))
     eventpath = os.path.join(input['datapath'], Period)
 
     if input['IRIS'] != 'Y':
@@ -1952,10 +1943,8 @@ def ARC_waveform(input, Sta_req, i, type):
     client_neries = Client_neries(user='test@obspy.org', timeout=input['neries_timeout'])
     add_event = []
     if type == 'save':
-        Period = '%s_%s_%s_%s' %(input['min_date'].split('T')[0],
-                                input['max_date'].split('T')[0],
-                                str(input['min_mag']),
-                                str(input['max_mag']))
+        Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
+                                                  str(input['min_mag']), str(input['max_mag']))
         eventpath = os.path.join(input['datapath'], Period)
         for k in range(0, len(events)):
             add_event.append(os.path.join(eventpath, \
@@ -2272,10 +2261,8 @@ def IRIS_ARC_IC(input, clients):
 
     if input[clients + '_ic_auto'] == 'Y':
         global events
-        Period = '%s_%s_%s_%s' %(input['min_date'].split('T')[0],
-                                input['max_date'].split('T')[0],
-                                str(input['min_mag']),
-                                str(input['max_mag']))
+        Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
+                                                  str(input['min_mag']), str(input['max_mag']))
         eventpath = os.path.join(input['datapath'], Period)
         address = eventpath
     elif input[clients + '_ic'] != 'N':
@@ -2965,9 +2952,8 @@ def IRIS_ARC_merge(input, clients):
 
     if input[clients + '_merge_auto'] == 'Y':
         global events
-        Period = input['min_date'].split('T')[0] + '_' + \
-                    input['max_date'].split('T')[0] + '_' + \
-                    str(input['min_mag']) + '_' + str(input['max_mag'])
+        Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
+                                                  str(input['min_mag']), str(input['max_mag']))
         eventpath = os.path.join(input['datapath'], Period)
         address = eventpath
     elif input[clients + '_merge'] != 'N':
@@ -4242,10 +4228,8 @@ def main():
         print input['datapath']
         print "* Total time %f sec" %(t_pro)
         print "--------------------------------------------------"
-        Period = '%s_%s_%s_%s' %(input['min_date'].split('T')[0],
-                                input['max_date'].split('T')[0],
-                                str(input['min_mag']),
-                                str(input['max_mag']))
+        Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
+                                                  str(input['min_mag']), str(input['max_mag']))
         eventpath = os.path.join(input['datapath'], Period)
 
         len_events = len(events)
