@@ -1358,13 +1358,14 @@ def seismicity():
 
 ###################### IRIS_network ####################################
 
+
 def IRIS_network(input):
     """
     Returns information about what time series data is available 
     at the IRIS DMC for all requested events
     """
     global events
-    len_events = len(events)
+
     Period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
                                               str(input['min_mag']), str(input['max_mag']))
     eventpath = os.path.join(input['datapath'], Period)
@@ -1373,7 +1374,7 @@ def IRIS_network(input):
     create_folders_files(events, eventpath)
     print 'DONE'
 
-    for i in range(len_events):
+    for i in range(len(events)):
         t_iris_1 = datetime.now()
         target_path = os.path.join(eventpath, events[i]['event_id'])
 
@@ -1385,10 +1386,10 @@ def IRIS_network(input):
 
         if input['iris_bulk'] != 'Y':
             print '\nIRIS-Availability for event: %s/%s ---> DONE' \
-                        %(i+1, len_events)
+                        %(i+1, len(events))
         else:
             print '\nIRIS-bulkfile for event: %s/%s ---> DONE' \
-                        %(i+1, len_events)
+                        %(i+1, len(events))
         t_iris = datetime.now() - t_iris_1
         print 'Time for checking the availability: %s' %(t_iris)
 
@@ -3491,98 +3492,76 @@ def XML_list_avail(xmlfile):
 
 ###################### create_folders_files ############################
 
-def create_folders_files(events, eventpath):
 
+def create_folders_files(events, eventpath):
     """
     Create required folders and files in the event folder(s)
     """
 
-    len_events = len(events)
+    # Not quite sure whether the following block will be ever executed?! (DEPRICATED?!)
+    # for i in range(len(events)):
+    #     if os.path.exists(os.path.join(eventpath, events[i]['event_id'])) == True:
+    #         if raw_input('Folder for -- the requested Period (min/max) and Magnitude (min/max) -- '
+    #                      'exists in your directory.\n\nYou could either close the program and try updating your '
+    #                      'folder OR remove the tree, continue the program and download again.\nDo you want to '
+    #                      'continue? (Y/N)\n').upper() == 'Y':
+    #             print '-------------------------------------------------------------'
+    #             shutil.rmtree(os.path.join(eventpath, events[i]['event_id']))
+    #         else:
+    #             print '------------------------------------------------'
+    #             print 'So...you decided to update your folder...Ciao'
+    #             print '------------------------------------------------'
+    #             sys.exit()
 
-    for i in range(0, len_events):
-        if os.path.exists(os.path.join(eventpath, events[i]['event_id'])) == True:
-
-            if raw_input('Folder for -- the requested Period (min/max) ' + \
-            'and Magnitude (min/max) -- exists in your directory.' + '\n\n' + \
-            'You could either close the program and try updating your ' + \
-            'folder OR remove the tree, continue the program and download again.' + \
-            '\n' + 'Do you want to continue? (Y/N)' + '\n').upper() == 'Y':
-                print '-------------------------------------------------------------'
-                shutil.rmtree(os.path.join(eventpath, events[i]['event_id']))
-
-            else:
-                print '------------------------------------------------'
-                print 'So...you decided to update your folder...Ciao'
-                print '------------------------------------------------'
-                sys.exit()
-
-    for i in range(0, len_events):
+    for i in range(len(events)):
         try:
             os.makedirs(os.path.join(eventpath, events[i]['event_id'], 'BH_RAW'))
             os.makedirs(os.path.join(eventpath, events[i]['event_id'], 'Resp'))
             os.makedirs(os.path.join(eventpath, events[i]['event_id'], 'info'))
         except Exception as e:
+            print 'ERROR: %s' % e
             pass
 
-    for i in range(0, len_events):
-        Report = open(os.path.join(eventpath, events[i]['event_id'], \
-            'info', 'report_st'), 'a+')
-        Report.close()
+    for i in range(len(events)):
+        report = open(os.path.join(eventpath, events[i]['event_id'], 'info', 'report_st'), 'a+')
+        report.close()
 
+    for i in range(len(events)):
+        exception_file = open(os.path.join(eventpath, events[i]['event_id'], 'info', 'exception'), 'a+')
+        exception_file.writelines('\n' + events[i]['event_id'] + '\n')
+        exception_file.close()
 
-    for i in range(0, len_events):
-        Exception_file = open(os.path.join(eventpath, events[i]['event_id'], \
-            'info', 'exception'), 'a+')
-        eventsID = events[i]['event_id']
-        Exception_file.writelines('\n' + eventsID + '\n')
+        syn_file = open(os.path.join(eventpath, events[i]['event_id'], 'info', 'station_event'), 'a+')
+        syn_file.close()
 
-        Syn_file = open(os.path.join(eventpath, events[i]['event_id'], \
-            'info', 'station_event'), 'a+')
-        Syn_file.close()
+    for i in range(len(events)):
+        quake_file = open(os.path.join(eventpath, events[i]['event_id'], 'info', 'quake'), 'a+')
 
-    for i in range(0, len_events):
-        quake_file = open(os.path.join(eventpath, events[i]['event_id'],\
-                            'info', 'quake'), 'a+')
+        quake_file.writelines(repr(events[i]['datetime'].year).rjust(15) +
+                              repr(events[i]['datetime'].julday).rjust(15) + '\n')
+        quake_file.writelines(repr(events[i]['datetime'].hour).rjust(15) +
+                              repr(events[i]['datetime'].minute).rjust(15) +
+                              repr(events[i]['datetime'].second).rjust(15) +
+                              repr(events[i]['datetime'].microsecond).rjust(15) + '\n')
 
-        quake_file.writelines(repr(events[i]['datetime'].year).rjust(15)\
-                + repr(events[i]['datetime'].julday).rjust(15) + '\n')
-        quake_file.writelines(repr(events[i]['datetime'].hour).rjust(15)\
-                + repr(events[i]['datetime'].minute).rjust(15) + \
-                repr(events[i]['datetime'].second).rjust(15) + \
-                repr(events[i]['datetime'].microsecond).rjust(15) + '\n')
+        quake_file.writelines(' '*(15 - len('%.5f' % events[i]['latitude'])) + '%.5f' % events[i]['latitude'] +
+                              ' '*(15 - len('%.5f' % events[i]['longitude'])) + '%.5f\n' % events[i]['longitude'])
+        quake_file.writelines(' '*(15 - len('%.5f' % abs(events[i]['depth']))) + '%.5f\n' % abs(events[i]['depth']))
+        quake_file.writelines(' '*(15 - len('%.5f' % abs(events[i]['magnitude']))) + '%.5f\n'
+                              % abs(events[i]['magnitude']))
+        quake_file.writelines(' '*(15 - len(events[i]['event_id'])) + events[i]['event_id'] + '-' + '\n')
 
-        quake_file.writelines(\
-                ' '*(15 - len('%.5f' % events[i]['latitude'])) + '%.5f' \
-                % events[i]['latitude'] + \
-                ' '*(15 - len('%.5f' % events[i]['longitude'])) + '%.5f' \
-                % events[i]['longitude'] + '\n')
-        quake_file.writelines(\
-                ' '*(15 - len('%.5f' % abs(events[i]['depth']))) + '%.5f' \
-                % abs(events[i]['depth']) + '\n')
-        quake_file.writelines(\
-                ' '*(15 - len('%.5f' % abs(events[i]['magnitude']))) + '%.5f' \
-                % abs(events[i]['magnitude']) + '\n')
-        quake_file.writelines(\
-                ' '*(15 - len(events[i]['event_id'])) + \
-                        events[i]['event_id'] + '-' + '\n')
+        quake_file.writelines(repr(events[i]['t1'].year).rjust(15) + repr(events[i]['t1'].julday).rjust(15) +
+                              repr(events[i]['t1'].month).rjust(15) + repr(events[i]['t1'].day).rjust(15) + '\n')
+        quake_file.writelines(repr(events[i]['t1'].hour).rjust(15) + repr(events[i]['t1'].minute).rjust(15) +
+                              repr(events[i]['t1'].second).rjust(15) +
+                              repr(events[i]['t1'].microsecond).rjust(15) + '\n')
 
-        quake_file.writelines(repr(events[i]['t1'].year).rjust(15)\
-                + repr(events[i]['t1'].julday).rjust(15) \
-                + repr(events[i]['t1'].month).rjust(15) \
-                + repr(events[i]['t1'].day).rjust(15) + '\n')
-        quake_file.writelines(repr(events[i]['t1'].hour).rjust(15)\
-                + repr(events[i]['t1'].minute).rjust(15) + \
-                repr(events[i]['t1'].second).rjust(15) + \
-                repr(events[i]['t1'].microsecond).rjust(15) + '\n')
-
-        quake_file.writelines(repr(events[i]['t2'].year).rjust(15)\
-                + repr(events[i]['t2'].julday).rjust(15) \
-                + repr(events[i]['t2'].month).rjust(15) \
-                + repr(events[i]['t2'].day).rjust(15) + '\n')
-        quake_file.writelines(repr(events[i]['t2'].hour).rjust(15)\
-                + repr(events[i]['t2'].minute).rjust(15) + \
-                repr(events[i]['t2'].second).rjust(15) + \
-                repr(events[i]['t2'].microsecond).rjust(15) + '\n')
+        quake_file.writelines(repr(events[i]['t2'].year).rjust(15) + repr(events[i]['t2'].julday).rjust(15) +
+                              repr(events[i]['t2'].month).rjust(15) + repr(events[i]['t2'].day).rjust(15) + '\n')
+        quake_file.writelines(repr(events[i]['t2'].hour).rjust(15) + repr(events[i]['t2'].minute).rjust(15) +
+                              repr(events[i]['t2'].second).rjust(15) +
+                              repr(events[i]['t2'].microsecond).rjust(15) + '\n')
 
 ###################### writesac_all ####################################
 
@@ -4239,14 +4218,12 @@ def main():
                                                   str(input['min_mag']), str(input['max_mag']))
         eventpath = os.path.join(input['datapath'], Period)
 
-        len_events = len(events)
-
         address = []
-        for i in range(0, len_events):
+        for i in range(len(events)):
             address.append(os.path.join(eventpath, events[i]['event_id']))
         if address != []:
             print "* Address of the stored events:"
-            for i in range(0, len_events):
+            for i in range(len(events)):
                 print address[i]
             print "=================================================="
 
