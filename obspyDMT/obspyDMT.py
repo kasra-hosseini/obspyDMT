@@ -2264,6 +2264,8 @@ def ARC_update(input, address):
 def IRIS_ARC_IC(input, clients):
     """
     Call "inst_correct" function based on the request.
+    Group the stations that have been retrieved from specific client
+    Grouping is necessary in applying the instrument correction correctly (different clients are treated differently)
     """
 
     # Following two if-conditions create address to which instrument correction should be applied
@@ -2279,31 +2281,29 @@ def IRIS_ARC_IC(input, clients):
 
     events, address_events = quake_info(address, 'info')
 
-    for i in range(0, len(events)):
+    for i in range(len(events)):
+
         sta_ev = read_station_event(address_events[i])
+
         ls_saved_stas_tmp = []
+        for sta_e in sta_ev[0]:
+            if clients == sta_e[13]:
+                station_id = '%s.%s.%s.%s' % (sta_e[0], sta_e[1], sta_e[2], sta_e[3])
+                ls_saved_stas_tmp.append(os.path.join(address_events[i], 'BH_RAW', station_id))
+
+        pattern_sta = '%s.%s.%s.%s' % (input['net'], input['sta'], input['loc'], input['cha'])
+
         ls_saved_stas = []
-
-        for j in range(0, len(sta_ev[0])):
-            if clients == sta_ev[0][j][13]:
-                station_id = sta_ev[0][j][0] + '.' + sta_ev[0][j][1] + '.' + \
-                             sta_ev[0][j][2] + '.' + sta_ev[0][j][3]
-                ls_saved_stas_tmp.append(os.path.join(address_events[i], 'BH_RAW',\
-                                        station_id))
-
-        pattern_sta = '%s.%s.%s.%s' %(input['net'], input['sta'],
-                                        input['loc'], input['cha'])
-
-        for k in range(0, len(ls_saved_stas_tmp)):
-            if fnmatch.fnmatch(ls_saved_stas_tmp[k].split('/')[-1], pattern_sta):
-                ls_saved_stas.append(ls_saved_stas_tmp[k])
+        for saved_sta in ls_saved_stas_tmp:
+            if fnmatch.fnmatch(os.path.basename(saved_sta), pattern_sta):
+                ls_saved_stas.append(saved_sta)
 
         if len(ls_saved_stas) != 0:
-            print '\nevent: ' + str(i+1) + '/' + str(len(events)) + \
-                                             ' -- ' + clients + '\n'
+            print '\nevent: %s/%s -- %s\n' % (i+1, len(events), clients)
             inst_correct(input, ls_saved_stas, address_events[i], clients)
         else:
-            print "There is no station in the folder to correct!"
+            print "There is no station in the directory to correct!"
+            print "Address: %s" % address_events[i]
 
 ###################### inst_correct ###############################
 
@@ -3697,95 +3697,90 @@ def rm_duplicate(Sta_all, address):
 
 ###################### read_station_event ##############################
 
-def read_station_event(address):
 
+def read_station_event(address):
     """
     Reads the station_event file ("info" folder)
     """
 
-    if address.split('/')[-1].split('.') == ['info']:
+    if not os.path.isabs(address):
+        address = os.path.abspath(address)
+
+    if os.path.basename(address) == 'info':
         target_add = [address]
     elif locate(address, 'info'):
         target_add = locate(address, 'info')
     else:
-        print 'Error: There is no "info" folder in the address.'
+        print 'Error: There is no "info" directory in %s' % address
 
     sta_ev = []
-
-    for k in range(0, len(target_add)):
-        sta_ev_tmp = []
-
-        if os.path.isfile(os.path.join(target_add[k], 'station_event')):
-            sta_file_open = open(os.path.join(target_add[k],\
-                                                    'station_event'), 'r')
+    for t_add in target_add:
+        if os.path.isfile(os.path.join(t_add, 'station_event')):
+            sta_file_open = open(os.path.join(t_add, 'station_event'), 'r')
         else:
-            create_station_event(address = target_add[k])
-            sta_file_open = open(os.path.join(target_add[k],\
-                                                    'station_event'), 'r')
+            print '====================================='
+            print 'station_event could not be found'
+            print 'Start Creating the station_event file'
+            print '====================================='
+            create_station_event(address=t_add)
+            sta_file_open = open(os.path.join(t_add, 'station_event'), 'r')
         sta_file = sta_file_open.readlines()
-        for i in sta_file:
-            sta_ev_tmp.append(i.split(','))
+        sta_ev_tmp = []
+        for s_file in sta_file:
+            sta_ev_tmp.append(s_file.split(','))
         sta_ev.append(sta_ev_tmp)
 
     return sta_ev
 
 ###################### create_station_event ############################
 
-def create_station_event(address):
 
+def create_station_event(address):
     """
     Creates the station_event file ("info" folder)
     """
-
-    print '====================================='
-    print 'station_event could not be found'
-    print 'Start Creating the station_event file'
-    print '====================================='
 
     event_address = os.path.dirname(address)
     if os.path.isdir(os.path.join(event_address, 'BH_RAW')):
         sta_address = os.path.join(event_address, 'BH_RAW')
     elif os.path.isdir(os.path.join(event_address, 'BH')):
         sta_address = os.path.join(event_address, 'BH')
+    else:
+        print 'ERROR: There is no reference (BH_RAW or BH) to create station_event file!'
+        sys.exit()
+
     ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
 
-    print len(ls_stas)
-    for i in range(0, len(ls_stas)):
+    print '%s stations found in %s' % (len(ls_stas), sta_address)
+
+    for i in range(len(ls_stas)):
         print i,
+
         sta_file_open = open(os.path.join(address, 'station_event'), 'a')
 
         try:
             sta = read(ls_stas[i])[0]
         except Exception as e:
-            print e
-            print 'could not read the waveform data'
+            print 'WARNING: NOT readable: %s\n%s' % (ls_stas[i], e)
 
         sta_stats = sta.stats
-
         try:
-            sta_info = sta_stats.network + ',' + sta_stats.station + ',' + \
-                        sta_stats.location + ',' + sta_stats.channel + ',' + \
-                        str(sta_stats.sac.stla) + ',' + str(sta_stats.sac.stlo) + ',' + \
-                        str(sta_stats.sac.stel) + ',' + str(sta_stats.sac.stdp) + ',' + \
-                        event_address.split('/')[-1] + ',' + \
-                        str(sta_stats.sac.evla) + ',' + str(sta_stats.sac.evlo) + ',' + \
-                        str(sta_stats.sac.evdp) + ',' + str(sta_stats.sac.mag) + ',' + \
-                        'iris' + ',' + '\n'
+            sta_info = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,iris,\n' \
+                       % (sta_stats.network, sta_stats.station, sta_stats.location, sta_stats.channel,
+                          sta_stats.sac.stla, sta_stats.sac.stlo, sta_stats.sac.stel, sta_stats.sac.stdp,
+                          os.path.basename(event_address), sta_stats.sac.evla, sta_stats.sac.evlo,
+                          sta_stats.sac.evdp, sta_stats.sac.mag)
         except Exception as e:
+            print '\nWARNING: Can not read all the required information from the headers, some of them are presumed!'
             print e
-            sta_info = sta_stats.network + ',' + sta_stats.station + ',' + \
-                        sta_stats.location + ',' + sta_stats.channel + ',' + \
-                        str(-12345.0) + ',' + str(-12345.0) + ',' + \
-                        str(-12345.0) + ',' + str(-12345.0) + ',' + \
-                        event_address.split('/')[-1] + ',' + \
-                        str(-12345.0) + ',' + str(-12345.0) + ',' + \
-                        str(-12345.0) + ',' + str(-12345.0) + ',' + \
-                        'iris' + ',' + '\n'
+            sta_info = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,iris,\n' \
+                       % (sta_stats.network, sta_stats.station, sta_stats.location, sta_stats.channel,
+                          -12345.0, -12345.0, -12345.0, -12345.0, os.path.basename(event_address),
+                          -12345.0, -12345.0, -12345.0, -12345.0)
 
         sta_file_open.writelines(sta_info)
         sta_file_open.close()
-
-    print '\n--------------------------'
+    print 'station_event file is created in %s' % os.path.joint(address, 'station_event')
 
 ###################### quake_info ######################################
 
@@ -3814,7 +3809,6 @@ def quake_info(address, target):
                 try:
                     quake_read_tmp.append(float(q_l_item))
                 except ValueError:
-                    print "Check the quake file and make sure everything is file:\n%s" % os.path.join(t_add, 'quake')
                     pass
 
         if len(quake_read_tmp) < 20:
@@ -3832,8 +3826,6 @@ def quake_info(address, target):
                     try:
                         quake_read_tmp.append(float(q_l_item))
                     except ValueError:
-                        print "Check the quake file and make sure everything is file:\n%s" \
-                              % os.path.join(t_add, 'quake')
                         pass
 
         quake_d = {'year0': int(quake_read_tmp[0]), 'julday0': int(quake_read_tmp[1]),
@@ -3885,7 +3877,6 @@ def quake_create(address_info):
         sta_address = os.path.join(address, 'BH')
     else:
         print '\nERROR: There is no reference (BH_RAW or BH) to create a quake file...'
-        sys.exit()
 
     ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
 
@@ -3974,7 +3965,6 @@ def quake_modify(quake_item, address_info):
         sta_address = os.path.join(address, 'BH')
     else:
         print '\nERROR: There is no reference (BH_RAW or BH) to create a quake file...'
-        sys.exit()
 
     ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
 
