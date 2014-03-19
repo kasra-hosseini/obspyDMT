@@ -67,6 +67,14 @@ except Exception as error:
     print "Error: %s" % error
     print "********************************************************\n"
 
+try:
+    import pprocess
+except Exception as error:
+    print "\n*************************************************************************"
+    print "Unable to import pprocess. Parallel retrieving/processing is not possible"
+    print "Error: %s" % error
+    print "*************************************************************************\n"
+
 ############### Fill in descrip list
 descrip = ['obspy ver: ' + obs_ver]
 try:
@@ -174,14 +182,14 @@ def obspyDMT(**kwargs):
         print '\n*****************************'
         print 'IRIS -- Instrument Correction'
         print '*****************************'
-        IRIS_ARC_IC(input, clients='iris')
+        create_tar_file_address = IRIS_ARC_IC(input, clients='iris')
 
     # ------------------Arclink-instrument------------------------------
     if input['arc_ic'] != 'N' or input['arc_ic_auto'] == 'Y':
         print '\n********************************'
         print 'ArcLink -- Instrument Correction'
         print '********************************'
-        IRIS_ARC_IC(input, clients='arc')
+        create_tar_file_address = IRIS_ARC_IC(input, clients='arc')
 
     # ------------------IRIS-merge--------------------------------------    
     if input['iris_merge'] != 'N' or input['iris_merge_auto'] == 'Y':
@@ -211,6 +219,13 @@ def obspyDMT(**kwargs):
 
     if input['plot_all_events']:
         raw_input('\nPress enter to continue....\n')
+
+    # ------------------Compressing-------------------------------------------
+    if input['zip_w'] == 'Y' or input['zip_r'] == 'Y':
+        print '\n**************************'
+        print 'Start creating tar file(s)'
+        print '**************************'
+        create_tar_file(input, address=create_tar_file_address)
 
     # ------------------Email-------------------------------------------    
     if input['email'] != 'N':
@@ -1037,6 +1052,13 @@ def read_input_command(parser, **kwargs):
 
     if input['plot_iris'] == 'Y' or input['plot_arc'] == 'Y':
         input['plot_all'] = 'N'
+
+    # Create a priority list (for all requested clients)
+    # For the moment, we just support: IRIS and ArcLink, but it should be easily extendable!
+    input['priority_clients'] = []
+    for cli in ['IRIS', 'ArcLink']:
+        if input[cli] == 'Y':
+            input['priority_clients'].append(cli)
 
     if input['req_parallel'] == 'Y' or input['ic_parallel'] == 'Y':
         try:
@@ -2304,6 +2326,8 @@ def IRIS_ARC_IC(input, clients):
         else:
             print "There is no station in the directory to correct!"
             print "Address: %s" % address_events[i]
+    # pass address for using in create_tar_file
+    return address
 
 ###################### inst_correct ###############################
 
@@ -2329,12 +2353,12 @@ def inst_correct(input, ls_saved_stas, address, clients):
     try:
         os.makedirs(os.path.join(address, BH_file))
     except Exception as e:
-        print "ERROR: can not create %s" % os.path.join(address, BH_file)
-        print e
+        print "\nWARNING: can not create %s" % os.path.join(address, BH_file)
+        print "%s\n" % e
         pass
 
     if input['ic_parallel'] == 'Y':
-        print '\nParallel Instrument Correction with %s processes.\n' % input['ic_np']
+        print '\nParallel instrument correction with %s processes.\n' % input['ic_np']
 
         # Following methods can also be used:
         #parallel_results = pprocess.Queue(limit=input['req_np'])
@@ -2354,223 +2378,157 @@ def inst_correct(input, ls_saved_stas, address, clients):
             IC_core(ls_saved_stas=ls_saved_stas[i], clients=clients, address=address, BH_file=BH_file,
                     inform='%s -- %s/%s' % (clients, i+1, len(ls_saved_stas)))
 
-    # ---------Creating Tar files (Waveform files)
-    if input['zip_w'] == 'Y':
-        print '\nCompressing Raw files...',
-        path = os.path.join(address, 'BH_RAW')
-        tar_file = os.path.join(path, 'BH_RAW.tar')
-        files = '*.*.*.*'
-        compress_gzip(path=path, tar_file=tar_file, files=files)
-        print 'DONE'
-    # ---------Creating Tar files (Response files)
-    if input['zip_r'] == 'Y':
-        print '\nCompressing Resp files...',
-        path = os.path.join(address, 'Resp')
-        tar_file = os.path.join(path, 'Resp.tar')
-        files = '*.*.*.*'
-        compress_gzip(path=path, tar_file=tar_file, files=files)
-        print 'DONE'
-
     t_inst_2 = datetime.now()
+
     if input['ic_parallel'] == 'Y':
-        report_parallel_open = open(os.path.join(address, \
-                                    'info', 'report_parallel'), 'a')
-        report_parallel_open.writelines(\
-            '---------------' + clients.upper() + '---------------' + '\n')
-        report_parallel_open.writelines(\
-            'Instrument Correction' + '\n')
-        report_parallel_open.writelines(\
-            'Number of Nodes: ' + str(input['ic_np']) + '\n')
-        report_parallel_open.writelines(\
-            'Number of Stas : ' + str(len(ls_saved_stas)) + '\n')
-        report_parallel_open.writelines(\
-            'Total Time     : ' + str(t_inst_2 - t_inst_1) + '\n')
-    print '\nTime for Instrument Correction of ' + \
-            str(len(ls_saved_stas))+' stations: %s' %(t_inst_2-t_inst_1)
+        report_parallel_open = open(os.path.join(address, 'info', 'report_parallel'), 'a')
+        report_parallel_open.writelines('---------------%s---------------\n' % clients.upper())
+        report_parallel_open.writelines('Instrument Correction\n')
+        report_parallel_open.writelines('Number of Nodes: %s\n' % input['ic_np'])
+        report_parallel_open.writelines('Number of Stas : %s\n' % len(ls_saved_stas))
+        report_parallel_open.writelines('Total Time     : %s\n' % (t_inst_2 - t_inst_1))
+    print '\nTime for instrument correction of %s stations: %s' % (len(ls_saved_stas), t_inst_2-t_inst_1)
+
+
 
 ###################### IC_core #########################################
 
-def IC_core(ls_saved_stas, clients, address, BH_file, inform):
 
+def IC_core(ls_saved_stas, clients, address, BH_file, inform):
+    """
+    Function that prepare the waveforms for instrument correction and divert the program to the
+    right instrument correction function!
+    """
     global input
 
     try:
-
         if input['ic_obspy_full'] == 'Y':
-            # Removing the trend
-            rt_c = RTR(stream = ls_saved_stas, degree = 2)
             tr = read(ls_saved_stas)[0]
-            tr.data = rt_c
-
-            # Tapering
-            taper = invsim.cosTaper(len(tr.data))
-            tr.data *= taper
-
             if clients.lower() != 'arc':
-                stxml_file = os.path.join(address, 'Resp', 'STXML.' +
-                                        ls_saved_stas.split('/')[-1])
-                obspy_fullresp_STXML(trace = tr, stxml_file = stxml_file,
-                    Address = os.path.join(address, BH_file),
-                    unit = input['corr_unit'], BP_filter = input['pre_filt'],
-                    inform = inform)
+                stxml_file = os.path.join(address, 'Resp', 'STXML.' + ls_saved_stas.split('/')[-1])
+                obspy_fullresp_STXML(trace=tr, stxml_file=stxml_file, Address=os.path.join(address, BH_file),
+                                     unit=input['corr_unit'], BP_filter=input['pre_filt'], inform=inform)
             else:
-                resp_file = os.path.join(address, 'Resp', 'DATALESS.' +
-                                        ls_saved_stas.split('/')[-1])
-                obspy_fullresp_RESP(trace = tr, resp_file = resp_file,
-                    Address = os.path.join(address, BH_file),
-                    unit = input['corr_unit'], BP_filter = input['pre_filt'],
-                    inform = inform)
+                resp_file = os.path.join(address, 'Resp', 'DATALESS.' + ls_saved_stas.split('/')[-1])
+                obspy_fullresp_RESP(trace=tr, resp_file=resp_file, Address=os.path.join(address, BH_file),
+                                    unit=input['corr_unit'], BP_filter=input['pre_filt'], inform=inform)
 
-
-        if input['ic_sac_full'] == 'Y':
-
-            resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
-                                        ls_saved_stas.split('/')[-1])
-
-            SAC_fullresp(trace = ls_saved_stas, resp_file = resp_file, \
-                address = address, BH_file = BH_file, unit = input['corr_unit'], \
-                BP_filter = input['pre_filt'], inform = inform)
-
-        if input['ic_paz'] == 'Y':
-            """
-            paz_file = os.path.join(address, 'Resp', 'PAZ' + '.' + \
-                                ls_saved_stas.split('/')[-1] + '.' + 'full')
-            
-            SAC_PAZ(trace = ls_saved_stas, paz_file = paz_file, \
-                address = address, BH_file = BH_file, unit = input['corr_unit'], \
-                BP_filter = input['pre_filt'], inform = inform)
-            """
-            """ 
-            rt_c = RTR(stream = ls_saved_stas, degree = 2)
-            tr = read(ls_saved_stas)[0]
-            tr.data = rt_c
-            
-            # Tapering
-            taper = invsim.cosTaper(len(tr.data))
-            tr.data *= taper
-            
-            resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
-                                        ls_saved_stas.split('/')[-1])
-        
-            obspy_PAZ(trace = tr, resp_file = resp_file, \
-                Address = os.path.join(address, BH_file), \
-                clients = clients, unit = input['corr_unit'], \
-                BP_filter = input['pre_filt'], inform = inform)
-            """
-
-            #if clients == 'iris':
-            #    paz_file = os.path.join(address, 'Resp', 'PAZ' + '.' + \
-            #                    ls_saved_stas.split('/')[-1] + '.' + 'full')
-
-            #    SAC_PAZ(trace = ls_saved_stas, paz_file = paz_file, \
-            #        address = address, BH_file = BH_file, unit = input['corr_unit'], \
-            #        BP_filter = input['pre_filt'], inform = inform)
-
-            #if clients == 'arc':
-
-            print "instrument correction using PAZ"
-            rt_c = RTR(stream = ls_saved_stas, degree = 2)
-            tr = read(ls_saved_stas)[0]
-            tr.data = rt_c
-
-            # Tapering
-            taper = invsim.cosTaper(len(tr.data))
-            tr.data *= taper
-
-            resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
-                                        ls_saved_stas.split('/')[-1])
-
-            obspy_PAZ(trace = tr, resp_file = resp_file, \
-                Address = os.path.join(address, BH_file), \
-                clients = clients, unit = input['corr_unit'], \
-                BP_filter = input['pre_filt'], inform = inform)
-
-            """
-            rt_c = RTR(stream = ls_saved_stas, degree = 2)
-            tr = read(ls_saved_stas)[0]
-            tr.data = rt_c
-            
-            # Tapering
-            taper = invsim.cosTaper(len(tr.data))
-            tr.data *= taper
-            
-            paz_file_open = open(os.path.join(address, 'Resp', 'PAZ' + '.' + \
-                            ls_saved_stas.split('/')[-1] + '.' + 'paz'))
-            paz_file = pickle.load(paz_file_open)
-            
-            paz_dic = {\
-            'poles': paz_file['poles'], \
-            'zeros': paz_file['zeros'], \
-            'gain': paz_file['gain']}
-            
-            obspy_PAZ(trace = tr, paz_dic = paz_dic, \
-                Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
-                BP_filter = input['pre_filt'], inform = inform)
-            """
-
+#        if input['ic_sac_full'] == 'Y':
+#
+#            resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
+#                                        ls_saved_stas.split('/')[-1])
+#
+#            SAC_fullresp(trace = ls_saved_stas, resp_file = resp_file, \
+#                address = address, BH_file = BH_file, unit = input['corr_unit'], \
+#                BP_filter = input['pre_filt'], inform = inform)
+#
+#        if input['ic_paz'] == 'Y':
+#            """
+#            paz_file = os.path.join(address, 'Resp', 'PAZ' + '.' + \
+#                                ls_saved_stas.split('/')[-1] + '.' + 'full')
+#
+#            SAC_PAZ(trace = ls_saved_stas, paz_file = paz_file, \
+#                address = address, BH_file = BH_file, unit = input['corr_unit'], \
+#                BP_filter = input['pre_filt'], inform = inform)
+#            """
+#            """
+#            rt_c = RTR(stream = ls_saved_stas, degree = 2)
+#            tr = read(ls_saved_stas)[0]
+#            tr.data = rt_c
+#
+#            # Tapering
+#            taper = invsim.cosTaper(len(tr.data))
+#            tr.data *= taper
+#
+#            resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
+#                                        ls_saved_stas.split('/')[-1])
+#
+#            obspy_PAZ(trace = tr, resp_file = resp_file, \
+#                Address = os.path.join(address, BH_file), \
+#                clients = clients, unit = input['corr_unit'], \
+#                BP_filter = input['pre_filt'], inform = inform)
+#            """
+#
+#            #if clients == 'iris':
+#            #    paz_file = os.path.join(address, 'Resp', 'PAZ' + '.' + \
+#            #                    ls_saved_stas.split('/')[-1] + '.' + 'full')
+#
+#            #    SAC_PAZ(trace = ls_saved_stas, paz_file = paz_file, \
+#            #        address = address, BH_file = BH_file, unit = input['corr_unit'], \
+#            #        BP_filter = input['pre_filt'], inform = inform)
+#
+#            #if clients == 'arc':
+#
+#            print "instrument correction using PAZ"
+#            rt_c = RTR(stream = ls_saved_stas, degree = 2)
+#            tr = read(ls_saved_stas)[0]
+#            tr.data = rt_c
+#
+#            # Tapering
+#            taper = invsim.cosTaper(len(tr.data))
+#            tr.data *= taper
+#
+#            resp_file = os.path.join(address, 'Resp', 'RESP' + '.' + \
+#                                        ls_saved_stas.split('/')[-1])
+#
+#            obspy_PAZ(trace = tr, resp_file = resp_file, \
+#                Address = os.path.join(address, BH_file), \
+#                clients = clients, unit = input['corr_unit'], \
+#                BP_filter = input['pre_filt'], inform = inform)
+#
+#            """
+#            rt_c = RTR(stream = ls_saved_stas, degree = 2)
+#            tr = read(ls_saved_stas)[0]
+#            tr.data = rt_c
+#
+#            # Tapering
+#            taper = invsim.cosTaper(len(tr.data))
+#            tr.data *= taper
+#
+#            paz_file_open = open(os.path.join(address, 'Resp', 'PAZ' + '.' + \
+#                            ls_saved_stas.split('/')[-1] + '.' + 'paz'))
+#            paz_file = pickle.load(paz_file_open)
+#
+#            paz_dic = {\
+#            'poles': paz_file['poles'], \
+#            'zeros': paz_file['zeros'], \
+#            'gain': paz_file['gain']}
+#
+#            obspy_PAZ(trace = tr, paz_dic = paz_dic, \
+#                Address = os.path.join(address, BH_file), unit = input['corr_unit'], \
+#                BP_filter = input['pre_filt'], inform = inform)
+#            """
+#
     except Exception as e:
         print e
 
-###################### RTR #############################################
-
-def RTR(stream, degree = 2):
-
-    """
-    Remove the trend by Fitting a linear function to the trace 
-    with least squares and subtracting it
-    """
-
-    raw_f = read(stream)
-
-    t = []
-    b0 = 0
-    inc = []
-
-    b = raw_f[0].stats['starttime']
-
-    for i in range(0, raw_f[0].stats['npts']):
-        inc.append(b0)
-        b0 = b0+1.0/raw_f[0].stats['sampling_rate']
-        b0 = round(b0, 4)
-
-    A = np.vander(inc, degree)
-    (coeffs, residuals, rank, sing_vals) = np.linalg.lstsq(A, raw_f[0].data)
-
-    f = np.poly1d(coeffs)
-    y_est = f(inc)
-    rt_c = raw_f[0].data-y_est
-
-    return rt_c
-
 ###################### obspy_fullresp_STXML ######################################
 
-def obspy_fullresp_STXML(trace, stxml_file, Address, unit = 'DIS',
-            BP_filter = (0.008, 0.012, 3.0, 4.0), inform = 'N/N'):
+
+def obspy_fullresp_STXML(trace, stxml_file, Address, unit = 'DIS', BP_filter = (0.008, 0.012, 3.0, 4.0),
+                         inform = 'N/N'):
 
     try:
-        if unit.lower() == 'dis': unit='DISP'
+        trace.detrend('linear')
+        if unit.lower() == 'dis':
+            unit = 'DISP'
         inv = read_inventory(stxml_file, format="stationxml")
         trace.attach_response(inv)
-        trace.remove_response(output=unit, water_level=600.0,
-                pre_filt=eval(BP_filter), zero_mean=True,
-                taper=False)
+        trace.remove_response(output=unit, water_level=600.0, pre_filt=eval(BP_filter), zero_mean=True, taper=True,
+                              taper_fraction=0.05)
         trace.data *= 1.e9
-        trace_identity = '%s.%s.%s.%s' %(
-                trace.stats['network'], trace.stats['station'],
-                trace.stats['location'],trace.stats['channel'])
+        trace_identity = '%s.%s.%s.%s' %(trace.stats['network'], trace.stats['station'], trace.stats['location'],
+                                         trace.stats['channel'])
         if input['mseed'] == 'N':
-            trace.write(os.path.join(Address, unit.lower() + '.' +
-                                        trace_identity), format = 'SAC')
+            trace.write(os.path.join(Address, unit.lower() + '.' + trace_identity), format = 'SAC')
         else:
-            trace.write(os.path.join(Address, unit.lower() + '.' +
-                                        trace_identity), format = 'MSEED')
+            trace.write(os.path.join(Address, unit.lower() + '.' + trace_identity), format = 'MSEED')
 
         if unit.lower() == 'disp': unit_print = 'displacement'
         if unit.lower() == 'vel': unit_print = 'velocity'
         if unit.lower() == 'acc':  unit_print = 'acceleration'
 
-        print inform + ' -- Instrument Correction to ' + unit_print + \
-                                            ' for: ' + trace_identity
+        print inform + ' -- Instrument Correction to ' + unit_print + ' for: ' + trace_identity
 
     except Exception as e:
         print inform + ' -- ' + str(e)
@@ -2585,10 +2543,11 @@ def obspy_fullresp_RESP(trace, resp_file, Address, unit = 'DIS',
     seedresp = {'filename': dataless_parser, 'units':unit}
 
     try:
+        trace.detrend('linear')
         trace.simulate(seedresp=seedresp, paz_remove=None,
                 paz_simulate = None, remove_sensitivity=True,
                 simulate_sensitivity = False, water_level = 600.0,
-                zero_mean = True, taper = False,
+                zero_mean = True, taper = True, taper_fraction=0.05,
                 pre_filt=eval(BP_filter),
                 pitsasim=False, sacsim = True)
 
@@ -4036,22 +3995,45 @@ def quake_modify(quake_item, address_info):
                                   repr(sta_stats_endtime.microsecond).rjust(15) + '\n')
     quake_file_new.close()
 
+###################### create_tar_file #########################################
+
+
+def create_tar_file(input, address):
+    """
+    create a tar file out of a given directory
+    """
+    events, address_events = quake_info(address, 'info')
+    for i in range(len(events)):
+        # ---------Creating Tar files (Waveform files)
+        if input['zip_w'] == 'Y':
+            print '\nCompressing Raw files...'
+            path = os.path.join(address_events[i], 'BH_RAW')
+            tar_file = os.path.join(path, 'BH_RAW.tar')
+            files = '*.*.*.*'
+            compress_gzip(path=path, tar_file=tar_file, files=files)
+
+        # ---------Creating Tar files (Response files)
+        if input['zip_r'] == 'Y':
+            print '\nCompressing Resp files...'
+            path = os.path.join(address_events[i], 'Resp')
+            tar_file = os.path.join(path, 'Resp.tar')
+            files = '*.*.*.*'
+            compress_gzip(path=path, tar_file=tar_file, files=files)
+
 ###################### compress_gzip ###################################
 
-def compress_gzip(path, tar_file, files):
 
+def compress_gzip(path, tar_file, files):
+    """
+    Compressing files and creating a tar file
+    """
     tar = tarfile.open(tar_file, "w:gz")
     os.chdir(path)
 
-    for infile in glob.glob( os.path.join(path, files) ):
-
-        print '------------------------------------'
-        print 'Compressing:'
-        print infile
-
-        tar.add(infile.split('/')[-1])
+    for infile in glob.glob(os.path.join(path, files)):
+        print '.',
+        tar.add(os.path.basename(infile))
         os.remove(infile)
-
     tar.close()
 
 ###################### send_email ######################################
@@ -4181,7 +4163,51 @@ if __name__ == "__main__":
 
 
 # ----------------------------------------------
-# TRASH:
+# OLD school:
+
+# ------------------------- Instrument Correction:
+## Removing the trend
+# rt_c = RTR(stream = ls_saved_stas, degree = 2)
+# tr = read(ls_saved_stas)[0]
+# tr.data = rt_c
+
+## Tapering
+#taper = invsim.cosTaper(len(tr.data))
+#tr.data *= taper
+
+####################### RTR #############################################
+#
+#
+#def RTR(stream, degree = 2):
+#    """
+#    Remove the trend by Fitting a linear function to the trace
+#    with least squares and subtracting it
+#    """
+#
+#    raw_f = read(stream)
+#    t = []
+#    b0 = 0
+#    inc = []
+#
+#    b = raw_f[0].stats['starttime']
+#
+#    for i in range(0, raw_f[0].stats['npts']):
+#        inc.append(b0)
+#        b0 = b0+1.0/raw_f[0].stats['sampling_rate']
+#        b0 = round(b0, 4)
+#
+#    A = np.vander(inc, degree)
+#    (coeffs, residuals, rank, sing_vals) = np.linalg.lstsq(A, raw_f[0].data)
+#
+#    f = np.poly1d(coeffs)
+#    y_est = f(inc)
+#    rt_c = raw_f[0].data-y_est
+#
+#    return rt_c
+# ------------------------- END Instrument Correction:
+
+
+# ------------------------- TRASH:
 #!! Still do not know which one is the best: 
 #parallel_results = pprocess.Queue(limit=input['req_np'])
 #parallel_job = parallel_results.manage(pprocess.MakeParallel(IRIS_download_core))
@@ -4207,5 +4233,4 @@ for l in range(0, len(lol)):
         jobs[ll].start()
     jobs[ll].join()
 '''
-
-
+# ------------------------- END TRASH:
