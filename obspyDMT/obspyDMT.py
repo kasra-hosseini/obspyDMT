@@ -1540,20 +1540,23 @@ def IRIS_waveform(input, Sta_req, i, type):
         len_req_iris = len(Sta_req)
 
     if input['iris_bulk'] == 'Y':
-        t11 = datetime.now()
-        client_fdsn = Client_fdsn('IRIS')
-        bulk_list_fio = open(os.path.join(add_event[i],
-                                'info', 'bulkdata_list'))
-        bulk_list = pickle.load(bulk_list_fio)
-        bulk_smgrs = client_fdsn.get_waveforms_bulk(bulk_list)
-        print 'Saving the retrieved waveforms...',
-        for bulk_st in bulk_smgrs:
-            bulk_st.stats = bulk_st.stats
-            bulk_st.write(os.path.join(add_event[i], 'BH_RAW',
-                '%s.%s.%s.%s' %(bulk_st.stats['network'],
-                                bulk_st.stats['station'],
-                                bulk_st.stats['location'],
-                                bulk_st.stats['channel'])), 'MSEED')
+        try:
+            t11 = datetime.now()
+            client_fdsn = Client_fdsn('IRIS')
+            bulk_list_fio = open(os.path.join(add_event[i],
+                                    'info', 'bulkdata_list'))
+            bulk_list = pickle.load(bulk_list_fio)
+            bulk_smgrs = client_fdsn.get_waveforms_bulk(bulk_list)
+            print 'Saving the retrieved waveforms...',
+            for bulk_st in bulk_smgrs:
+                bulk_st.stats = bulk_st.stats
+                bulk_st.write(os.path.join(add_event[i], 'BH_RAW',
+                    '%s.%s.%s.%s' %(bulk_st.stats['network'],
+                                    bulk_st.stats['station'],
+                                    bulk_st.stats['location'],
+                                    bulk_st.stats['channel'])), 'MSEED')
+        except Exception as e:
+            print 'WARNING: %s' % e
         print 'DONE'
 
         #if input['req_parallel'] == 'Y':
@@ -2573,35 +2576,38 @@ def obspy_fullresp_RESP(trace, resp_file, Address, unit='DIS', BP_filter=(0.008,
     except Exception as e:
         print '%s -- %s' % (inform, e)
 
-
 ###################### IRIS_ARC_merge ##################################
 
+
 def IRIS_ARC_merge(input, clients):
-
     """
-    Call "merge_stream" function
+    Call "merge_stream" function that merges the retrieved waveforms in continuous request
     """
 
+    # Following two if-conditions create address to which merging should be applied
+    # Please note that these two conditions can not happen at the same time
     if input[clients + '_merge_auto'] == 'Y':
         global events
         period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0], input['max_date'].split('T')[0],
                                                   str(input['min_mag']), str(input['max_mag']))
-        eventpath = os.path.join(input['datapath'], period)
-        address = eventpath
+        address = os.path.join(input['datapath'], period)
+
     elif input[clients + '_merge'] != 'N':
         address = input[clients + '_merge']
 
     events, address_events = quake_info(address, 'info')
-    ls_saved_stas_tmp = []
-    ls_saved_stas = []
-    for i in range(0, len(events)):
-        sta_ev = read_station_event(address_events[i])
-        for j in range(0, len(sta_ev[0])):
-            if clients == sta_ev[0][j][13]:
 
+    ls_saved_stas_tmp = []
+    for i in range(len(events)):
+
+        sta_ev = read_station_event(address_events[i])
+
+        # initialize some parameters which will be used later in merge_stream
+        for s_ev in sta_ev[0]:
+            if clients == s_ev[13]:
                 if input['merge_type'] == 'raw':
                     BH_file = 'BH_RAW'
-                    network = sta_ev[0][j][0]
+                    network = s_ev[0]
                     network_name = 'raw'
                 elif input['merge_type'] == 'corrected':
                     if input['corr_unit'] == 'DIS':
@@ -2617,32 +2623,33 @@ def IRIS_ARC_merge(input, clients):
                         network = 'acc'
                         network_name = 'acc'
 
-                station_id = network + '.' + sta_ev[0][j][1] + '.' + \
-                             sta_ev[0][j][2] + '.' + sta_ev[0][j][3]
-                ls_saved_stas_tmp.append(os.path.join(address_events[i], BH_file,\
-                                        station_id))
-    pattern_sta = input['net'] + '.' + input['sta'] + '.' + \
-                    input['loc'] + '.' + input['cha']
-    for k in range(0, len(ls_saved_stas_tmp)):
-        if fnmatch.fnmatch(ls_saved_stas_tmp[k].split('/')[-1], pattern_sta):
-            ls_saved_stas.append(ls_saved_stas_tmp[k])
+                station_id = '%s.%s.%s.%s' % (network, s_ev[1], s_ev[2], s_ev[3])
+                ls_saved_stas_tmp.append(os.path.join(address_events[i], BH_file, station_id))
+
+    pattern_sta = '%s.%s.%s.%s' % (input['net'], input['sta'], input['loc'], input['cha'])
+
+    ls_saved_stas = []
+    for saved_sta in ls_saved_stas_tmp:
+        if fnmatch.fnmatch(os.path.basename(saved_sta), pattern_sta):
+            ls_saved_stas.append(saved_sta)
 
     if len(ls_saved_stas) != 0:
-        ls_saved_stations = []
+        saved_stations_names = []
+        for ls_saved_sta in ls_saved_stas:
+            saved_stations_names.append(os.path.basename(ls_saved_sta))
+        ls_sta = list(set(saved_stations_names))
+
         ls_address = []
-        for i in range(0, len(ls_saved_stas)):
-            ls_saved_stations.append(ls_saved_stas[i].split('/')[-1])
-        ls_sta = list(set(ls_saved_stations))
-        for i in range(0, len(address_events)):
-            ls_address.append(os.path.join(address_events[i], BH_file))
+        for add_ev in address_events:
+            ls_address.append(os.path.join(add_ev, BH_file))
         print 'Merging the waveforms...'
-        merge_stream(ls_address = ls_address, ls_sta = ls_sta, \
-                                                    network_name = network_name)
-        print 'DONE'
+        merge_stream(ls_address=ls_address, ls_sta=ls_sta, network_name=network_name)
+        print 'Finish merging the waveforms'
     else:
-        print "\nThere is no waveform to merege! Please check your folders!"
+        print "\nThere is no waveform to merege!"
 
 ###################### merge_stream ####################################
+
 
 def merge_stream(ls_address, ls_sta, network_name):
 
