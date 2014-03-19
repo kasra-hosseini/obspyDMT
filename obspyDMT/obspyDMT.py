@@ -2369,13 +2369,13 @@ def inst_correct(input, ls_saved_stas, address, clients):
         ic_parallel_results = pprocess.Map(limit=input['ic_np'], reuse=1)
         ic_parallel_job = ic_parallel_results.manage(pprocess.MakeReusable(IC_core))
         for i in range(len(ls_saved_stas)):
-            ic_parallel_job(ls_saved_stas=ls_saved_stas[i], clients=clients, address=address, BH_file=BH_file,
+            ic_parallel_job(ls_saved_sta=ls_saved_stas[i], clients=clients, address=address, BH_file=BH_file,
                             inform='%s -- %s/%s' % (clients, i+1, len(ls_saved_stas)))
         ic_parallel_results.finish()
 
     else:
         for i in range(len(ls_saved_stas)):
-            IC_core(ls_saved_stas=ls_saved_stas[i], clients=clients, address=address, BH_file=BH_file,
+            IC_core(ls_saved_sta=ls_saved_stas[i], clients=clients, address=address, BH_file=BH_file,
                     inform='%s -- %s/%s' % (clients, i+1, len(ls_saved_stas)))
 
     t_inst_2 = datetime.now()
@@ -2389,12 +2389,10 @@ def inst_correct(input, ls_saved_stas, address, clients):
         report_parallel_open.writelines('Total Time     : %s\n' % (t_inst_2 - t_inst_1))
     print '\nTime for instrument correction of %s stations: %s' % (len(ls_saved_stas), t_inst_2-t_inst_1)
 
-
-
 ###################### IC_core #########################################
 
 
-def IC_core(ls_saved_stas, clients, address, BH_file, inform):
+def IC_core(ls_saved_sta, clients, address, BH_file, inform):
     """
     Function that prepare the waveforms for instrument correction and divert the program to the
     right instrument correction function!
@@ -2403,13 +2401,13 @@ def IC_core(ls_saved_stas, clients, address, BH_file, inform):
 
     try:
         if input['ic_obspy_full'] == 'Y':
-            tr = read(ls_saved_stas)[0]
+            tr = read(ls_saved_sta)[0]
             if clients.lower() != 'arc':
-                stxml_file = os.path.join(address, 'Resp', 'STXML.' + ls_saved_stas.split('/')[-1])
+                stxml_file = os.path.join(address, 'Resp', 'STXML.%s' % os.path.basename(ls_saved_sta))
                 obspy_fullresp_STXML(trace=tr, stxml_file=stxml_file, Address=os.path.join(address, BH_file),
                                      unit=input['corr_unit'], BP_filter=input['pre_filt'], inform=inform)
             else:
-                resp_file = os.path.join(address, 'Resp', 'DATALESS.' + ls_saved_stas.split('/')[-1])
+                resp_file = os.path.join(address, 'Resp', 'DATALESS.%s' % os.path.basename(ls_saved_sta))
                 obspy_fullresp_RESP(trace=tr, resp_file=resp_file, Address=os.path.join(address, BH_file),
                                     unit=input['corr_unit'], BP_filter=input['pre_filt'], inform=inform)
 
@@ -2505,33 +2503,40 @@ def IC_core(ls_saved_stas, clients, address, BH_file, inform):
 ###################### obspy_fullresp_STXML ######################################
 
 
-def obspy_fullresp_STXML(trace, stxml_file, Address, unit = 'DIS', BP_filter = (0.008, 0.012, 3.0, 4.0),
-                         inform = 'N/N'):
+def obspy_fullresp_STXML(trace, stxml_file, Address, unit='DIS', BP_filter=(0.008, 0.012, 3.0, 4.0), inform='N/N'):
+    """
+    Instrument correction using station_XML ---> equivalent to full response file
+    steps: detrend, demean, taper, filter, deconvolution
+    """
 
     try:
         trace.detrend('linear')
+        # To keep it consistant with obspy.remove_response method!
         if unit.lower() == 'dis':
             unit = 'DISP'
+
         inv = read_inventory(stxml_file, format="stationxml")
         trace.attach_response(inv)
         trace.remove_response(output=unit, water_level=600.0, pre_filt=eval(BP_filter), zero_mean=True, taper=True,
                               taper_fraction=0.05)
         trace.data *= 1.e9
-        trace_identity = '%s.%s.%s.%s' %(trace.stats['network'], trace.stats['station'], trace.stats['location'],
-                                         trace.stats['channel'])
+        trace_identity = '%s.%s.%s.%s' % (trace.stats['network'], trace.stats['station'], trace.stats['location'],
+                                          trace.stats['channel'])
         if input['mseed'] == 'N':
-            trace.write(os.path.join(Address, unit.lower() + '.' + trace_identity), format = 'SAC')
+            trace.write(os.path.join(Address, '%s.%s' % (unit.lower(), trace_identity)), format='SAC')
         else:
-            trace.write(os.path.join(Address, unit.lower() + '.' + trace_identity), format = 'MSEED')
+            trace.write(os.path.join(Address, '%s.%s' % (unit.lower(), trace_identity)), format='MSEED')
 
-        if unit.lower() == 'disp': unit_print = 'displacement'
-        if unit.lower() == 'vel': unit_print = 'velocity'
-        if unit.lower() == 'acc':  unit_print = 'acceleration'
-
-        print inform + ' -- Instrument Correction to ' + unit_print + ' for: ' + trace_identity
+        if unit.lower() == 'disp':
+            unit_print = 'displacement'
+        if unit.lower() == 'vel':
+            unit_print = 'velocity'
+        if unit.lower() == 'acc':
+            unit_print = 'acceleration'
+        print '%s -- instrument correction to %s for: %s' % (inform, unit_print, trace_identity)
 
     except Exception as e:
-        print inform + ' -- ' + str(e)
+        print '%s -- %s' % (inform, e)
 
 ###################### obspy_fullresp_RESP #######################################
 
