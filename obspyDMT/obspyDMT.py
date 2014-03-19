@@ -2307,12 +2307,11 @@ def IRIS_ARC_IC(input, clients):
 
 ###################### inst_correct ###############################
 
-def inst_correct(input, ls_saved_stas, address, clients):
 
+def inst_correct(input, ls_saved_stas, address, clients):
     """
     Apply Instrument Coorection on all available stations in the folder
-    This scrips uses 'seisSim' from obspy.signal for this reason
-    
+
     Instrument Correction has three main steps:
         1) RTR: remove the trend
         2) tapering
@@ -2320,7 +2319,6 @@ def inst_correct(input, ls_saved_stas, address, clients):
         
     Remove the instrument type by deconvolution using spectral division.
     """
-
     t_inst_1 = datetime.now()
 
     if input['corr_unit'] == 'DIS':
@@ -2331,41 +2329,38 @@ def inst_correct(input, ls_saved_stas, address, clients):
     try:
         os.makedirs(os.path.join(address, BH_file))
     except Exception as e:
+        print "ERROR: can not create %s" % os.path.join(address, BH_file)
+        print e
         pass
 
     if input['ic_parallel'] == 'Y':
+        print '\nParallel Instrument Correction with %s processes.\n' % input['ic_np']
 
-        print '\nParallel Instrument Correction with %s processes.\n' %(input['ic_np'])
-        #!! Still do not know which one is the best: 
+        # Following methods can also be used:
         #parallel_results = pprocess.Queue(limit=input['req_np'])
         #parallel_job = parallel_results.manage(pprocess.MakeParallel(IC_core))
         #parallel_results = pprocess.Map(limit=input['req_np'], continuous=1)
         #parallel_job = parallel_results.manage(pprocess.MakeParallel(IC_core))
-        parallel_results = pprocess.Map(limit=input['ic_np'], reuse=1)
-        parallel_job = parallel_results.manage(pprocess.MakeReusable(IC_core))
-        for i in range(0, len(ls_saved_stas)):
-            parallel_job(ls_saved_stas = ls_saved_stas[i], \
-                    clients = clients, address = address, \
-                    BH_file = BH_file, \
-                    inform = clients + ' -- ' + \
-                    str(i+1) + '/' + str(len(ls_saved_stas)))
 
-        parallel_results.finish()
+        ic_parallel_results = pprocess.Map(limit=input['ic_np'], reuse=1)
+        ic_parallel_job = ic_parallel_results.manage(pprocess.MakeReusable(IC_core))
+        for i in range(len(ls_saved_stas)):
+            ic_parallel_job(ls_saved_stas=ls_saved_stas[i], clients=clients, address=address, BH_file=BH_file,
+                            inform='%s -- %s/%s' % (clients, i+1, len(ls_saved_stas)))
+        ic_parallel_results.finish()
+
     else:
-        for i in range(0, len(ls_saved_stas)):
-            IC_core(ls_saved_stas = ls_saved_stas[i], \
-                    clients = clients, address = address, \
-                    BH_file = BH_file, \
-                    inform = clients + ' -- ' + \
-                    str(i+1) + '/' + str(len(ls_saved_stas)))
+        for i in range(len(ls_saved_stas)):
+            IC_core(ls_saved_stas=ls_saved_stas[i], clients=clients, address=address, BH_file=BH_file,
+                    inform='%s -- %s/%s' % (clients, i+1, len(ls_saved_stas)))
 
-    # ---------Creating Tar files (Response files)
+    # ---------Creating Tar files (Waveform files)
     if input['zip_w'] == 'Y':
         print '\nCompressing Raw files...',
         path = os.path.join(address, 'BH_RAW')
         tar_file = os.path.join(path, 'BH_RAW.tar')
         files = '*.*.*.*'
-        compress_gzip(path = path, tar_file = tar_file, files = files)
+        compress_gzip(path=path, tar_file=tar_file, files=files)
         print 'DONE'
     # ---------Creating Tar files (Response files)
     if input['zip_r'] == 'Y':
@@ -2373,7 +2368,7 @@ def inst_correct(input, ls_saved_stas, address, clients):
         path = os.path.join(address, 'Resp')
         tar_file = os.path.join(path, 'Resp.tar')
         files = '*.*.*.*'
-        compress_gzip(path = path, tar_file = tar_file, files = files)
+        compress_gzip(path=path, tar_file=tar_file, files=files)
         print 'DONE'
 
     t_inst_2 = datetime.now()
@@ -3750,6 +3745,7 @@ def create_station_event(address):
         sys.exit()
 
     ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
+    ls_stas.sort()
 
     print '%s stations found in %s' % (len(ls_stas), sta_address)
 
@@ -3780,7 +3776,7 @@ def create_station_event(address):
 
         sta_file_open.writelines(sta_info)
         sta_file_open.close()
-    print 'station_event file is created in %s' % os.path.joint(address, 'station_event')
+    print 'station_event file is created in %s' % os.path.join(address, 'station_event')
 
 ###################### quake_info ######################################
 
