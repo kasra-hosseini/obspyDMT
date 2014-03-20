@@ -2214,74 +2214,78 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
 
 ###################### IRIS_update #####################################
 
+
 def IRIS_update(input, address):
-
     """
-    Initialize folders and required stations for IRIS update requests
+    Initialize directories and pass the required stations (removing the duplications) for IRIS update requests
     """
-
     t_update_1 = datetime.now()
+
     events, address_events = quake_info(address, 'info')
-    len_events = len(events)
-    for i in range(0, len_events):
-        target_path = address_events
-        Stas_iris = IRIS_available(input, events[i], target_path[i], event_number = i)
+
+    for i in range(len(events)):
+        Stas_iris = IRIS_available(input, events[i], address_events[i], event_number=i)
+
         if input['iris_bulk'] != 'Y':
-            print '\nIRIS-Availability for event: ' + str(i+1) + str('/') + \
-                                    str(len_events) + '  ---> ' + 'DONE'
+            print '\nIRIS-Availability for event: %s/%s ---> DONE' % (i+1, len(events))
         else:
-            print 'IRIS-bulkfile for event    : ' + str(i+1) + str('/') + \
-                                    str(len_events) + '  ---> ' + 'DONE'
+            print '\nIRIS-bulkfile for event    : %s/%s ---> DONE' % (i+1, len(events))
+
         if Stas_iris != [[]]:
-            Stas_req = rm_duplicate(Stas_iris, \
-                            address = os.path.join(address_events[i]))
+            Stas_req = rm_duplicate(Stas_iris, address=os.path.join(address_events[i]))
         else:
-            Stas_req = [[]]
-            print '------------------------------------------'
+            Stas_req = None
+            print '------------------------------'
             print 'There is no available station!'
-            print '------------------------------------------'
+            print '------------------------------'
+
         if not os.path.isdir(os.path.join(address_events[i], 'BH_RAW')):
             os.makedirs(os.path.join(address_events[i], 'BH_RAW'))
+
         if Stas_req:
-            IRIS_waveform(input, Stas_req, i, type = 'update')
+            IRIS_waveform(input, Stas_req, i, type='update')
         else:
-            'No available station in IRIS for your request!'
+            print '\nNo available station in IRIS for your request!'
+            print 'Check the next event...'
             continue
+
+    print '\nTotal time for updating IRIS: %s' % (datetime.now() - t_update_1)
 
 ###################### ARC_update ######################################
 
+
 def ARC_update(input, address):
-
     """
-    Initialize folders and required stations for ARC update requests
+    Initialize directories and pass the required stations (removing the duplications) for ArcLink update requests
     """
-
     t_update_1 = datetime.now()
-    client_arclink = Client_arclink(user='test@obspy.org',
-                                timeout=input['arc_avai_timeout'])
+
     events, address_events = quake_info(address, 'info')
-    len_events = len(events)
-    for i in range(0, len_events):
-        target_path = address_events
-        Stas_arc = ARC_available(input, events[i], target_path[i], event_number = i)
-        print '\nArcLink-Availability for event: ' + str(i+1) + str('/') + \
-                                    str(len_events) + '  --->' + 'DONE'
+
+    for i in range(len(events)):
+        Stas_arc = ARC_available(input, events[i], address_events[i], event_number = i)
+
+        print '\nArcLink-Availability for event: %s/%s ---> DONE' % (i+1, len(events))
 
         if Stas_arc != [[]]:
-            Stas_req = rm_duplicate(Stas_arc, \
-                            address = os.path.join(address_events[i]))
+            Stas_req = rm_duplicate(Stas_arc, address=os.path.join(address_events[i]))
         else:
-            Stas_req = [[]]
-            print '------------------------------------------'
+            Stas_req = None
+            print '------------------------------'
             print 'There is no available station!'
-            print '------------------------------------------'
+            print '------------------------------'
+
         if not os.path.isdir(os.path.join(address_events[i], 'BH_RAW')):
             os.makedirs(os.path.join(address_events[i], 'BH_RAW'))
+
         if Stas_req:
-            ARC_waveform(input, Stas_req, i, type = 'update')
+            ARC_waveform(input, Stas_req, i, type='update')
         else:
-            'No available station in ArcLink for your request!'
+            print '\nNo available station in ArcLink for your request!'
+            print 'Check the next event...'
             continue
+
+    print '\nTotal time for updating ArcLink: %s' % (datetime.now() - t_update_1)
 
 ###################### IRIS_ARC_IC #####################################
 
