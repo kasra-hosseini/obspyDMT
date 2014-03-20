@@ -1,5 +1,4 @@
 NEXT TASK:
-- check merge stream
 - start with the downloading parts
 
 ADD:

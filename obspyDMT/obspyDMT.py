@@ -18,6 +18,7 @@
 # Added this line for python 2.5 compatibility
 from __future__ import with_statement
 import commands
+import copy
 from datetime import datetime
 import fileinput
 import fnmatch
@@ -1726,13 +1727,12 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
 
     try:
         dummy = 'Initializing'
-        client_fdsn = Client_fdsn('IRIS')
         t11 = datetime.now()
+        info_req = '['+str(i+1)+'/'+str(len_events)+'-'+ \
+                   str(j+1)+'/'+str(len(Sta_req))+'-'+input['cha']+'] '
+        client_fdsn = Client_fdsn('IRIS')
         if Sta_req[j][2] == '--' or Sta_req[j][2] == '  ':
                 Sta_req[j][2] = ''
-        info_req = '['+str(i+1)+'/'+str(len_events)+'-'+\
-                    str(j+1)+'/'+str(len(Sta_req))+'-'+input['cha']+'] '
-
         if input['cut_time_phase']:
             t_start, t_end = calculate_time_phase(events[i], Sta_req[j])
         else:
@@ -3283,63 +3283,51 @@ def writesac(address_st, sta_info, ev_info):
 
 ###################### rm_duplicate ####################################
 
-def rm_duplicate(Sta_all, address):
 
+def rm_duplicate(all_sta_avail, address):
     """
     remove duplicates and give back the required list for updating
     """
 
-    sta_all = []
-    saved = []
+    id_avai_stas = []
+    for sta in all_sta_avail:
+        if sta[2] == '--' or sta[2] == '  ':
+            sta[2] = ''
+        if len(sta) == 7:
+            id_avai_stas.append('%s_%s_%s_%s_%s_%s_%s' % (sta[0], sta[1], sta[2], sta[3], sta[4], sta[5], sta[6]))
+        elif len(sta) == 8:
+            id_avai_stas.append('%s_%s_%s_%s_%s_%s_%s_%s' % (sta[0], sta[1], sta[2], sta[3], sta[4], sta[5], sta[6],
+                                                            sta[7]))
 
-    for i in Sta_all:
-        if i[2] == '--' or i[2] == '  ':
-            i[2] = ''
-        for j in range(0, len(i)):
-            if i[j] != str(i[j]):
-                i[j] = str(i[j])
-        if len(i) == 7:
-            sta_all.append(str(i[0] + '_' + i[1] + '_' + i[2] + '_' + \
-                            i[3] + '_' + i[4] + '_' + i[5] + '_' + i[6]))
-        elif len(i) == 8:
-            sta_all.append(str(i[0] + '_' + i[1] + '_' + i[2] + '_' + \
-                            i[3] + '_' + i[4] + '_' + i[5] + '_' + i[6]\
-                             + '_' + i[7]))
+    sta_ev_saved = read_station_event(address)
 
-    sta_ev = read_station_event(address)
-    ls_saved_stas = sta_ev[0]
+    id_all_saved_stas = []
+    for saved_sta in sta_ev_saved[0]:
+        id_all_saved_stas.append('%s_%s_%s_%s' % (saved_sta[0], saved_sta[1], saved_sta[2], saved_sta[3]))
 
-    for i in range(0, len(ls_saved_stas)):
-        sta_info = ls_saved_stas[i]
-        saved.append(sta_info[0] + '_' + sta_info[1] + '_' + \
-                            sta_info[2] + '_' + sta_info[3])
+    stas_update = copy.deepcopy(id_avai_stas)
+    del_num = []
+    for saved_sta in id_all_saved_stas:
+        for j in range(len(stas_update)):
+            if saved_sta in stas_update[j]:
+                del_num.append(j)
 
-    Stas_req = sta_all
+    del_num.sort(reverse=True)
+    for dn in del_num:
+        del stas_update[dn]
 
-    len_all_sta = len(sta_all)
-    num = []
-    for i in range(0, len(saved)):
-        for j in range(0, len(Stas_req)):
-            if saved[i] in Stas_req[j]:
-                num.append(j)
+    for i in range(len(stas_update)):
+        stas_update[i] = stas_update[i].split('_')
 
-    num.sort(reverse=True)
-    for i in num:
-        del Stas_req[i]
-
-    for m in range(0, len(Stas_req)):
-        Stas_req[m] = Stas_req[m].split('_')
-
-    Stas_req.sort()
-
+    stas_update.sort()
     print '------------------------------------------'
     print 'Info:'
-    print 'Number of all saved stations:     ' + str(len(saved))
-    print 'Number of all available stations: ' + str(len_all_sta)
-    print 'Number of stations to update for: ' + str(len(Stas_req))
+    print 'Number of all saved stations:     %s' % len(id_all_saved_stas)
+    print 'Number of all available stations: %s' % len(id_avai_stas)
+    print 'Number of stations to update for: %s' % len(stas_update)
     print '------------------------------------------'
 
-    return Stas_req
+    return stas_update
 
 ###################### read_station_event ##############################
 
