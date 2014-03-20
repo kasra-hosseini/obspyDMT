@@ -2652,37 +2652,49 @@ def IRIS_ARC_merge(input, clients):
 
 
 def merge_stream(ls_address, ls_sta, network_name):
+    """
+    merges the waveforms in continuous requests
+    Merging technique: (method=1)
+    Discard data of the previous trace assuming the following trace contains data with a more correct time value.
+    The parameter interpolation_samples specifies the number of samples used to linearly interpolate between
+    the two traces in order to prevent steps.
+    Note that if there are gaps inside, the returned array is still a masked array, only if fill_value is set,
+    the returned array is a normal array and gaps are filled with fill value.
+    No interpolation (interpolation_samples=0):
 
+    Trace 1: AAAAAAAA
+    Trace 2:     FFFFFFFF
+    1 + 2  : AAAAFFFFFFFF
+    """
     global input
 
     address = os.path.dirname(os.path.dirname(ls_address[0]))
+
     try:
-        os.makedirs(os.path.join(address, 'MERGED' + '-' + network_name))
+        os.makedirs(os.path.join(address, 'MERGED-%s' % network_name))
     except Exception as e:
+        print "ERROR in creating a directory in %s" % address
+        print e
         pass
 
-    for i in range(0, len(ls_sta)):
-        for j in range(0, len(ls_address)):
-            if os.path.isfile(os.path.join(ls_address[j], ls_sta[i])):
-                st = read(os.path.join(ls_address[j], ls_sta[i]))
+    for sta in ls_sta:
+        for j in range(len(ls_address)):
+            if os.path.isfile(os.path.join(ls_address[j], sta)):
+                st = read(os.path.join(ls_address[j], sta))
                 for k in range(j+1, len(ls_address)):
                     try:
-                        st.append(read(os.path.join(ls_address[k], \
-                                                        ls_sta[i]))[0])
+                        st.append(read(os.path.join(ls_address[k], sta))[0])
                     except Exception as e:
-                        print e
+                        print "ERROR: can not append to the trace! \n%s" % e
 
-                st.merge(method=1, fill_value='latest', interpolation_samples=0)
+                st.merge(method=1, fill_value=0, interpolation_samples=0)
                 trace = st[0]
-                trace_identity = trace.stats['network'] + '.' + \
-                        trace.stats['station'] + '.' + \
-                        trace.stats['location'] + '.' + trace.stats['channel']
+                trace_identity = '%s.%s.%s.%s' % (trace.stats['network'], trace.stats['station'],
+                                                  trace.stats['location'], trace.stats['channel'])
                 if input['mseed'] == 'N':
-                    st.write(os.path.join(address, 'MERGED' + '-' + network_name,
-                                        trace_identity), format = 'SAC')
+                    st.write(os.path.join(address, 'MERGED-%s' % network_name, trace_identity), format='SAC')
                 else:
-                    st.write(os.path.join(address, 'MERGED' + '-' + network_name,
-                                        trace_identity), format = 'MSEED')
+                    st.write(os.path.join(address, 'MERGED-%s' % network_name, trace_identity), format='MSEED')
                 break
 
 ###################### PLOT ############################################
