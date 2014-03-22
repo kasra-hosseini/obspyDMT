@@ -1,5 +1,5 @@
 NEXT TASK:
-- start with the downloading parts
+- start with the downloading parts---> IRIS_availability
 
 ADD:
 - Other kind of instrument correction (PAZ and resp [SAC])
