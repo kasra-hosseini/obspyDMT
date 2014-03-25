@@ -44,6 +44,7 @@ How to cite obspyDMT
 If you use obspyDMT, please consider citing the code as:
 
 ::
+
     Kasra Hosseini (2013), obspyDMT (Version 0.5.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
 
 We have also published a paper in SRL (Seismological Research Letters) for obspyDMT's predecessor that we kindly ask you to cite in case that you found obspyDMT useful for your research:
