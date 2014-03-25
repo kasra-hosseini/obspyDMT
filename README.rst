@@ -44,8 +44,13 @@ How to cite obspyDMT
 If you use obspyDMT, please consider citing the code as:
 
 ::
+    Kasra Hosseini (2013), obspyDMT (Version 0.5.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
 
-    Kasra Hosseini (2013), obspyDMT (Version 0.4.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
+We have also published a paper in SRL (Seismological Research Letters) for obspyDMT's predecessor that we kindly ask you to cite in case that you found obspyDMT useful for your research:
+
+::
+
+    C. Scheingraber, K. Hosseini, R. Barsch, and K. Sigloch (2013), ObsPyLoad - a tool for fully automated retrieval of seismological waveform data, Seismological Research Letters, 84(3), 525-531, DOI:10.1785/0220120103.
 
 -----------------
 Lets get started
