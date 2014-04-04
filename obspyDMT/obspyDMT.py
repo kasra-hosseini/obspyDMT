@@ -667,7 +667,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '0.5.0' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.5.1' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -2526,7 +2526,8 @@ def obspy_fullresp_STXML(trace, stxml_file, Address, unit='DIS', BP_filter=(0.00
         trace.attach_response(inv)
         trace.remove_response(output=unit, water_level=600.0, pre_filt=eval(BP_filter), zero_mean=True, taper=True,
                               taper_fraction=0.05)
-        trace.data *= 1.e9
+        # Remove the following line since we want to keep the units as it is in the stationXML
+        #trace.data *= 1.e9
         trace_identity = '%s.%s.%s.%s' % (trace.stats['network'], trace.stats['station'], trace.stats['location'],
                                           trace.stats['channel'])
         if input['mseed'] == 'N':
@@ -2536,10 +2537,12 @@ def obspy_fullresp_STXML(trace, stxml_file, Address, unit='DIS', BP_filter=(0.00
 
         if unit.lower() == 'disp':
             unit_print = 'displacement'
-        if unit.lower() == 'vel':
+        elif unit.lower() == 'vel':
             unit_print = 'velocity'
-        if unit.lower() == 'acc':
+        elif unit.lower() == 'acc':
             unit_print = 'acceleration'
+        else:
+            unit_print = 'UNKNOWN'
         print '%s -- instrument correction to %s for: %s' % (inform, unit_print, trace_identity)
 
     except Exception as e:
@@ -2561,7 +2564,8 @@ def obspy_fullresp_RESP(trace, resp_file, Address, unit='DIS', BP_filter=(0.008,
         trace.simulate(seedresp=seedresp, paz_remove=None, paz_simulate=None, remove_sensitivity=True,
                        simulate_sensitivity=False, water_level=600.0, zero_mean=True, taper=True, taper_fraction=0.05,
                        pre_filt=eval(BP_filter), pitsasim=False, sacsim=True)
-        trace.data *= 1.e9
+        # Remove the following line since we want to keep the units as it is in the stationXML
+        #trace.data *= 1.e9
         trace_identity = '%s.%s.%s.%s' % (trace.stats['network'], trace.stats['station'], trace.stats['location'],
                                           trace.stats['channel'])
         if input['mseed'] == 'N':
@@ -2569,12 +2573,14 @@ def obspy_fullresp_RESP(trace, resp_file, Address, unit='DIS', BP_filter=(0.008,
         else:
             trace.write(os.path.join(Address, '%s.%s' % (unit.lower(), trace_identity)), format='MSEED')
 
-        if unit.lower() == 'disp':
+        if unit.lower() == 'dis':
             unit_print = 'displacement'
-        if unit.lower() == 'vel':
+        elif unit.lower() == 'vel':
             unit_print = 'velocity'
-        if unit.lower() == 'acc':
+        elif unit.lower() == 'acc':
             unit_print = 'acceleration'
+        else:
+            unit_print = 'UNKNOWN'
         print '%s -- instrument correction to %s for: %s' % (inform, unit_print, trace_identity)
 
     except Exception as e:
