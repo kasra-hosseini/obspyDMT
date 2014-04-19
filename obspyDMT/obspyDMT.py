@@ -1864,12 +1864,12 @@ def ARC_network(input):
         t_arc_1 = datetime.now()
         target_path = os.path.join(eventpath, events[i]['event_id'])
 
-        if not input['list_stats']:
+        if not input['list_stas']:
             Stas_arc = ARC_available(input, events[i], target_path, event_number=i)
         else:
             Stas_arc = read_list_stas(input['list_stas'], specfem3D='N')
 
-        print '\nArcLink-Availability for event: %s/%s  ---> DONE' % (i+1, len_events)
+        print '\nArcLink-Availability for event: %s/%s  ---> DONE' % (i+1, len(events))
         print 'Time for checking the availability: %s' % (datetime.now() - t_arc_1)
 
         if Stas_arc:
@@ -1898,6 +1898,7 @@ def ARC_available(input, event, target_path, event_number):
                                                   min_latitude=None, max_latitude=None, min_longitude=None,
                                                   max_longitude=None, restricted=False, permanent=None,
                                                   modified_after=None)
+
         for inv_key in inventories.keys():
             netsta = inv_key.split('.')
             if len(netsta) == 4:
@@ -1961,21 +1962,18 @@ def ARC_waveform(input, Sta_req, i, type):
     dic = {}
     print '\nArcLink-Event: %s/%s' % (i+1, len(events))
 
-    client_arclink = Client_arclink(user='test@obspy.org', timeout=input['arc_wave_timeout'])
-    client_neries = Client_neries(user='test@obspy.org', timeout=input['neries_timeout'])
-
     if input['req_parallel'] == 'Y':
         print "Parallel request with %s processes.\n" % input['req_np']
         parallel_results = pprocess.Map(limit=input['req_np'], reuse=1)
         parallel_job = parallel_results.manage(pprocess.MakeReusable(ARC_download_core))
         for j in range(len_req_arc):
             parallel_job(i=i, j=j, dic=dic, type=type, len_events=len(events), events=events, add_event=add_event,
-                         Sta_req=Sta_req, input=input, client_arclink=client_arclink, client_neries=client_neries)
+                         Sta_req=Sta_req, input=input)
         parallel_results.finish()
     else:
         for j in range(len_req_arc):
             ARC_download_core(i=i, j=j, dic=dic, type=type, len_events=len(events), events=events, add_event=add_event,
-                              Sta_req=Sta_req, input=input, client_arclink=client_arclink, client_neries=client_neries)
+                              Sta_req=Sta_req, input=input)
     if input['SAC'] == 'Y':
         print '\nConverting the MSEED files to SAC...',
         writesac_all(i=i, address_events=add_event)
@@ -2027,11 +2025,14 @@ def ARC_waveform(input, Sta_req, i, type):
 ###################### ARC_download_core ###############################
 
 
-def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, input, client_arclink, client_neries):
+def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, input):
     """
     Downloading waveforms, response files and metadata
     This program should be normally called by some higher-level functions
     """
+
+    client_arclink = Client_arclink(user='test@obspy.org', timeout=input['arc_wave_timeout'])
+    client_neries = Client_neries(user='test@obspy.org', timeout=input['neries_timeout'])
 
     try:
         dummy = 'Initializing'
