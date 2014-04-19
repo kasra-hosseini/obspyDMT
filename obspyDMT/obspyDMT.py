@@ -2675,7 +2675,7 @@ def plot_tools(input, clients):
                             BH_file = 'BH_%s' % input['corr_unit']
                             network = 'acc'
 
-                    station_id = '%s.%s.%s.%s.%s.%s.%s.%s.%s.%s.%s.%s.%s.%s' % (network, sta_ev[0][j][1],
+                    station_id = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' % (network, sta_ev[0][j][1],
                                                                                 sta_ev[0][j][2], sta_ev[0][j][3],
                                                                                 sta_ev[0][j][4], sta_ev[0][j][5],
                                                                                 sta_ev[0][j][6], sta_ev[0][j][7],
@@ -4098,7 +4098,7 @@ if __name__ == "__main__":
 '''
 parallel_len_req_iris = range(0, len_req_iris)
 lol = [parallel_len_req_iris[n:n+input['req_np']] for n in range(0, len(parallel_len_req_iris), input['req_np'])]
-import ipdb; ipdb.set_trace()
+import ipdb; ipdb,set_trace()
 jobs = []
 for j in range(0, len_req_iris):
     p = multiprocessing.Process(target=IRIS_download_core,\
