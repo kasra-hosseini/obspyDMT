@@ -1746,18 +1746,17 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
                                                                                                      Sta_req[j][1],
                                                                                                      Sta_req[j][2],
                                                                                                      Sta_req[j][3])))
-            print '%s saving waveform for %s.%s.%s.%s  ---> DINE' % (info_req, Sta_req[j][0], Sta_req[j][1],
+            print '%s saving waveform for %s.%s.%s.%s  ---> DONE' % (info_req, Sta_req[j][0], Sta_req[j][1],
                                                                      Sta_req[j][2], Sta_req[j][3])
 
         if input['response'] == 'Y':
             dummy = 'Response'
             client_fdsn.get_stations(network=Sta_req[j][0], station=Sta_req[j][1], location=Sta_req[j][2],
                                      channel=Sta_req[j][3], starttime=t_start, endtime=t_end,
-                                     filename=os.path.join(add_event[i], 'Resp', 'STXML.%s.%s.%s.%s' % (Sta_req[j][0],
-                                                                                                        Sta_req[j][1],
-                                                                                                        Sta_req[j][2],
-                                                                                                        Sta_req[j][3]),
-                                                           level='response'))
+                                     filename=os.path.join(add_event[i], 'Resp', 'STXML.%s.%s.%s.%s'
+                                                                                 % (Sta_req[j][0], Sta_req[j][1],
+                                                                                    Sta_req[j][2], Sta_req[j][3])),
+                                     level='response')
 
             print "%sSaving Response for: %s.%s.%s.%s  ---> DONE" % (info_req, Sta_req[j][0], Sta_req[j][1],
                                                                      Sta_req[j][2], Sta_req[j][3])
@@ -2068,7 +2067,7 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
                                                                                     Sta_req[j][2], Sta_req[j][3])))
             check_file.close()
 
-            print '%s saving waveform for %s.%s.%s.%s  ---> DINE' % (info_req, Sta_req[j][0], Sta_req[j][1],
+            print '%s saving waveform for %s.%s.%s.%s  ---> DONE' % (info_req, Sta_req[j][0], Sta_req[j][1],
                                                                      Sta_req[j][2], Sta_req[j][3])
 
         if input['response'] == 'Y':
