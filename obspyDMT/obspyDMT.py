@@ -667,7 +667,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '0.5.1' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.6.0' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -1412,7 +1412,7 @@ def IRIS_network(input):
 
         print 'Time for checking the availability: %s' % (datetime.now() - t_iris_1)
 
-        if Stas_iris:
+        if Stas_iris != [[]]:
             IRIS_waveform(input, Stas_iris, i, type='save')
         else:
             print 'No available station in IRIS for your request and for event %s!' % i
@@ -1445,7 +1445,7 @@ def IRIS_available(input, event, target_path, event_number):
             for station in network:
                 for channel in station:
                     Sta_iris.append([network.code, station.code, channel.location_code, channel.code,
-                                     channel.latitude, channel.longitude, channel.elevation/1000., channel.depth/1000.])
+                                     channel.latitude, channel.longitude, channel.elevation, channel.depth])
         if input['iris_bulk'] == 'Y':
             if os.path.exists(os.path.join(target_path, 'info', 'bulkdata.txt')):
                 print 'bulkdata.txt exists in the directory!'
@@ -1746,7 +1746,7 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
                                                                                                      Sta_req[j][1],
                                                                                                      Sta_req[j][2],
                                                                                                      Sta_req[j][3])))
-            print '%s saving waveform for %s.%s.%s.%s  ---> DONE' % (info_req, Sta_req[j][0], Sta_req[j][1],
+            print '%ssaving waveform for %s.%s.%s.%s  ---> DONE' % (info_req, Sta_req[j][0], Sta_req[j][1],
                                                                      Sta_req[j][2], Sta_req[j][3])
 
         if input['response'] == 'Y':
@@ -1758,24 +1758,24 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
                                                                                     Sta_req[j][2], Sta_req[j][3])),
                                      level='response')
 
-            print "%sSaving Response for: %s.%s.%s.%s  ---> DONE" % (info_req, Sta_req[j][0], Sta_req[j][1],
+            print "%ssaving Response for: %s.%s.%s.%s  ---> DONE" % (info_req, Sta_req[j][0], Sta_req[j][1],
                                                                      Sta_req[j][2], Sta_req[j][3])
 
         dummy = 'Meta-data'
         dic[j] = {'info': '%s.%s.%s.%s' % (Sta_req[j][0], Sta_req[j][1], Sta_req[j][2], Sta_req[j][3]),
                   'net': Sta_req[j][0], 'sta': Sta_req[j][1], 'latitude': Sta_req[j][4], 'longitude': Sta_req[j][5],
-                  'loc': Sta_req[j][2], 'cha': Sta_req[j][3], 'elevation': Sta_req[j][6], 'depth': 0}
+                  'loc': Sta_req[j][2], 'cha': Sta_req[j][3], 'elevation': Sta_req[j][6], 'depth': Sta_req[j][7]}
         Syn_file = open(os.path.join(add_event[i], 'info', 'station_event'), 'a')
         syn = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,iris,\n' % (dic[j]['net'], dic[j]['sta'], dic[j]['loc'],
                                                                   dic[j]['cha'], dic[j]['latitude'],
-                                                                  dic[j]['longitude'], dic[j]['elevation'], 0,
-                                                                  events[i]['event_id'], events[i]['latitude'],
-                                                                  events[i]['longitude'], events[i]['depth'],
-                                                                  events[i]['magnitude'])
+                                                                  dic[j]['longitude'], dic[j]['elevation']/1000.,
+                                                                  dic[j]['depth']/1000., events[i]['event_id'],
+                                                                  events[i]['latitude'], events[i]['longitude'],
+                                                                  events[i]['depth'], events[i]['magnitude'])
         Syn_file.writelines(syn)
         Syn_file.close()
 
-        print "%sSaving Metadata for: %s.%s.%s.%s  ---> DONE" % (info_req, Sta_req[j][0], Sta_req[j][1],
+        print "%ssaving Metadata for: %s.%s.%s.%s  ---> DONE" % (info_req, Sta_req[j][0], Sta_req[j][1],
                                                                  Sta_req[j][2], Sta_req[j][3])
 
         t22 = datetime.now()
@@ -1872,7 +1872,7 @@ def ARC_network(input):
         print '\nArcLink-Availability for event: %s/%s  ---> DONE' % (i+1, len(events))
         print 'Time for checking the availability: %s' % (datetime.now() - t_arc_1)
 
-        if Stas_arc:
+        if Stas_arc != [[]]:
             ARC_waveform(input, Stas_arc, i, type='save')
         else:
             'No available station in ArcLink for your request!'
@@ -1892,12 +1892,8 @@ def ARC_available(input, event, target_path, event_number):
 
     try:
         inventories = client_arclink.getInventory(network=input['net'], station=input['sta'], location=input['loc'],
-                                                  channel=input['cha'], starttime=UTCDateTime(event['datetime'])-10,
-                                                  endtime=UTCDateTime(event['datetime'])+10,
-                                                  instruments=False, route=True, sensortype='',
-                                                  min_latitude=None, max_latitude=None, min_longitude=None,
-                                                  max_longitude=None, restricted=False, permanent=None,
-                                                  modified_after=None)
+                                                  channel=input['cha'], starttime=UTCDateTime(event['t1']),
+                                                  endtime=UTCDateTime(event['t2']))
 
         for inv_key in inventories.keys():
             netsta = inv_key.split('.')
@@ -2068,7 +2064,7 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
                                                                                     Sta_req[j][2], Sta_req[j][3])))
             check_file.close()
 
-            print '%s saving waveform for %s.%s.%s.%s  ---> DONE' % (info_req, Sta_req[j][0], Sta_req[j][1],
+            print '%ssaving waveform for %s.%s.%s.%s  ---> DONE' % (info_req, Sta_req[j][0], Sta_req[j][1],
                                                                      Sta_req[j][2], Sta_req[j][3])
 
         if input['response'] == 'Y':
@@ -2082,7 +2078,7 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
             #sp = Parser(os.path.join(add_event[i], 'Resp', 'RESP.%s.%s.%s.%s' % (Sta_req[j][0], Sta_req[j][1],
             #                                                                     Sta_req[j][2], Sta_req[j][3]))
             #sp.writeRESP(os.path.join(add_event[i], 'Resp'))
-            print "%sSaving Response for: %s.%s.%s.%s  ---> DONE" % (info_req, Sta_req[j][0], Sta_req[j][1],
+            print "%ssaving Response for: %s.%s.%s.%s  ---> DONE" % (info_req, Sta_req[j][0], Sta_req[j][1],
                                                                      Sta_req[j][2], Sta_req[j][3])
 
         if input['paz'] == 'Y':
@@ -2094,8 +2090,8 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
             pickle.dump(paz_arc, paz_file)
             paz_file.close()
 
-            print str(info_req) + "Saving PAZ for     : %s.%s.%s.%s  ---> DONE" % (Sta_req[j][0], Sta_req[j][1],
-                                                                                   Sta_req[j][2], Sta_req[j][3])
+            print "%ssaving PAZ for     : %s.%s.%s.%s  ---> DONE" % (info_req, Sta_req[j][0], Sta_req[j][1],
+                                                                     Sta_req[j][2], Sta_req[j][3])
 
         dummy = 'Meta-data'
         dic[j] = {'info': '%s.%s.%s.%s' % (Sta_req[j][0], Sta_req[j][1], Sta_req[j][2], Sta_req[j][3]),
@@ -2104,13 +2100,14 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
         Syn_file = open(os.path.join(add_event[i], 'info', 'station_event'), 'a')
         syn = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,arc,\n' % (Sta_req[j][0], Sta_req[j][1], Sta_req[j][2],
                                                                  Sta_req[j][3], Sta_req[j][4], Sta_req[j][5],
-                                                                 Sta_req[j][6], Sta_req[j][7], events[i]['event_id'],
-                                                                 events[i]['latitude'], events[i]['longitude'],
-                                                                 events[i]['depth'], events[i]['magnitude'])
+                                                                 Sta_req[j][6]/1000., Sta_req[j][7]/1000.,
+                                                                 events[i]['event_id'], events[i]['latitude'],
+                                                                 events[i]['longitude'], events[i]['depth'],
+                                                                 events[i]['magnitude'])
         Syn_file.writelines(syn)
         Syn_file.close()
 
-        print "%sSaving Metadata for: %s.%s.%s.%s  ---> DONE" % (info_req, Sta_req[j][0], Sta_req[j][1],
+        print "%ssaving Metadata for: %s.%s.%s.%s  ---> DONE" % (info_req, Sta_req[j][0], Sta_req[j][1],
                                                                  Sta_req[j][2], Sta_req[j][3])
 
         t22 = datetime.now()
