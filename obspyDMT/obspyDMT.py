@@ -25,6 +25,7 @@ import fnmatch
 import glob
 from lxml import objectify
 import math as math
+import multiprocessing
 from optparse import OptionParser
 import os
 import pickle
@@ -1609,30 +1610,30 @@ def IRIS_waveform(input, Sta_req, i, type):
 
     client_fdsn = Client_fdsn('IRIS')
     if input['req_parallel'] == 'Y':
-    #    parallel_len_req_iris = range(0, len_req_iris)
-    #    lol = [parallel_len_req_iris[n:n+input['req_np']] for n in range(0, len(parallel_len_req_iris), input['req_np'])]
-    #    jobs = []
-    #    for j in range(0, len_req_iris):
-    #        p = multiprocessing.Process(target=IRIS_download_core,\
-    #                    args=(i, j, dic, type, \
-    #                            len(events), \
-    #                            events, add_event, \
-    #                            Sta_req, input,))
-    #        jobs.append(p)
-
-    #    for l in range(0, len(lol)):
-    #        for ll in lol[l]:
-    #            jobs[ll].start()
-    #            time.sleep(0.01)
-    #        jobs[ll].join()
-
         print "Parallel request with %s processes.\n" % input['req_np']
-        parallel_results = pprocess.Map(limit=input['req_np'], reuse=1)
-        parallel_job = parallel_results.manage(pprocess.MakeReusable(IRIS_download_core))
-        for j in range(len_req_iris):
-            parallel_job(i=i, j=j, dic=dic, type=type, len_events=len(events), events=events, add_event=add_event,
-                         Sta_req=Sta_req, input=input, client_fdsn=client_fdsn)
-        parallel_results.finish()
+        parallel_len_req_iris = range(0, len_req_iris)
+        lol = [parallel_len_req_iris[n:n+input['req_np']] for n in range(0, len(parallel_len_req_iris), input['req_np'])]
+        jobs = []
+        for j in range(0, len_req_iris):
+            p = multiprocessing.Process(target=IRIS_download_core,\
+                        args=(i, j, dic, type, \
+                                len(events), \
+                                events, add_event, \
+                                Sta_req, input, client_fdsn,))
+            jobs.append(p)
+
+        for l in range(0, len(lol)):
+            for ll in lol[l]:
+                jobs[ll].start()
+                time.sleep(0.01)
+            jobs[ll].join()
+
+        #parallel_results = pprocess.Map(limit=input['req_np'], reuse=1)
+        #parallel_job = parallel_results.manage(pprocess.MakeReusable(IRIS_download_core))
+        #for j in range(len_req_iris):
+        #    parallel_job(i=i, j=j, dic=dic, type=type, len_events=len(events), events=events, add_event=add_event,
+        #                 Sta_req=Sta_req, input=input, client_fdsn=client_fdsn)
+        #parallel_results.finish()
     else:
         for j in range(len_req_iris):
             IRIS_download_core(i=i, j=j, dic=dic, type=type, len_events=len(events), events=events, add_event=add_event,
