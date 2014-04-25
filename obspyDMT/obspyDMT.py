@@ -668,7 +668,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '0.6.0' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.7.0' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -1612,21 +1612,20 @@ def IRIS_waveform(input, Sta_req, i, type):
     if input['req_parallel'] == 'Y':
         print "Parallel request with %s processes.\n" % input['req_np']
         parallel_len_req_iris = range(0, len_req_iris)
-        lol = [parallel_len_req_iris[n:n+input['req_np']] for n in range(0, len(parallel_len_req_iris), input['req_np'])]
-        jobs = []
-        for j in range(0, len_req_iris):
-            p = multiprocessing.Process(target=IRIS_download_core,\
-                        args=(i, j, dic, type, \
-                                len(events), \
-                                events, add_event, \
-                                Sta_req, input, client_fdsn,))
-            jobs.append(p)
+        len_par_grp = [parallel_len_req_iris[n:n+input['req_np']] for n in
+                       range(0, len(parallel_len_req_iris), input['req_np'])]
 
-        for l in range(0, len(lol)):
-            for ll in lol[l]:
-                jobs[ll].start()
+        par_jobs = []
+        for j in range(len_req_iris):
+            p = multiprocessing.Process(target=IRIS_download_core, args=(i, j, dic, type, len(events), events,
+                                                                         add_event, Sta_req, input, client_fdsn,))
+            par_jobs.append(p)
+
+        for l in range(len(len_par_grp)):
+            for ll in len_par_grp[l]:
+                par_jobs[ll].start()
                 time.sleep(0.01)
-            jobs[ll].join()
+            par_jobs[ll].join()
 
         #parallel_results = pprocess.Map(limit=input['req_np'], reuse=1)
         #parallel_job = parallel_results.manage(pprocess.MakeReusable(IRIS_download_core))
@@ -1769,8 +1768,8 @@ def IRIS_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, 
         Syn_file = open(os.path.join(add_event[i], 'info', 'station_event'), 'a')
         syn = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,iris,\n' % (dic[j]['net'], dic[j]['sta'], dic[j]['loc'],
                                                                   dic[j]['cha'], dic[j]['latitude'],
-                                                                  dic[j]['longitude'], dic[j]['elevation']/1000.,
-                                                                  dic[j]['depth']/1000., events[i]['event_id'],
+                                                                  dic[j]['longitude'], float(dic[j]['elevation'])/1000.,
+                                                                  float(dic[j]['depth'])/1000., events[i]['event_id'],
                                                                   events[i]['latitude'], events[i]['longitude'],
                                                                   events[i]['depth'], events[i]['magnitude'])
         Syn_file.writelines(syn)
@@ -1961,12 +1960,29 @@ def ARC_waveform(input, Sta_req, i, type):
 
     if input['req_parallel'] == 'Y':
         print "Parallel request with %s processes.\n" % input['req_np']
-        parallel_results = pprocess.Map(limit=input['req_np'], reuse=1)
-        parallel_job = parallel_results.manage(pprocess.MakeReusable(ARC_download_core))
+        parallel_len_req_arc = range(0, len_req_arc)
+        len_par_grp = [parallel_len_req_arc[n:n+input['req_np']] for n in
+                       range(0, len(parallel_len_req_arc), input['req_np'])]
+
+        par_jobs = []
         for j in range(len_req_arc):
-            parallel_job(i=i, j=j, dic=dic, type=type, len_events=len(events), events=events, add_event=add_event,
-                         Sta_req=Sta_req, input=input)
-        parallel_results.finish()
+            p = multiprocessing.Process(target=ARC_download_core, args=(i, j, dic, type, len(events), events,
+                                                                        add_event, Sta_req, input,))
+            par_jobs.append(p)
+
+        for l in range(len(len_par_grp)):
+            for ll in len_par_grp[l]:
+                par_jobs[ll].start()
+                time.sleep(0.01)
+            par_jobs[ll].join()
+
+        #parallel_results = pprocess.Map(limit=input['req_np'], reuse=1)
+        #parallel_job = parallel_results.manage(pprocess.MakeReusable(ARC_download_core))
+        #for j in range(len_req_arc):
+        #    parallel_job(i=i, j=j, dic=dic, type=type, len_events=len(events), events=events, add_event=add_event,
+        #                 Sta_req=Sta_req, input=input)
+        #parallel_results.finish()
+
     else:
         for j in range(len_req_arc):
             ARC_download_core(i=i, j=j, dic=dic, type=type, len_events=len(events), events=events, add_event=add_event,
@@ -2101,7 +2117,7 @@ def ARC_download_core(i, j, dic, type, len_events, events, add_event, Sta_req, i
         Syn_file = open(os.path.join(add_event[i], 'info', 'station_event'), 'a')
         syn = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,arc,\n' % (Sta_req[j][0], Sta_req[j][1], Sta_req[j][2],
                                                                  Sta_req[j][3], Sta_req[j][4], Sta_req[j][5],
-                                                                 Sta_req[j][6]/1000., Sta_req[j][7]/1000.,
+                                                                 float(Sta_req[j][6])/1000., float(Sta_req[j][7])/1000.,
                                                                  events[i]['event_id'], events[i]['latitude'],
                                                                  events[i]['longitude'], events[i]['depth'],
                                                                  events[i]['magnitude'])
