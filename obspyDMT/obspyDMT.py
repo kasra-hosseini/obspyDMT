@@ -2324,22 +2324,50 @@ def inst_correct(input, ls_saved_stas, address, clients):
         #parallel_results = pprocess.Map(limit=input['req_np'], continuous=1)
         #parallel_job = parallel_results.manage(pprocess.MakeParallel(IC_core))
 
-        parallel_len_req_ic = range(0, len(ls_saved_stas))
-        len_par_grp = [parallel_len_req_ic[n:n+input['ic_np']] for n in
-                       range(0, len(parallel_len_req_ic), input['ic_np'])]
+        start = 0
+        end = len(ls_saved_stas)
+        step = (end - start) / input['ic_np'] + 1
 
-        par_jobs = []
-        for i in range(len(ls_saved_stas)):
-            p = multiprocessing.Process(target=IC_core, args=(ls_saved_stas[i], clients, address, BH_file,
-                                                              '%s -- %s/%s' % (clients, i+1, len(ls_saved_stas))))
-            par_jobs.append(p)
-        for l in range(len(len_par_grp)):
-            for ll in len_par_grp[l]:
-                par_jobs[ll].start()
-                time.sleep(0.01)
-            for ll in len_par_grp[l]:
-                while par_jobs[ll].is_alive():
-                    time.sleep(0.01)
+        jobs = []
+        for index in xrange(input['ic_np']):
+            starti = start+index*step
+            endi = min(start+(index+1)*step, end)
+            p = multiprocessing.Process(target=IC_core_iterate, args=(ls_saved_stas, clients, address, BH_file, starti,
+                                                                      endi))
+            jobs.append(p)
+        for i in range(len(jobs)):
+            jobs[i].start()
+
+        pp_flag = True
+        while pp_flag:
+            for proc in jobs:
+                if proc.is_alive():
+                    time.sleep(1)
+                    pp_flag = True
+                    break
+                else:
+                    pp_flag = False
+            if not pp_flag:
+                print '\nAll the processes are finished...'
+
+
+
+        #parallel_len_req_ic = range(0, len(ls_saved_stas))
+        #len_par_grp = [parallel_len_req_ic[n:n+input['ic_np']] for n in
+        #               range(0, len(parallel_len_req_ic), input['ic_np'])]
+
+        #par_jobs = []
+        #for i in range(len(ls_saved_stas)):
+        #    p = multiprocessing.Process(target=IC_core, args=(ls_saved_stas[i], clients, address, BH_file,
+        #                                                      '%s -- %s/%s' % (clients, i+1, len(ls_saved_stas))))
+        #    par_jobs.append(p)
+        #for l in range(len(len_par_grp)):
+        #    for ll in len_par_grp[l]:
+        #        par_jobs[ll].start()
+        #        time.sleep(0.01)
+        #    for ll in len_par_grp[l]:
+        #        while par_jobs[ll].is_alive():
+        #            time.sleep(0.01)
 
     else:
         for i in range(len(ls_saved_stas)):
@@ -2356,6 +2384,18 @@ def inst_correct(input, ls_saved_stas, address, clients):
         report_parallel_open.writelines('Number of Stas : %s\n' % len(ls_saved_stas))
         report_parallel_open.writelines('Total Time     : %s\n' % (t_inst_2 - t_inst_1))
     print '\nTime for instrument correction of %s stations: %s' % (len(ls_saved_stas), t_inst_2-t_inst_1)
+
+
+###################### IC_core_iterate #########################################
+
+
+def IC_core_iterate(ls_saved_stas, clients, address, BH_file, starti, endi):
+    """
+    Simple iterator over IC_core
+    """
+    for i in range(starti, endi):
+        IC_core(ls_saved_sta=ls_saved_stas[i], clients=clients, address=address, BH_file=BH_file,
+                inform='%s -- %s/%s' % (clients, i+1, len(ls_saved_stas)))
 
 ###################### IC_core #########################################
 
