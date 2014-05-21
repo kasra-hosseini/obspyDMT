@@ -1062,19 +1062,19 @@ def read_input_command(parser, **kwargs):
         if input[cli] == 'Y':
             input['priority_clients'].append(cli)
 
-    if input['req_parallel'] == 'Y' or input['ic_parallel'] == 'Y':
-        try:
-            import pprocess
-        except Exception as error:
-            print '***************************************************'
-            print 'WARNING:'
-            print 'ppross is not installed on your machine!'
-            print 'for more info: http://pypi.python.org/pypi/pprocess'
-            print '\nobspyDMT will work in Serial mode.'
-            print 'ERROR: %s' % error
-            print '***************************************************'
-            input['req_parallel'] = 'N'
-            input['ic_parallel'] = 'N'
+    #if input['req_parallel'] == 'Y' or input['ic_parallel'] == 'Y':
+    #    try:
+    #        import pprocess
+    #    except Exception as error:
+    #        print '***************************************************'
+    #        print 'WARNING:'
+    #        print 'ppross is not installed on your machine!'
+    #        print 'for more info: http://pypi.python.org/pypi/pprocess'
+    #        print '\nobspyDMT will work in Serial mode.'
+    #        print 'ERROR: %s' % error
+    #        print '***************************************************'
+    #        input['req_parallel'] = 'N'
+    #        input['ic_parallel'] = 'N'
 
 ###################### get_Events ######################################
 
@@ -1625,7 +1625,9 @@ def IRIS_waveform(input, Sta_req, i, type):
             for ll in len_par_grp[l]:
                 par_jobs[ll].start()
                 time.sleep(0.01)
-            par_jobs[ll].join()
+            for ll in len_par_grp[l]:
+                while par_jobs[ll].is_alive():
+                    time.sleep(0.01)
 
         #parallel_results = pprocess.Map(limit=input['req_np'], reuse=1)
         #parallel_job = parallel_results.manage(pprocess.MakeReusable(IRIS_download_core))
@@ -1974,7 +1976,9 @@ def ARC_waveform(input, Sta_req, i, type):
             for ll in len_par_grp[l]:
                 par_jobs[ll].start()
                 time.sleep(0.01)
-            par_jobs[ll].join()
+            for ll in len_par_grp[l]:
+                while par_jobs[ll].is_alive():
+                    time.sleep(0.01)
 
         #parallel_results = pprocess.Map(limit=input['req_np'], reuse=1)
         #parallel_job = parallel_results.manage(pprocess.MakeReusable(ARC_download_core))
@@ -2320,12 +2324,22 @@ def inst_correct(input, ls_saved_stas, address, clients):
         #parallel_results = pprocess.Map(limit=input['req_np'], continuous=1)
         #parallel_job = parallel_results.manage(pprocess.MakeParallel(IC_core))
 
-        ic_parallel_results = pprocess.Map(limit=input['ic_np'], reuse=1)
-        ic_parallel_job = ic_parallel_results.manage(pprocess.MakeReusable(IC_core))
+        parallel_len_req_ic = range(0, len(ls_saved_stas))
+        len_par_grp = [parallel_len_req_ic[n:n+input['ic_np']] for n in
+                       range(0, len(parallel_len_req_ic), input['ic_np'])]
+
+        par_jobs = []
         for i in range(len(ls_saved_stas)):
-            ic_parallel_job(ls_saved_sta=ls_saved_stas[i], clients=clients, address=address, BH_file=BH_file,
-                            inform='%s -- %s/%s' % (clients, i+1, len(ls_saved_stas)))
-        ic_parallel_results.finish()
+            p = multiprocessing.Process(target=IC_core, args=(ls_saved_stas[i], clients, address, BH_file,
+                                                              '%s -- %s/%s' % (clients, i+1, len(ls_saved_stas))))
+            par_jobs.append(p)
+        for l in range(len(len_par_grp)):
+            for ll in len_par_grp[l]:
+                par_jobs[ll].start()
+                time.sleep(0.01)
+            for ll in len_par_grp[l]:
+                while par_jobs[ll].is_alive():
+                    time.sleep(0.01)
 
     else:
         for i in range(len(ls_saved_stas)):
