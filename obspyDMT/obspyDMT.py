@@ -282,7 +282,7 @@ def command_parse():
     helpmsg = "end time, syntax: Y-M-D-H-M-S (eg: '2011-01-01-00-00-00') or just Y-M-D [Default: 5 days ago]"
     parser.add_option("--max_date", action="store", dest="max_date", help=helpmsg)
 
-    helpmsg = "event catalog (EMSC or IRIS). [Default: 'EMSC']"
+    helpmsg = "event catalog (EMSC or IRIS). [Default: 'IRIS']"
     parser.add_option("--event_catalog", action="store", dest="event_catalog", help=helpmsg)
 
     helpmsg = "magnitude type. Some common types (there are many) include 'Ml' (local/Richter magnitude), " \
@@ -601,7 +601,7 @@ def read_input_command(parser, **kwargs):
     input = {'datapath': 'obspyDMT-data',
              'min_date': str(UTCDateTime() - 60 * 60 * 24 * 10 * 1),
              'max_date': str(UTCDateTime() - 60 * 60 * 24 * 5 * 1),
-             'event_catalog': 'EMSC',
+             'event_catalog': 'IRIS',
              'mag_type': 'Mw',
              'min_mag': 5.5, 'max_mag': 9.9,
              'min_depth': +10.0, 'max_depth': -6000.0,
