@@ -2352,10 +2352,19 @@ def obspy_fullresp_STXML(trace, stxml_file, Address, unit='DIS', BP_filter=(0.00
 
         inv = read_inventory(stxml_file, format="stationxml")
         trace.attach_response(inv)
-        trace.remove_response(output=unit, water_level=600.0, pre_filt=eval(BP_filter), zero_mean=True, taper=True,
-                              taper_fraction=0.05)
-        # Remove the following line since we want to keep the units as it is in the stationXML
+
+        rm_process = multiprocessing.Process(target=trace.remove_response, args=(unit, 600.0, eval(BP_filter), True,
+                                                                                 True, 0.05))
+        rm_process.start()
+        rm_process.join()
+
+        # comment out the following line because of segmentation fault inside EVAL_RESP
+        #trace.remove_response(output=unit, water_level=600.0, pre_filt=eval(BP_filter), zero_mean=True, taper=True,
+        #                      taper_fraction=0.05)
+
+        # Remove the following line to keep the units as it is in the stationXML
         #trace.data *= 1.e9
+
         trace_identity = '%s.%s.%s.%s' % (trace.stats['network'], trace.stats['station'], trace.stats['location'],
                                           trace.stats['channel'])
         if input['mseed'] == 'N':
