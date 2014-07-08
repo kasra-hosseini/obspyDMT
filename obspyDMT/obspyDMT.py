@@ -354,6 +354,15 @@ def command_parse():
 
     helpmsg = "send request (waveform/response) to IRIS. [Default: 'Y']"
     parser.add_option("--iris", action="store", dest="IRIS", help=helpmsg)
+    
+    helpmsg = "base_url for FDSN requests (waveform/response). [Default: 'IRIS']"
+    parser.add_option("--fdsn_base_url", action="store", dest="fdsn_base_url", help=helpmsg)
+
+    helpmsg = "username for FDSN requests (waveform/response). [Default: None]"
+    parser.add_option("--fdsn_user", action="store", dest="fdsn_user", help=helpmsg)
+
+    helpmsg = "password for FDSN requests (waveform/response). [Default: None]"
+    parser.add_option("--fdsn_pass", action="store", dest="fdsn_pass", help=helpmsg)
 
     helpmsg = "send request (waveform/response) to ArcLink. [Default: 'Y']"
     parser.add_option("--arc", action="store", dest="ArcLink", help=helpmsg)
@@ -603,6 +612,9 @@ def read_input_command(parser, **kwargs):
              'list_stas': False,
              'waveform': 'Y', 'response': 'Y',
              'IRIS': 'Y', 'ArcLink': 'Y',
+             'fdsn_base_url': 'IRIS',
+             'fdsn_user': None,
+             'fdsn_pass': None,
              'arc_avai_timeout': 40,
              'arc_wave_timeout': 2,
              'neries_timeout': 2,
@@ -886,6 +898,9 @@ def read_input_command(parser, **kwargs):
     else:
         input['mseed'] = 'N'
     input['IRIS'] = options.IRIS
+    input['fdsn_base_url'] = options.fdsn_base_url
+    input['fdsn_user'] = options.fdsn_user
+    input['fdsn_pass'] = options.fdsn_pass
     input['ArcLink'] = options.ArcLink
 
     input['arc_avai_timeout'] = float(options.arc_avai_timeout)
@@ -1404,7 +1419,7 @@ def IRIS_available(input, event, target_path, event_number):
     """
 
     print "Check the availablity of IRIS stations"
-    client_fdsn = Client_fdsn('IRIS')
+    client_fdsn = Client_fdsn(base_url=input['fdsn_base_url'], user=input['fdsn_user'], password=input['fdsn_pass'])
     Sta_iris = []
 
     try:
@@ -1520,7 +1535,7 @@ def IRIS_waveform(input, Sta_req, i, type):
     if input['iris_bulk'] == 'Y':
         try:
             t11 = datetime.now()
-            client_fdsn = Client_fdsn('IRIS')
+            client_fdsn = Client_fdsn(base_url=input['fdsn_base_url'], user=input['fdsn_user'], password=input['fdsn_pass'])
             bulk_list_fio = open(os.path.join(add_event[i], 'info', 'bulkdata_list'))
             bulk_list = pickle.load(bulk_list_fio)
             bulk_smgrs = client_fdsn.get_waveforms_bulk(bulk_list)
@@ -1545,7 +1560,7 @@ def IRIS_waveform(input, Sta_req, i, type):
     dic = {}
     print '\nIRIS-Event: %s/%s' %(i+1, len(events))
 
-    client_fdsn = Client_fdsn('IRIS')
+    client_fdsn = Client_fdsn(base_url=input['fdsn_base_url'], user=input['fdsn_user'], password=input['fdsn_pass'])
     if input['req_parallel'] == 'Y':
         print "Parallel request with %s processes.\n" % input['req_np']
         parallel_len_req_iris = range(0, len_req_iris)
@@ -2331,6 +2346,9 @@ def obspy_fullresp_STXML(trace, stxml_file, Address, unit='DIS', BP_filter=(0.00
         # To keep it consistant with obspy.remove_response method!
         if unit.lower() == 'dis':
             unit = 'DISP'
+            unit_write = 'dis'
+        else:
+            unit_write = unit.lower()
 
         inv = read_inventory(stxml_file, format="stationxml")
         trace.attach_response(inv)
@@ -2341,9 +2359,9 @@ def obspy_fullresp_STXML(trace, stxml_file, Address, unit='DIS', BP_filter=(0.00
         trace_identity = '%s.%s.%s.%s' % (trace.stats['network'], trace.stats['station'], trace.stats['location'],
                                           trace.stats['channel'])
         if input['mseed'] == 'N':
-            trace.write(os.path.join(Address, '%s.%s' % (unit.lower(), trace_identity)), format='SAC')
+            trace.write(os.path.join(Address, '%s.%s' % (unit_write, trace_identity)), format='SAC')
         else:
-            trace.write(os.path.join(Address, '%s.%s' % (unit.lower(), trace_identity)), format='MSEED')
+            trace.write(os.path.join(Address, '%s.%s' % (unit_write, trace_identity)), format='MSEED')
 
         if unit.lower() == 'disp':
             unit_print = 'displacement'
