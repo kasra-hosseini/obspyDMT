@@ -670,7 +670,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '0.7.3' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.7.4' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -1287,14 +1287,16 @@ def events_info(request):
             # residual time is: (has not been used here)
             #t_res = t_cont - num_div*input['interval']
             for i in range(num_div):
-                events.append({'author': 'NAN', 'event_id': 'continuous' + str(i), 'origin_id': -12345.0,
+                cont_dir_name = (len(str(num_div)) - len(str(i)))*'0' + str(i)
+                events.append({'author': 'NAN', 'event_id': 'continuous' + cont_dir_name, 'origin_id': -12345.0,
                                'longitude': -12345.0, 'latitude': -12345.0,
                                'datetime': m_date + i*input['interval'],
                                't1': m_date + i*input['interval'] + input['preset_cont'],
                                't2': m_date + (i+1)*input['interval'] + input['offset_cont'],
                                'depth': -12345.0, 'magnitude': -12345.0, 'magnitude_type': 'NAN',
                                'flynn_region': 'NAN'})
-            events.append({'author': 'NAN', 'event_id': 'continuous' + str(i+1), 'origin_id': -12345.0,
+            cont_dir_name = (len(str(num_div)) - len(str(i+1)))*'0' + str(i+1)
+            events.append({'author': 'NAN', 'event_id': 'continuous' + cont_dir_name, 'origin_id': -12345.0,
                            'longitude': -12345.0, 'latitude': -12345.0,
                             'datetime': m_date + (i+1)*input['interval'],
                             't1': m_date + (i+1)*input['interval'] + input['preset_cont'],
