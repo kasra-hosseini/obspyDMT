@@ -832,7 +832,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '0.7.5' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.7.5b' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -2628,8 +2628,12 @@ def FDSN_ARC_IC(input, clients):
             else:
                 sys.exit('%s does not exist!' % clients)
 
-        pattern_sta = '%s.%s.%s.%s' % (input['net'], input['sta'],
-                                       input['loc'], input['cha'])
+        if not input['net'].startswith('_'):
+            pattern_sta = '%s.%s.%s.%s' % (input['net'], input['sta'],
+                                           input['loc'], input['cha'])
+        else:
+            pattern_sta = '*.%s.%s.%s' % (input['sta'], input['loc'],
+                                          input['cha'])
 
         ls_saved_stas = []
         for saved_sta in ls_saved_stas_tmp:
@@ -2976,8 +2980,13 @@ def FDSN_ARC_merge(input, clients):
                                               s_ev[2], s_ev[3])
                 ls_saved_stas_tmp.append(
                     os.path.join(address_events[i], BH_file, station_id))
-    pattern_sta = '%s.%s.%s.%s' % (input['net'], input['sta'],
-                                   input['loc'], input['cha'])
+
+    if not input['net'].startswith('_'):
+        pattern_sta = '%s.%s.%s.%s' % (input['net'], input['sta'],
+                                       input['loc'], input['cha'])
+    else:
+        pattern_sta = '*.%s.%s.%s' % (input['sta'], input['loc'],
+                                      input['cha'])
 
     ls_saved_stas = []
     for saved_sta in ls_saved_stas_tmp:
