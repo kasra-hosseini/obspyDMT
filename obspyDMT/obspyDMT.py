@@ -346,6 +346,11 @@ def command_parse():
     parser.add_option("--seismicity", action="store_true",
                       dest="seismicity", help=helpmsg)
 
+    helpmsg = "Depth bins for plotting the seismicity histrogram. " \
+              "[Default: 10]"
+    parser.add_option("--depth_bins_seismicity", action="store",
+                      dest="depth_bins_seismicity", help=helpmsg)
+
     helpmsg = "event-based request " \
               "(please refer to the tutorial). [Default: 'Y']"
     parser.add_option("--get_events", action="store",
@@ -426,7 +431,7 @@ def command_parse():
     parser.add_option("--fdsn_pass", action="store",
                       dest="fdsn_pass", help=helpmsg)
 
-    helpmsg = "send request (waveform/response) to ArcLink. [Default: 'Y']"
+    helpmsg = "send request (waveform/response) to ArcLink. [Default: 'N']"
     parser.add_option("--arc", action="store",
                       dest="ArcLink", help=helpmsg)
 
@@ -773,7 +778,7 @@ def read_input_command(parser, **kwargs):
              'req_np': 4,
              'list_stas': False,
              'waveform': 'Y', 'response': 'Y',
-             'FDSN': 'Y', 'ArcLink': 'Y',
+             'FDSN': 'Y', 'ArcLink': 'N',
              'fdsn_base_url': 'IRIS',
              'fdsn_user': None,
              'fdsn_pass': None,
@@ -788,6 +793,7 @@ def read_input_command(parser, **kwargs):
              'evlat': None, 'evlon': None,
              'evradmin': None, 'evradmax': None,
              'max_result': 2500,
+             'depth_bins_seismicity': 10,
              'lat_cba': None, 'lon_cba': None,
              'mr_cba': None, 'Mr_cba': None,
              'mlat_rbb': None, 'Mlat_rbb': None,
@@ -1029,6 +1035,7 @@ def read_input_command(parser, **kwargs):
     input['preset'] = float(options.preset)
     input['offset'] = float(options.offset)
     input['max_result'] = int(options.max_result)
+    input['depth_bins_seismicity'] = int(options.depth_bins_seismicity)
     if options.seismicity:
         input['seismicity'] = 'Y'
     else:
@@ -1379,7 +1386,6 @@ def events_info(request):
                                                 endtime=input['max_date'],
                                                 minmagnitude=input['min_mag'],
                                                 maxmagnitude=input['max_mag'],
-                                                limit=input['max_result'],
                                                 orderby='time',
                                                 catalog=input['event_catalog'],
                                                 magnitudetype=
@@ -1502,7 +1508,7 @@ def seismicity():
     m = Basemap(projection='cyl', llcrnrlat=input['evlatmin'],
                 urcrnrlat=input['evlatmax'], llcrnrlon=input['evlonmin'],
                 urcrnrlon=input['evlonmax'], resolution='l')
-    m.drawcoastlines()
+    #m.drawcoastlines()
     m.fillcontinents()
     m.drawparallels(np.arange(-90., 120., 30.))
     m.drawmeridians(np.arange(0., 420., 60.))
@@ -1526,8 +1532,12 @@ def seismicity():
     m.scatter(x_ev, y_ev, 50, color='white', marker="o",
               edgecolor="black", zorder=10, label='6.0<')
 
+    ev_dp_all = []
+    ev_mag_all = []
     for ev in events:
         x_ev, y_ev = m(float(ev['longitude']), float(ev['latitude']))
+        ev_dp_all.append(abs(float(ev['depth'])))
+        ev_mag_all.append(abs(float(ev['magnitude'])))
         if abs(float(ev['depth'])) <= 70.0:
             color = 'red'
         elif 70.0 < abs(float(ev['depth'])) <= 300.0:
@@ -1548,24 +1558,50 @@ def seismicity():
                   edgecolor="black", zorder=10)
 
     plt.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0.)
+
+    plt.figure()
+    plt.hist(ev_dp_all, input['depth_bins_seismicity'], 
+            facecolor='green', alpha=0.75, log=True,
+            histtype='stepfilled')
+    plt.xlabel('Depth', size=24, weight='bold')
+    plt.ylabel('#Events (log)', size=24, weight='bold')
+    plt.yscale('log')
+    plt.xticks(size=18, weight='bold')
+    plt.yticks(size=18, weight='bold')
+    plt.tight_layout()
+    
+    plt.figure()
+    plt.hist(ev_mag_all, 
+            bins=np.linspace(int(input['min_mag']), 
+                int(input['max_mag']), 
+                int(input['max_mag'])-int(input['min_mag'])+1), 
+        facecolor='green', alpha=0.75, log=True,
+        histtype='stepfilled')
+    plt.xlabel('Magnitude', size=24, weight='bold')
+    plt.ylabel('#Events (log)', size=24, weight='bold')
+    plt.yscale('log')
+    plt.xticks(size=18, weight='bold')
+    plt.yticks(size=18, weight='bold')
+    plt.tight_layout()
+
     plt.show()
-
+                
 ###################### FDSN_network ####################################
-
-
+                
+                
 def FDSN_network(input):
-    """
+    """         
     Returns information about what time series data is available
         at the requested FDSN web-service for all requested events
-    """
+    """         
     global events
-
+                
     period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(input['min_date'].split('T')[0],
                                               input['max_date'].split('T')[0],
                                               str(input['min_mag']),
                                               str(input['max_mag']))
     eventpath = os.path.join(input['datapath'], period)
-
+                
     print 'Create folders...',
     create_folders_files(events, eventpath)
     print 'DONE'
@@ -1790,46 +1826,66 @@ def FDSN_waveform(input, Sta_req, i, type):
         print "Parallel request with %s processes.\n" % input['req_np']
         parallel_len_req_fdsn = range(0, len_req_fdsn)
 
-        start = 0
-        end = len_req_fdsn
-        step = (end - start) / input['req_np'] + 1
+        #start = 0
+        #end = len_req_fdsn
+        #step = (end - start) / input['req_np'] + 1
 
-        jobs = []
-        for index in xrange(input['req_np']):
-            starti = start+index*step
-            endi = min(start+(index+1)*step, end)
-            p = multiprocessing.Process(target=FDSN_download_iter,
-                                        args=(i, starti, endi, dic, type,
-                                              len(events), events, add_event,
-                                              Sta_req, input, client_fdsn))
+        #jobs = []
+        #for index in xrange(input['req_np']):
+        #    starti = start+index*step
+        #    endi = min(start+(index+1)*step, end)
+        #    p = multiprocessing.Process(target=FDSN_download_iter,
+        #                                args=(i, starti, endi, dic, type,
+        #                                      len(events), events, add_event,
+        #                                      Sta_req, input, client_fdsn))
 
-            jobs.append(p)
-        for index in range(len(jobs)):
-            jobs[index].start()
+        #    jobs.append(p)
+        #for index in range(len(jobs)):
+        #    jobs[index].start()
 
-        pp_flag = True
-        while pp_flag:
-            for proc in jobs:
-                if proc.is_alive():
-                    time.sleep(1)
-                    pp_flag = True
-                    break
-                else:
-                    pp_flag = False
-            if not pp_flag:
-                print '\nAll the processes are finished...'
+        #pp_flag = True
+        #while pp_flag:
+        #    for proc in jobs:
+        #        if proc.is_alive():
+        #            time.sleep(1)
+        #            pp_flag = True
+        #            break
+        #        else:
+        #            pp_flag = False
+        #    if not pp_flag:
+        #        print '\nAll the processes are finished...'
 
-        #len_par_grp = [parallel_len_req_fdsn[n:n+input['req_np']] for n in
-        #               range(0, len(parallel_len_req_fdsn), input['req_np'])]
+        len_par_grp = [parallel_len_req_fdsn[n:n+input['req_np']] for n in
+                       range(0, len(parallel_len_req_fdsn), input['req_np'])]
 
-        #par_jobs = []
-        #for j in range(len_req_fdsn):
-        #    p = multiprocessing.Process(target=FDSN_download_core,
-        #                                args=(i, j, dic, type, len(events),
-        #                                      events, add_event, Sta_req,
-        #                                      input, client_fdsn,))
-        #    par_jobs.append(p)
+        par_jobs = []
+        for j in range(len_req_fdsn):
+            p = multiprocessing.Process(target=FDSN_download_core,
+                                        args=(i, j, dic, type, len(events),
+                                              events, add_event, Sta_req,
+                                              input, client_fdsn,))
+            par_jobs.append(p)
+        sub_par_jobs = [] 
+        for l in range(len(par_jobs)):
+            counter = input['req_np']
+            while counter >= input['req_np']:
+                counter = 0
+                for ll in range(len(sub_par_jobs)):
+                    if par_jobs[sub_par_jobs[ll]].is_alive():
+                        counter += 1
+                if not counter == input['req_np']:
+                    print 'counter: %s' % counter
 
+            par_jobs[l].start()
+            sub_par_jobs.append(l)
+            print 'length of sub_pat_jobs: %s' % len(sub_par_jobs)
+
+        counter = input['req_np']
+        while counter > 0:
+            counter = 0
+            for ll in range(len(par_jobs)):
+                if par_jobs[ll].is_alive():
+                    counter += 1
         #for l in range(len(len_par_grp)):
         #    for ll in len_par_grp[l]:
         #        par_jobs[ll].start()
