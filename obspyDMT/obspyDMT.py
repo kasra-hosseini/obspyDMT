@@ -838,7 +838,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '0.7.5c' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.7.5d' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -1534,6 +1534,7 @@ def seismicity():
 
     ev_dp_all = []
     ev_mag_all = []
+    ev_info_ar = np.array([])
     for ev in events:
         x_ev, y_ev = m(float(ev['longitude']), float(ev['latitude']))
         ev_dp_all.append(abs(float(ev['depth'])))
@@ -1553,9 +1554,17 @@ def seismicity():
             size = 70
         elif 6.0 < float(ev['magnitude']):
             size = 100
-
-        m.scatter(x_ev, y_ev, size, color=color, marker="o",
-                  edgecolor="black", zorder=10)
+        if np.size(ev_info_ar) < 1:
+            ev_info_ar = np.append(ev_info_ar, 
+                [float(ev['depth']), float(x_ev), float(y_ev), size, color])
+        else:
+            ev_info_ar = np.vstack((ev_info_ar, 
+                [float(ev['depth']), float(x_ev), float(y_ev), size, color]))
+    ev_info_ar = sorted(ev_info_ar, key=lambda ev_info_ar: float(ev_info_ar[0]))
+    
+    for ev in ev_info_ar[::-1]:
+        m.scatter(float(ev[1]), float(ev[2]), float(ev[3]), color=ev[4], marker="o",
+                  edgecolor=None, zorder=10)
 
     plt.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0.)
 
@@ -1824,7 +1833,8 @@ def FDSN_waveform(input, Sta_req, i, type):
                               password=input['fdsn_pass'])
     if input['req_parallel'] == 'Y':
         print "Parallel request with %s processes.\n" % input['req_np']
-        parallel_len_req_fdsn = range(0, len_req_fdsn)
+        
+        #parallel_len_req_fdsn = range(0, len_req_fdsn)
 
         #start = 0
         #end = len_req_fdsn
@@ -1855,8 +1865,8 @@ def FDSN_waveform(input, Sta_req, i, type):
         #    if not pp_flag:
         #        print '\nAll the processes are finished...'
 
-        len_par_grp = [parallel_len_req_fdsn[n:n+input['req_np']] for n in
-                       range(0, len(parallel_len_req_fdsn), input['req_np'])]
+        #len_par_grp = [parallel_len_req_fdsn[n:n+input['req_np']] for n in
+        #               range(0, len(parallel_len_req_fdsn), input['req_np'])]
 
         par_jobs = []
         for j in range(len_req_fdsn):
@@ -1886,6 +1896,7 @@ def FDSN_waveform(input, Sta_req, i, type):
             for ll in range(len(par_jobs)):
                 if par_jobs[ll].is_alive():
                     counter += 1
+
         #for l in range(len(len_par_grp)):
         #    for ll in len_par_grp[l]:
         #        par_jobs[ll].start()
@@ -2330,6 +2341,37 @@ def ARC_waveform(input, Sta_req, i, type):
             for ll in len_par_grp[l]:
                 while par_jobs[ll].is_alive():
                     time.sleep(0.01)
+
+
+        #par_jobs = []
+        #for j in range(len_req_arc):
+        #    p = multiprocessing.Process(target=ARC_download_core,
+        #                                args=(i, j, dic, type, len(events),
+        #                                      events, add_event, Sta_req,
+        #                                      input,))
+        #    par_jobs.append(p)
+        #sub_par_jobs = [] 
+        #for l in range(len(par_jobs)):
+        #    counter = input['req_np']
+        #    while counter >= input['req_np']:
+        #        counter = 0
+        #        for ll in range(len(sub_par_jobs)):
+        #            if par_jobs[sub_par_jobs[ll]].is_alive():
+        #                counter += 1
+        #        if not counter == input['req_np']:
+        #            print 'counter: %s' % counter
+
+        #    par_jobs[l].start()
+        #    sub_par_jobs.append(l)
+        #    print 'length of sub_pat_jobs: %s' % len(sub_par_jobs)
+
+        #counter = input['req_np']
+        #while counter > 0:
+        #    counter = 0
+        #    for ll in range(len(par_jobs)):
+        #        if par_jobs[ll].is_alive():
+        #            counter += 1
+
 
     else:
         for j in range(len_req_arc):
@@ -3290,7 +3332,7 @@ def plot_se_ray(input, ls_saved_stas):
                 if input['plot_se'] != 'N' or input['plot_sta'] != 'N' or \
                                 input['plot_ray'] != 'N':
                     x_sta, y_sta = m(st_lon, st_lat)
-                    m.scatter(x_sta, y_sta, 20, color='blue', marker="o",
+                    m.scatter(x_sta, y_sta, 40, color='blue', marker="v",
                               edgecolor="black", zorder=10)
 
             except Exception as e:
