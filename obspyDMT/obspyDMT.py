@@ -45,6 +45,7 @@ except Exception as error:
 
 from obspy import read_inventory
 from obspy.core import read, UTCDateTime
+from obspy.signal import pazToFreqResp
 from obspy.taup import taup
 from obspy.xseed import Parser
 
@@ -125,6 +126,10 @@ def obspyDMT(**kwargs):
 
     # ------------------Read INPUT file (Parameters)--------------------
     read_input_command(parser, **kwargs)
+
+    # ------------------plot stationxml files--------------------
+    if input['plotxml_dir']:
+        plot_xml_response(input)
 
     # ------------------Getting List of Events/Continuous requests------
     if input['get_events'] == 'Y':
@@ -744,6 +749,71 @@ def command_parse():
     parser.add_option("--email", action="store",
                       dest="email", help=helpmsg)
 
+    helpmsg = "address of a file/directory that contains StationXML files. " \
+              "[Default: False]"
+    parser.add_option("--plotxml_dir", action="store",
+                      dest="plotxml_dir", help=helpmsg)
+
+    helpmsg = "minimum frequency to be used for plotting the transfer " \
+              "function. [Default: 0.01]"
+    parser.add_option("--plotxml_min_freq", action="store",
+                      dest="plotxml_min_freq", help=helpmsg)
+
+    helpmsg = "output of the transfer function: DISP/VEL. [Default: VEL]"
+    parser.add_option("--plotxml_output", action="store",
+                      dest="plotxml_output", help=helpmsg)
+
+    helpmsg = "start stage in response file to be considered for plotting " \
+              "the transfer function. [Default: 1]"
+    parser.add_option("--plotxml_start_stage", action="store",
+                      dest="plotxml_start_stage", help=helpmsg)
+
+    helpmsg = "final stage in response file to be considered for plotting " \
+              "the transfer function. [Default: 100]"
+    parser.add_option("--plotxml_end_stage", action="store",
+                      dest="plotxml_end_stage", help=helpmsg)
+
+    helpmsg = "whether or not use unwrap phase in plotting the transfer " \
+              "function. [Default: True]"
+    parser.add_option("--plotxml_unwrap_phase", action="store_true",
+                      dest="plotxml_unwrap_phase", help=helpmsg)
+
+    helpmsg = "percentage of the phase transfer function length to be used " \
+              "for checking the difference between different methods, " \
+              "e.g. 100 will be the whole transfer function, " \
+              "80 means consider the transfer function from min_freq until " \
+              "20 percent before the Nyquist frequency. [Default: 80]"
+    parser.add_option("--plotxml_percentage", action="store",
+                      dest="plotxml_percentage", help=helpmsg)
+
+    helpmsg = "maximum allowable difference between two different methods of" \
+              "instrument correction. This only applies to phase " \
+              "difference. [Default: 0.1]"
+    parser.add_option("--plotxml_phase_threshpld", action="store",
+                      dest="plotxml_phase_threshold", help=helpmsg)
+
+    helpmsg = "plot the full response file. [Default: True]"
+    parser.add_option("--plotxml_response", action="store_true",
+                      dest="plotxml_response", help=helpmsg)
+
+    helpmsg = "plot only stage 1 and 2 of full response file. [Default: False]"
+    parser.add_option("--plotxml_plotstage12", action="store_true",
+                      dest="plotxml_plotstage12", help=helpmsg)
+
+    helpmsg = "plot PAZ of the response file. [Default: False]"
+    parser.add_option("--plotxml_paz", action="store_true",
+                      dest="plotxml_paz", help=helpmsg)
+
+    helpmsg = "plot all the stages available in the response file. " \
+              "[Default: True]"
+    parser.add_option("--plotxml_allstages", action="store_true",
+                      dest="plotxml_allstages", help=helpmsg)
+
+    helpmsg = "plot all the stations that have been compared in terms of " \
+              "instrument response. [Default: False]"
+    parser.add_option("--plotxml_map_compare", action="store_true",
+                      dest="plotxml_map_compare", help=helpmsg)
+
     # parse command line options
     (options, args) = parser.parse_args()
 
@@ -819,6 +889,19 @@ def read_input_command(parser, **kwargs):
              'plot_ray_gmt': 'N',
              'plot_save': '.', 'plot_format': 'png',
              'min_epi': 0.0, 'max_epi': 180.0,
+             'plotxml_dir': False,
+             'plotxml_min_freq': 0.01,
+             'plotxml_output': 'VEL',
+             'plotxml_start_stage': 1,
+             'plotxml_end_stage': 100,
+             'plotxml_unwrap_phase': True,
+             'plotxml_percentage': 80,
+             'plotxml_phase_threshold': 0.1,
+             'plotxml_response': True,
+             'plotxml_plotstage12': False,
+             'plotxml_paz': False,
+             'plotxml_allstages': True,
+             'plotxml_map_compare': False
              }
 
     # feed input dictionary of defaults into parser object
@@ -921,6 +1004,9 @@ def read_input_command(parser, **kwargs):
 
     if options.plot_save != 'N' and not os.path.isabs(options.plot_save):
         options.plot_save = os.path.join(os.getcwd(), options.plot_save)
+
+    if options.plotxml_dir and not os.path.isabs(options.plotxml_dir):
+        options.plotxml_dir = os.path.join(os.getcwd(), options.plotxml_dir)
     #############END Parse paths
 
     # extract min. and max. longitude and latitude for event
@@ -1008,6 +1094,20 @@ def read_input_command(parser, **kwargs):
         except Exception, e:
             print "Erroneous identity code given: %s" % e
             sys.exit(2)
+
+    input['plotxml_dir'] = options.plotxml_dir
+    input['plotxml_min_freq'] = float(options.plotxml_min_freq)
+    input['plotxml_output'] = options.plotxml_output
+    input['plotxml_start_stage'] = int(options.plotxml_start_stage)
+    input['plotxml_end_stage'] = int(options.plotxml_end_stage)
+    input['plotxml_unwrap_phase'] = options.plotxml_unwrap_phase
+    input['plotxml_percentage'] = float(options.plotxml_percentage)
+    input['plotxml_phase_threshold'] = float(options.plotxml_phase_threshold)
+    input['plotxml_response'] = options.plotxml_response
+    input['plotxml_plotstage12'] = options.plotxml_plotstage12
+    input['plotxml_paz'] = options.plotxml_paz
+    input['plotxml_allstages'] = options.plotxml_allstages
+    input['plotxml_map_compare'] = options.plotxml_map_compare
 
     input['datapath'] = options.datapath
     if options.cut_time_phase:
@@ -1243,6 +1343,342 @@ def read_input_command(parser, **kwargs):
     for cli in ['FDSN', 'ArcLink']:
         if input[cli] == 'Y':
             input['priority_clients'].append(cli)
+
+###################### plot_xml_response ###############################
+
+
+def plot_xml_response(input):
+    """
+    This function plots the response file of stationXML file(s)
+    It has several modes such as:
+    plotting all the stages
+    plotting full response file
+    plotting selected stages
+    plotting only PAZ
+    :param input:
+    :return:
+    """
+
+    print '[INFO] plotting StationXML file/files in: %s' % input['plotxml_dir']
+    print '[INFO] stationxml_plots dir will be created!'
+
+    # Assgin the input parameters to the running parameters in this function:
+    stxml_dir = input['plotxml_dir']
+    min_freq = input['plotxml_min_freq']
+    output = input['plotxml_output']
+    start_stage = input['plotxml_start_stage']
+    end_stage = input['plotxml_end_stage']
+    unwrap_phase = input['plotxml_unwrap_phase']
+    percentage = input['plotxml_percentage']
+    threshold = input['plotxml_phase_threshold']
+    plot_response = input['plotxml_response']
+    plotstage12 = input['plotxml_plotstage12']
+    plotpaz = input['plotxml_paz']
+    plotallstages = input['plotxml_allstages']
+    plot_map_compare = input['plotxml_map_compare']
+
+    if os.path.isfile(stxml_dir):
+        addxml_all = glob.glob(os.path.join(stxml_dir))
+    elif os.path.isdir(stxml_dir):
+        addxml_all = glob.glob(os.path.join(stxml_dir, 'STXML.*'))
+    else:
+        sys.exit('[ERROR] wrong address: %s' % stxml_dir)
+
+    lat_good = []
+    lon_good = []
+    lat_bad = []
+    lon_bad = []
+    for addxml in addxml_all:
+        try:
+            xml_inv = read_inventory(addxml, format='stationXML')
+            cha_name = xml_inv.get_contents()['channels'][0]
+            cha_date = xml_inv.networks[0][0][0].start_date
+
+            xml_response = xml_inv.get_response(cha_name, cha_date)
+            for stage in xml_response.response_stages[::-1]:
+                if (stage.decimation_input_sample_rate is not None
+                        and stage.decimation_factor is not None):
+                    sampling_rate = (stage.decimation_input_sample_rate /
+                                     stage.decimation_factor)
+                    break
+
+            t_samp = 1.0 / sampling_rate
+            nyquist = sampling_rate / 2.0
+            nfft = int(sampling_rate / min_freq)
+
+            if plotallstages:
+                plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft,
+                                       min_freq, output,
+                                       start_stage, end_stage, unwrap_phase,
+                                       cha_name)
+
+            try:
+                cpx_response, freq = xml_response.get_evalresp_response(
+                    t_samp=t_samp, nfft=nfft, output=output,
+                    start_stage=start_stage, end_stage=end_stage)
+                cpx_paz, freq = xml_response.get_evalresp_response(
+                    t_samp=t_samp, nfft=nfft, output=output, start_stage=1,
+                    end_stage=2)
+            except:
+                continue
+
+            paz = convert_xml_paz(xml_response, output)
+
+            h, f = pazToFreqResp(paz['poles'], paz['zeros'], paz['gain'],
+                                 1./sampling_rate, nfft, freq=True)
+
+            phase_resp = np.angle(cpx_response)
+            if unwrap_phase:
+                phase_resp = np.unwrap(phase_resp)
+            phase_paz = np.angle(cpx_paz)
+            if unwrap_phase:
+                phase_paz = np.unwrap(phase_paz)
+
+            if plot_response:
+                if not os.path.isdir('./stationxml_plots'):
+                    print '[INFO] creating stationxml_plots directory...',
+                    os.mkdir('./stationxml_plots')
+                    print 'DONE'
+                plt.close()
+                plt.ion()
+                plt.figure(figsize=(20, 10))
+                plt.subplot(2, 2, 1)
+                plt.loglog(freq, abs(cpx_response), color='blue',
+                           lw=3, label='full-resp')
+                if plotstage12:
+                    plt.loglog(freq, abs(cpx_paz), ls='--', color='red',
+                               lw=3, label='Stage1,2')
+                if plotpaz:
+                    plt.loglog(f, abs(h)*paz['sensitivity'], color='black',
+                               lw=3, label='PAZ')
+                plt.axvline(nyquist, ls="--", color='blue', lw=3)
+                plt.ylabel('Amplitude', size=24, weight='bold')
+                plt.xticks(size=18, weight='bold')
+                plt.yticks(size=18, weight='bold')
+                plt.xlim(xmin=min_freq, xmax=nyquist+5)
+                plt.ylim(ymax=max(abs(cpx_response))+10e9)
+                plt.legend(loc=0, prop={'size': 18, 'weight': 'bold'})
+                plt.grid()
+
+                plt.subplot(2, 2, 3)
+                plt.semilogx(freq, phase_resp, color='blue',
+                             lw=3, label='full-resp')
+                if plotstage12:
+                    plt.semilogx(freq, phase_paz, ls='--', color='red',
+                                 lw=3, label='Stage1,2')
+                if plotpaz:
+                    plt.semilogx(f, np.angle(h), color='black',
+                                 lw=3, label='PAZ')
+                plt.axvline(nyquist, ls="--", color='blue', lw=3)
+                plt.xlabel('Frequency [Hz]', size=24, weight='bold')
+                plt.ylabel('Phase [rad]', size=24, weight='bold')
+                plt.xticks(size=18, weight='bold')
+                plt.yticks(size=18, weight='bold')
+                plt.xlim(xmin=min_freq, xmax=nyquist+5)
+                plt.legend(loc=0, prop={'size': 18, 'weight': 'bold'})
+                plt.grid()
+
+                plt.subplot(2, 2, 2)
+                if plotstage12:
+                    plt.loglog(freq, abs(abs(cpx_response) - abs(cpx_paz)),
+                               '--', color='red', lw=3,
+                               label='|full-resp - Stage1,2|')
+
+                    plt.axvline(nyquist, ls="--", color='blue', lw=3)
+                    plt.axvline(percentage*nyquist, ls="--",
+                                color='blue', lw=3)
+                if plotpaz:
+                    plt.loglog(f, abs(abs(cpx_response) -
+                                      abs(h)*paz['sensitivity']),
+                               color='black', lw=3, label='|full-resp - PAZ|')
+                    plt.axvline(nyquist, ls="--", color='blue', lw=3)
+                    plt.axvline(percentage*nyquist, ls="--",
+                                color='blue', lw=3)
+                plt.ylabel('Amplitude Difference', size=24, weight='bold')
+                plt.xticks(size=18, weight='bold')
+                plt.yticks(size=18, weight='bold')
+                plt.xlim(xmin=min_freq, xmax=nyquist+5)
+                plt.ylim(ymax=max(abs(cpx_response))+10e9)
+                plt.legend(loc=0, prop={'size': 18, 'weight': 'bold'})
+                plt.grid()
+
+                plt.subplot(2, 2, 4)
+                if plotstage12:
+                    plt.semilogx(freq, abs(phase_resp - phase_paz),
+                                 color='red', ls='--', lw=3,
+                                 label='|full-resp - Stage1,2|')
+                    plt.axvline(nyquist, ls="--", color='blue', lw=3)
+                    plt.axvline(percentage*nyquist, ls="--",
+                                color='blue', lw=3)
+                if plotpaz:
+                    plt.semilogx(freq, abs(phase_resp - np.angle(h)),
+                                 color='black', lw=3,
+                                 label='|full-resp - PAZ|')
+                    plt.axvline(nyquist, ls="--", color='blue', lw=3)
+                    plt.axvline(percentage*nyquist, ls="--",
+                                color='blue', lw=3)
+                plt.xlabel('Frequency [Hz]', size=24, weight='bold')
+                plt.ylabel('Phase [rad]', size=24, weight='bold')
+                plt.xticks(size=18, weight='bold')
+                plt.yticks(size=18, weight='bold')
+                plt.xlim(xmin=min_freq, xmax=nyquist+5)
+                plt.legend(loc=0, prop={'size': 18, 'weight': 'bold'})
+                plt.grid()
+                plt.savefig(os.path.join('response_files', cha_name + '.png'))
+
+            #compare = abs(phase[:int(0.8*len(phase))] -
+            #              np.angle(h[:int(0.8*len(phase))]))
+            #if len(compare[compare>0.1]) > 0:
+            #    lat_red.append(xml_inv.get_coordinates(cha_name)['latitude'])
+            #    lon_red.append(xml_inv.get_coordinates(cha_name)['longitude'])
+            #    print cha_name
+            #    print paz
+            #else:
+            #    lat_blue.append(xml_inv.get_coordinates(cha_name)['latitude'])
+            #    lon_blue.append(xml_inv.get_coordinates(cha_name)['longitude'])
+
+            compare = abs(phase_resp[:int(percentage*len(phase_resp))] -
+                          phase_paz[:int(percentage*len(phase_paz))])
+            if len(compare[compare > threshold]) > 0:
+                lat_bad.append(xml_inv.get_coordinates(cha_name)['latitude'])
+                lon_bad.append(xml_inv.get_coordinates(cha_name)['longitude'])
+                print cha_name
+            else:
+                lat_good.append(xml_inv.get_coordinates(cha_name)['latitude'])
+                lon_good.append(xml_inv.get_coordinates(cha_name)['longitude'])
+        except Exception, e:
+            print 'Exception: %s' % e
+
+    if plot_map_compare:
+        m = Basemap(projection='cyl', lon_0=0, lat_0=0, resolution='l')
+        #m.drawcoastlines()
+        m.fillcontinents()
+        m.drawparallels(np.arange(-90., 120., 30.))
+        m.drawmeridians(np.arange(0., 420., 60.))
+        m.drawmapboundary()
+
+        x_bad, y_bad = m(lon_bad, lat_bad)
+        m.scatter(x_bad, y_bad, 100, color='red', marker="v",
+                  edgecolor=None, zorder=10)
+
+        x_good, y_good = m(lon_good, lat_good)
+        m.scatter(x_good, y_good, 100, color='blue', marker="v",
+                  edgecolor=None, zorder=10)
+        plt.show()
+    sys.exit('[EXIT] obspyDMT finished normally...')
+
+###################### plot_xml_plotallstages ##########################
+
+
+def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
+                           output, start_stage, end_stage, unwrap_phase,
+                           cha_name):
+    """
+    plot all the stages in a StationXML files.
+    This is controlled by start_stage and end_stage
+    :param xml_response:
+    :param t_samp:
+    :param nyquist:
+    :param nfft:
+    :param min_freq:
+    :param output:
+    :param start_stage:
+    :param end_stage:
+    :param unwrap_phase:
+    :param cha_name:
+    :return:
+    """
+
+    if not os.path.isdir('./stationxml_plots'):
+        print '[INFO] creating stationxml_plots directory...',
+        os.mkdir('./stationxml_plots')
+        print 'DONE'
+    plt.close()
+    plt.ion()
+    plt.figure(figsize=(20, 10))
+    for i in range(start_stage, end_stage+1):
+        try:
+            cpx_response, freq = xml_response.get_evalresp_response(
+                t_samp=t_samp, nfft=nfft, output=output,
+                start_stage=i, end_stage=i)
+        except:
+            continue
+    
+        try:
+            inp = xml_response.response_stages[i].input_units
+        except Exception, e:
+            inp = ''
+        try:
+            out = xml_response.response_stages[i].output_units
+        except Exception, e:
+            out = ''
+    
+        phase_resp = np.angle(cpx_response)
+        if unwrap_phase:
+            phase_resp = np.unwrap(phase_resp)
+    
+        plt.subplot(2, 1, 1)
+        plt.loglog(freq, abs(cpx_response), lw=3,
+                   label='%s (%s->%s)' % (i, inp, out))
+        plt.axvline(nyquist, ls="--", color='blue', lw=3)
+        plt.ylabel('Amplitude', size=24, weight='bold')
+        plt.xticks(size=18, weight='bold')
+        plt.yticks(size=18, weight='bold')
+        plt.xlim(xmin=min_freq, xmax=nyquist+5)
+        plt.legend(loc=0, prop={'size': 18, 'weight': 'bold'})
+        plt.grid()
+
+        plt.subplot(2, 1, 2)
+        plt.semilogx(freq, phase_resp, lw=3,
+                     label='%s (%s->%s)' % (i, inp, out))
+        plt.axvline(nyquist, ls="--", color='blue', lw=3)
+        plt.xlabel('Frequency [Hz]', size=24, weight='bold')
+        plt.ylabel('Phase [rad]', size=24, weight='bold')
+        plt.xticks(size=18, weight='bold')
+        plt.yticks(size=18, weight='bold')
+        plt.xlim(xmin=min_freq, xmax=nyquist+5)
+        plt.legend(loc=0, prop={'size': 18, 'weight': 'bold'})
+        plt.grid()
+    plt.savefig(os.path.join('stationxml_plots',
+                             '%s_stages.png' % cha_name))
+
+###################### convert_xml_paz ######################################
+
+
+def convert_xml_paz(xml_response, output):
+    """
+    convert Stationxml file into PAZ dictionary
+    :param xml_response:
+    :param output:
+    :return: paz
+    """
+    gain_arr = []
+    normalization_factor = []
+    poles = []
+    zeros = []
+    for resp_stage in xml_response.response_stages:
+        gain_arr.append(resp_stage.stage_gain)
+        try:
+            normalization_factor.append(
+                resp_stage.normalization_factor)
+        except Exception as e:
+            pass
+        try:
+            poles.append(resp_stage.poles)
+            zeros.append(resp_stage.zeros)
+        except Exception as e:
+            pass
+
+    paz = {}
+    paz['poles'] = poles[0]
+    if output.lower() == 'disp':
+        zeros[0].append(0j)
+    if output.lower() == 'acc':
+        sys.exit('%s output has not implemented!' % output)
+    paz['zeros'] = zeros[0]
+    paz['gain'] = np.prod(np.array(normalization_factor))
+    paz['sensitivity'] = np.prod(np.array(gain_arr))
+    return paz
 
 ###################### get_Events ######################################
 
