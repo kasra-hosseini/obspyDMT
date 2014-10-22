@@ -754,6 +754,13 @@ def command_parse():
     parser.add_option("--plotxml_dir", action="store",
                       dest="plotxml_dir", help=helpmsg)
 
+    helpmsg = "datetime to be used for plotting the transfer function," \
+              "syntax: Y-M-D-H-M-S (eg: '2011-01-01-00-00-00') or just " \
+              "Y-M-D. If this is not set, the starting date of the " \
+              "stationXML will be used instead!"
+    parser.add_option("--plotxml_date", action="store",
+                      dest="plotxml_date", help=helpmsg)
+
     helpmsg = "minimum frequency to be used for plotting the transfer " \
               "function. [Default: 0.01]"
     parser.add_option("--plotxml_min_freq", action="store",
@@ -890,6 +897,7 @@ def read_input_command(parser, **kwargs):
              'plot_save': '.', 'plot_format': 'png',
              'min_epi': 0.0, 'max_epi': 180.0,
              'plotxml_dir': False,
+             'plotxml_date': False,
              'plotxml_min_freq': 0.01,
              'plotxml_output': 'VEL',
              'plotxml_start_stage': 1,
@@ -921,7 +929,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '0.7.5d' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.7.6' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -1096,6 +1104,10 @@ def read_input_command(parser, **kwargs):
             sys.exit(2)
 
     input['plotxml_dir'] = options.plotxml_dir
+    if options.plotxml_date:
+        input['plotxml_date'] = UTCDateTime(options.plotxml_date)
+    else:
+        input['plotxml_date'] = options.plotxml_date
     input['plotxml_min_freq'] = float(options.plotxml_min_freq)
     input['plotxml_output'] = options.plotxml_output
     input['plotxml_start_stage'] = int(options.plotxml_start_stage)
@@ -1364,12 +1376,13 @@ def plot_xml_response(input):
 
     # Assgin the input parameters to the running parameters in this function:
     stxml_dir = input['plotxml_dir']
+    plotxml_datetime = input['plotxml_date']
     min_freq = input['plotxml_min_freq']
     output = input['plotxml_output']
     start_stage = input['plotxml_start_stage']
     end_stage = input['plotxml_end_stage']
     unwrap_phase = input['plotxml_unwrap_phase']
-    percentage = input['plotxml_percentage']
+    percentage = input['plotxml_percentage']/100.
     threshold = input['plotxml_phase_threshold']
     plot_response = input['plotxml_response']
     plotstage12 = input['plotxml_plotstage12']
@@ -1392,7 +1405,12 @@ def plot_xml_response(input):
         try:
             xml_inv = read_inventory(addxml, format='stationXML')
             cha_name = xml_inv.get_contents()['channels'][0]
-            cha_date = xml_inv.networks[0][0][0].start_date
+            if plotxml_datetime:
+                cha_date = plotxml_datetime
+            else:
+                print '[INFO] plotxml_date has not been set, the start_date ' \
+                      'of stationXML file will be used instead!'
+                cha_date = xml_inv.networks[0][0][0].start_date
 
             xml_response = xml_inv.get_response(cha_name, cha_date)
             for stage in xml_response.response_stages[::-1]:
@@ -1442,14 +1460,15 @@ def plot_xml_response(input):
                 plt.close()
                 plt.ion()
                 plt.figure(figsize=(20, 10))
+                plt.suptitle(cha_name, size=24, weight='bold')
                 plt.subplot(2, 2, 1)
                 plt.loglog(freq, abs(cpx_response), color='blue',
                            lw=3, label='full-resp')
                 if plotstage12:
-                    plt.loglog(freq, abs(cpx_paz), ls='--', color='red',
+                    plt.loglog(freq, abs(cpx_paz), ls='--', color='black',
                                lw=3, label='Stage1,2')
                 if plotpaz:
-                    plt.loglog(f, abs(h)*paz['sensitivity'], color='black',
+                    plt.loglog(f, abs(h)*paz['sensitivity'], color='red',
                                lw=3, label='PAZ')
                 plt.axvline(nyquist, ls="--", color='blue', lw=3)
                 plt.ylabel('Amplitude', size=24, weight='bold')
@@ -1464,10 +1483,10 @@ def plot_xml_response(input):
                 plt.semilogx(freq, phase_resp, color='blue',
                              lw=3, label='full-resp')
                 if plotstage12:
-                    plt.semilogx(freq, phase_paz, ls='--', color='red',
+                    plt.semilogx(freq, phase_paz, ls='--', color='black',
                                  lw=3, label='Stage1,2')
                 if plotpaz:
-                    plt.semilogx(f, np.angle(h), color='black',
+                    plt.semilogx(f, np.angle(h), color='red',
                                  lw=3, label='PAZ')
                 plt.axvline(nyquist, ls="--", color='blue', lw=3)
                 plt.xlabel('Frequency [Hz]', size=24, weight='bold')
@@ -1481,7 +1500,7 @@ def plot_xml_response(input):
                 plt.subplot(2, 2, 2)
                 if plotstage12:
                     plt.loglog(freq, abs(abs(cpx_response) - abs(cpx_paz)),
-                               '--', color='red', lw=3,
+                               '--', color='black', lw=3,
                                label='|full-resp - Stage1,2|')
 
                     plt.axvline(nyquist, ls="--", color='blue', lw=3)
@@ -1490,7 +1509,7 @@ def plot_xml_response(input):
                 if plotpaz:
                     plt.loglog(f, abs(abs(cpx_response) -
                                       abs(h)*paz['sensitivity']),
-                               color='black', lw=3, label='|full-resp - PAZ|')
+                               color='red', lw=3, label='|full-resp - PAZ|')
                     plt.axvline(nyquist, ls="--", color='blue', lw=3)
                     plt.axvline(percentage*nyquist, ls="--",
                                 color='blue', lw=3)
@@ -1505,26 +1524,26 @@ def plot_xml_response(input):
                 plt.subplot(2, 2, 4)
                 if plotstage12:
                     plt.semilogx(freq, abs(phase_resp - phase_paz),
-                                 color='red', ls='--', lw=3,
+                                 color='black', ls='--', lw=3,
                                  label='|full-resp - Stage1,2|')
                     plt.axvline(nyquist, ls="--", color='blue', lw=3)
                     plt.axvline(percentage*nyquist, ls="--",
                                 color='blue', lw=3)
                 if plotpaz:
                     plt.semilogx(freq, abs(phase_resp - np.angle(h)),
-                                 color='black', lw=3,
+                                 color='red', lw=3,
                                  label='|full-resp - PAZ|')
                     plt.axvline(nyquist, ls="--", color='blue', lw=3)
                     plt.axvline(percentage*nyquist, ls="--",
                                 color='blue', lw=3)
                 plt.xlabel('Frequency [Hz]', size=24, weight='bold')
-                plt.ylabel('Phase [rad]', size=24, weight='bold')
+                plt.ylabel('Phase Difference [rad]', size=24, weight='bold')
                 plt.xticks(size=18, weight='bold')
                 plt.yticks(size=18, weight='bold')
                 plt.xlim(xmin=min_freq, xmax=nyquist+5)
                 plt.legend(loc=0, prop={'size': 18, 'weight': 'bold'})
                 plt.grid()
-                plt.savefig(os.path.join('response_files', cha_name + '.png'))
+                plt.savefig(os.path.join('stationxml_plots', cha_name + '.png'))
 
             #compare = abs(phase[:int(0.8*len(phase))] -
             #              np.angle(h[:int(0.8*len(phase))]))
@@ -1574,7 +1593,7 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
                            output, start_stage, end_stage, unwrap_phase,
                            cha_name):
     """
-    plot all the stages in a StationXML files.
+    plot all the stages in a StationXML file.
     This is controlled by start_stage and end_stage
     :param xml_response:
     :param t_samp:
@@ -1596,6 +1615,7 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
     plt.close()
     plt.ion()
     plt.figure(figsize=(20, 10))
+    plt.suptitle(cha_name, size=24, weight='bold')
     for i in range(start_stage, end_stage+1):
         try:
             cpx_response, freq = xml_response.get_evalresp_response(
@@ -3870,9 +3890,10 @@ def plot_ray_gmt(input, ls_saved_stas):
     os.chdir(input['plot_save'])
     os.system('psbasemap -Rd -JK180/9i -B45g30 -K > output.ps')
     os.system('pscoast -Rd -JK180/9i -B45g30:."World-wide Ray Path Coverage": '
-              '-Dc -A1000 -Glightgray -Wthinnest -t20 -O -K >> output.ps')
-    os.system('psxy ./evsta_plot.txt -JK180/9i -Rd -O -K -t100 >> output.ps')
-    os.system('psxy ./sta_plot.txt -JK180/9i -Rd -Si0.14c -Gblue -O -K >>'
+              '-Dc -A1000 -Glightgray -Wthinnest -t0 -O -K >> output.ps')
+    os.system('psxy ./evsta_plot.txt -JK180/9i -Rd -O -K -W0.2 -t85 >> '
+              'output.ps')
+    os.system('psxy ./sta_plot.txt -JK180/9i -Rd -Si0.2c -Gblue -O -K >>'
               ' output.ps')
     os.system('psxy ./ev_plot.txt -JK180/9i -Rd -Sa0.28c -Gred -O >>'
               ' output.ps')
