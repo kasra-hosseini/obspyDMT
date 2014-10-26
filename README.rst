@@ -176,7 +176,7 @@ The options specified by *--option=OPTION* are type-1 (with value) and *--option
 event-info request
 ------------------
 
-In this type of request, obspyDMT will search for all the available events based on the options specified by the user, print the results and create an event catalogue without retrieving waveforms or stationXML/response files.
+In this type of request, obspyDMT will search for all the available events based on the options specified by the user, print the results and create an event catalog without retrieving waveforms or stationXML/response files.
 
 The following lines show how to send an `event-info request`_ with obspyDMT followed by some examples.
 
@@ -199,7 +199,7 @@ When the job starts, a folder will be created with the address specified with *-
 
 **WARNING:** it can happen that obspyDMT does not find any event with the above command. This is due to the default values and the availability of the events at the time that you are testing the code. For customizing the request, refer to the next example.
 
-**Example 2:** by adding flags to the above command, one can change the default values and add/remove functionalities of the code. As an example, the following command shows how to get the info of all the events with event magnitude in the range of 6.6-8.0 occured after 2013-05-01 and before 2014-01-01:
+**Example 2:** by adding flags to the above command, one can change the default values and add/remove functionalities of the code. As an example, the following command shows how to get the info of all the events with event magnitude in the range of 6.6-8.0 occurred after 2013-05-01 and before 2014-01-01:
 
 ::
 
@@ -362,7 +362,7 @@ Geographical restriction
 
 If you are interested in the events happened in a specific geographical coordinate and/or retrieving the data from the stations in a specific circular or rectangular bounding area, you are in the right section! Here, we have two examples:
 
-**Example 1:** to extract the info of all the events occured from January 2000 until October 2014 in a rectangular area (*lon1=44.38E* *lon2=63.41E* *lat1=24.21N* *lat2=40.01N*) with magnitude more than 3.0:
+**Example 1:** to extract the info of all the events occurred from January 2000 until October 2014 in a rectangular area (*lon1=44.38E* *lon2=63.41E* *lat1=24.21N* *lat2=40.01N*) with magnitude more than 3.0:
 
 ::
 
@@ -391,7 +391,7 @@ When obspyDMT retrieves waveforms and their stationXML/response files, by defaul
 
 where *option-1* and *option-2* are the flags defined by the user (see `Option types`_ section).
 
-You can deactive the instrument correction by:
+You can deactivate the instrument correction by:
 
 ::
 
