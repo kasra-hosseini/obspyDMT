@@ -1,22 +1,23 @@
 ==========================================================================================
-obspyDMT: Parallel Retrieving, Processing and Management of Massive Seismological Datasets
+obspyDMT: A Python Toolbox for Retrieving and Processing of Massive Seismological Datasets
 ==========================================================================================
 
 
 Welcome!
 
-obspyDMT_ (ObsPy Data Management Tool) is a command line tool for retrieving, processing and management of massive seismic data in a fully automatic way which could be run in serial or in parallel. 
-Moreover, complementary processing and managing tools have been designed and introduced in addition to the obspyDMT options.
+obspyDMT_ (obspy Data Management Tool) is a command line tool for retrieving, processing and management of massive seismic data in a fully automatic way which could be run in serial or in parallel. 
+Moreover, complementary processing and managing tools have been designed and introduced.
 
 This tool is developed to mainly address the following tasks automatically: 
 
-1. Retrieval of waveforms (MSEED or SAC), response files and metadata from IRIS_ and ORFEUS_ (via ArcLink_) archives. This could be done in *serial* or in *parallel* for single or large requests.
-2. Supports event-based and continuous requests.
-3. Extracting the information of all the events via user-defined options (time span, magnitude, depth and event location) from IRIS_ and EMSC_ (European Mediterranean Seismological Centre).
-4. Updating the existing archives (waveforms, response files and metadata).
-5. Processing the data in *serial* or in *parallel* (e.g. *Tapering, removing the trend of the time series, filtering and Instrument correction*).
+1. Retrieval of waveforms (MSEED or SAC), stationXML/response files and metadata from FDSN and ArcLink archives. This could be done in *serial* or in *parallel* for single or large requests.
+2. Supports both event-based and continuous requests.
+3. Extracting the information of all the events via user-defined options (time span, magnitude, depth and event location) from IRIS.
+4. Updating the existing archives (waveforms, stationXML/response files and metadata).
+5. Processing the data in *serial* or in *parallel* (e.g. *removing the trend of the time series, Tapering, filtering and Instrument correction*).
 6. Management of large seismic datasets.
 7. Plotting tools (events and/or station locations, Ray coverage (event-station pair), epicentral-distance plots for all archived waveforms and seismicity maps).
+8. Exploring stationXML files by plotting the instrument response in all stages and/or for each stages.
 
 
 This tutorial has been divided into the following sections: 
@@ -45,7 +46,7 @@ If you use obspyDMT, please consider citing the code as:
 
 ::
 
-    Kasra Hosseini (2013), obspyDMT (Version 0.5.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
+    Kasra Hosseini (2014), obspyDMT (Version 0.7.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
 
 We have also published a paper in SRL (Seismological Research Letters) for obspyDMT's predecessor that we kindly ask you to cite in case that you found obspyDMT useful for your research:
 
@@ -57,9 +58,7 @@ We have also published a paper in SRL (Seismological Research Letters) for obspy
 Lets get started
 -----------------
 
-Once a working Python and ObsPy_ environment is installed, there are two possible ways to have obspyDMT:
- 
-1. Manually from the source code:
+Once a working Python and ObsPy_ environment is installed, obspyDMT can be installed from the source-code:
 
 ::
 
@@ -79,19 +78,7 @@ Alternatively:
     $ cd /path/to/my/obspyDMT
     $ pip install -v -e .
 
-2. Prepackaged Modules from Python Package Index (PyPI):
-
-::
-    
-    $ easy_install -N obspyDMT
-
-or using *pip*:
-
-::
-    
-    $ pip install obspyDMT
- 
-In case that none of these worked for you, the source code could be downloaded directly from either PyPI_ or GitHub_ websites and you can either work with the source code or install it:
+In case that this does not work for you, the source code could be downloaded directly from GitHub_ websites and you can either work with the source code or install it:
 
 ::
     
@@ -117,9 +104,7 @@ To check the dependencies required for running the code properly:
     $ cd /path/to/my/obspyDMT.py
     $ ./obspyDMT.py --check
 
-*--check* flag checks for the basic requirements to run the code. However, some special options in obspyDMT are built upon other packages:
-
-**Parallelization:** There are some options in obspyDMT in which the job will be distributed on several processes (refer to `Parallel retrieving and processing`_). Here, pprocess_ is used and should be installed beforehand.
+*--check* flag checks for the basic requirements to run the code.
 
 In all the following examples, we assume that obspyDMT is already installed.
 
@@ -133,13 +118,13 @@ To run a quick tour for obspyDMT:
 
     $ obspyDMT --tour
 
-*DMT-Tour-Data* directory will be created in the current path and the retrieved/processed data will be organized there. (Please refer to `Folder structure`_ section for more information)
+*dmt-tour-data* directory will be created in the current path and the retrieved/processed data will be organized there. (Please refer to `Folder structure`_ section for more information)
 
 The retrieved raw counts could be plotted:
 
 ::
 
-    $ obspyDMT --plot_epi 'DMT-Tour-Data'
+    $ obspyDMT --plot_epi 'dmt-tour-data'
 
 .. image:: figures/tourepiraw.png
    :scale: 60%
