@@ -436,6 +436,10 @@ def command_parse():
     parser.add_option("--fdsn_pass", action="store",
                       dest="fdsn_pass", help=helpmsg)
 
+    helpmsg = "send request (waveform/response) to FDSN. [Default: 'Y']"
+    parser.add_option("--FDSN", action="store",
+                      dest="FDSN", help=helpmsg)
+
     helpmsg = "send request (waveform/response) to ArcLink. [Default: 'N']"
     parser.add_option("--arc", action="store",
                       dest="ArcLink", help=helpmsg)
@@ -2918,19 +2922,16 @@ def ARC_download_core(i, j, dic, type, len_events, events,
 
         if input['waveform'] == 'Y':
             dummy = 'Waveform'
-            try:
-                client_arclink.saveWaveform(os.path.join(add_event[i],
-                                                         'BH_RAW',
-                                                         '%s.%s.%s.%s'
-                                                         % (Sta_req[j][0],
-                                                            Sta_req[j][1],
-                                                            Sta_req[j][2],
-                                                            Sta_req[j][3])),
-                                            Sta_req[j][0], Sta_req[j][1],
-                                            Sta_req[j][2], Sta_req[j][3],
-                                            t_start, t_end)
-            except Exception as e:
-                print 'WARNING: %s' % e
+            client_arclink.saveWaveform(os.path.join(add_event[i],
+                                                     'BH_RAW',
+                                                     '%s.%s.%s.%s'
+                                                     % (Sta_req[j][0],
+                                                        Sta_req[j][1],
+                                                        Sta_req[j][2],
+                                                        Sta_req[j][3])),
+                                        Sta_req[j][0], Sta_req[j][1],
+                                        Sta_req[j][2], Sta_req[j][3],
+                                        t_start, t_end)
 
             print '%ssaving waveform for %s.%s.%s.%s  ---> DONE' \
                   % (info_req, Sta_req[j][0], Sta_req[j][1],
