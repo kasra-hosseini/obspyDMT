@@ -5,8 +5,7 @@ obspyDMT: A Python Toolbox for Retrieving and Processing of Massive Seismologica
 
 Welcome!
 
-obspyDMT_ (obspy Data Management Tool) is a command line tool for retrieving, processing and management of massive seismic data in a fully automatic way which could be run in serial or in parallel. 
-Moreover, complementary processing and managing tools have been designed and introduced.
+obspyDMT_ (obspy Data Management Tool) is a command line tool for retrieving, processing and management of massive seismological data in a fully automatic way which could be run in serial or in parallel. 
 
 This tool is developed to mainly address the following tasks automatically: 
 
@@ -14,10 +13,10 @@ This tool is developed to mainly address the following tasks automatically:
 2. Supports both event-based and continuous requests.
 3. Extracting the information of all the events via user-defined options (time span, magnitude, depth and event location) from IRIS.
 4. Updating the existing archives (waveforms, stationXML/response files and metadata).
-5. Processing the data in *serial* or in *parallel* (e.g. *removing the trend of the time series, Tapering, filtering and Instrument correction*).
+5. Processing the data in *serial* or in *parallel* (e.g. *removing the trend of the time series, tapering, filtering and Instrument correction*).
 6. Management of large seismic datasets.
-7. Plotting tools (events and/or station locations, Ray coverage (event-station pair), epicentral-distance plots for all archived waveforms and seismicity maps).
-8. Exploring stationXML files by plotting the instrument response in all stages and/or for each stages.
+7. Plotting tools (events and/or station locations, ray coverage (event-station pair), epicentral-distance plots for all archived waveforms and seismicity maps).
+8. Exploring stationXML files by plotting the instrument response in all stages and/or for each stage.
 
 
 This tutorial has been divided into the following sections: 
@@ -27,16 +26,17 @@ This tutorial has been divided into the following sections:
 3.  `Quick tour`_: run a quick tour for obspyDMT.
 4.  `Option types`_: there are two types of options for obspyDMT: *option-1* (with value) and *option-2* (without value)
 5.  `event-info request`_: if you are looking for some events and you want to get info about them without downloading waveforms.
-6.  `event-based request`_: retrieve the waveforms, response files and meta-data of all the requested stations for all the events found in the archive.
-7.  `continuous request`_: retrieve the waveforms, response files and meta-data of all the requested stations for the specified time span.
+6.  `event-based request`_: retrieve the waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
+7.  `continuous request`_: retrieve the waveforms, stationXML/response files and meta-data of all the requested stations for the specified time span.
 8.  `Update`_: if you want to continue an interrupted request or complete your existing archive.
 9.  `Geographical restriction`_: if you are interested in the events happened in a specific geographical coordinate and/or retrieving the data from the stations in a specific circular or rectangular bounding area.
-10.  `Instrument correction`_: instrument correction for displacement, velocity and acceleration with full response file or Poles And Zeros *(PAZ)*.
-11.  `Parallel retrieving and processing`_: send the request and/or process the data in parallel. This section introduces some options (*bulkdataselect* and *parallel retrieving and processing*) to speed-up the whole procedure.
-12.  `Plot`_: for an existing folder, you could plot all the events and/or all the stations, ray path for event-station pairs and epicentral-distance/time for the waveforms using GMT-5 or basemap tools.
-13. `Seismicity`_: plot the geographical and historical distribution of earthquake activities (seismicity).
-14. `Folder structure`_: the way that obspyDMT organize your retrieved and processed data in the file-based mode.
-15. `Available options`_: all options currently available in obspyDMT.
+10. `Instrument correction`_: instrument correction for displacement, velocity and acceleration with full response file by using stationXML/response files.
+11. `Parallel retrieving and processing`_: send the request and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
+12. `Plot`_: for an existing folder, you can plot all the events and/or all the stations, ray path for event-station pairs and epicentral-distance/time for the waveforms using GMT-5 or basemap tools.
+13. `Explore stationXML file`_: how to explore and analyze different stages available in a stationXML file.
+14. `Seismicity`_: plot the geographical and historical distribution of earthquake activities (seismicity).
+15. `Folder structure`_: the way that obspyDMT organize your retrieved and processed data in the file-based mode.
+16. `Available options`_: all options currently available in obspyDMT.
 
 --------------------
 How to cite obspyDMT
@@ -58,7 +58,7 @@ We have also published a paper in SRL (Seismological Research Letters) for obspy
 Lets get started
 -----------------
 
-Once a working Python and ObsPy_ environment is installed, obspyDMT can be installed from the source-code:
+Once a working Python and ObsPy_ environment are installed, obspyDMT can be installed from the source-code:
 
 ::
 
@@ -78,7 +78,7 @@ Alternatively:
     $ cd /path/to/my/obspyDMT
     $ pip install -v -e .
 
-In case that this does not work for you, the source code could be downloaded directly from GitHub_ websites and you can either work with the source code or install it:
+In case that these do not work for you, the source code could be downloaded directly from GitHub_ websites and you can either work with the source code or install it:
 
 ::
     
@@ -120,7 +120,7 @@ To run a quick tour for obspyDMT:
 
 *dmt-tour-data* directory will be created in the current path and the retrieved/processed data will be organized there. (Please refer to `Folder structure`_ section for more information)
 
-The retrieved raw counts could be plotted:
+To have an overview on the retrieved raw counts, the waveforms can be plotted by:
 
 ::
 
@@ -134,7 +134,7 @@ for plotting the corrected waveforms:
 
 ::
 
-    $ obspyDMT --plot_epi 'DMT-Tour-Data' --plot_type corrected
+    $ obspyDMT --plot_epi 'dmt-tour-data' --plot_type corrected
 
 .. image:: figures/tourepicorrected.png
    :scale: 60%
@@ -144,7 +144,7 @@ obspyDMT plots the ray coverage (ray path between each event-station pair) by:
 
 ::
 
-    $ obspyDMT --plot_ray 'DMT-Tour-Data'
+    $ obspyDMT --plot_ray 'dmt-tour-data'
    
 .. image:: figures/tourray.png
    :scale: 75%
@@ -178,9 +178,9 @@ The options specified by *--option=OPTION* are type-1 (with value) and *--option
 event-info request
 ------------------
 
-In this type of request, obspyDMT will search for all the available events based on the options specified by the user, print the results and create an event catalogue.
+In this type of request, obspyDMT will search for all the available events based on the options specified by the user, print the results and create an event catalogue without retrieving waveforms or stationXML/response files.
 
-The following lines show how to send an `event-info request`_ with obspyDMT and present some examples.
+The following lines show how to send an `event-info request`_ with obspyDMT followed by some examples.
 
 The general way to define an `event-info request`_ is:
 
@@ -197,13 +197,21 @@ For details on *option-1* and *option-2* please refer to `Option types`_ section
 
     $ obspyDMT --event_info
 
-When the job starts, a folder will be created with the address specified for *--datapath* flag (by default: *obspyDMT-data* in the current directory). To access the event information for this example, go to */path/specified/in/datapath/2013-01-27_2013-02-01_5.5_9.9/EVENT* [the folder names will change based on your request] and check the *EVENT-CATALOG* text file (Please refer to `Folder structure`_ section for more information)
+When the job starts, a folder will be created with the address specified with *--datapath* flag (by default: *obspyDMT-data* in the current directory). To access the event information for this example, go to */path/specified/in/datapath/2014-10-16_2014-10-21_5.5_9.9/EVENTS-info and check the *EVENT-CATALOG* text file (Please refer to `Folder structure`_ section for more information).
 
-**Example 2:** by adding flags to the above command, one can change the default values and add/remove functionalities of the code. As an example, the following command shows how to get the info of all the events with magnitude more than Mw 7.0 occured after 2011-03-01 and before 2012-03-01:
+**WARNING:** it can happen that obspyDMT does not find any event with the above command. This is due to the default values and the availability of the events. For more customized requests, refer to the next example.
+
+**Example 2:** by adding flags to the above command, one can change the default values and add/remove functionalities of the code. As an example, the following command shows how to get the info of all the events with event magnitude in the range of 6.6-8.0 occured after 2013-05-01 and before 2014-01-01:
 
 ::
-    
-    $ obspyDMT --event_info --min_mag '7.0' --min_date '2011-03-01' --max_date '2012-03-01'
+
+    $ obspyDMT --datapath event_info_example --event_info --min_mag 6.6 --max_mag 8.0 --min_date 2013-05-01 --max_date 2014-01-01
+
+In the above command, *--datapath* is an option to specify the directory in which the data will be stored, *--event_info* determines that obspyDMT_ should just search for the event information and do not retrieve any seismic data (waveforms, stationxml files and metadata) and the other options *--min_mag*, *--max_mag*, *--min_date*, *--max_date* specify the minimum/maximum magnitude, minimum and maximum date.
+
+.. image:: figures/event_info_events.png
+   :scale: 75%
+   :align: center
 
 -------------------
 event-based request
@@ -213,12 +221,12 @@ In this type of request, the following steps will be done automatically:
 
 1. Search for all available events based on the options specified by the user.
 2. Check the availability of the requested stations for each event.
-3. Start to retrieve the waveforms and/or response files for each event and for all available stations. (default: waveforms, response files and metadata will be retrieved.)
+3. Start to retrieve the waveforms and/or stationXML/response files for each event and for all available stations. (default: waveforms, stationXML/response files and metadata will be retrieved.)
 4. Instrument correction to all saved waveforms based on the specified options.
 
 Retrieving and processing could be done in **serial** or in **parallel**.
 
-The following lines show how to send an `event-based request`_ with obspyDMT and present short examples.
+The following lines show how to send an `event-based request`_ with obspyDMT followed by some short examples.
 
 The general way to define an `event-based request`_ is:
 
@@ -228,17 +236,7 @@ The general way to define an `event-based request`_ is:
 
 For details on *option-1* and *option-2* please refer to `Option types`_ section.
 
-**Example 1:** to test the code with the defualt values run:
-
-::
-
-    $ obspyDMT --test '20'
-
-if you take away the option *--test '20'*, the default values could result in a huge amount of requests. This option set the code to send *20* requests to IRIS and ArcLink which is suitable for testing.
-
-When the job starts, a folder will be created with the address specified for *--datapath* flag (by default: *obspyDMT-data* in the current directory). [refer to `Folder structure`_ section]
-
-**Example 2:** by adding flags to the above command, one can change the default values and add/remove functionalities of the code. As an example, the following commands show how to get all the waveforms, response files and metadata of *BHZ* channels available in *TA* network with station names start with *Z* for the great Tohoku-oki earthquake of magnitude Mw 9.0:
+**Example 1:** the following command shows how to get all the waveforms, stationXML/response files and metadata of *BHZ* channels available in *TA* network with station names start with *Z* for the great Tohoku-oki earthquake of magnitude Mw 9.0:
 
 ::
 
@@ -250,25 +248,19 @@ or instead of using *identity* option:
 
     $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --net 'TA' --sta 'Z*' --cha 'BHZ'
 
-In the case that you know from which data provider you want to retrieve the data, it is better to exclude the non-relevant one. For instance, in this example since we know that *TA* network is within IRIS, it makes more sense to exclude ArcLink by:
+**Example 2:** By default, obspyDMT saves the waveforms in *SAC* format. In this case, it will fill in the station location (stla and stlo), station elevation (stel), station depth (stdp), event location (evla and evlo), event depth (evdp) and event magnitude (mag) in the SAC headers. However, if the desired format is *MSEED*: (for downloading the same event and station identity as *Example 1*)
 
 ::
 
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N'
+    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --mseed
 
-**Example 3:** By default, obspyDMT saves the waveforms in *SAC* format. In this case, it will fill out the station location (stla and stlo), station elevation (stel), station depth (stdp), event location (evla and evlo), event depth (evdp) and event magnitude (mag) in the SAC headers. However, if the desired format is *MSEED*: (for downloading the same event and station identity as *Example 2*)
-
-::
-
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N' --mseed
-
-**Example 4:** for downloading just the raw waveforms without response file and instrument correction:
+**Example 3:** for downloading just the raw waveforms without stationXML/response file and instrument correction:
 
 ::
 
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N' --mseed --response 'N' --ic_no
+    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --mseed --response 'N' --ic_no
 
-**Example 5:** the default values for the preset (how close the time series (waveform) will be cropped before the origin time of the event) and the offset (how close the time series (waveform) will be cropped after the origin time of the event) are 0 and 1800 seconds. You could change them by adding the following flags:
+**Example 4:** the default values for the preset (how close the time series (waveform) will be cropped before the origin time of the event) and the offset (how close the time series (waveform) will be cropped after the origin time of the event) are 0 and 1800 seconds. You can change them by adding the following flags:
 
 ::
 
@@ -282,11 +274,11 @@ In this type of request, the following steps will be done automatically:
 
 1. Get the time span from input and in case of large time spans, divide it into small intervals.
 2. Check the availability of the requested stations for each interval.
-3. Start to retrieve the waveforms and/or response files for each interval and for all the available stations. (default: waveforms, response files and metadata will be retrieved.)
+3. Start to retrieve the waveforms and/or response files for each interval and for all the available stations. (default: waveforms, stationXML/response files and metadata will be retrieved.)
 4. Instrument correction to all saved waveforms based on the specified options.
 5. Merging the retrieved waveforms for all time intervals to get the original input time span and save the final product.
 
-The following lines show how to send a `continuous request`_ with obspyDMT and present short examples.
+The following lines show how to send a `continuous request`_ with obspyDMT followed by some short examples.
 
 The general way to define a `continuous request`_ is:
 
@@ -296,21 +288,17 @@ The general way to define a `continuous request`_ is:
 
 For details on *option-1* and *option-2* please refer to `Option types`_ section.
 
-**Example 1:** to test the code with the defualt values run:
-
-::
-
-    $ obspyDMT --continuous --test '20'
-
-if you take away the option *--test '20'*, the default values could result in a huge amount of requests. This option set the code to send *20* requests to IRIS and ArcLink which is suitable for testing.
-
-When the job starts, a folder will be created with the address specified for *--datapath* flag (by default: *obspyDMT-data* in the current directory). [refer to `Folder structure`_ section]
-
-**Example 2:** by adding flags to the above command, one can change the default values and add/remove functionalities of the code. As an example, the following command lines show how to get all the waveforms, response files and metadata of the *BHZ* channels available in *TA* network with station names start with *Z* for the specified time span:
+**Example 1:** the following command line shows how to get all the waveforms, stationXML/response files and metadata of the *BHZ* channels available in *TA* network with station names start with *Z* for the specified time span:
 
 ::
 
     $ obspyDMT --continuous --identity 'TA.Z*.*.BHZ' --min_date '2011-01-01' --max_date '2011-01-03'
+
+**WARNING:** it is possible that this request takes a long time on your machine (depends on your internet connection). In this case, you can send parallel requests:
+
+::
+
+    $ obspyDMT --continuous --identity 'TA.Z*.*.BHZ' --min_date '2011-01-01' --max_date '2011-01-03' --req_parallel --req_np 10
 
 or instead of using *identity* option:
 
@@ -318,49 +306,55 @@ or instead of using *identity* option:
 
     $ obspyDMT --continuous --net 'TA' --sta 'Z*' --cha 'BHZ' --min_date '2011-01-01' --max_date '2011-01-03'
 
-In the case that you know from which data provider you want to retrieve the data, it is better to exclude the non-relevant one. For instance, in this example since we know that *TA* network is within IRIS, it makes more sense to exclude ArcLink by:
+**Example 2:** By default, obspyDMT saves the waveforms in *SAC* format. In this case, it will fill in the station location (stla and stlo), station elevation (stel), station depth (stdp), event location (evla and evlo), event depth (evdp) and event magnitude (mag) in the SAC headers. However, if the desired format is *MSEED*: (for downloading the same event and station identity as *Example 1*)
 
 ::
 
-    $ obspyDMT --continuous --identity 'TA.Z*.*.BHZ' --min_date '2011-01-01' --max_date '2011-01-03' --arc 'N' 
+    $ obspyDMT --continuous --identity 'TA.Z*.*.BHZ' --min_date '2011-01-01' --max_date '2011-01-03' --mseed
 
-**Example 3:** By default, obspyDMT saves the waveforms in *SAC* format. In this case, it will fill out the station location (stla and stlo), station elevation (stel), station depth (stdp), event location (evla and evlo), event depth (evdp) and event magnitude (mag) in the SAC headers. However, if the desired format is *MSEED*: (for downloading the same event and station identity as *Example 2*)
-
-::
-
-    $ obspyDMT --continuous --identity 'TA.Z*.*.BHZ' --min_date '2011-01-01' --max_date '2011-01-03' --arc 'N' --mseed
-
-**Example 4:** for downloading just the raw waveforms without response file and instrument correction:
+**Example 3:** for downloading just the raw waveforms without response file and instrument correction:
 
 ::
 
-    $ obspyDMT --continuous --identity 'TA.Z*.*.BHZ' --min_date '2011-01-01' --max_date '2011-01-03' --arc 'N' --mseed --response 'N' --ic_no
+    $ obspyDMT --continuous --identity 'TA.Z*.*.BHZ' --min_date '2011-01-01' --max_date '2011-01-03' --mseed --response 'N' --ic_no
 
 ------
 Update
 ------
 
-If you want to continue an interrupted request or complete your existing archive, you could use the updating option. The general ways to update an existing folder (located in *address*) for IRIS stations, ArcLink stations or both are:
+If you want to continue an interrupted request or complete your existing archive, you can use the updating option. The general ways to update an existing folder (located in *address*) for FDSN stations or ArcLink stations:
 
 ::
 
-    $ obspyDMT --iris_update 'address' --option-1 value --option-2
+    $ obspyDMT --fdsn_update 'address' --option-1 value --option-2
     $ obspyDMT --arc_update 'address' --option-1 value --option-2
-    $ obspyDMT --update_all 'address' --option-1 value --option-2
 
 Please note that all the commands presented in this section could be applied to `continuous request`_ by just adding *--continuous* flag to the command line (refer to the `continuous request`_ section).
 
-**Example 1:** first, lets retrieve all the waveforms, response files and metadata of *BHZ* channels available in *TA* network with station names start with *Z* for the great Tohoku-oki earthquake of magnitude Mw 9.0:
+**Example 1:** first, lets retrieve all the waveforms, stationXML/response files and metadata of *BHZ* channels available in *TA* network with station names start with *Z* for the great Tohoku-oki earthquake of magnitude Mw 9.0:
 
 ::
 
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N'
+    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ'
 
 now, we want to update the folder for *BHE* channels:
 
 ::
 
-    $ obspyDMT --update_all './obspyDMT-data' --identity 'TA.Z*.*.BHE'
+    $ obspyDMT --fdsn_update './obspyDMT-data' --identity 'TA.Z*.*.BHE'
+
+we can also send the request to other data-centers for both retrieving and updating. In this case, we want to update the directory for all available *BHZ* channels in *RESIF* data-center with *FR* as network name:
+
+::
+
+    $ obspyDMT --fdsn_update './obspyDMT-data' --identity 'FR.*.*.BHZ' --fdsn_base_url RESIF
+
+**WARNING:** it is possible that this request takes a long time on your machine (depends on your internet connection). In this case, you can send parallel requests:
+
+::
+
+    $ obspyDMT --fdsn_update './obspyDMT-data' --identity 'FR.*.*.BHZ' --fdsn_base_url RESIF --req_parallel --req_np 10
+
 
 ------------------------
 Geographical restriction
@@ -368,13 +362,17 @@ Geographical restriction
 
 If you are interested in the events happened in a specific geographical coordinate and/or retrieving the data from the stations in a specific circular or rectangular bounding area, you are in the right section! Here, we have two examples:
 
-**Example 1:** to extract the info of all the events occured in 2010 in a rectangular area (*lon1=44.38E* *lon2=63.41E* *lat1=24.21N* *lat2=40.01N*) with magnitude more than 3.0 and maximum depth of 80 km:
+**Example 1:** to extract the info of all the events occured since 2000 in a rectangular area (*lon1=44.38E* *lon2=63.41E* *lat1=24.21N* *lat2=40.01N*) with magnitude more than 3.0:
 
 ::
 
-    $ obspyDMT --event_info --min_mag '3.0' --max_depth '-80.0' --min_date '2010-01-01' --max_date '2011-01-01' --event_rect '44.38/63.41/24.21/40.01'
+    $ obspyDMT --event_info --min_mag '3.0' --min_date '2000-01-01' --max_date '2014-10-01' --event_rect '44.38/63.41/24.21/40.01'
 
-**Example 2:** to retrieve all the waveforms, response files and metadata of *BHZ* channels available in a specified rectangular bounding area (*lon1=125.0W* *lon2=70.0W* *lat1=25N* *lat2=45N*) for the great Tohoku-oki earthquake of magnitude Mw 9.0, the command line will be:
+.. image:: figures/geo_restrict_example.png
+   :scale: 75%
+   :align: center
+
+**Example 2:** to retrieve all the waveforms, stationXML/response files and metadata of *BHZ* channels available in a specified rectangular bounding area (*lon1=125.0W* *lon2=70.0W* *lat1=25N* *lat2=45N*) for the great Tohoku-oki earthquake of magnitude Mw 9.0, the command line will be:
 
 ::
 
@@ -384,7 +382,7 @@ If you are interested in the events happened in a specific geographical coordina
 Instrument correction
 ---------------------
 
-When obspyDMT retrieves waveforms and their response files, by default it tapers the waveforms, removes the trends of time series, filters and corrects them to the desired physical scales (Displacement, Velocity or Acceleration). The default correction unit is Displacement and to change it into Velocity or Acceleration:
+When obspyDMT retrieves waveforms and their stationXML/response files, by default it removes the trends of time series, tapers the waveforms, filters and corrects them to the desired physical scales (Displacement, Velocity or Acceleration). The default correction unit is Displacement and to change it into Velocity or Acceleration:
 
 ::
 
@@ -426,11 +424,11 @@ as mentioned above, *unit* is the unit that you want to correct the waveforms to
 
 To make it clearer, let's take a look at an example with following steps:
 
-**Step 1:** to retrieve all the waveforms, response files and metadata of *BHZ* channels available in *TA* network with station names start with *Z* for the great Tohoku-oki earthquake of magnitude Mw 9.0: (please note that instrument correction will be applied to the retrieved waveforms by default)
+**Step 1:** to retrieve all the waveforms, stationXML/response files and metadata of *BHZ* channels available in *TA* network with station names start with *Z* for the great Tohoku-oki earthquake of magnitude Mw 9.0: (please note that instrument correction will be applied to the retrieved waveforms by default)
 
 ::
 
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N'
+    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ'
 
 **Step 2:** now to correct the raw waveforms for velocity:
 
@@ -444,15 +442,15 @@ Parallel retrieving and processing
 
 For each download request, obspyDMT uses ObsPy_ clients to establish connection to the data-centers, sends the request, downloads the data and disconnect. Some modifications could be applied to enhance the whole procedure:
 
-**bulkdataselect**
+**bulk request**
 
-bulkdataselect_ is a method provided by IRIS which gives access to multiple channels of *MSEED* data for specified time ranges, i.e. instead of sending the requests one by one, a list of requests can be sent.
+**bulk request** is a method provided by FDSN which gives access to multiple channels of *MSEED* data for specified time ranges, i.e. instead of sending the requests one by one, a list of requests can be sent.
 
 obspyDMT incorporates this option and it can be activated:
 
 ::
 
-    $ obspyDMT --iris_bulk --option-1 'value' --option-2
+    $ obspyDMT --fdsn_bulk --option-1 'value' --option-2
 
 **Parallel retrieving and processing**
 
@@ -463,14 +461,6 @@ Moreover, obspyDMT can send the requests in parallel which makes the whole proce
     $ obspyDMT --req_parallel --req_np 10 --option-1 'value' --option-2
 
 *--req_parallel* means that the request should be sent in parallel and *--req_np 10* specifies the number of requested processes which is *10* here.
-
-**ATTENTION**: *bulkdataselect* and parallel options can be combined as well:
-
-::
-
-    $ obspyDMT --iris_bulk --req_parallel --req_np 10 --option-1 'value' --option-2
-
-In this case, obspyDMT checks the number of requested channels and if the number is more than *1000*, obspyDMT will automatically divide it into smaller groups and send them in parallel.
 
 obspyDMT can run the processing unit in parallel as well. In this mode, it divides the job into the number of requested processes and each of them performs the instrument correction or any other defined processes and stores the results. Syntax to activate this option is:
 
@@ -484,7 +474,7 @@ obspyDMT can run the processing unit in parallel as well. In this mode, it divid
 Plot
 ----
 
-For an existing folder, you could plot all the events and/or all the stations, ray path for event-station pairs and epicentral-distance/time for the waveforms.
+For an existing folder, you can plot all the events and/or all the stations, ray path for event-station pairs and epicentral-distance/time for the waveforms.
 
 The general syntax for plotting tools is: 
 
@@ -498,7 +488,7 @@ All the examples showed in this section are based on the folder created by the f
 
 ::
 
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --arc 'N'
+    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ'
 
 **Example 1:** let's plot both stations and events available in the folder:
 
@@ -532,8 +522,28 @@ the default format is *png*, but assume that we want *pdf* for our figures, then
 
     $ obspyDMT --plot_ray_gmt './obspyDMT-data'
 
-.. image:: figures/plotraygmt.png
-   :scale: 50%
+-----------------------
+Explore stationXML file
+-----------------------
+
+obspyDMT is able to plot the stationXML files by the following command: (all the figures will be saved at ./stationxml_plots)
+
+**Example 1:** plot the amplitude and phase components of a stationXML file that was retrieved in `event-info request`_:
+
+::
+
+    $ obspyDMT --plotxml_dir path/to/STXML.TA.Z33A..BHZ --plotxml_paz
+
+*--plotxml_dir* flag forces obspyDMT to generate a plot for amplitude and phase components of the StationXML file of TA.Z33A..BHZ station including all stages. *--plotxml_paz* extracts only PAZ, sensitivity and gain of the instrument response and plots the amplitude and phase components of that. Additionally, obspyDMT compares the results using $L_{1}$ norm between full response and only PAZ information and plots the results.
+
+.. image:: figures/TA.Z33A..BHZ.png
+   :scale: 75%
+   :align: center
+
+Moreover, it plots the stages of stationXML file as well.
+
+.. image:: figures/TA.Z33A..BHZ_stages.png
+   :scale: 75%
    :align: center
 
 ----------
@@ -542,15 +552,23 @@ Seismicity
 
 Geographical and historical distribution of earthquake activities (seismicity) can be plotted using *--seismicity* option in obspyDMT. In this mode, the software finds the events according to the input parameters and generates an image in which the events are categorized based on depth and magnitude.
 
-**Example:** the command line to create *Japan* seismicity map from all the events available in IRIS_ archive with magnitude more than 3.0 is as follow:
+**Example:** the command line to create *Japan* seismicity map from all the events available in IRIS_ archive with magnitude more than 3.0 since 2000 is as follow:
 
 ::
 
-    $ obspyDMT --datapath 'Seismicity' --seismicity --event_catalog IRIS --min_mag 3.0 --min_date 2000-01-01 --max_date 2013-01-01 --event_rect 120.0/155.0/25.0/55.0
+    $ obspyDMT --datapath 'Seismicity' --seismicity --min_mag 3.0 --min_date 2000-01-01 --max_date 2013-01-01 --event_rect 120.0/155.0/25.0/55.0
 
-*--datapath* is the address where the event catalog will be created, *--seismicity* enables the seismicity mode and *--event_catalog* changes the searching catalog (*EMSC* by default) to *IRIS*, *--min_mag*, *--min_date*, *--max_date* and *--event_rect* are event search parameters.
+*--datapath* is the address where the event catalog will be created, *--seismicity* enables the seismicity mode and *--min_mag*, *--min_date*, *--max_date* and *--event_rect* are event search parameters.
 
 .. image:: figures/seismicity.png
+   :scale: 50%
+   :align: center
+
+.. image:: figures/seismicity_depth.png
+   :scale: 50%
+   :align: center
+
+.. image:: figures/seismicity_magnitude.png
    :scale: 50%
    :align: center
 
