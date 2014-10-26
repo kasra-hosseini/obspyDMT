@@ -565,11 +565,11 @@ Geographical and historical distribution of earthquake activities (seismicity) c
    :align: center
 
 .. image:: figures/seismicity_depth.png
-   :scale: 50%
+   :scale: 20%
    :align: center
 
 .. image:: figures/seismicity_magnitude.png
-   :scale: 50%
+   :scale: 20%
    :align: center
 
 ----------------
