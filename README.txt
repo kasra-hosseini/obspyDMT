@@ -5,13 +5,13 @@ Copyright
 ---------
 GNU Lesser General Public License, Version 3 (LGPLv3)
 
-Copyright (c) 2012-2013 by:
+Copyright (c) 2012-2014 by:
     * Kasra Hosseini
 
 Overview
 --------
 obspyDMT (ObsPy Data Management Tool) is a command line tool for retrieving, 
-processing and management of massive seismic data in a fully automatic way 
+processing and management of massive seismological data in a fully automatic way 
 which could be run in serial or in parallel. 
 Moreover, complementary processing and managing tools have been designed 
 and introduced in addition to the obspyDMT options. 

@@ -1,65 +1,8 @@
-ADD:
-- Other kind of instrument correction (PAZ and resp [SAC])
-
 CHECK:
 - all depths either positive or negative
 
 
 ===================================================
-LION:
-
-import obspy
-from obspy.fdsn import Client
-client = Client('IRIS')
-inv = client.get_stations(network="TA", station="136A", location="*", channel="BH*")
-inv = client.get_stations(network="TA", station="136A", location="*", channel="BH*", level="response")
-print inv[0][0][0].response
-st = obspy.read()
-st.attach_response(inv)
-st[0].stats.response
-st.remove_response()
-st.plot()
-print inv[0][0][0].response
-inv[0][0][0].response.response_stages[0]
-print inv[0][0][0].response.response_stages[0]
-print inv[0][0][0].response.response_stages[0].Poles
-print inv[0][0][0].response.response_stages[0].pole
-print inv[0][0][0].response.response_stages[0].poles
-print inv[0][0][0].response.response_stages[0].zeros
-print inv[0][0][0].response.response_stages[0].gain
-resp = inv[0][0][0].response
-print resp
-resp.response_stages[2]
-resp.response_stages[2].__dict__
-resp.response_stages[2].__dict__
-resp.response_stages[2].__dict__
-print resp
-print resp.response_stages[1]
-print resp.response_stages[0]
-hist
-
-
-
-
-from obspy import read
-st = read('KZ.ZRN..BHZ')
-st
-print st
-print st[0]
-print st[0].stats
-st = read('KZ.ZRN..BHZ', details=True)
-print st
-st[0].stat
-st[0].stats
-print st[0].stats
-print st[0].stats.mseed
-print st[0].stats.mseed.__dict__
-st[0].stats.mseed.__dict__
-hist
-
-
-
-
 hosseini@kasra:~/local/src/obspy$ git remote -v
 origin	https://github.com/obspy/obspy.git (fetch)
 origin	https://github.com/obspy/obspy.git (push)

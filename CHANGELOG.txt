@@ -1,3 +1,8 @@
+0.7.6:
+  - obspyDMT:
+    * all the new changes introduced by FDSN are now included
+    * StationXML instrument correction is implemented and tested
+    * some new plotting options are added as well
 0.4.0:
   - obspyDMT:
     * Preparing the code for the first stable version
