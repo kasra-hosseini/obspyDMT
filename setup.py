@@ -3,8 +3,8 @@ from setuptools import setup
 
 setup(
     name = "obspyDMT",
-    version = "0.4.0",
-    description = "Retrieving, Processing and Management of Massive Seismic Data (Serial and Parallel)",
+    version = "0.7.6",
+    description = "Retrieving, Processing and Management of Massive Seismological Data (Serial and Parallel)",
     author = "Kasra Hosseini",
     author_email = "hosseini@geophysik.uni-muenchen.de",
     url = "https://github.com/kasra-hosseini/obspyDMT",
@@ -29,11 +29,11 @@ setup(
         ],
     long_description = """\
 obspyDMT (ObsPy Data Management Tool) is a command line tool for retrieving, 
-processing and management of massive seismic data in a fully automatic way 
+processing and management of massive seismological data in a fully automatic way 
 which could be run in serial or in parallel. 
 Moreover, complementary processing and managing tools have been 
 designed and introduced in addition to the obspyDMT options. 
 Because of the modular nature, different functionalities could be added 
-easily and/or each obspyDMT can be used as a module for other programs.
+easily and/or obspyDMT can be used as a module for other programs.
 """
 )
