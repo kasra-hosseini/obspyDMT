@@ -2101,7 +2101,7 @@ def FDSN_network(input):
             FDSN_waveform(input, Stas_fdsn, i, type='save')
         else:
             print 'No available station in FDSN for your request and ' \
-                  'for event %s!' % i
+                  'for event %s!' % i+1
             continue
 
 ###################### FDSN_available ##################################
