@@ -933,7 +933,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '0.7.6' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.7.6a' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -2119,13 +2119,18 @@ def FDSN_available(input, event, target_path, event_number):
     Sta_fdsn = []
 
     try:
+        if 'YV' in input['net']:
+            start_time = None
+            end_time = None
+        else:
+            start_time = UTCDateTime(event['t1'])
+            end_time = UTCDateTime(event['t2']),
         available = client_fdsn.get_stations(network=input['net'],
                                              station=input['sta'],
                                              location=input['loc'],
                                              channel=input['cha'],
-                                             starttime=
-                                             UTCDateTime(event['t1']),
-                                             endtime=UTCDateTime(event['t2']),
+                                             starttime=start_time,
+                                             endtime=end_time,
                                              latitude=input['lat_cba'],
                                              longitude=input['lon_cba'],
                                              minradius=input['mr_cba'],
@@ -2184,11 +2189,11 @@ def read_list_stas(add_list, normal_mode_syn, specfem3D):
     read a list of stations instead of checking the availability.
     """
 
-    print '\n---------------------------------'
+    print '\n----------------------------------------'
     print 'INFO:'
     print 'Format of the station list:'
-    print 'sta  net  loc  cha  lat  lon  ele'
-    print '---------------------------------\n\n'
+    print 'sta  net  loc  cha  lat  lon  ele  depth'
+    print '----------------------------------------\n\n'
 
     list_stas_fio = open(add_list)
     list_stas = list_stas_fio.readlines()
@@ -2219,7 +2224,7 @@ def read_list_stas(add_list, normal_mode_syn, specfem3D):
             final_list.append([list_stas[sta][1], list_stas[sta][0],
                                list_stas[sta][2], list_stas[sta][3],
                                list_stas[sta][4], list_stas[sta][5],
-                               list_stas[sta][6]])
+                               list_stas[sta][6], list_stas[sta][7]])
 
     return final_list
 
@@ -2522,7 +2527,7 @@ def FDSN_download_core(i, j, dic, type, len_events, events,
                                      station=Sta_req[j][1],
                                      location=Sta_req[j][2],
                                      channel=Sta_req[j][3],
-                                     starttime=t_start, endtime=t_end,
+                                     #starttime=t_start, endtime=t_end,
                                      filename=
                                      os.path.join(add_event[i], 'Resp',
                                                   'STXML.%s.%s.%s.%s'
