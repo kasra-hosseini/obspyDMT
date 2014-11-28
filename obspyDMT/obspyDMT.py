@@ -32,6 +32,7 @@ import shutil
 import sys
 import tarfile
 import time
+import re
 
 ############### obspy modules will be imported here
 try:
@@ -1743,9 +1744,11 @@ def get_Events(input, request):
                  address=os.path.join(eventpath, 'EVENTS-INFO', 'logger.txt'),
                  inputs=input)
 
-    for i in range(len(events)):
+
+    #---  ---  ---#
+    def print_event(i):
         print "-------------------------------------------------"
-        print "Event No: %s" % (i+1)
+        print "Event No: %s" % str( events.index(events[i]) + 1 )
         print "Date Time: %s" % events[i]['datetime']
         print "Catalog: %s" % events[i]['author']
         print "Depth: %s" % events[i]['depth']
@@ -1757,10 +1760,68 @@ def get_Events(input, request):
         print "Latitude: %s" % events[i]['latitude']
         print "Longitude: %s" % events[i]['longitude']
         print "Magnitude: %s" % events[i]['magnitude']
-    print "-------------------------------------------------"
 
-    Event_cat = open(os.path.join(eventpath, 'EVENTS-INFO',
-                                  'EVENT-CATALOG'), 'a+')
+
+    def delete_events():
+        garbage, counter = [], 0
+        ev_num = raw_input('\nType the number of event you wish not ' \
+                           'to preceed with, then hit >Enter<. \nTo ' \
+                           'proceed directly, hit >Enter< now:\t')
+
+        while re.search(r"\A\d+\Z", ev_num) and int(ev_num) > 0 \
+                and int(ev_num) <= len(events):
+            counter += 1
+            garbage.append(int(ev_num))
+            ev_num = raw_input('Go on:\t')
+
+        if len(garbage) != 0:
+            garbage = list(set(garbage))
+            garbage.sort()                    
+            print '\nThe following events are not considered for ' \
+                  'further steps:', garbage
+
+            garbage.reverse()
+            for ev_out in garbage: 
+                del events[ev_out-1]
+            if len(events) == 0: 
+                sys.exit('\nExit, seems like the catalogue is ' \
+                         'empty now. Try Again.')
+        else:
+            print
+    #---  ---  ---#
+
+    if len(events) == 0: 
+        pass
+
+    elif len(events) <= 10:
+
+        for i in range(len(events)):
+            print print_event(i)
+        print "-------------------------------------------------"
+        delete_events()
+        
+    else:
+        print print_event(0)
+        print print_event(1)
+        print "-------------------------------------------------"
+        print '.\n.\n.'
+        print print_event(-2)
+        print print_event(-1)
+        print "-------------------------------------------------"
+
+        try:
+            see_all = raw_input('\nDo you wish to see all events? y/[n]\t')
+            if re.search(r"\A([yjsd]|oui|yes|ja|jo|da|si)\Z", see_all.lower()):
+
+                for i in range(len(events)):
+                    print print_event(i)
+                print "-------------------------------------------------"
+                delete_events()
+
+        except Exception as err:
+            pass
+
+    Event_cat = open(os.path.join(eventpath,'EVENTS-INFO','EVENT-CATALOG'),'a+')
     Event_cat.writelines(str(period) + '\n')
     Event_cat.writelines('-------------------------------------' + '\n')
     Event_cat.writelines('Information about the requested Events:' + '\n\n')
@@ -1775,13 +1836,13 @@ def get_Events(input, request):
     Event_cat.writelines('max longitude: %s\n' % input['evlonmax'])
     Event_cat.writelines('min depth: %s\n' % input['min_depth'])
     Event_cat.writelines('max depth: %s\n' % input['max_depth'])
-    Event_cat.writelines('-------------------------------------' + '\n\n')
+    Event_cat.writelines('\n\n-------------------------------------\n')
     Event_cat.close()
 
     for i in range(len(events)):
         Event_cat = open(os.path.join(eventpath, 'EVENTS-INFO',
                                       'EVENT-CATALOG'), 'a')
-        Event_cat.writelines("Event No: %s\n" % i)
+        Event_cat.writelines("Event No: %s\n" % (i+1))
         Event_cat.writelines("Catalog: %s\n" % events[i]['author'])
         Event_cat.writelines("Event-ID: %s\n" % events[i]['event_id'])
         Event_cat.writelines("Date Time: %s\n" % events[i]['datetime'])
@@ -1816,11 +1877,11 @@ def events_info(request):
     global input
 
     if request == 'event-based':
-        print 'Event(s) are based on: ',
+        print 'Event(s) are based on:\t',
 
         try:
             print input['event_url']
-            print input['event_catalog']
+            print 'Specified catalogue:\t', input['event_catalog']
 
             evlatmin = input['evlatmin']
             evlatmax = input['evlatmax']
@@ -2939,7 +3000,7 @@ def ARC_download_core(i, j, dic, type, len_events, events,
                                         Sta_req[j][2], Sta_req[j][3],
                                         t_start, t_end)
 
-            print '%ssaving waveform for %s.%s.%s.%s  ---> DONE' \
+            print '%ssaving waveform for: %s.%s.%s.%s  ---> DONE' \
                   % (info_req, Sta_req[j][0], Sta_req[j][1],
                      Sta_req[j][2], Sta_req[j][3])
 
@@ -3289,7 +3350,7 @@ def inst_correct(input, ls_saved_stas, address, clients):
                                         % len(ls_saved_stas))
         report_parallel_open.writelines('Total Time     : %s\n'
                                         % (t_inst_2 - t_inst_1))
-    print '\nTime for instrument correction of %s stations: %s' \
+    print '\nTime for instrument correction of %s channels: %s' \
           % (len(ls_saved_stas), t_inst_2-t_inst_1)
 
 ###################### IC_core_iterate ########################################
