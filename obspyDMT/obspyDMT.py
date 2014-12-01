@@ -1916,7 +1916,7 @@ def events_info(request):
                                                 magnitudetype=
                                                 input['mag_type'])
 
-            if input['plot_all_events'] and len(events_QML) != 0:
+            if input['plot_all_events']:
                 plt.ion()
                 events_QML.plot()
 
