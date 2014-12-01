@@ -279,6 +279,11 @@ def command_parse():
     parser.add_option("--cut_time_phase", action="store_true",
                       dest="cut_time_phase", help=helpmsg)
 
+    helpmsg = "user can interactively select events of retrieved event " \
+              "catalogue."
+    parser.add_option("--user_select_event", action="store_true",
+                      dest="user_select_event", help=helpmsg)
+
     helpmsg = "start time, syntax: Y-M-D-H-M-S " \
               "(eg: '2010-01-01-00-00-00') or just " \
               "Y-M-D [Default: 10 days ago]"
@@ -1153,6 +1158,10 @@ def read_input_command(parser, **kwargs):
     input['offset'] = float(options.offset)
     input['max_result'] = int(options.max_result)
     input['depth_bins_seismicity'] = int(options.depth_bins_seismicity)
+    if options.user_select_event:
+        input['user_select_event'] = 'Y'
+    else:
+        input['user_select_event'] = 'N'
     if options.seismicity:
         input['seismicity'] = 'Y'
     else:
@@ -1605,7 +1614,7 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
     :param t_samp:
     :param nyquist:
     :param nfft:
-    :param min_freq:
+    :param min_freqevent_ur:
     :param output:
     :param start_stage:
     :param end_stage:
@@ -1744,8 +1753,7 @@ def get_Events(input, request):
                  address=os.path.join(eventpath, 'EVENTS-INFO', 'logger.txt'),
                  inputs=input)
 
-
-    #---  ---  ---#
+    #---  ---  ---  ---  ---#
     def print_event(i):
         print "-------------------------------------------------"
         print "Event No: %s" % str( events.index(events[i]) + 1 )
@@ -1761,7 +1769,6 @@ def get_Events(input, request):
         print "Longitude: %s" % events[i]['longitude']
         print "Magnitude: %s" % events[i]['magnitude']
 
-
     def delete_events():
         garbage, counter = [], 0
         ev_num = raw_input('\nType the number of event you wish not ' \
@@ -1774,11 +1781,13 @@ def get_Events(input, request):
             garbage.append(int(ev_num))
             ev_num = raw_input('Go on:\t')
 
+        print '\nThe following events are not considered for ' \
+                  'further steps:', garbage
+
         if len(garbage) != 0:
             garbage = list(set(garbage))
             garbage.sort()                    
-            print '\nThe following events are not considered for ' \
-                  'further steps:', garbage
+           
 
             garbage.reverse()
             for ev_out in garbage: 
@@ -1788,38 +1797,32 @@ def get_Events(input, request):
                          'empty now. Try Again.')
         else:
             print
-    #---  ---  ---#
+    #---  ---  ---  ---  ---#
 
-    if len(events) == 0: 
-        pass
-
-    elif len(events) <= 10:
+    if input['user_select_event'] == 'Y':
 
         for i in range(len(events)):
-            print print_event(i)
+            print_event(i)
         print "-------------------------------------------------"
-        delete_events()
-        
+        delete_events()    
+
     else:
-        print print_event(0)
-        print print_event(1)
-        print "-------------------------------------------------"
-        print '.\n.\n.'
-        print print_event(-2)
-        print print_event(-1)
-        print "-------------------------------------------------"
-
-        try:
-            see_all = raw_input('\nDo you wish to see all events? y/[n]\t')
-            if re.search(r"\A([yjsd]|oui|yes|ja|jo|da|si)\Z", see_all.lower()):
-
-                for i in range(len(events)):
-                    print print_event(i)
-                print "-------------------------------------------------"
-                delete_events()
-
-        except Exception as err:
+        if len(events) == 0: 
             pass
+
+        elif len(events) <= 10:
+            for i in range(len(events)):
+                print_event(i)
+            print "-------------------------------------------------"
+            
+        else:
+            print_event(0)
+            print_event(1)
+            print "-------------------------------------------------"
+            print '.\n.\n.'
+            print_event(-2)
+            print_event(-1)
+            print "-------------------------------------------------"
 
     Event_cat = open(os.path.join(eventpath,'EVENTS-INFO','EVENT-CATALOG'),'a+')
     Event_cat.writelines(str(period) + '\n')
@@ -1913,7 +1916,7 @@ def events_info(request):
                                                 magnitudetype=
                                                 input['mag_type'])
 
-            if input['plot_all_events']:
+            if input['plot_all_events'] and len(events_QML) != 0:
                 plt.ion()
                 events_QML.plot()
 
@@ -4828,8 +4831,13 @@ def send_email():
     msg = "request at:\n%s\n\nfinished at:\n%s\n\nTotal time:\n%s" \
           % (t1_str, t2_str, t2_pro-t1_pro)
 
-    server = smtplib.SMTP('localhost')
-    server.sendmail(fromaddr, toaddrs, msg)
+    try:
+        server = smtplib.SMTP('localhost')
+        server.sendmail(fromaddr, toaddrs, msg)
+    except Exception as err:
+        print '\nNo e-mail sent, as:\n>>:\t', err
+        err_info = traceback.extract_tb(sys.exc_info()[2])
+
 
 ###################### input_logger ###################################
 
