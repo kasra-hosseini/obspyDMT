@@ -933,7 +933,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '0.7.6b' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.7.6c' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -2124,8 +2124,10 @@ def FDSN_available(input, event, target_path, event_number):
             start_time = None
             end_time = None
         else:
-            start_time = UTCDateTime(event['t1'])
-            end_time = UTCDateTime(event['t2']),
+            start_time = None
+            end_time = None
+            #start_time = UTCDateTime(event['t1'])
+            #end_time = UTCDateTime(event['t2']),
         available = client_fdsn.get_stations(network=input['net'],
                                              station=input['sta'],
                                              location=input['loc'],
