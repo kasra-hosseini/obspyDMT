@@ -950,7 +950,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '0.7.6b' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.7.6c' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -1154,6 +1154,8 @@ def read_input_command(parser, **kwargs):
         input['event_catalog'] = options.event_catalog.upper()
     if options.read_catalog:
         input['read_catalog'] = options.read_catalog
+    else:
+        input['read_catalog'] = 'N'
     input['mag_type'] = options.mag_type
     input['min_mag'] = float(options.min_mag)
     input['max_mag'] = float(options.max_mag)
@@ -1902,6 +1904,12 @@ def events_info(request):
         
             # if: read event file ; else make url request for events
             if input['read_catalog'] != 'N':
+            
+                if input['event_catalog'] != None:
+                    print '\n\033[91mContradictory options chosen:\033[0m\nYou '\
+                          'specifed a catalog by "--event_catalog"\nand by "--read'\
+                          '_catalog".\nProceed with reading file !'
+                          
                 try:
                     events_QML = Catalog(events=[])
                     events_QML = readEvents(input['read_catalog'])
@@ -2015,10 +2023,10 @@ def events_info(request):
 
     elif request == 'continuous':
 
-        if input['read_catalog'] != None:
-            print '\n\033[91mContradictory options chosen:\033[0m you ' \
-                  'specifed continuous\ndata request and and a request based' \
-                  ' on events.\nProceed with continuous data request !\n'
+        if input['read_catalog'] != 'N':
+            print '\n\033[91mContradictory options chosen:\033[0m\nYou ' \
+                  'specifed "--continuous"\ndata request and "--read_catalog".'\
+                  '\nProceed with continuous data request !\n'
             print '-------------------------------------------------' 
 
         print 'Start identifying the intervals ..'
