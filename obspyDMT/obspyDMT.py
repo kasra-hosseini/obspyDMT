@@ -19,6 +19,7 @@
 from __future__ import with_statement
 import copy
 from datetime import datetime
+from collections import OrderedDict
 import fileinput
 import fnmatch
 import glob
@@ -218,7 +219,7 @@ def obspyDMT(**kwargs):
                 plot_tools(input, clients='arc')
 
     if input['plot_all_events']:
-        raw_input('\nPress enter to continue....\n')
+        raw_input('\nPress enter to continue ..\n')
 
     # ------------------Compressing-------------------------------------------
     if input['zip_w'] == 'Y' or input['zip_r'] == 'Y':
@@ -1183,6 +1184,7 @@ def read_input_command(parser, **kwargs):
         input['seismicity'] = 'N'
     input['get_events'] = options.get_events
     if options.get_continuous:
+        input['plot_all_events'] = None
         input['get_events'] = 'N'
         input['get_continuous'] = 'Y'
     else:
@@ -1347,6 +1349,9 @@ def read_input_command(parser, **kwargs):
         input['arc_merge_auto'] = 'N'
         input['plot_all_events'] = True
     else:
+        input['plot_all_events'] = False
+
+    if options.event_info and options.get_continuous:
         input['plot_all_events'] = False
 
     if options.seismicity:
@@ -1774,25 +1779,45 @@ def get_Events(input, request):
                  inputs=input)
 
     #---  ---  ---  ---  ---#
-    def print_event(i):
-        print "-------------------------------------------------"
-        print "Event No: %s" % str( events.index(events[i]) + 1 )
-        print "Date Time: %s" % events[i]['datetime']
-        print "Catalog: %s" % events[i]['author']
-        print "Depth: %s" % events[i]['depth']
-        print "Event-ID: %s" % events[i]['event_id']
-        try:
-            print "Flynn-Region: %s" % events[i]['flynn_region']
-        except Exception, e:
-            print "Flynn-Region: NONE"
-        print "Latitude: %s" % events[i]['latitude']
-        print "Longitude: %s" % events[i]['longitude']
-        print "Magnitude: %s" % events[i]['magnitude']
+    # calculate spaces used for table (shell ouput)
+    def spaces():
+        events2=copy.deepcopy(events)
+        for i in range(len(events2)):
+            try: del events2[i]['t1']
+            except: pass
+            try: del events2[i]['t2']
+            except: pass
+            try: del events2[i]['origin_id']
+            except: pass
+            try: del events2[i]['magnitude_type']
+            except: pass
+            try: events2[i]['datetime'] = str(events2[i]['datetime'])[:-8]
+            except: pass
+            try:
+                if request == 'continuous':
+                    del events2[i]['flynn_region']
+                    header = ['#N', 'LAT', 'LON', 'DEP', 'DATETIME', 'MAG', \
+                              'AUTH', 'EV_ID']
+                else:
+                    header = ['#N', 'LAT', 'LON', 'DEP', 'DATETIME', 'MAG', \
+                              'AUTH', 'EV_ID', 'FLYNN']
+            except: pass  
 
+        k, spaces = [], []
+        for i in range(len(events2)):
+            k.append( events2[i].values() )
+
+        for j in range(len(k[0])):
+            spaces.append( max( [len(str(k[i][j])) for i in range(len(k))] ))
+            
+        return spaces, events2, header
+
+
+    # delete event procedure
     def delete_events():
         garbage, counter = [], 0
-        ev_num = raw_input('\nType the number of event you wish not ' \
-                           'to preceed with, then hit >Enter<. \nTo ' \
+        ev_num = raw_input('Type the number of event you wish not ' \
+                           'to proceed with, then hit >Enter<. \nTo ' \
                            'proceed directly, hit >Enter< now:\t')
 
         while re.search(r"\A\d+\Z", ev_num) and int(ev_num) > 0 \
@@ -1819,31 +1844,44 @@ def get_Events(input, request):
             print
     #---  ---  ---  ---  ---#
 
+    # output shell
+    spaces, events2, header = spaces()
+    header_template = ['{:<'+str(e+2)+'}' for e in spaces]
+    row_format = '{}'.format(''.join(header_template))
+
     if input['user_select_event'] == 'Y':
 
-        for i in range(len(events)):
-            print_event(i)
-        print "-------------------------------------------------"
+        print '\n' + row_format.format(*header)
+        print 80 * '-'
+        for i in range(len(events2)):
+            print row_format.format(*events2[i].values())
+        print 80 * '-' + '\n' 
         delete_events()    
 
     else:
         if len(events) == 0: 
             pass
 
-        elif len(events) <= 10:
+        elif len(events2) <= 10:
+            print '\n' + row_format.format(*header)
+            print 80 * '-'
             for i in range(len(events)):
-                print_event(i)
-            print "-------------------------------------------------"
+                print row_format.format(*events2[i].values())
+            print 80 * '-' + '\n' 
             
         else:
-            print_event(0)
-            print_event(1)
-            print "-------------------------------------------------"
-            print '.\n.\n.'
-            print_event(-2)
-            print_event(-1)
-            print "-------------------------------------------------"
+            print '\n' + row_format.format(*header)
+            print 80 * '-'
+            print row_format.format(*events2[0].values())
+            print row_format.format(*events2[1].values())
+            print row_format.format(*events2[2].values())
+            print '..'
+            print row_format.format(*events2[-3].values())            
+            print row_format.format(*events2[-2].values())
+            print row_format.format(*events2[-1].values())
+            print 80 * '-' + '\n'           
 
+    # output file
     Event_cat = open(os.path.join(eventpath,'EVENTS-INFO','EVENT-CATALOG'),'a+')
     Event_cat.writelines(str(period) + '\n')
     Event_cat.writelines('-------------------------------------' + '\n')
@@ -1870,6 +1908,7 @@ def get_Events(input, request):
         Event_cat.writelines("Event-ID: %s\n" % events[i]['event_id'])
         Event_cat.writelines("Date Time: %s\n" % events[i]['datetime'])
         Event_cat.writelines("Magnitude: %s\n" % events[i]['magnitude'])
+        Event_cat.writelines("Magnitude Type: %s\n" % events[i]['magnitude_type'])
         Event_cat.writelines("Depth: %s\n" % events[i]['depth'])
         Event_cat.writelines("Latitude: %s\n" % events[i]['latitude'])
         Event_cat.writelines("Longitude: %s\n" % events[i]['longitude'])
@@ -1981,23 +2020,25 @@ def events_info(request):
                 else:
                     event_time_day = str(event_time.day)
 
-                events.append({'author': events_QML.events[i].preferred_magnitude().creation_info.author or
-                                         events_QML.events[i].magnitudes[0].creation_info.author,
-                               'event_id': str(event_time.year) + event_time_month + event_time_day + '_' + str(i),
-                               'origin_id': events_QML.events[i].preferred_origin_id or
-                                            events_QML.events[i].origins[0].resource_id.resource_id,
-                               'longitude': events_QML.events[i].preferred_origin().longitude or
-                                            events_QML.events[i].origins[0].longitude,
-                               'latitude': events_QML.events[i].preferred_origin().latitude or
-                                           events_QML.events[i].origins[0].latitude,
-                               'datetime': event_time,
-                               'depth': -events_QML.events[i].preferred_origin().depth/1000. or
-                                        -events_QML.events[i].origins[0].depth/1000.,
-                               'magnitude': events_QML.events[i].preferred_magnitude().mag or
-                                            events_QML.events[i].magnitudes[0].mag,
-                               'magnitude_type': events_QML.events[i].preferred_magnitude().magnitude_type.lower() or
-                                                 events_QML.events[i].magnitudes[0].magnitude_type.lower(),
-                               'flynn_region': 'NAN'})
+                events.append(OrderedDict([
+                               ('number' , i+1),
+                               ('latitude' , events_QML.events[i].preferred_origin().latitude or events_QML.events[i].origins[0].latitude),
+                               ('longitude', events_QML.events[i].preferred_origin().longitude or
+                                             events_QML.events[i].origins[0].longitude),
+                               ('depth' , -events_QML.events[i].preferred_origin().depth/1000. or
+                                          -events_QML.events[i].origins[0].depth/1000.),
+                               ('datetime', event_time),
+                               ('magnitude', events_QML.events[i].preferred_magnitude().mag or
+                                             events_QML.events[i].magnitudes[0].mag),
+                               ('magnitude_type', events_QML.events[i].preferred_magnitude().magnitude_type.lower() or
+                                                  events_QML.events[i].magnitudes[0].magnitude_type.lower()),
+                               ('author', events_QML.events[i].preferred_magnitude().creation_info.author or
+                                          events_QML.events[i].magnitudes[0].creation_info.author),
+                               ('event_id', str(event_time.year) + event_time_month + event_time_day + '_' + str(i)),
+                               ('origin_id', events_QML.events[i].preferred_origin_id or
+                                             events_QML.events[i].origins[0].resource_id.resource_id),
+                               ('flynn_region', 'NAN'),
+                                ]))
 
                 # if read in event catalog, define variables new which determine
                 # the name of the folder where results will be stored. (Other-
@@ -2010,7 +2051,7 @@ def events_info(request):
                     input['min_mag'] = str(min( [e['magnitude'] for e in events] ))
     
 
-        except Exception as e:
+        except ValueError as e:
             print 30*'-'
             print 'No event found with the requested criteria!'
             print 'ERROR: %s' % e
@@ -2041,38 +2082,58 @@ def events_info(request):
             #t_res = t_cont - num_div*input['interval']
             for i in range(num_div):
                 cont_dir_name = (len(str(num_div)) - len(str(i)))*'0' + str(i)
-                events.append({'author': 'NAN',
-                               'event_id': 'continuous' + cont_dir_name,
-                               'origin_id': -12345.0,
-                               'longitude': -12345.0, 'latitude': -12345.0,
-                               'datetime': m_date + i*input['interval'],
-                               't1': m_date + i*input['interval'] +
-                                     input['preset_cont'],
-                               't2': m_date + (i+1)*input['interval'] +
-                                     input['offset_cont'],
-                               'depth': -12345.0, 'magnitude': -12345.0,
-                               'magnitude_type': 'NAN',
-                               'flynn_region': 'NAN'})
+                events.append(OrderedDict([
+                               ('number' , i+1),
+                               ('latitude' , -12345.0),
+                               ('longitude', -12345.0),
+                               ('depth', -12345.0),
+                               ('datetime', m_date + i*input['interval']),
+                               ('magnitude', -12345.0),
+                               ('magnitude_type', 'NAN'),
+                               ('author', 'NAN'),
+                               ('event_id', 'continuous' + cont_dir_name),
+                               ('origin_id', -12345.0),
+                               ('flynn_region', 'NAN'),
+                               ('t1', m_date + i*input['interval'] +
+                                     input['preset_cont']),
+                               ('t2', m_date + (i+1)*input['interval'] +
+                                     input['offset_cont']),
+                                ]))
+                                
             cont_dir_name = (len(str(num_div)) - len(str(i+1)))*'0' + str(i+1)
-            events.append({'author': 'NAN',
-                           'event_id': 'continuous' + cont_dir_name,
-                           'origin_id': -12345.0,
-                           'longitude': -12345.0, 'latitude': -12345.0,
-                           'datetime': m_date + (i+1)*input['interval'],
-                           't1': m_date + (i+1)*input['interval'] +
-                                 input['preset_cont'],
-                           't2': M_date,
-                           'depth': -12345.0, 'magnitude': -12345.0,
-                           'magnitude_type': 'NAN',
-                           'flynn_region': 'NAN'})
+            events.append(OrderedDict([
+                           ('number' , i+2),
+                           ('latitude' , -12345.0),
+                           ('longitude', -12345.0),
+                           ('depth', -12345.0),
+                           ('datetime', m_date + (i+1)*input['interval']),
+                           ('magnitude', -12345.0),
+                           ('magnitude_type', 'NAN'),
+                           ('author', 'NAN'),
+                           ('event_id', 'continuous' + cont_dir_name),
+                           ('origin_id', -12345.0),
+                           ('flynn_region', 'NAN'),
+                           ('t1', m_date + (i+1)*input['interval'] +
+                                 input['preset_cont']),
+                           ('t2', M_date),
+                            ]))
+
         else:
-            events.append({'author': 'NAN', 'event_id': 'continuous0',
-                           'origin_id': -12345.0,
-                           'longitude': -12345.0, 'latitude': -12345.0,
-                           'datetime': m_date,
-                           't1': m_date, 't2': M_date,
-                           'depth': -12345.0, 'magnitude': -12345.0,
-                           'magnitude_type': 'NAN', 'flynn_region': 'NAN'})
+            events.append(OrderedDict([
+                   ('number' , i+1),
+                   ('latitude' , -12345.0),
+                   ('longitude', -12345.0),
+                   ('depth', -12345.0),
+                   ('datetime', m_date),
+                   ('magnitude', -12345.0),
+                   ('magnitude_type', 'NAN'),
+                   ('author', 'NAN'),
+                   ('event_id', 'continuous' + cont_dir_name),
+                   ('origin_id', -12345.0),
+                   ('flynn_region', 'NAN'),
+                   ('t1', m_date),
+                   ('t2', M_date),
+                    ]))
         print 'DONE'
     return events
 
