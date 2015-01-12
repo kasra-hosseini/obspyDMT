@@ -304,7 +304,7 @@ def command_parse():
               "'Ms' (surface magnitude), " \
               "'mb' (body wave magnitude), " \
               "'Mw' (moment magnitude). " \
-              "[Default: 'Mw']"
+              "[Default: None]"
     parser.add_option("--mag_type", action="store",
                       dest="mag_type", help=helpmsg)
 
@@ -849,9 +849,9 @@ def read_input_command(parser, **kwargs):
              'max_date': str(UTCDateTime() - 60 * 60 * 24 * 5 * 1),
              'event_url': 'IRIS',
              'event_catalog': None,
-             'mag_type': 'Mw',
+             'mag_type': None,
              'min_mag': 5.5, 'max_mag': 9.9,
-             'min_depth': +10.0, 'max_depth': -6000.0,
+             'min_depth': -10.0, 'max_depth': +6000.0,
              'get_events': 'Y',
              'interval': 3600*24,
              'preset_cont': 0,
@@ -933,7 +933,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '0.7.6c' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.7.6d' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -1841,8 +1841,8 @@ def events_info(request):
                                                 longitude=evlon,
                                                 maxradius=evradmax,
                                                 minradius=evradmin,
-                                                mindepth=-input['min_depth'],
-                                                maxdepth=-input['max_depth'],
+                                                mindepth=input['min_depth'],
+                                                maxdepth=input['max_depth'],
                                                 starttime=input['min_date'],
                                                 endtime=input['max_date'],
                                                 minmagnitude=input['min_mag'],
