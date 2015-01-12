@@ -450,6 +450,7 @@ def single_comparison():
                 tr2 = read(os.path.join(input['second_path'], identity))[0]
             
             if input['resample'] != 'N':
+                print 'WARNING: you are using resample!!!'
                 tr1.resample(input['resample'])
                 tr2.resample(input['resample'])
             
@@ -785,6 +786,7 @@ def cc_core(ls_first, ls_second, identity_all, max_ts, print_sta):
                 tr2 = read(os.path.join(input['second_path'], identity))[0]
             
             if input['resample'] != 'N':
+                print 'WARNING: you are using resample!!!'
                 tr1.resample(input['resample'])
                 tr2.resample(input['resample'])
             
