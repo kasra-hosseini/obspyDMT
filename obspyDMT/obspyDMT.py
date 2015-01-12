@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#-------------------------------------------------------------------
+# -------------------------------------------------------------------
 #   Filename:  obspyDMT.py
 #   Purpose:   obspyDMT main program 
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
-#-------------------------------------------------------------------
+# -------------------------------------------------------------------
 
-#-----------------------------------------------------------------------
-#----------------Import required Modules (Python and Obspy)-------------
-#-----------------------------------------------------------------------
+# -----------------------------------------------------------------------
+# ----------------Import required Modules (Python and Obspy)-------------
+# -----------------------------------------------------------------------
 
 # Required Python and Obspy modules will be imported in this part.
 
@@ -36,7 +36,7 @@ import time
 import re
 import traceback
 
-############### obspy modules will be imported here
+# ############## obspy modules will be imported here
 try:
     from obspy import __version__ as obs_ver
 except Exception as error:
@@ -60,7 +60,7 @@ from obspy.xseed import Parser
 # Required Clients from Obspy will be imported here.
 from obspy.arclink import Client as Client_arclink
 from obspy.fdsn import Client as Client_fdsn
-############### END obspy modules
+# ############## END obspy modules
 
 try:
     import smtplib
@@ -71,7 +71,7 @@ except Exception as error:
     print "********************************************************\n"
 
 
-############### Fill in descrip list
+# ############## Fill in descrip list
 descrip = ['obspy ver: ' + obs_ver]
 try:
     from obspy.core.util import locations2degrees
@@ -100,11 +100,11 @@ try:
 except Exception as error:
     descrip.append('Basemap: not installed\n\nerror:\n%s\n'
                    'You could not use all the plot options' % error)
-############### END Fill in descrip list
+# ############## END Fill in descrip list
 
-########################################################################
-############################# Main Program #############################
-########################################################################
+# #######################################################################
+# ############################ Main Program #############################
+# #######################################################################
 
 
 def obspyDMT(**kwargs):
@@ -144,7 +144,6 @@ def obspyDMT(**kwargs):
     if input['get_events'] == 'Y':
         if get_Events(input, request='event-based') == 0:
             return
-        
 
     if input['get_continuous'] == 'Y':
         get_Events(input, request='continuous')
@@ -241,11 +240,11 @@ def obspyDMT(**kwargs):
         print '*********************************************'
         send_email()
 
-########################################################################
-###################### Functions are defined here ######################
-########################################################################
+# #######################################################################
+# ##################### Functions are defined here ######################
+# #######################################################################
 
-###################### command_parse ###################################
+# ##################### command_parse ###################################
 
 
 def command_parse():
@@ -295,8 +294,8 @@ def command_parse():
                       dest="user_select_event", help=helpmsg)
                       
     helpmsg = "read in an existing event catalog and proceed. " \
-			  "Currently supported data formats: 'QUAKEML', 'MCHEDR' " \
-			  "e.g.: --read_catalog 'path/to/file'"
+              "Currently supported data formats: " \
+              "'QUAKEML', 'MCHEDR' e.g.: --read_catalog 'path/to/file'"
     parser.add_option("--read_catalog", action="store",
                       dest="read_catalog", help=helpmsg)
 
@@ -852,7 +851,7 @@ def command_parse():
 
     return options, args, parser
 
-###################### read_input_command ##############################
+# ##################### read_input_command ##############################
 
 
 def read_input_command(parser, **kwargs):
@@ -985,7 +984,7 @@ def read_input_command(parser, **kwargs):
         options.req_parallel = True
         options.ArcLink = 'N'
 
-    #############Parse paths and make sure that they are all absolute path
+    # ############Parse paths and make sure that they are all absolute path
     if options.datapath and not os.path.isabs(options.datapath):
         options.datapath = os.path.join(os.getcwd(), options.datapath)
 
@@ -1042,7 +1041,7 @@ def read_input_command(parser, **kwargs):
 
     if options.plotxml_dir and not os.path.isabs(options.plotxml_dir):
         options.plotxml_dir = os.path.join(os.getcwd(), options.plotxml_dir)
-    #############END Parse paths
+    # ############END Parse paths
 
     # extract min. and max. longitude and latitude for event
     # if the user has given the coordinates with -r (GMT syntax)
@@ -1321,7 +1320,7 @@ def read_input_command(parser, **kwargs):
     input['plot_format'] = options.plot_format
     input['email'] = options.email
 
-    #--------------Changing relevant options for some specific options
+    # --------------Changing relevant options for some specific options
     if input['get_continuous'] == 'N':
         input['fdsn_merge_auto'] = 'N'
         input['arc_merge_auto'] = 'N'
@@ -1353,7 +1352,8 @@ def read_input_command(parser, **kwargs):
         input['fdsn_merge_auto'] = 'N'
         input['arc_merge_auto'] = 'N'
         input['plot_all_events'] = True
-        if options.identity or options.get_continuous: input['waveform'] = 'N'
+        if options.identity or options.get_continuous:
+            input['waveform'] = 'N'
     else:
         input['plot_all_events'] = False
 
@@ -1396,7 +1396,7 @@ def read_input_command(parser, **kwargs):
         if input[cli] == 'Y':
             input['priority_clients'].append(cli)
 
-###################### plot_xml_response ###############################
+# ##################### plot_xml_response ###############################
 
 
 def plot_xml_response(input):
@@ -1445,7 +1445,7 @@ def plot_xml_response(input):
         try:
             xml_inv = read_inventory(addxml, format='stationXML')
             for cha_name in xml_inv.get_contents()['channels']:
-                #cha_name = xml_inv.get_contents()['channels'][0]
+                # cha_name = xml_inv.get_contents()['channels'][0]
                 if plotxml_datetime:
                     cha_date = plotxml_datetime
                 else:
@@ -1468,8 +1468,8 @@ def plot_xml_response(input):
                 if plotallstages:
                     plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft,
                                            min_freq, output,
-                                           start_stage, end_stage, unwrap_phase,
-                                           cha_name)
+                                           start_stage, end_stage,
+                                           unwrap_phase, cha_name)
 
                 try:
                     cpx_response, freq = xml_response.get_evalresp_response(
@@ -1478,7 +1478,8 @@ def plot_xml_response(input):
                     cpx_paz, freq = xml_response.get_evalresp_response(
                         t_samp=t_samp, nfft=nfft, output=output, start_stage=1,
                         end_stage=2)
-                except:
+                except Exception, e:
+                    print 'WARNING: %s' % e
                     continue
 
                 paz = convert_xml_paz(xml_response, output)
@@ -1550,7 +1551,8 @@ def plot_xml_response(input):
                     if plotpaz:
                         plt.loglog(f, abs(abs(cpx_response) -
                                           abs(h)*paz['sensitivity']),
-                                   color='red', lw=3, label='|full-resp - PAZ|')
+                                   color='red', lw=3,
+                                   label='|full-resp - PAZ|')
                         plt.axvline(nyquist, ls="--", color='blue', lw=3)
                         plt.axvline(percentage*nyquist, ls="--",
                                     color='blue', lw=3)
@@ -1578,22 +1580,24 @@ def plot_xml_response(input):
                         plt.axvline(percentage*nyquist, ls="--",
                                     color='blue', lw=3)
                     plt.xlabel('Frequency [Hz]', size=24, weight='bold')
-                    plt.ylabel('Phase Difference [rad]', size=24, weight='bold')
+                    plt.ylabel('Phase Difference [rad]',
+                               size=24, weight='bold')
                     plt.xticks(size=18, weight='bold')
                     plt.yticks(size=18, weight='bold')
                     plt.xlim(xmin=min_freq, xmax=nyquist+5)
                     plt.legend(loc=0, prop={'size': 18, 'weight': 'bold'})
                     plt.grid()
-                    plt.savefig(os.path.join('stationxml_plots', cha_name + '.png'))
+                    plt.savefig(os.path.join('stationxml_plots',
+                                             cha_name + '.png'))
 
-            #compare = abs(phase[:int(0.8*len(phase))] -
+            # compare = abs(phase[:int(0.8*len(phase))] -
             #              np.angle(h[:int(0.8*len(phase))]))
-            #if len(compare[compare>0.1]) > 0:
+            # if len(compare[compare>0.1]) > 0:
             #    lat_red.append(xml_inv.get_coordinates(cha_name)['latitude'])
             #    lon_red.append(xml_inv.get_coordinates(cha_name)['longitude'])
             #    print cha_name
             #    print paz
-            #else:
+            # else:
             #    lat_blue.append(xml_inv.get_coordinates(cha_name)['latitude'])
             #    lon_blue.append(xml_inv.get_coordinates(cha_name)['longitude'])
 
@@ -1611,7 +1615,7 @@ def plot_xml_response(input):
 
     if plot_map_compare:
         m = Basemap(projection='cyl', lon_0=0, lat_0=0, resolution='l')
-        #m.drawcoastlines()
+        # m.drawcoastlines()
         m.fillcontinents()
         m.drawparallels(np.arange(-90., 120., 30.))
         m.drawmeridians(np.arange(0., 420., 60.))
@@ -1627,7 +1631,7 @@ def plot_xml_response(input):
         plt.show()
     sys.exit('[EXIT] obspyDMT finished normally...')
 
-###################### plot_xml_plotallstages ##########################
+# ##################### plot_xml_plotallstages ##########################
 
 
 def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
@@ -1662,16 +1666,19 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
             cpx_response, freq = xml_response.get_evalresp_response(
                 t_samp=t_samp, nfft=nfft, output=output,
                 start_stage=i, end_stage=i)
-        except:
+        except Exception, e:
+            print 'WARNING: %s' % e
             continue
     
         try:
             inp = xml_response.response_stages[i].input_units
         except Exception, e:
+            print 'WARNING: %s' % e
             inp = ''
         try:
             out = xml_response.response_stages[i].output_units
         except Exception, e:
+            print 'WARNING: %s' % e
             out = ''
     
         phase_resp = np.angle(cpx_response)
@@ -1703,7 +1710,7 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
     plt.savefig(os.path.join('stationxml_plots',
                              '%s_stages.png' % cha_name))
 
-###################### convert_xml_paz ######################################
+# ##################### convert_xml_paz ######################################
 
 
 def convert_xml_paz(xml_response, output):
@@ -1720,14 +1727,15 @@ def convert_xml_paz(xml_response, output):
     for resp_stage in xml_response.response_stages:
         gain_arr.append(resp_stage.stage_gain)
         try:
-            normalization_factor.append(
-                resp_stage.normalization_factor)
+            normalization_factor.append(resp_stage.normalization_factor)
         except Exception as e:
+            print 'WARNING: %s' % e
             pass
         try:
             poles.append(resp_stage.poles)
             zeros.append(resp_stage.zeros)
         except Exception as e:
+            print 'WARNING: %s' % e
             pass
 
     paz = {}
@@ -1741,7 +1749,7 @@ def convert_xml_paz(xml_response, output):
     paz['sensitivity'] = np.prod(np.array(gain_arr))
     return paz
 
-###################### get_Events ######################################
+# ##################### get_Events ######################################
 
 
 def get_Events(input, request):
@@ -1755,62 +1763,86 @@ def get_Events(input, request):
     # request can be 'event-based' or continuous
     try:
         events, catalog, successful_read = events_info(request)
-    except: return 0
-                 
+    except Exception, e:
+        print 'WARNING: %s' % e
+        return 0
 
-    #---  ---  ---  ---  ---#
+    # ---  ---  ---  ---  ---#
     # calculate spaces used for table (shell ouput)
     def spaces():
-        events2=copy.deepcopy(events)
+        events2 = copy.deepcopy(events)
         for i in range(len(events2)):
-            try: del events2[i]['t1']
-            except: pass
-            try: del events2[i]['t2']
-            except: pass
-            try: del events2[i]['origin_id']
-            except: pass
-            try: del events2[i]['magnitude_type']
-            except: pass
-            try: events2[i]['datetime'] = str(events2[i]['datetime'])[:-8]
-            except: pass
+            try:
+                del events2[i]['t1']
+            except Exception, e:
+                print 'WARNING: %s' % e
+                pass
+            try:
+                del events2[i]['t2']
+            except Exception, e:
+                print 'WARNING: %s' % e
+                pass
+            try:
+                del events2[i]['origin_id']
+            except Exception, e:
+                print 'WARNING: %s' % e
+                pass
+            try:
+                del events2[i]['magnitude_type']
+            except Exception, e:
+                print 'WARNING: %s' % e
+                pass
+            try:
+                events2[i]['datetime'] = str(events2[i]['datetime'])[:-8]
+            except Exception, e:
+                print 'WARNING: %s' % e
+                pass
             try:
                 if request == 'continuous':
                     del events2[i]['flynn_region']
-                    header = ['#N', 'LAT', 'LON', 'DEP', 'DATETIME', 'MAG', \
+                    header = ['#N', 'LAT', 'LON', 'DEP', 'DATETIME', 'MAG',
                               'AUTH', 'EV_ID']
-                    events2[i]['latitude'] = "{:>6}".format( float(events2[i]['latitude']) )
-                    events2[i]['longitude'] = "{:>6}".format( float(events2[i]['longitude']) )
-                    events2[i]['depth'] = "{:>6}".format( float(events2[i]['depth']) )
+                    events2[i]['latitude'] = \
+                        "{:>6}".format(float(events2[i]['latitude']))
+                    events2[i]['longitude'] = \
+                        "{:>6}".format(float(events2[i]['longitude']))
+                    events2[i]['depth'] = \
+                        "{:>6}".format(float(events2[i]['depth']))
                     
                 else:
-                    header = ['#N', 'LAT', 'LON', 'DEP', 'DATETIME', 'MAG', \
+                    header = ['#N', 'LAT', 'LON', 'DEP', 'DATETIME', 'MAG',
                               'AUTH', 'EV_ID', 'FLY']
-                    events2[i]['latitude'] = "{:>8.3f}".format( float(events2[i]['latitude']) )
-                    events2[i]['longitude'] = "{:>8.3f}".format( float(events2[i]['longitude']) )
-                    events2[i]['depth'] = int( float(events2[i]['depth']) )
-            except: pass
+                    events2[i]['latitude'] = \
+                        "{:>8.3f}".format(float(events2[i]['latitude']))
+                    events2[i]['longitude'] = \
+                        "{:>8.3f}".format(float(events2[i]['longitude']))
+                    events2[i]['depth'] = \
+                        int(float(events2[i]['depth']))
+            except Exception, e:
+                print 'WARNING: %s' % e
+                pass
             
         try:
             k, spaces = [], []
             for i in range(len(events2)):
-                k.append( events2[i].values() )
+                k.append(events2[i].values())
 
             for j in range(len(k[0])):
-                spaces.append( max( [len(str(k[i][j])) for i in range(len(k))] ))
+                spaces.append(max([len(str(k[i][j])) for i in range(len(k))]))
                 
             return spaces, events2, header
-        except: pass
-
+        except Exception, e:
+            print 'WARNING: %s' % e
+            pass
 
     # delete-event procedure
     def delete_events():
         garbage, counter = [], 0
-        ev_num = raw_input('Type the number of event you wish not ' \
-                           'to proceed with, then hit >Enter<. \nTo ' \
-                           'proceed directly, hit >Enter< now:\t')
+        ev_num = raw_input('Type the number of event you wish not to proceed '
+                           'with, then hit >Enter<. '
+                           '\nTo proceed directly, hit >Enter< now:\t')
 
-        while re.search(r"\A\d+\Z", ev_num) and int(ev_num) > 0 \
-                and int(ev_num) <= len(events):
+        while re.search(r"\A\d+\Z", ev_num) and 0 < int(ev_num) <= len(events):
             counter += 1
             garbage.append(int(ev_num))
             ev_num = raw_input('Go on:\t')
@@ -1821,21 +1853,19 @@ def get_Events(input, request):
         if len(garbage) != 0:
             garbage = list(set(garbage))
             garbage.sort()                    
-           
 
             garbage.reverse()
             for ev_out in garbage: 
                 del events[ev_out-1]
                 catalog.__delitem__(ev_out-1)
             if len(events) == 0: 
-                sys.exit('\nExit, seems like the catalog is ' \
+                sys.exit('\nExit, seems like the catalog is '
                          'empty now. Try Again.')
         else:
             print
 
         return garbage
-    #---  ---  ---  ---  ---#
-    
+    # ---  ---  ---  ---  ---#
 
     # output shell
     spaces, events2, header = spaces()
