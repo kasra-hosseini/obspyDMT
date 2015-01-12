@@ -2618,12 +2618,12 @@ def FDSN_waveform(input, Sta_req, i, type):
                 for ll in range(len(sub_par_jobs)):
                     if par_jobs[sub_par_jobs[ll]].is_alive():
                         counter += 1
-                if not counter == input['req_np']:
-                    print 'counter: %s' % counter
+                #if not counter == input['req_np']:
+                #    print 'counter: %s' % counter
 
             par_jobs[l].start()
             sub_par_jobs.append(l)
-            print 'length of sub_pat_jobs: %s' % len(sub_par_jobs)
+            #print 'length of sub_pat_jobs: %s' % len(sub_par_jobs)
 
         counter = input['req_np']
         while counter > 0:
