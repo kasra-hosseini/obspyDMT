@@ -326,7 +326,7 @@ def command_parse():
               "'Ms' (surface magnitude), " \
               "'mb' (body wave magnitude), " \
               "'Mw' (moment magnitude). " \
-              "[Default: 'Mw']"
+              "[Default: None]"
     parser.add_option("--mag_type", action="store",
                       dest="mag_type", help=helpmsg)
 
@@ -872,9 +872,9 @@ def read_input_command(parser, **kwargs):
              'event_url': 'IRIS',
              'event_catalog': None,
              'read_catalog' : 'N',
-             'mag_type': 'Mw',
+             'mag_type': None,
              'min_mag': 5.5, 'max_mag': 9.9,
-             'min_depth': +10.0, 'max_depth': -6000.0,
+             'min_depth': -10.0, 'max_depth': +6000.0,
              'get_events': 'Y',
              'interval': 3600*24,
              'preset_cont': 0,
@@ -956,7 +956,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '0.7.6c' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.7.6e' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -2000,7 +2000,6 @@ def events_info(request):
 
     if request == 'event-based':
         try:
-        
             # if: read event file ; else make url request for events
             if input['read_catalog'] != 'N':
             
@@ -2056,8 +2055,8 @@ def events_info(request):
                                                     longitude=evlon,
                                                     maxradius=evradmax,
                                                     minradius=evradmin,
-                                                    mindepth=-input['min_depth'],
-                                                    maxdepth=-input['max_depth'],
+                                                    mindepth=input['min_depth'],
+                                                    maxdepth=input['max_depth'],
                                                     starttime=input['min_date'],
                                                     endtime=input['max_date'],
                                                     minmagnitude=input['min_mag'],
@@ -2390,8 +2389,12 @@ def FDSN_available(input, event, target_path, event_number):
             start_time = None
             end_time = None
         else:
-            start_time = event['t1']
-            end_time = event['t2']
+            #start_time = event['t1']
+            #end_time = event['t2']
+            start_time = None
+            end_time = None
+            #start_time = UTCDateTime(event['t1'])
+            #end_time = UTCDateTime(event['t2']),
         available = client_fdsn.get_stations(network=input['net'],
                                              station=input['sta'],
                                              location=input['loc'],
