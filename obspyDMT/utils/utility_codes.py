@@ -3,7 +3,7 @@
 
 # -------------------------------------------------------------------
 #   Filename:  utility_codes.py
-#   Purpose:   Collection of helping scripts
+#   Purpose:   Collection of helping scripts, utility codes
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -32,6 +32,10 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 def header_printer():
+    """
+    Printing the welcome message
+    :return:
+    """
     os.system('clear')
     print 80*'-'
     print '\t\tobspyDMT (ObsPy Data Management Tool)\n'

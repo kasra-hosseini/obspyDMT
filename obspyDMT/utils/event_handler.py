@@ -3,7 +3,7 @@
 
 # -------------------------------------------------------------------
 #   Filename:  event_handler.py
-#   Purpose:   helping functions for handling events
+#   Purpose:   handling events in obspyDMT
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -32,6 +32,7 @@ import time
 
 from input_handler import input_logger
 from utility_codes import locate
+from gcmt_cat_func import gcmt_catalog
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -310,6 +311,17 @@ def events_info(input_dics, request):
                     orderby='time',
                     catalog=input_dics['event_catalog'],
                     magnitudetype=input_dics['mag_type'])
+                # events_QML_test = \
+                #     gcmt_catalog(input_dics['min_date'],
+                #                  input_dics['max_date'],
+                #                  evlatmin, evlatmax, evlonmin, evlonmax,
+                #                  evlat, evlon, evradmin, evradmax,
+                #                  input_dics['min_depth'],
+                #                  input_dics['max_depth'],
+                #                  input_dics['min_mag'],
+                #                  input_dics['max_mag'],
+                #                  input_dics['mag_type'])
+                import ipdb; ipdb.set_trace()
 
             # no matter if list was passed or requested, sort catalogue,
             # plot events and proceed

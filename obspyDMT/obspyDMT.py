@@ -19,8 +19,8 @@
 import sys
 import time
 
-from utils.event_handler import get_Events, create_tar_file
 from utils.arclink_handler import ARC_network
+from utils.event_handler import get_Events, create_tar_file
 from utils.fdsn_handler import FDSN_network
 from utils.input_handler import command_parse, read_input_command
 from utils.instrument_handler import FDSN_ARC_IC
@@ -35,8 +35,11 @@ from utils.utility_codes import header_printer, send_email, goodbye_printer
 def obspyDMT(**kwargs):
     """
     obspyDMT: is the function dedicated to the main part of the code.
-    It organizes all the sub-main functions used in obspyDMT
+    It organizes all the sub-main functions to run the program
+    :param kwargs:
+    :return:
     """
+    # printing the header
     header_printer()
     # initializing variables:
     events = None
