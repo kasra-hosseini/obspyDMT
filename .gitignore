@@ -1,3 +1,4 @@
 .idea
 obspyDMT/outputs
 obspyDMT/ignore
+*pyc
