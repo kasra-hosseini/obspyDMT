@@ -32,7 +32,7 @@ import time
 
 from input_handler import input_logger
 from utility_codes import locate
-from gcmt_cat_func import gcmt_catalog
+# from gcmt_cat_func import gcmt_catalog
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)

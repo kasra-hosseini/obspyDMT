@@ -851,8 +851,9 @@ def read_input_command(parser, **kwargs):
         print parser.option_groups[int(options.list_option)-1].title
         for opt_grp in \
                 parser.option_groups[int(options.list_option)-1].option_list:
-            print "{0:20s}\t\t{1:20s}".\
-                format(opt_grp.get_opt_string(), opt_grp.help)
+            print "{0:20s}\t{1:20s}\t{2:20s}\t\t{3:20s}".\
+                format(opt_grp.get_opt_string(), opt_grp.dest,
+                       opt_grp.type, opt_grp.help)
         sys.exit()
 
     if options.version:
