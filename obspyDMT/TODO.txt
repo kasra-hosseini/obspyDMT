@@ -1,5 +1,5 @@
 1. Check and change the procedure:
-input_handler.py               ----------> 
+input_handler.py               ----------> CHECKED 
 event_handler.py               ---------->    
 fdsn_handler.py                ---------->    
 arclink_handler.py             ---------->    
