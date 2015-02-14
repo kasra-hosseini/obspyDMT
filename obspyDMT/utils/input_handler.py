@@ -747,9 +747,6 @@ def read_input_command(parser, **kwargs):
     :return:
     """
     # Defining the default values.
-    # Each of these values could be changed
-    # by defining the required command-line flag (if you use
-    # "'./obspyDMT.py --type command'")
     input_dics = {'datapath': 'obspyDMT-data',
                   'min_date': str(UTCDateTime() - 60 * 60 * 24 * 10 * 1),
                   'max_date': str(UTCDateTime() - 60 * 60 * 24 * 5 * 1),
@@ -888,62 +885,17 @@ def read_input_command(parser, **kwargs):
         options.ArcLink = 'N'
 
     # ############Parse paths and make sure that they are all absolute path
-    if options.datapath and not os.path.isabs(options.datapath):
-        options.datapath = os.path.join(os.getcwd(), options.datapath)
-
-    if options.fdsn_update != 'N' and not os.path.isabs(options.fdsn_update):
-        options.fdsn_update = os.path.join(os.getcwd(), options.fdsn_update)
-
-    if options.arc_update != 'N' and not os.path.isabs(options.arc_update):
-        options.arc_update = os.path.join(os.getcwd(), options.arc_update)
-
-    if options.update_all != 'N' and not os.path.isabs(options.update_all):
-        options.update_all = os.path.join(os.getcwd(), options.update_all)
-
-    if options.fdsn_ic != 'N' and not os.path.isabs(options.fdsn_ic):
-        options.fdsn_ic = os.path.join(os.getcwd(), options.fdsn_ic)
-
-    if options.arc_ic != 'N' and not os.path.isabs(options.arc_ic):
-        options.arc_ic = os.path.join(os.getcwd(), options.arc_ic)
-
-    if options.ic_all != 'N' and not os.path.isabs(options.ic_all):
-        options.ic_all = os.path.join(os.getcwd(), options.ic_all)
-
-    if options.fdsn_merge != 'N' and not os.path.isabs(options.fdsn_merge):
-        options.fdsn_merge = os.path.join(os.getcwd(), options.fdsn_merge)
-
-    if options.arc_merge != 'N' and not os.path.isabs(options.arc_merge):
-        options.arc_merge = os.path.join(os.getcwd(), options.arc_merge)
-
-    if options.merge_all != 'N' and not os.path.isabs(options.merge_all):
-        options.merge_all = os.path.join(os.getcwd(), options.merge_all)
-
-    if options.plot_ev != 'N' and not os.path.isabs(options.plot_ev):
-        options.plot_ev = os.path.join(os.getcwd(), options.plot_ev)
-
-    if options.plot_sta != 'N' and not os.path.isabs(options.plot_sta):
-        options.plot_sta = os.path.join(os.getcwd(), options.plot_sta)
-
-    if options.plot_se != 'N' and not os.path.isabs(options.plot_se):
-        options.plot_se = os.path.join(os.getcwd(), options.plot_se)
-
-    if options.plot_ray != 'N' and not os.path.isabs(options.plot_ray):
-        options.plot_ray = os.path.join(os.getcwd(), options.plot_ray)
-
-    if options.plot_ray_gmt != 'N' and not os.path.isabs(options.plot_ray_gmt):
-        options.plot_ray_gmt = os.path.join(os.getcwd(), options.plot_ray_gmt)
-
-    if options.plot_epi != 'N' and not os.path.isabs(options.plot_epi):
-        options.plot_epi = os.path.join(os.getcwd(), options.plot_epi)
-
-    if options.plot_dt != 'N' and not os.path.isabs(options.plot_dt):
-        options.plot_dt = os.path.join(os.getcwd(), options.plot_dt)
-
-    if options.plot_save != 'N' and not os.path.isabs(options.plot_save):
-        options.plot_save = os.path.join(os.getcwd(), options.plot_save)
-
-    if options.plotxml_dir and not os.path.isabs(options.plotxml_dir):
-        options.plotxml_dir = os.path.join(os.getcwd(), options.plotxml_dir)
+    for paths in ['datapath', 'fdsn_update', 'arc_update', 'update_all',
+                  'fdsn_ic', 'arc_ic', 'ic_all', 'fdsn_merge', 'arc_merge',
+                  'merge_all', 'plot_ev', 'plot_sta', 'plot_se', 'plot_ray',
+                  'plot_ray_gmt', 'plot_epi', 'plot_dt', 'plot_save',
+                  'plotxml_dir']:
+        optatr_path = getattr(options, paths)
+        if not optatr_path:
+            continue
+        if optatr_path != 'N' and not os.path.isabs(optatr_path):
+            setattr(options, paths, os.path.join(os.getcwd(),
+                                                 getattr(options, paths)))
     # ############END Parse paths
 
     # extract min. and max. longitude and latitude for event
