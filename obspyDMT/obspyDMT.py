@@ -12,10 +12,6 @@
 # -----------------------------------------------------------------------
 # ----------------Import required Modules (Python and Obspy)-------------
 # -----------------------------------------------------------------------
-
-# Required Python and Obspy modules will be imported in this part.
-
-# Added this line for python 2.5 compatibility
 import sys
 import time
 
