@@ -16,11 +16,12 @@
 # Required Python and Obspy modules will be imported in this part.
 from collections import OrderedDict
 import copy
-from datetime import timedelta
+from datetime import datetime, timedelta
 import glob
 import matplotlib.pyplot as plt
 from obspy.core.event import Catalog, readEvents
 from obspy.core import read, UTCDateTime
+from obspy.core.util import locations2degrees
 from obspy.fdsn import Client as Client_fdsn
 import os
 import pickle
@@ -29,10 +30,10 @@ import shutil
 import sys
 import tarfile
 import time
+import urllib2
 
 from input_handler import input_logger
 from utility_codes import locate
-# from gcmt_cat_func import gcmt_catalog
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -42,7 +43,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def get_Events(input_dics, request):
     """
-    Getting list of events
+    Generating list of events
     :param input_dics:
     :param request:
     :return:
@@ -56,57 +57,14 @@ def get_Events(input_dics, request):
         print 'WARNING: %s' % e
         return 0
 
-    # output shell
-    spaces, events2, header = event_spaces(events=events, request=request)
-    header_template = ['{:<'+str(e+2)+'}' for e in spaces]
-    row_format = '{}'.format(''.join(header_template))
-
-    if input_dics['user_select_event'] == 'Y':
-
-        print '\n' + row_format.format(*header)
-        print 80 * '-'
-        for i in range(len(events2)):
-            print (row_format.format(*events2[i].values())).rstrip()
-        print 80 * '-' + '\n'
-        garbage = delete_events(events=events, catalog=catalog)
-
-    else:
-        garbage = '0'
-        if len(events) == 0:
-            pass
-
-        elif len(events) <= 50:
-            print '\n' + row_format.format(*header)
-            print 80 * '-'
-            for i in range(len(events2)):
-                print (row_format.format(*events2[i].values())).rstrip()
-            print 80 * '-' + '\n'
-
-        else:
-            print '\n' + row_format.format(*header)
-            print 80 * '-'
-            print (row_format.format(*events2[0].values())).rstrip()
-            print (row_format.format(*events2[1].values())).rstrip()
-            print (row_format.format(*events2[2].values())).rstrip()
-            print '..'
-            print (row_format.format(*events2[-3].values())).rstrip()
-            print (row_format.format(*events2[-2].values())).rstrip()
-            print (row_format.format(*events2[-1].values())).rstrip()
-            print 80 * '-' + '\n'
-
-    if len(events) == 0:
+    if len(events) < 1:
+        if not input_dics['plot_all_events']:
+            print "ERROR: no event available to proceed"
         return 0
 
-    # if read in event catalog, define variables new which determine
-    # the name of the folder where results will be stored. (Other-
-    # wise folder is named after defaults (10 & 5 days ago)). For
-    # renaming use max and min from quakes of read catalog
-    if (input_dics['read_catalog'] != 'N' and successful_read == 1) \
-            or len(garbage) != 0:
-        input_dics['max_date'] = str(max([e['datetime'] for e in events]))
-        input_dics['min_date'] = str(min([e['datetime'] for e in events]))
-        input_dics['max_mag'] = str(max([e['magnitude'] for e in events]))
-        input_dics['min_mag'] = str(min([e['magnitude'] for e in events]))
+    events, catalog, events2, row_format, header = \
+        output_shell_event(input_dics, events, catalog, successful_read,
+                           request)
 
     print 'Number of event(s): %s' % len(events)
     print 'Time for retrieving and saving the event info: %s' \
@@ -120,109 +78,8 @@ def get_Events(input_dics, request):
         str(input_dics['max_mag']))
     eventpath = os.path.join(input_dics['datapath'], period)
 
-    if os.path.exists(eventpath):
-        print '\n********************************************************'
-        if raw_input('Directory for the requested period already exists:'
-                     '\n%s\n\nOptions:\nN: Close the program and try '
-                     'the updating mode.\nY: Remove the tree, continue the '
-                     'program and re-download.\n' % eventpath).upper() == 'Y':
-            print '********************************************************'
-            shutil.rmtree(eventpath)
-            os.makedirs(eventpath)
-        else:
-            sys.exit('Exit the program ..')
-    else:
-        os.makedirs(eventpath)
-
-    os.makedirs(os.path.join(eventpath, 'EVENTS-INFO'))
-    input_logger(argus=sys.argv, address=os.path.join(eventpath,
-                                                      'EVENTS-INFO',
-                                                      'logger_command.txt'),
-                 inputs=input_dics)
-
-    # output catalogue as ASCII
-    Event_cat = \
-        open(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.txt'), 'a+')
-    st_argus = 'Command line:\n-------------\n'
-    for item in sys.argv:
-        st_argus += item + ' '
-    st_argus += '\n'
-    Event_cat.writelines(str(period) + '\n')
-    Event_cat.writelines(st_argus)
-    Event_cat.writelines('-------------------------------------' + '\n')
-    Event_cat.writelines('Information about the requested Events:' + '\n\n')
-    Event_cat.writelines('Number of Events: %s\n' % len(events))
-    Event_cat.writelines('min datetime: %s\n' % input_dics['min_date'])
-    Event_cat.writelines('max datetime: %s\n' % input_dics['max_date'])
-    Event_cat.writelines('min magnitude: %s\n' % input_dics['min_mag'])
-    Event_cat.writelines('max magnitude: %s\n' % input_dics['max_mag'])
-    Event_cat.writelines('min latitude: %s\n' % input_dics['evlatmin'])
-    Event_cat.writelines('max latitude: %s\n' % input_dics['evlatmax'])
-    Event_cat.writelines('min longitude: %s\n' % input_dics['evlonmin'])
-    Event_cat.writelines('max longitude: %s\n' % input_dics['evlonmax'])
-    Event_cat.writelines('min depth: %s\n' % input_dics['min_depth'])
-    Event_cat.writelines('max depth: %s\n' % input_dics['max_depth'])
-    Event_cat.writelines('\n\n-------------------------------------\n')
-    Event_cat.close()
-
-    for i in range(len(events)):
-        Event_cat = open(os.path.join(eventpath, 'EVENTS-INFO',
-                                      'catalog.txt'), 'a')
-        Event_cat.writelines("Event No: %s\n" % (i+1))
-        Event_cat.writelines("Catalog: %s\n" % events[i]['author'])
-        Event_cat.writelines("Event-ID: %s\n" % events[i]['event_id'])
-        Event_cat.writelines("Date Time: %s\n" % events[i]['datetime'])
-        Event_cat.writelines("Magnitude: %s\n" % events[i]['magnitude'])
-        Event_cat.writelines("Magnitude Type: %s\n"
-                             % events[i]['magnitude_type'])
-        Event_cat.writelines("Depth: %s\n" % events[i]['depth'])
-        Event_cat.writelines("Latitude: %s\n" % events[i]['latitude'])
-        Event_cat.writelines("Longitude: %s\n" % events[i]['longitude'])
-        try:
-            Event_cat.writelines("Flynn-Region: %s\n"
-                                 % events[i]['flynn_region'])
-        except KeyError:
-            Event_cat.writelines("Flynn-Region: None\n")
-        Event_cat.writelines('-------------------------------------' + '\n')
-        Event_cat.close()
-    Event_file = open(os.path.join(eventpath, 'EVENTS-INFO',
-                                   'event_list_pickle'), 'a+')
-    pickle.dump(events, Event_file)
-    Event_file.close()
-
-    # output catalogue as ASCII but in table form
-    try:
-        st_argus = 'Command line:\n-------------\n'
-        for item in sys.argv:
-            st_argus += item + ' '
-        st_argus += '\n'
-        Event_table = \
-            open(os.path.join(eventpath,
-                              'EVENTS-INFO', 'catalog_table.txt'), 'w')
-
-        Event_table.writelines(st_argus)
-        Event_table.writelines('\n' + row_format.format(*header))
-        Event_table.writelines('-'*80 + '\n')
-        for i in range(len(events2)):
-            Event_table.writelines(
-                (row_format.format(*events2[i].values())).rstrip() + '\n')
-        Event_table.writelines('-'*80 + '\n')
-    except Exception as err:
-        print '\nCouldn\'t write catalog object to ASCII file as:\n>>:\t %s\n' \
-              'Proceed without ..\n' % err
-
-    # output catalogue as QUAKEML / JSON files
-    try:
-        catalog.write(
-            os.path.join(eventpath, 'EVENTS-INFO', 'catalog.ml'),
-            format="QUAKEML")
-        catalog.write(
-            os.path.join(eventpath, 'EVENTS-INFO', 'catalog.json'),
-            format="JSON")
-    except Exception as err:
-        print '\nCouldn\'t write catalog object to file as:\n>>:\t %s\n' \
-              'Proceed without ..\n' % err
-
+    write_cat_logger(input_dics, eventpath, period, events, catalog,
+                     events2, row_format, header)
     return events
 
 # ##################### events_info #####################################
@@ -230,17 +87,12 @@ def get_Events(input_dics, request):
 
 def events_info(input_dics, request):
     """
-    Get the event(s) info for event-based or continuous requests
+    Get event(s) info for event-based or continuous requests
     :param input_dics:
     :param request:
     :return:
     """
     successful_read = 0
-
-    if input_dics['waveform'] == 'N':
-        print '\nYou' \
-              ' specifed "--event_info"\nand also data request.'   \
-              '\nProceed without downloading files !\n'
 
     events = []
     events_QML = []
@@ -249,7 +101,7 @@ def events_info(input_dics, request):
             # if: read event file ; else make url request for events
             if input_dics['read_catalog'] != 'N':
 
-                if not input_dics['event_catalog']:
+                if input_dics['event_catalog']:
                     print '\n\033[91mContradictory options chosen:\033[0m\nYou '\
                           'specifed a catalog by "--event_catalog"\nand by "--read'\
                           '_catalog".\nProceed with reading file !'
@@ -265,7 +117,7 @@ def events_info(input_dics, request):
                           ' tried to read file:\n>>:\t', \
                         input_dics['read_catalog']
                     print '\nFor valid data formats, see:'
-                    print 'obspyDMT -h | grep --read_catalog'
+                    print 'obspyDMT -h | grep read_catalog'
                     return
                 except IOError as err:
                     print '\n\033[91mStated file does not exist:\033[0m\n' \
@@ -292,36 +144,42 @@ def events_info(input_dics, request):
                 evradmax = input_dics['evradmax']
                 evradmin = input_dics['evradmin']
 
-                client_fdsn = Client_fdsn(base_url=input_dics['event_url'])
-                events_QML = client_fdsn.get_events(
-                    minlatitude=evlatmin,
-                    maxlatitude=evlatmax,
-                    minlongitude=evlonmin,
-                    maxlongitude=evlonmax,
-                    latitude=evlat,
-                    longitude=evlon,
-                    maxradius=evradmax,
-                    minradius=evradmin,
-                    mindepth=input_dics['min_depth'],
-                    maxdepth=input_dics['max_depth'],
-                    starttime=input_dics['min_date'],
-                    endtime=input_dics['max_date'],
-                    minmagnitude=input_dics['min_mag'],
-                    maxmagnitude=input_dics['max_mag'],
-                    orderby='time',
-                    catalog=input_dics['event_catalog'],
-                    magnitudetype=input_dics['mag_type'])
-                # events_QML_test = \
-                #     gcmt_catalog(input_dics['min_date'],
-                #                  input_dics['max_date'],
-                #                  evlatmin, evlatmax, evlonmin, evlonmax,
-                #                  evlat, evlon, evradmin, evradmax,
-                #                  input_dics['min_depth'],
-                #                  input_dics['max_depth'],
-                #                  input_dics['min_mag'],
-                #                  input_dics['max_mag'],
-                #                  input_dics['mag_type'])
-                import ipdb; ipdb.set_trace()
+                event_switch = 'fdsn'
+                if input_dics['event_catalog']:
+                    if input_dics['event_catalog'].lower() == 'gcmt_combo':
+                        event_switch = 'gcmt_combo'
+
+                if event_switch == 'fdsn':
+                    client_fdsn = Client_fdsn(base_url=input_dics['event_url'])
+                    events_QML = client_fdsn.get_events(
+                        minlatitude=evlatmin,
+                        maxlatitude=evlatmax,
+                        minlongitude=evlonmin,
+                        maxlongitude=evlonmax,
+                        latitude=evlat,
+                        longitude=evlon,
+                        maxradius=evradmax,
+                        minradius=evradmin,
+                        mindepth=input_dics['min_depth'],
+                        maxdepth=input_dics['max_depth'],
+                        starttime=input_dics['min_date'],
+                        endtime=input_dics['max_date'],
+                        minmagnitude=input_dics['min_mag'],
+                        maxmagnitude=input_dics['max_mag'],
+                        orderby='time',
+                        catalog=input_dics['event_catalog'],
+                        magnitudetype=input_dics['mag_type'])
+                else:
+                    events_QML = \
+                        gcmt_catalog(input_dics['min_date'],
+                                     input_dics['max_date'],
+                                     evlatmin, evlatmax, evlonmin, evlonmax,
+                                     evlat, evlon, evradmin, evradmax,
+                                     input_dics['min_depth'],
+                                     input_dics['max_depth'],
+                                     input_dics['min_mag'],
+                                     input_dics['max_mag'],
+                                     input_dics['mag_type'])
 
             # no matter if list was passed or requested, sort catalogue,
             # plot events and proceed
@@ -330,20 +188,53 @@ def events_info(input_dics, request):
             if input_dics['plot_all_events']:
                 plt.ion()
                 events_QML.plot()
+                raw_input('Press enter to close all the windows...')
+                return [], [], []
 
             events = []
             for i in range(len(events_QML)):
                 event_time = \
                     events_QML.events[i].preferred_origin().time or \
                     events_QML.events[i].origins[0].time
-                if event_time.month < 10:
-                    event_time_month = '0' + str(event_time.month)
-                else:
-                    event_time_month = str(event_time.month)
-                if event_time.day < 10:
-                    event_time_day = '0' + str(event_time.day)
-                else:
-                    event_time_day = str(event_time.day)
+                event_time_month = '%02i' % int(event_time.month)
+                event_time_day = '%02i' % int(event_time.day)
+
+                try:
+                    # XXX Check about the preferred?
+                    if not events_QML.events[i].focal_mechanisms == []:
+                        focal_mechanism = [
+                            events_QML.events[i].preferred_focal_mechanism()
+                            ['moment_tensor']['tensor']['m_rr'],
+                            events_QML.events[i].preferred_focal_mechanism()
+                            ['moment_tensor']['tensor']['m_tt'],
+                            events_QML.events[i].preferred_focal_mechanism()
+                            ['moment_tensor']['tensor']['m_pp'],
+                            events_QML.events[i].preferred_focal_mechanism()
+                            ['moment_tensor']['tensor']['m_rt'],
+                            events_QML.events[i].preferred_focal_mechanism()
+                            ['moment_tensor']['tensor']['m_rp'],
+                            events_QML.events[i].preferred_focal_mechanism()
+                            ['moment_tensor']['tensor']['m_tp']]
+                    else:
+                        focal_mechanism = False
+                except AttributeError:
+                    print "WARNING: focal_mechanism does not exist for " \
+                          "event: %s -- set to False" % (i+1)
+                    focal_mechanism = False
+                try:
+                    if not events_QML.events[i].focal_mechanisms == []:
+                        half_duration = [
+                            events_QML.events[i].preferred_focal_mechanism()
+                            ['moment_tensor']['source_time_function']['type'],
+                            events_QML.events[i].preferred_focal_mechanism()
+                            ['moment_tensor']['source_time_function']
+                            ['duration']]
+                    else:
+                        half_duration = False
+                except AttributeError:
+                    print "WARNING: half_duration does not exist for " \
+                          "event: %s -- set to False" % (i+1)
+                    half_duration = False
 
                 events.append(OrderedDict(
                     [('number', i+1),
@@ -373,6 +264,8 @@ def events_info(input_dics, request):
                       event_time_month + event_time_day + '_' + str(i+1)),
                      ('origin_id', events_QML.events[i].preferred_origin_id or
                       events_QML.events[i].origins[0].resource_id.resource_id),
+                     ('focal_mechanism', focal_mechanism),
+                     ('half_duration', half_duration),
                      ('flynn_region', 'NAN'),
                      ]))
 
@@ -392,7 +285,6 @@ def events_info(input_dics, request):
 
         except Exception as e:
             print 60*'-'
-            print 'No event found with the requested criteria!'
             print 'ERROR: %s' % e
             print 60*'-'
             events = []
@@ -432,31 +324,37 @@ def events_info(input_dics, request):
                      ('magnitude_type', 'NAN'),
                      ('author', 'NAN'),
                      ('event_id', 'continuous' + cont_dir_name),
-                     ('origin_id', -12345), ('flynn_region', 'NAN'),
+                     ('origin_id', -12345),
+                     ('focal_mechanism', False),
+                     ('half_duration', False),
+                     ('flynn_region', 'NAN'),
                      ('t1', m_date + (i-1)*input_dics['interval'] +
                       input_dics['preset_cont']),
                      ('t2', m_date + i*input_dics['interval'] +
                       input_dics['offset_cont']),
                      ]))
 
-            cont_dir_name = \
-                (len(str(num_div)) - len(str(num_div)))*'0' + str(num_div+1)
-            events.append(OrderedDict(
-                [('number', num_div+1),
-                 ('latitude', -12345),
-                 ('longitude', -12345),
-                 ('depth', -12345),
-                 ('datetime', m_date + (num_div-1)*input_dics['interval']),
-                 ('magnitude', -12345),
-                 ('magnitude_type', 'NAN'),
-                 ('author', 'NAN'),
-                 ('event_id', 'continuous' + cont_dir_name),
-                 ('origin_id', -12345),
-                 ('flynn_region', 'NAN'),
-                 ('t1', m_date + (num_div-1)*input_dics['interval'] +
-                  input_dics['preset_cont']),
-                 ('t2', M_date),
-                 ]))
+            if not M_date == (m_date + num_div*input_dics['interval'] +
+                                  input_dics['offset_cont']):
+                cont_dir_name = str(num_div+1)
+                events.append(OrderedDict(
+                    [('number', num_div+1),
+                     ('latitude', -12345),
+                     ('longitude', -12345),
+                     ('depth', -12345),
+                     ('datetime', m_date + num_div*input_dics['interval']),
+                     ('magnitude', -12345),
+                     ('magnitude_type', 'NAN'),
+                     ('author', 'NAN'),
+                     ('event_id', 'continuous' + cont_dir_name),
+                     ('origin_id', -12345),
+                     ('focal_mechanism', False),
+                     ('half_duration', False),
+                     ('flynn_region', 'NAN'),
+                     ('t1', m_date + num_div*input_dics['interval'] +
+                      input_dics['preset_cont']),
+                     ('t2', M_date),
+                     ]))
         else:
             events.append(OrderedDict(
                 [('number', 1),
@@ -469,6 +367,8 @@ def events_info(input_dics, request):
                  ('author', 'NAN'),
                  ('event_id', 'continuous1'),
                  ('origin_id', -12345),
+                 ('focal_mechanism', False),
+                 ('half_duration', False),
                  ('flynn_region', 'NAN'),
                  ('t1', m_date),
                  ('t2', M_date),
@@ -476,6 +376,352 @@ def events_info(input_dics, request):
         print 'DONE'
         events_QML = Catalog(events=[])
     return events, events_QML, successful_read
+
+# ##################### output_shell_event ####################################
+
+
+def output_shell_event(input_dics, events, catalog, successful_read, request):
+    """
+    output event information to the shell and remove those that are
+    selected by the user
+    :param input_dics:
+    :param events:
+    :param catalog:
+    :param successful_read:
+    :param request:
+    :return:
+    """
+    # output shell
+    spaces, events2, header = event_spaces(events=events, request=request)
+    header_template = ['{:<'+str(e+2)+'}' for e in spaces]
+    row_format = '{}'.format(''.join(header_template))
+
+    if input_dics['user_select_event'] == 'Y':
+        print '\n' + row_format.format(*header)
+        print 80 * '-'
+        for i in range(len(events2)):
+            print (row_format.format(*events2[i].values())).rstrip()
+        print 80 * '-' + '\n'
+        events, catalog, garbage = \
+            delete_events(events=events, catalog=catalog)
+
+    else:
+        garbage = '0'
+        if len(events) == 0:
+            pass
+
+        elif len(events) <= 50:
+            print '\n' + row_format.format(*header)
+            print 80 * '-'
+            for i in range(len(events2)):
+                print (row_format.format(*events2[i].values())).rstrip()
+            print 80 * '-' + '\n'
+
+        else:
+            print '\n' + row_format.format(*header)
+            print 80 * '-'
+            print (row_format.format(*events2[0].values())).rstrip()
+            print (row_format.format(*events2[1].values())).rstrip()
+            print (row_format.format(*events2[2].values())).rstrip()
+            print '..'
+            print (row_format.format(*events2[-3].values())).rstrip()
+            print (row_format.format(*events2[-2].values())).rstrip()
+            print (row_format.format(*events2[-1].values())).rstrip()
+            print 80 * '-' + '\n'
+
+    if len(events) == 0:
+        return 0
+
+    # if read in event catalog, define variables new which determine
+    # the name of the folder where results will be stored. (Other-
+    # wise folder is named after defaults (10 & 5 days ago)). For
+    # renaming use max and min from quakes of read catalog
+    if (input_dics['read_catalog'] != 'N' and successful_read == 1) \
+            or len(garbage) != 0:
+        input_dics['max_date'] = str(max([e['datetime'] for e in events]))
+        input_dics['min_date'] = str(min([e['datetime'] for e in events]))
+        input_dics['max_mag'] = str(max([e['magnitude'] for e in events]))
+        input_dics['min_mag'] = str(min([e['magnitude'] for e in events]))
+    return events, catalog, events2, row_format, header
+
+# ##################### write_cat_logger ############################
+
+
+def write_cat_logger(input_dics, eventpath, period, events, catalog,
+                     events2, row_format, header):
+    """
+    Writing outputs out of get_Events function
+    :param input_dics:
+    :param eventpath:
+    :param period:
+    :param events:
+    :param catalog:
+    :param events2:
+    :param row_format:
+    :return:
+    """
+    if os.path.exists(eventpath):
+        print '\n' + 50*'*'
+        if raw_input('Directory for the requested period already exists:'
+                     '\n%s\n\nOptions:\nN: Close the program and try '
+                     'the updating mode.\nY: Remove the tree, continue the '
+                     'program and re-download.\n' % eventpath).upper() == 'Y':
+            print 50*'*'
+            shutil.rmtree(eventpath)
+            os.makedirs(eventpath)
+        else:
+            sys.exit('Exit the program ..')
+    else:
+        os.makedirs(eventpath)
+
+    os.makedirs(os.path.join(eventpath, 'EVENTS-INFO'))
+    input_logger(argus=sys.argv,
+                 address=os.path.join(eventpath,
+                                      'EVENTS-INFO',
+                                      'logger_command.txt'),
+                 inputs=input_dics)
+
+    # output catalogue as ASCII
+    Event_cat = \
+        open(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.txt'), 'a+')
+    st_argus = 'Command line:\n-------------\n'
+    for item in sys.argv:
+        st_argus += item + ' '
+    st_argus += '\n'
+    Event_cat.writelines(str(period) + '\n')
+    Event_cat.writelines(st_argus)
+    Event_cat.writelines('-------------------------------------' + '\n')
+    Event_cat.writelines('Information about the requested Events:' + '\n\n')
+    Event_cat.writelines('Number of Events: %s\n' % len(events))
+    Event_cat.writelines('min datetime: %s\n' % input_dics['min_date'])
+    Event_cat.writelines('max datetime: %s\n' % input_dics['max_date'])
+    Event_cat.writelines('min magnitude: %s\n' % input_dics['min_mag'])
+    Event_cat.writelines('max magnitude: %s\n' % input_dics['max_mag'])
+    Event_cat.writelines('min latitude: %s\n' % input_dics['evlatmin'])
+    Event_cat.writelines('max latitude: %s\n' % input_dics['evlatmax'])
+    Event_cat.writelines('min longitude: %s\n' % input_dics['evlonmin'])
+    Event_cat.writelines('max longitude: %s\n' % input_dics['evlonmax'])
+    Event_cat.writelines('min depth: %s\n' % input_dics['min_depth'])
+    Event_cat.writelines('max depth: %s\n' % input_dics['max_depth'])
+    Event_cat.writelines('\n\n-------------------------------------\n')
+    Event_cat.close()
+
+    for i in range(len(events)):
+        Event_cat = open(os.path.join(eventpath, 'EVENTS-INFO',
+                                      'catalog.txt'), 'a')
+        Event_cat.writelines("Event No: %s\n" % (i+1))
+        Event_cat.writelines("Author: %s\n" % events[i]['author'])
+        Event_cat.writelines("Event-ID: %s\n" % events[i]['event_id'])
+        Event_cat.writelines("Date Time: %s\n" % events[i]['datetime'])
+        Event_cat.writelines("Magnitude: %s\n" % events[i]['magnitude'])
+        Event_cat.writelines("Magnitude Type: %s\n"
+                             % events[i]['magnitude_type'])
+        Event_cat.writelines("Depth: %s\n" % events[i]['depth'])
+        Event_cat.writelines("Latitude: %s\n" % events[i]['latitude'])
+        Event_cat.writelines("Longitude: %s\n" % events[i]['longitude'])
+        try:
+            Event_cat.writelines("Flynn-Region: %s\n"
+                                 % events[i]['flynn_region'])
+        except KeyError:
+            Event_cat.writelines("Flynn-Region: None\n")
+        Event_cat.writelines('-------------------------------------' + '\n')
+        Event_cat.close()
+    Event_file = open(os.path.join(eventpath, 'EVENTS-INFO',
+                                   'event_list_pickle'), 'a+')
+    pickle.dump(events, Event_file)
+    Event_file.close()
+
+    # output catalogue as ASCII but in table form
+    try:
+        st_argus = 'Command line:\n-------------\n'
+        for item in sys.argv:
+            st_argus += item + ' '
+        st_argus += '\n'
+        Event_table = \
+            open(os.path.join(eventpath, 'EVENTS-INFO',
+                              'catalog_table.txt'), 'w')
+        Event_table.writelines(st_argus)
+        Event_table.writelines('\n' + row_format.format(*header))
+        Event_table.writelines('-'*80 + '\n')
+        for i in range(len(events2)):
+            Event_table.writelines(
+                (row_format.format(*events2[i].values())).rstrip() + '\n')
+        Event_table.writelines('-'*80 + '\n')
+    except Exception as err:
+        print '\nCouldn\'t write catalog object to ASCII file as:\n>>:\t %s\n' \
+              'Proceed without ..\n' % err
+
+    # output catalogue as QUAKEML / JSON files
+    try:
+        catalog.write(
+            os.path.join(eventpath, 'EVENTS-INFO', 'catalog.ml'),
+            format="QUAKEML")
+        catalog.write(
+            os.path.join(eventpath, 'EVENTS-INFO', 'catalog.json'),
+            format="JSON")
+    except Exception as err:
+        print '\nCouldn\'t write catalog object to file as:\n>>:\t %s\n' \
+              'Proceed without ..\n' % err
+
+# ##################### gcmt_catalog ############################
+
+
+def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
+                 max_longitude, latitude, longitude, radius_min, radius_max,
+                 d_min, d_max, mag_min, mag_max, mag_typ,
+                 link_gcmt='http://www.ldeo.columbia.edu/~gcmt/projects/CMT/'
+                           'catalog'):
+    """
+    Function for downloading data from GCMT combo.ndk file
+    :param t_start:
+    :param t_end:
+    :param min_latitude:
+    :param max_latitude:
+    :param min_longitude:
+    :param max_longitude:
+    :param latitude:
+    :param longitude:
+    :param radius_min:
+    :param radius_max:
+    :param d_min:
+    :param d_max:
+    :param mag_min:
+    :param mag_max:
+    :param mag_typ:
+    :return:
+    """
+    month_year = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
+                  'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+    # for the time record
+    tic = datetime.now()
+
+    if not os.path.exists('gcmt_catalog'):
+        os.mkdir('gcmt_catalog')
+        os.mkdir(os.path.join('gcmt_catalog', 'NEW_MONTHLY'))
+        os.mkdir(os.path.join('gcmt_catalog', 'MONTHLY'))
+
+    # circle or rectangular or all earth??
+    if None in [latitude, longitude, radius_min, radius_max]:
+        switch = 'rectangular'
+        if None in [min_latitude, max_latitude, min_longitude, max_longitude]:
+            min_lat = -90
+            max_lat = 90
+            min_lon = -180
+            max_lon = 180
+        else:
+            min_lat = min_latitude
+            max_lat = max_latitude
+            min_lon = min_longitude
+            max_lon = max_longitude
+    else:
+        switch = 'circle'
+        lat = latitude
+        lon = longitude
+        r_min = radius_min
+        r_max = radius_max
+
+    # creating a time list, for the combo.ndk file
+    t_list = []
+    delta_t = int(UTCDateTime(t_end)-UTCDateTime(t_start))/86400
+
+    yymm = []
+    for i in range(delta_t + 1):
+        t_list.append((UTCDateTime(t_start)+i*60*60*24).strftime('%Y/%m/%d'))
+        yy_tmp, mm_tmp, dd_tmp = t_list[i].split('/')
+        yymm.append('%s%s' % (yy_tmp, mm_tmp))
+    yymmset = set(yymm)
+    yymmls = list(yymmset)
+
+    # just remove the old temp.ndk file, content will be otherwise just added:
+    try:
+        os.remove('./temp.ndk')
+    except OSError:
+        pass
+
+    # starting to search for all events in the time window given by the user:
+    searchlines = []
+    for i in range(len(yymmls)):
+        yy = yymmls[i][0:4]
+        mm = yymmls[i][4:6]
+        if int(yymmls[i][0:4]) >= 2005:
+            new_monthly = 'NEW_MONTHLY'
+        else:
+            new_monthly = 'MONTHLY'
+        print '%s/%s/%s/%s%s.ndk' % (link_gcmt, new_monthly, yy,
+                                     month_year[int(mm)-1], yy[-2:])
+        if not os.path.exists(os.path.join('gcmt_catalog', new_monthly,
+                                           '%s%s.ndk' % (month_year[int(mm)-1],
+                                                         yy[-2:]))):
+            remotefile = urllib2.urlopen('%s/%s/%s/%s%s.ndk'
+                                         % (link_gcmt, new_monthly, yy,
+                                            month_year[int(mm)-1], yy[-2:]))
+            searchlines_tmp = remotefile.readlines()
+            search_fio = open(os.path.join('gcmt_catalog', new_monthly,
+                                           '%s%s.ndk' % (month_year[int(mm)-1],
+                                           yy[-2:])), 'w')
+            search_fio.writelines(searchlines_tmp)
+            search_fio.close()
+
+        else:
+            searchlines_tmp = open(os.path.join('gcmt_catalog', new_monthly,
+                                                '%s%s.ndk'
+                                                % (month_year[int(mm)-1],
+                                                   yy[-2:])))
+        searchlines.extend(searchlines_tmp)
+    print 'Done reading the data from GCMT webpage.'
+
+    for i, line in enumerate(searchlines):
+        # progress_bar(i, len(searchlines))
+        for j in range(len(t_list)):
+            if t_list[j] in line:
+                for l in searchlines[i:i+5]:
+                    temp = open('temp.ndk', 'a')
+                    temp.write(l)
+
+    toc = datetime.now()
+    print 'It took %s to retrieve the earthquakes form GCMT.' % (toc-tic)
+
+    # reading the events from the temp.ndk file
+    cat = readEvents('temp.ndk', format='ndk')
+    temp.close()
+
+    # in this list all the events after the final filtering are added
+    final_events = []
+
+    # final filtering for the remaining requests
+
+    for i in range(len(cat)):
+        e_lon = cat.events[i].preferred_origin().longitude or \
+                cat.events[i].origins[0].longitude
+        e_lat = cat.events[i].preferred_origin().latitude or \
+                cat.events[i].origins[0].latitude
+        e_dep = cat.events[i].preferred_origin().depth/1000. or \
+                cat.events[i].origins[0].depth/1000.
+        e_mag = cat.events[i].preferred_magnitude().mag or \
+                cat.events[i].origins[0].mag
+
+        if (d_min <= e_dep <= d_max) and (mag_min <= e_mag <= mag_max):
+            if switch == 'circle':
+                dist = locations2degrees(lat, lon, e_lat, e_lon)
+                if r_min <= dist <= r_max:
+                    final_events.append(cat[i])
+            elif switch == 'rectangular':
+                if (min_lon <= e_lon <= max_lon) and \
+                        (min_lat <= e_lat <= max_lat):
+                    final_events.append(cat[i])
+
+    # create new catalog for all hits
+    final_cat = Catalog()
+    for event in final_events:
+        final_cat.append(event)
+
+    # just remove the old temp.ndk file, content will be otherwise just added:
+    try:
+        os.remove('./temp.ndk')
+    except OSError:
+        pass
+
+    return final_cat
 
 # ##################### event_spaces ############################
 
@@ -490,26 +736,13 @@ def event_spaces(events, request):
     header = ['None']
     events2 = copy.deepcopy(events)
     for i in range(len(events2)):
-        try:
-            del events2[i]['t1']
-        except Exception, e:
-            print 'WARNING: %s' % e
-            pass
-        try:
-            del events2[i]['t2']
-        except Exception, e:
-            print 'WARNING: %s' % e
-            pass
-        try:
-            del events2[i]['origin_id']
-        except Exception, e:
-            print 'WARNING: %s' % e
-            pass
-        try:
-            del events2[i]['magnitude_type']
-        except Exception, e:
-            print 'WARNING: %s' % e
-            pass
+        for item_ev in ['t1', 't2', 'origin_id', 'magnitude_type',
+                        'focal_mechanism', 'half_duration']:
+            try:
+                del events2[i][item_ev]
+            except Exception, e:
+                print 'WARNING: %s' % e
+                pass
         try:
             events2[i]['datetime'] = str(events2[i]['datetime'])[:-8]
         except Exception, e:
@@ -534,7 +767,7 @@ def event_spaces(events, request):
                 events2[i]['longitude'] = \
                     "{:>8.3f}".format(float(events2[i]['longitude']))
                 events2[i]['depth'] = \
-                    int(round(float(events2[i]['depth'])/1000))
+                    int(round(float(events2[i]['depth'])))
         except Exception, e:
             print 'WARNING: %s' % e
             pass
@@ -546,6 +779,7 @@ def event_spaces(events, request):
 
         for j in range(len(k[0])):
             spaces.append(max([len(str(k[i][j])) for i in range(len(k))]))
+        import ipdb; ipdb.set_trace()
 
         return spaces, events2, header
     except Exception, e:
@@ -596,7 +830,7 @@ def delete_events(events, catalog):
     else:
         print
 
-    return garbage
+    return events, catalog, garbage
 
 # ##################### sort_catalogue ############################
 

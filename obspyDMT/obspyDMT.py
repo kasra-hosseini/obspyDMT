@@ -51,7 +51,7 @@ def obspyDMT(**kwargs):
     if input_dics['get_events'] == 'Y':
         events = get_Events(input_dics, request='event-based')
         if events == 0:
-            return
+            return input_dics
     if input_dics['get_continuous'] == 'Y':
         events = get_Events(input_dics, request='continuous')
     # ------------------Seismicity--------------------------------------
