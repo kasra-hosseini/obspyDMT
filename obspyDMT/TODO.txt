@@ -1,6 +1,6 @@
 1. Check and change the procedure:
 input_handler.py               ----------> CHECKED 
-event_handler.py               ---------->    
+event_handler.py               ----------> CHECKED
 fdsn_handler.py                ---------->    
 arclink_handler.py             ---------->    
 instrument_handler.py          ---------->        

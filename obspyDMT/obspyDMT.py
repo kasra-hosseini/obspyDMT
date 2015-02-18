@@ -63,23 +63,20 @@ def obspyDMT(**kwargs):
     # ------------------Arclink-----------------------------------------
     if input_dics['ArcLink'] == 'Y':
         ARC_network(input_dics, events)
-    # ------------------FDSN-Updating-----------------------------------
+    # ------------------Update-----------------------------------
     if input_dics['fdsn_update'] != 'N':
         FDSN_update(input_dics, address=input_dics['fdsn_update'])
-    # ------------------ArcLink-Updating--------------------------------
     if input_dics['arc_update'] != 'N':
         ARC_update(input_dics, address=input_dics['arc_update'])
-    # ------------------FDSN-instrument---------------------------------
+    # ------------------instrument---------------------------------
     if input_dics['fdsn_ic'] != 'N' or input_dics['fdsn_ic_auto'] == 'Y':
         create_tar_file_address = FDSN_ARC_IC(
             input_dics, clients=input_dics['fdsn_base_url'])
-    # ------------------Arclink-instrument------------------------------
     if input_dics['arc_ic'] != 'N' or input_dics['arc_ic_auto'] == 'Y':
         create_tar_file_address = FDSN_ARC_IC(input_dics, clients='arc')
-    # ------------------FDSN-merge--------------------------------------
+    # ------------------merge--------------------------------------
     if input_dics['fdsn_merge'] != 'N' or input_dics['fdsn_merge_auto'] == 'Y':
         FDSN_ARC_merge(input_dics, clients=input_dics['fdsn_base_url'])
-    # ------------------ArcLink-merge-----------------------------------
     if input_dics['arc_merge'] != 'N' or input_dics['arc_merge_auto'] == 'Y':
         FDSN_ARC_merge(input_dics, clients='arc')
     # ------------------plot_tools--------------------------------------------

@@ -178,8 +178,7 @@ def events_info(input_dics, request):
                                      input_dics['min_depth'],
                                      input_dics['max_depth'],
                                      input_dics['min_mag'],
-                                     input_dics['max_mag'],
-                                     input_dics['mag_type'])
+                                     input_dics['max_mag'])
 
             # no matter if list was passed or requested, sort catalogue,
             # plot events and proceed
@@ -568,11 +567,11 @@ def write_cat_logger(input_dics, eventpath, period, events, catalog,
 
 def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
                  max_longitude, latitude, longitude, radius_min, radius_max,
-                 d_min, d_max, mag_min, mag_max, mag_typ,
+                 d_min, d_max, mag_min, mag_max,
                  link_gcmt='http://www.ldeo.columbia.edu/~gcmt/projects/CMT/'
                            'catalog'):
     """
-    Function for downloading data from GCMT combo.ndk file
+    Function for downloading data from GCMT
     :param t_start:
     :param t_end:
     :param min_latitude:
@@ -587,42 +586,19 @@ def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     :param d_max:
     :param mag_min:
     :param mag_max:
-    :param mag_typ:
     :return:
     """
-    month_year = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
-                  'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
     # for the time record
     tic = datetime.now()
 
     if not os.path.exists('gcmt_catalog'):
         os.mkdir('gcmt_catalog')
         os.mkdir(os.path.join('gcmt_catalog', 'NEW_MONTHLY'))
-        os.mkdir(os.path.join('gcmt_catalog', 'MONTHLY'))
+        os.mkdir(os.path.join('gcmt_catalog', 'COMBO'))
 
-    # circle or rectangular or all earth??
-    if None in [latitude, longitude, radius_min, radius_max]:
-        switch = 'rectangular'
-        if None in [min_latitude, max_latitude, min_longitude, max_longitude]:
-            min_lat = -90
-            max_lat = 90
-            min_lon = -180
-            max_lon = 180
-        else:
-            min_lat = min_latitude
-            max_lat = max_latitude
-            min_lon = min_longitude
-            max_lon = max_longitude
-    else:
-        switch = 'circle'
-        lat = latitude
-        lon = longitude
-        r_min = radius_min
-        r_max = radius_max
-
-    # creating a time list, for the combo.ndk file
+    # creating a time list
     t_list = []
-    delta_t = int(UTCDateTime(t_end)-UTCDateTime(t_start))/86400
+    delta_t = int(UTCDateTime(t_end)-UTCDateTime(t_start)+1)/86400
 
     yymm = []
     for i in range(delta_t + 1):
@@ -631,97 +607,93 @@ def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
         yymm.append('%s%s' % (yy_tmp, mm_tmp))
     yymmset = set(yymm)
     yymmls = list(yymmset)
-
-    # just remove the old temp.ndk file, content will be otherwise just added:
-    try:
-        os.remove('./temp.ndk')
-    except OSError:
-        pass
+    yymmls.sort()
 
     # starting to search for all events in the time window given by the user:
-    searchlines = []
-    for i in range(len(yymmls)):
-        yy = yymmls[i][0:4]
-        mm = yymmls[i][4:6]
-        if int(yymmls[i][0:4]) >= 2005:
-            new_monthly = 'NEW_MONTHLY'
-        else:
-            new_monthly = 'MONTHLY'
-        print '%s/%s/%s/%s%s.ndk' % (link_gcmt, new_monthly, yy,
-                                     month_year[int(mm)-1], yy[-2:])
-        if not os.path.exists(os.path.join('gcmt_catalog', new_monthly,
-                                           '%s%s.ndk' % (month_year[int(mm)-1],
-                                                         yy[-2:]))):
-            remotefile = urllib2.urlopen('%s/%s/%s/%s%s.ndk'
-                                         % (link_gcmt, new_monthly, yy,
-                                            month_year[int(mm)-1], yy[-2:]))
-            searchlines_tmp = remotefile.readlines()
-            search_fio = open(os.path.join('gcmt_catalog', new_monthly,
-                                           '%s%s.ndk' % (month_year[int(mm)-1],
-                                           yy[-2:])), 'w')
-            search_fio.writelines(searchlines_tmp)
-            search_fio.close()
-
-        else:
-            searchlines_tmp = open(os.path.join('gcmt_catalog', new_monthly,
-                                                '%s%s.ndk'
-                                                % (month_year[int(mm)-1],
-                                                   yy[-2:])))
-        searchlines.extend(searchlines_tmp)
-    print 'Done reading the data from GCMT webpage.'
-
-    for i, line in enumerate(searchlines):
-        # progress_bar(i, len(searchlines))
-        for j in range(len(t_list)):
-            if t_list[j] in line:
-                for l in searchlines[i:i+5]:
-                    temp = open('temp.ndk', 'a')
-                    temp.write(l)
+    cat = Catalog()
+    yy_ret = []
+    mm_ret = []
+    remotefile_add = False
+    try:
+        for i in range(len(yymmls)):
+            yy = yymmls[i][0:4]
+            mm = yymmls[i][4:6]
+            if int(yy) < 2006:
+                month_year = ['jan', 'feb', 'mar', 'apr', 'may', 'june',
+                              'july', 'aug', 'sept', 'oct', 'nov', 'dec']
+            else:
+                month_year = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
+                              'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+            if int(yy) >= 2005:
+                new_monthly = 'NEW_MONTHLY'
+                file_to_open = os.path.join('gcmt_catalog', new_monthly,
+                                            '%s%s.ndk'
+                                            % (month_year[int(mm)-1], yy[-2:]))
+                remotefile_add = '%s/%s/%s/%s%s.ndk' \
+                                 % (link_gcmt, new_monthly, yy,
+                                    month_year[int(mm)-1], yy[-2:])
+            else:
+                new_monthly = 'COMBO'
+                if yy in yy_ret:
+                    continue
+                file_to_open = os.path.join('gcmt_catalog', new_monthly,
+                                            '%s.qml' % yy)
+            if not os.path.exists(file_to_open) and not new_monthly == 'COMBO':
+                print 'Reading the data from GCMT webpage: %s' % yymmls[i]
+                remotefile = urllib2.urlopen(remotefile_add)
+                remotefile_read = remotefile.readlines()
+                search_fio = open(file_to_open, 'w')
+                search_fio.writelines(remotefile_read)
+                search_fio.close()
+            print 'Reading the data from local gcmt_catalog: %s' % yymmls[i]
+            cat.extend(readEvents(file_to_open))
+            yy_ret.append(yy)
+            mm_ret.append(mm)
+        print 'Done reading the data from GCMT webpage.'
+    except Exception, e:
+        print "ERROR: %s" % e
 
     toc = datetime.now()
     print 'It took %s to retrieve the earthquakes form GCMT.' % (toc-tic)
 
-    # reading the events from the temp.ndk file
-    cat = readEvents('temp.ndk', format='ndk')
-    temp.close()
+    filt1 = 'time >= %s' % t_start
+    filt2 = 'time <= %s' % t_end
+    cat = cat.filter(filt1, filt2)
 
-    # in this list all the events after the final filtering are added
-    final_events = []
+    filt1 = 'magnitude >= %s' % mag_min
+    filt2 = 'magnitude <= %s' % mag_max
+    cat = cat.filter(filt1, filt2)
+
+    filt1 = 'depth >= %s' % (float(d_min)*1000.)
+    filt2 = 'depth <= %s' % (float(d_max)*1000.)
+    cat = cat.filter(filt1, filt2)
+
+    if None not in [min_latitude, max_latitude, min_longitude, max_longitude]:
+        filt1 = 'latitude >= %s' % min_latitude
+        filt2 = 'latitude <= %s' % max_latitude
+        cat = cat.filter(filt1, filt2)
+
+        filt1 = 'longitude >= %s' % min_longitude
+        filt2 = 'longitude <= %s' % max_longitude
+        cat = cat.filter(filt1, filt2)
 
     # final filtering for the remaining requests
+    if None not in [latitude, longitude, radius_min, radius_max]:
+        index_rm = []
+        for i in range(len(cat)):
+            e_lat = cat.events[i].preferred_origin().latitude or \
+                    cat.events[i].origins[0].latitude
+            e_lon = cat.events[i].preferred_origin().longitude or \
+                    cat.events[i].origins[0].longitude
+            dist = locations2degrees(latitude, longitude, e_lat, e_lon)
+            if not radius_min <= dist <= radius_max:
+                index_rm.append(i)
+        index_rm.sort()
+        index_rm.reverse()
+        for i in range(len(index_rm)):
+            del cat[index_rm[i]]
 
-    for i in range(len(cat)):
-        e_lon = cat.events[i].preferred_origin().longitude or \
-                cat.events[i].origins[0].longitude
-        e_lat = cat.events[i].preferred_origin().latitude or \
-                cat.events[i].origins[0].latitude
-        e_dep = cat.events[i].preferred_origin().depth/1000. or \
-                cat.events[i].origins[0].depth/1000.
-        e_mag = cat.events[i].preferred_magnitude().mag or \
-                cat.events[i].origins[0].mag
-
-        if (d_min <= e_dep <= d_max) and (mag_min <= e_mag <= mag_max):
-            if switch == 'circle':
-                dist = locations2degrees(lat, lon, e_lat, e_lon)
-                if r_min <= dist <= r_max:
-                    final_events.append(cat[i])
-            elif switch == 'rectangular':
-                if (min_lon <= e_lon <= max_lon) and \
-                        (min_lat <= e_lat <= max_lat):
-                    final_events.append(cat[i])
-
-    # create new catalog for all hits
-    final_cat = Catalog()
-    for event in final_events:
-        final_cat.append(event)
-
-    # just remove the old temp.ndk file, content will be otherwise just added:
-    try:
-        os.remove('./temp.ndk')
-    except OSError:
-        pass
-
-    return final_cat
+    return cat
 
 # ##################### event_spaces ############################
 
@@ -779,7 +751,6 @@ def event_spaces(events, request):
 
         for j in range(len(k[0])):
             spaces.append(max([len(str(k[i][j])) for i in range(len(k))]))
-        import ipdb; ipdb.set_trace()
 
         return spaces, events2, header
     except Exception, e:
