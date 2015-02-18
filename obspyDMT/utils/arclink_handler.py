@@ -3,7 +3,7 @@
 
 # -------------------------------------------------------------------
 #   Filename:  arclink_handler.py
-#   Purpose:   helping functions for handling ArcLink
+#   Purpose:   handling ArcLink in obspyDMT
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -37,15 +37,15 @@ def ARC_network(input_dics, events):
     print '\n***********************************************************'
     print 'ArcLink -- Download waveforms, response files and meta-data'
     print '***********************************************************'
-    period = \
-        '{0:s}_{1:s}_{2:s}_{3:s}'.format(input_dics['min_date'].split('T')[0],
-                                         input_dics['max_date'].split('T')[0],
-                                         str(input_dics['min_mag']),
-                                         str(input_dics['max_mag']))
+    period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(
+        input_dics['min_date'].split('T')[0],
+        input_dics['max_date'].split('T')[0],
+        str(input_dics['min_mag']),
+        str(input_dics['max_mag']))
     eventpath = os.path.join(input_dics['datapath'], period)
 
     if input_dics['FDSN'] != 'Y':
-        print 'Create folders...',
+        print 'Initializing folders and files...',
         create_folders_files(events, eventpath)
         print 'DONE'
 
@@ -54,8 +54,8 @@ def ARC_network(input_dics, events):
         target_path = os.path.join(eventpath, events[i]['event_id'])
 
         if not input_dics['list_stas']:
-            Stas_arc = ARC_available(input_dics, events[i], target_path,
-                                     event_number=i)
+            Stas_arc = ARC_available(input_dics, events[i],
+                                     target_path, event_number=i)
         else:
             Stas_arc = read_list_stas(input_dics['list_stas'],
                                       normal_mode_syn='N',
@@ -69,7 +69,8 @@ def ARC_network(input_dics, events):
         if Stas_arc != [[]]:
             ARC_waveform(input_dics, events, Stas_arc, i, req_type='save')
         else:
-            'No available station in ArcLink for your request!'
+            print 'No available station in ArcLink for your request and ' \
+                  'for event %s!' % str(i+1)
             continue
 
 # ##################### ARC_available ###################################
@@ -79,12 +80,10 @@ def ARC_available(input_dics, event, target_path, event_number):
     """
     Check the availability of ArcLink stations
     """
-
     print "Check the availability of ArcLink stations"
     client_arclink = Client_arclink(user='test@obspy.org',
                                     timeout=input_dics['arc_avai_timeout'])
     Sta_arc = []
-
     try:
         inventories = client_arclink.getInventory(
             network=input_dics['net'],
@@ -111,11 +110,10 @@ def ARC_available(input_dics, event, target_path, event_number):
                                 inventories[sta]['depth']])
 
     except Exception as e:
-        exception_file = open(os.path.join(target_path, 'info',
-                                           'exception'), 'a+')
-        ee = 'arclink -- Event: %s --- %s\n' % (event_number, e)
-        exception_file.writelines(ee)
-        exception_file.close()
+        exc_file = open(os.path.join(target_path, 'info', 'exception'), 'a+')
+        ee = 'arclink -- Event: %s --- %s\n' % (str(event_number+1), e)
+        exc_file.writelines(ee)
+        exc_file.close()
         print 'ERROR: %s' % ee
 
     if len(Sta_arc) == 0:
@@ -128,10 +126,8 @@ def ARC_available(input_dics, event, target_path, event_number):
 
 def ARC_waveform(input_dics, events, Sta_req, i, req_type):
     """
-    Gets Waveforms, Response files and meta-data
-    from ArcLink based on the requested events...
+    Gets Waveforms, Response files and meta-data from ArcLink
     """
-
     t_wave_1 = datetime.now()
 
     add_event = []
@@ -139,48 +135,28 @@ def ARC_waveform(input_dics, events, Sta_req, i, req_type):
         period = '{0:s}_{1:s}_{2:s}_{3:s}'.\
             format(input_dics['min_date'].split('T')[0],
                    input_dics['max_date'].split('T')[0],
-                   str(input_dics['min_mag']), str(input_dics['max_mag']))
+                   str(input_dics['min_mag']),
+                   str(input_dics['max_mag']))
         eventpath = os.path.join(input_dics['datapath'], period)
-        for k in range(0, len(events)):
+        for k in range(len(events)):
             add_event.append(os.path.join(eventpath, events[k]['event_id']))
+            if not os.path.isfile(os.path.join(add_event[k],
+                                               'info', 'event.pkl')):
+                events_fio = open(os.path.join(add_event[k],
+                                               'info', 'event.pkl'), 'w')
+                pickle.dump(events[k], events_fio)
+                events_fio.close()
     elif req_type == 'update':
-        events, add_event = quake_info(input_dics['arc_update'], target='info')
+        events, add_event = \
+            quake_info(input_dics['arc_update'], target='info')
 
     if input_dics['test'] == 'Y':
         len_req_arc = input_dics['test_num']
     else:
         len_req_arc = len(Sta_req)
 
-    dic = {}
-    print '\nArcLink-Event: %s/%s' % (i+1, len(events))
-
-    if input_dics['req_parallel'] == 'Y':
-        print "Parallel request with %s processes.\n" % input_dics['req_np']
-        parallel_len_req_arc = range(0, len_req_arc)
-        len_par_grp = [parallel_len_req_arc[n:n+input_dics['req_np']] for n in
-                       range(0, len(parallel_len_req_arc),
-                             input_dics['req_np'])]
-
-        par_jobs = []
-        for j in range(len_req_arc):
-            p = multiprocessing.Process(target=ARC_download_core,
-                                        args=(i, j, dic, len(events), events,
-                                              add_event, Sta_req, input_dics,))
-            par_jobs.append(p)
-
-        for l in range(len(len_par_grp)):
-            for ll in len_par_grp[l]:
-                par_jobs[ll].start()
-                time.sleep(0.01)
-            for ll in len_par_grp[l]:
-                while par_jobs[ll].is_alive():
-                    time.sleep(0.01)
-    else:
-        for j in range(len_req_arc):
-            ARC_download_core(i=i, j=j, dic=dic,
-                              len_events=len(events), events=events,
-                              add_event=add_event,
-                              Sta_req=Sta_req, input_dics=input_dics)
+    ARC_serial_parallel(i, events, add_event, Sta_req, input_dics,
+                        len_req_arc)
     if input_dics['SAC'] == 'Y':
         print '\nConverting the MSEED files to SAC...',
         writesac_all(i=i, address_events=add_event)
@@ -194,67 +170,69 @@ def ARC_waveform(input_dics, events, Sta_req, i, req_type):
         len_sta_ev = 'Can not open station_event file: %s' \
                      % (os.path.join(add_event[i], 'info', 'station_event'))
 
-    report = open(os.path.join(add_event[i], 'info', 'report_st'), 'a')
-    eventsID = events[i]['event_id']
-    report.writelines('<><><><><><><><><><><><><><><><><>\n')
-    report.writelines(eventsID + '\n')
-    report.writelines('---------------ARC---------------\n')
-    report.writelines('---------------%s---------------\n' % input_dics['cha'])
-    rep = 'ARC-Available stations for channel %s and for event-%s: %s\n' \
-          % (input_dics['cha'], i, len(Sta_req))
-    report.writelines(rep)
-    rep = 'ARC-%s stations for channel %s and for event-%s: %s\n' \
-          % (req_type, input_dics['cha'], i, len_sta_ev)
-    report.writelines(rep)
-    report.writelines('----------------------------------\n')
+    ARC_reporter(i, add_event, events, input_dics, Sta_req, len_sta_ev,
+                 req_type, t_wave_1)
 
-    t_wave = datetime.now() - t_wave_1
+# ##################### ARC_serial_parallel ############################
 
-    rep = 'Time for %sing Waveforms from ArcLink: %s\n' % (req_type, t_wave)
-    report.writelines(rep)
-    report.writelines('----------------------------------\n')
-    report.close()
+
+def ARC_serial_parallel(i, events, add_event, Sta_req, input_dics,
+                        len_req_arc):
+    """
+    ArcLink serial/parallel request
+    """
+    dic = {}
+    print '\nArcLink-Event: %s/%s' % (i+1, len(events))
+
+    client_arclink = Client_arclink(user='test@obspy.org',
+                                    timeout=input_dics['arc_wave_timeout'])
 
     if input_dics['req_parallel'] == 'Y':
-        report_parallel_open = open(os.path.join(add_event[i],
-                                                 'info', 'report_parallel'),
-                                    'a')
-        report_parallel_open.writelines('---------------ARC---------------\n')
-        report_parallel_open.writelines('Request\n')
-        report_parallel_open.writelines('Number of Nodes: %s\n'
-                                        % input_dics['req_np'])
-
-        size = getFolderSize(os.path.join(add_event[i]))
-        ti = '%s,%s,%s,+,\n' % (t_wave.seconds, t_wave.microseconds,
-                                size/(1024.**2))
-
-        report_parallel_open.writelines('Total Time     : %s\n' % t_wave)
-        report_parallel_open.writelines(ti)
-        report_parallel_open.close()
-
-    print "\n------------------------"
-    print 'ArcLink for event-%s is Done' % (i+1)
-    print 'Total Time: %s' % t_wave
-    print "------------------------"
+        print "Parallel request with %s processes.\n" % input_dics['req_np']
+        parallel_len_req_arc = range(len_req_arc)
+        len_par_grp = [parallel_len_req_arc[n:n+input_dics['req_np']] for n in
+                       range(0, len(parallel_len_req_arc),
+                             input_dics['req_np'])]
+        par_jobs = []
+        for j in range(len_req_arc):
+            p = multiprocessing.Process(target=ARC_download_core,
+                                        args=(i, j, dic, len(events),
+                                              events, add_event, Sta_req,
+                                              input_dics, client_arclink))
+            par_jobs.append(p)
+        for l in range(len(len_par_grp)):
+            for ll in len_par_grp[l]:
+                par_jobs[ll].start()
+                time.sleep(0.01)
+            for ll in len_par_grp[l]:
+                while par_jobs[ll].is_alive():
+                    time.sleep(0.01)
+    else:
+        for j in range(len_req_arc):
+            ARC_download_core(i=i, j=j, dic=dic, len_events=len(events),
+                              events=events, add_event=add_event,
+                              Sta_req=Sta_req, input_dics=input_dics,
+                              client_arclink=client_arclink)
 
 # ##################### ARC_download_core ###############################
 
 
 def ARC_download_core(i, j, dic, len_events, events, add_event,
-                      Sta_req, input_dics):
+                      Sta_req, input_dics, client_arclink):
     """
     Downloading waveforms, response files and metadata
     This program should be normally called by some higher-level functions
     """
 
-    client_arclink = Client_arclink(user='test@obspy.org',
-                                    timeout=input_dics['arc_wave_timeout'])
     dummy = 'Initializing'
     info_req = 'None'
     t11 = datetime.now()
     try:
         info_req = '[%s/%s-%s/%s-%s] ' % (i+1, len_events, j+1,
                                           len(Sta_req), input_dics['cha'])
+
+        if Sta_req[j][2] == '--' or Sta_req[j][2] == '  ':
+                Sta_req[j][2] = ''
 
         if input_dics['cut_time_phase']:
             t_start, t_end = calculate_time_phase(events[i], Sta_req[j])
@@ -313,20 +291,24 @@ def ARC_download_core(i, j, dic, len_events, events, add_event,
                      Sta_req[j][2], Sta_req[j][3])
 
         dummy = 'Meta-data'
-        dic[j] = {'info': '%s.%s.%s.%s' % (Sta_req[j][0],
-                                           Sta_req[j][1],
-                                           Sta_req[j][2],
-                                           Sta_req[j][3]),
-                  'net': Sta_req[j][0], 'sta': Sta_req[j][1],
-                  'latitude': Sta_req[j][4], 'longitude': Sta_req[j][5],
-                  'loc': Sta_req[j][2], 'cha': Sta_req[j][3],
-                  'elevation': Sta_req[j][6], 'depth': Sta_req[j][7]}
-        Syn_file = open(os.path.join(add_event[i], 'info', 'station_event'),
-                        'a')
+        dic[j] = {'info': '%s.%s.%s.%s' % (Sta_req[j][0], Sta_req[j][1],
+                                           Sta_req[j][2], Sta_req[j][3]),
+                  'net': Sta_req[j][0],
+                  'sta': Sta_req[j][1],
+                  'latitude': Sta_req[j][4],
+                  'longitude': Sta_req[j][5],
+                  'loc': Sta_req[j][2],
+                  'cha': Sta_req[j][3],
+                  'elevation': Sta_req[j][6],
+                  'depth': Sta_req[j][7]}
+        Syn_file = open(os.path.join(add_event[i], 'info',
+                                     'station_event'), 'a')
         syn = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,arc,\n' \
-              % (Sta_req[j][0], Sta_req[j][1], Sta_req[j][2], Sta_req[j][3],
-                 Sta_req[j][4], Sta_req[j][5], float(Sta_req[j][6]),
-                 float(Sta_req[j][7]),
+              % (dic[j]['net'], dic[j]['sta'],
+                 dic[j]['loc'], dic[j]['cha'],
+                 dic[j]['latitude'], dic[j]['longitude'],
+                 float(dic[j]['elevation']),
+                 float(dic[j]['depth']),
                  events[i]['event_id'], events[i]['latitude'],
                  events[i]['longitude'], events[i]['depth'],
                  events[i]['magnitude'])
@@ -356,11 +338,9 @@ def ARC_download_core(i, j, dic, len_events, events, add_event,
         t22 = datetime.now()
         if input_dics['time_arc'] == 'Y':
             time_arc = t22 - t11
-            time_file = open(os.path.join(add_event[i],
-                                          'info',
+            time_file = open(os.path.join(add_event[i], 'info',
                                           'time_arc'), 'a')
             size = getFolderSize(os.path.join(add_event[i]))
-
             ti = '%s,%s,%s,%s,%s,%s,%s,-,\n' % (Sta_req[j][0],
                                                 Sta_req[j][1],
                                                 Sta_req[j][2],
@@ -373,18 +353,81 @@ def ARC_download_core(i, j, dic, len_events, events, add_event,
 
         if len(Sta_req[j]) != 0:
             print '%s%s---%s.%s.%s.%s' % (info_req, dummy,
-                                          Sta_req[j][0], Sta_req[j][1],
-                                          Sta_req[j][2], Sta_req[j][3])
+                                          Sta_req[j][0],
+                                          Sta_req[j][1],
+                                          Sta_req[j][2],
+                                          Sta_req[j][3])
             ee = 'arc -- %s---%s-%s---%s.%s.%s.%s---%s\n' \
-                 % (dummy, i+1, j+1, Sta_req[j][0], Sta_req[j][1],
-                    Sta_req[j][2], Sta_req[j][3], e)
+                 % (dummy, i+1, j+1,
+                    Sta_req[j][0], Sta_req[j][1], Sta_req[j][2],
+                    Sta_req[j][3], e)
         else:
             ee = 'There is no available station for this event.'
-        exception_file = open(os.path.join(add_event[i],
+        Exception_file = open(os.path.join(add_event[i],
                                            'info', 'exception'), 'a')
-        exception_file.writelines(ee)
-        exception_file.close()
+        Exception_file.writelines(ee)
+        Exception_file.close()
         print 'ERROR: %s' % ee
+
+# ##################### ARC_reporter ###############################
+
+
+def ARC_reporter(i, add_event, events, input_dics, Sta_req, len_sta_ev,
+                 req_type, t_wave_1):
+    """
+    Writing reports for the request
+    :param i:
+    :param add_event:
+    :param events:
+    :param input_dics:
+    :param Sta_req:
+    :param len_sta_ev:
+    :param req_type:
+    :param t_wave_1:
+    :return:
+    """
+    report = open(os.path.join(add_event[i], 'info', 'report_st'), 'a')
+    eventsID = events[i]['event_id']
+    report.writelines('<><><><><><><><><><><><><><><><><>\n')
+    report.writelines(eventsID + '\n')
+    report.writelines('---------------ARC---------------\n')
+    report.writelines('---------------%s---------------\n' % input_dics['cha'])
+    rep = 'ARC-Available stations for channel %s and for event-%s: %s\n' \
+          % (input_dics['cha'], i, len(Sta_req))
+    report.writelines(rep)
+    rep = 'ARC-%s stations for channel %s and for event-%s: %s\n' \
+          % (req_type, input_dics['cha'], i, len_sta_ev)
+    report.writelines(rep)
+    report.writelines('----------------------------------\n')
+
+    t_wave = datetime.now() - t_wave_1
+
+    rep = 'Time for %sing Waveforms from ArcLink: %s\n' % (req_type, t_wave)
+    report.writelines(rep)
+    report.writelines('----------------------------------\n')
+    report.close()
+
+    if input_dics['req_parallel'] == 'Y':
+        report_parallel_open = open(os.path.join(add_event[i], 'info',
+                                                 'report_parallel'), 'a')
+        report_parallel_open.writelines('---------------ARC---------------\n')
+        report_parallel_open.writelines('Request\n')
+        report_parallel_open.writelines('Number of Nodes: %s\n'
+                                        % input_dics['req_np'])
+
+        size = getFolderSize(os.path.join(add_event[i]))
+        ti = '%s,%s,%s,+,\n' % (t_wave.seconds,
+                                t_wave.microseconds,
+                                size/(1024.**2))
+
+        report_parallel_open.writelines('Total Time     : %s\n' % t_wave)
+        report_parallel_open.writelines(ti)
+        report_parallel_open.close()
+
+    print "\n------------------------"
+    print 'ArcLink for event-%s is Done' % (i+1)
+    print 'Total Time: %s' % t_wave
+    print "------------------------"
 
 # -------------------------------- TRASH
 # par_jobs = []
