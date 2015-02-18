@@ -880,7 +880,7 @@ def read_input_command(parser, **kwargs):
         options.min_mag = '8.9'
         options.identity = 'TA.1*.*.BHZ'
         options.event_url = 'IRIS'
-        options.event_catalog = None
+        options.event_catalog = 'gcmt_combo'
         options.req_parallel = True
         options.ArcLink = 'N'
 
