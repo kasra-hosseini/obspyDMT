@@ -125,8 +125,9 @@ def read_list_stas(add_list, normal_mode_syn, specfem3D):
 def read_station_event(address):
     """
     Reads the station_event file ("info" folder)
+    :param address:
+    :return:
     """
-
     if not os.path.isabs(address):
         address = os.path.abspath(address)
 
@@ -154,7 +155,6 @@ def read_station_event(address):
         for s_file in sta_file:
             sta_ev_tmp.append(s_file.split(','))
         sta_ev.append(sta_ev_tmp)
-
     return sta_ev
 
 # ##################### create_station_event ############################
@@ -163,6 +163,8 @@ def read_station_event(address):
 def create_station_event(address):
     """
     Creates the station_event file ("info" folder)
+    :param address:
+    :return:
     """
 
     event_address = os.path.dirname(address)
@@ -182,15 +184,12 @@ def create_station_event(address):
 
     for i in range(len(ls_stas)):
         print i,
-
         sta_file_open = open(os.path.join(address, 'station_event'), 'a')
-
         try:
             sta = read(ls_stas[i])[0]
         except Exception as e:
             print 'WARNING: NOT readable: %s\n%s' % (ls_stas[i], e)
             sta = None
-
         try:
             sta_stats = sta.stats
             sta_info = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,iris,\n' \
@@ -219,7 +218,6 @@ def create_station_event(address):
                           -12345.0, -12345.0, -12345.0, -12345.0,
                           os.path.basename(event_address),
                           -12345.0, -12345.0, -12345.0, -12345.0)
-
         sta_file_open.writelines(sta_info)
         sta_file_open.close()
     print 'station_event file is created in %s' % os.path.join(address,

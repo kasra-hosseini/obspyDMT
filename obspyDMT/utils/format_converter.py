@@ -3,7 +3,7 @@
 
 # -------------------------------------------------------------------
 #   Filename:  format_converter.py
-#   Purpose:   helping functions for converting seismic data format
+#   Purpose:   handling seismic data format
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -27,7 +27,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def writesac_all(i, address_events):
     """
-    Change the format of a trace to SAC and fill in the header information
+    Change the format of trace(s) to SAC and fill in the header information
     :param i:
     :param address_events:
     :return:
@@ -71,39 +71,3 @@ def writesac_all(i, address_events):
             print '\nWARNING: %s' % e
             print ls_saved_stas[j]
             print '------------------'
-
-# ##################### writesac ########################################
-
-
-def writesac(address_st, sta_info, ev_info):
-    """
-    Change the format of a trace to SAC and fill in the header information
-    :param address_st:
-    :param sta_info:
-    :param ev_info:
-    :return:
-    """
-
-    st = read(address_st)
-    st[0].write(address_st, format='SAC')
-    st = read(address_st)
-
-    if sta_info['latitude']:
-        st[0].stats.sac.stla = sta_info['latitude']
-    if sta_info['longitude']:
-        st[0].stats.sac.stlo = sta_info['longitude']
-    if sta_info['elevation']:
-        st[0].stats.sac.stel = sta_info['elevation']
-    if sta_info['depth']:
-        st[0].stats.sac.stdp = sta_info['depth']
-
-    if ev_info['latitude']:
-        st[0].stats.sac.evla = ev_info['latitude']
-    if ev_info['longitude']:
-        st[0].stats.sac.evlo = ev_info['longitude']
-    if ev_info['depth']:
-        st[0].stats.sac.evdp = ev_info['depth']
-    if ev_info['magnitude']:
-        st[0].stats.sac.mag = ev_info['magnitude']
-
-    st[0].write(address_st, format='SAC')
