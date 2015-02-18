@@ -871,7 +871,8 @@ def quake_info(address, target):
                    'julday0': int(quake_read_tmp[1]),
                    'hour0': int(quake_read_tmp[2]),
                    'minute0': int(quake_read_tmp[3]),
-                   'second0': int(quake_read_tmp[4]),
+                   'second0': int(quake_read_tmp[4]) +
+                              int(quake_read_tmp[5]),
                    'lat': float(quake_read_tmp[6]),
                    'lon': float(quake_read_tmp[7]),
                    'dp': float(quake_read_tmp[8]),
@@ -880,12 +881,14 @@ def quake_info(address, target):
                    'julday1': int(quake_read_tmp[11]),
                    'hour1': int(quake_read_tmp[14]),
                    'minute1': int(quake_read_tmp[15]),
-                   'second1': int(quake_read_tmp[16]),
+                   'second1': int(quake_read_tmp[16]) +
+                              int(quake_read_tmp[17]),
                    'year2': int(quake_read_tmp[18]),
                    'julday2': int(quake_read_tmp[19]),
                    'hour2': int(quake_read_tmp[22]),
                    'minute2': int(quake_read_tmp[23]),
-                   'second2': int(quake_read_tmp[24])}
+                   'second2': int(quake_read_tmp[24]) +
+                              int(quake_read_tmp[25])}
 
         quake_t0 = UTCDateTime(year=quake_d['year0'],
                                julday=quake_d['julday0'],
@@ -903,16 +906,19 @@ def quake_info(address, target):
                                minute=quake_d['minute2'],
                                second=quake_d['second2'])
 
-        events.append({'author': 'NONE',
-                       'datetime': quake_t0,
-                       'depth': quake_d['dp'],
-                       'event_id': quake_file[5].split('-')[0].lstrip(),
-                       'flynn_region': 'NONE',
+        events.append({'number': False,
                        'latitude': quake_d['lat'],
                        'longitude': quake_d['lon'],
+                       'depth': quake_d['dp'],
+                       'datetime': quake_t0,
                        'magnitude': quake_d['mag'],
                        'magnitude_type': 'NONE',
+                       'author': 'NONE',
+                       'event_id': quake_file[5].split('-')[0].lstrip(),
                        'origin_id': -12345.0,
+                       'focal_mechanism': False,
+                       'half_duration': False,
+                       'flynn_region': 'NONE',
                        't1': quake_t1,
                        't2': quake_t2})
 
@@ -945,11 +951,20 @@ def quake_create(address_info):
               'to create a quake file...'
         sta_address = None
     sta_stas = None
+    sta_indx = 0
     try:
         ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
-        sta = read(ls_stas[0])[0]
-        sta_stats = sta.stats
-        print '\nCreate the quake file based on: \n%s' % ls_stas[0]
+        search_flag = True
+        while search_flag:
+            try:
+                sta = read(ls_stas[sta_indx])[sta_indx]
+                sta_stats = sta.stats
+                search_flag = False
+            except Exception, e:
+                search_flag = True
+                sta_indx += 1
+                pass
+        print '\nCreate the quake file based on: \n%s' % ls_stas[sta_indx]
         quake_file.writelines(repr(sta_stats.starttime.year).rjust(15) +
                               repr(sta_stats.starttime.julday).rjust(15) +
                               '\n')
