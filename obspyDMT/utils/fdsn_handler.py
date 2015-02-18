@@ -3,7 +3,7 @@
 
 # -------------------------------------------------------------------
 #   Filename:  fdsn_handler.py
-#   Purpose:   helping functions for handling FDSN
+#   Purpose:   handling FDSN in obspyDMT
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -19,7 +19,6 @@ import fileinput
 import glob
 import multiprocessing
 from obspy.fdsn import Client as Client_fdsn
-from obspy.core import UTCDateTime
 import os
 import pickle
 
@@ -35,13 +34,10 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def FDSN_network(input_dics, events):
     """
-    Returns information about what time series data is available
-    at the requested FDSN web-service for all requested events
+    Availability and retrieivng functions are called with FDSN_network
     :param input_dics:
     :param events:
     :return:
-    """
-    """
     """
     print '\n********************************************************'
     print 'FDSN -- Download waveforms, StationXML files and meta-data'
@@ -53,7 +49,7 @@ def FDSN_network(input_dics, events):
         str(input_dics['max_mag']))
     eventpath = os.path.join(input_dics['datapath'], period)
 
-    print 'Create folders...',
+    print 'Initializing folders and files...',
     create_folders_files(events, eventpath)
     print 'DONE'
 
@@ -73,11 +69,11 @@ def FDSN_network(input_dics, events):
             print '\nFDSN-Availability for event: %s/%s ---> DONE' \
                   % (i+1, len(events))
         else:
-            print '\nFDSN-bulkfile for event: %s/%s ---> DONE' \
-                  % (i+1, len(events))
+            print '\nFDSN-bulkfile for event: %s/%s ---> DONE' % (i+1,
+                                                                  len(events))
 
-        print 'Time for checking the availability: %s' \
-              % (datetime.now() - t_fdsn_1)
+        print 'Time for checking the availability: %s' % (datetime.now() -
+                                                          t_fdsn_1)
 
         if Stas_fdsn != [[]]:
             FDSN_waveform(input_dics, events, Stas_fdsn, i, req_type='save')
@@ -103,7 +99,6 @@ def FDSN_available(input_dics, event, target_path, event_number):
                               user=input_dics['fdsn_user'],
                               password=input_dics['fdsn_pass'])
     Sta_fdsn = []
-
     try:
         if 'YV' in input_dics['net']:
             start_time = None
@@ -130,7 +125,6 @@ def FDSN_available(input_dics, event, target_path, event_number):
             maxlongitude=input_dics['Mlon_rbb'],
             level='channel')
 
-        Sta_fdsn = []
         for network in available.networks:
             for station in network:
                 for channel in station:

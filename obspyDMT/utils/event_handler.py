@@ -1184,24 +1184,20 @@ def create_folders_files(events, eventpath):
                                      'Resp'))
             os.makedirs(os.path.join(eventpath, events[i]['event_id'],
                                      'info'))
+            report = open(os.path.join(eventpath, events[i]['event_id'],
+                                       'info', 'report_st'), 'a+')
+            report.close()
+            exception_file = open(os.path.join(eventpath,
+                                               events[i]['event_id'],
+                                               'info', 'exception'), 'a+')
+            exception_file.writelines('\n' + events[i]['event_id'] + '\n')
+            exception_file.close()
+            syn_file = open(os.path.join(eventpath, events[i]['event_id'],
+                                         'info', 'station_event'), 'a+')
+            syn_file.close()
         except Exception as e:
             print 'ERROR: %s' % e
             pass
-
-    for i in range(len(events)):
-        report = open(os.path.join(eventpath, events[i]['event_id'],
-                                   'info', 'report_st'), 'a+')
-        report.close()
-
-    for i in range(len(events)):
-        exception_file = open(os.path.join(eventpath, events[i]['event_id'],
-                                           'info', 'exception'), 'a+')
-        exception_file.writelines('\n' + events[i]['event_id'] + '\n')
-        exception_file.close()
-
-        syn_file = open(os.path.join(eventpath, events[i]['event_id'],
-                                     'info', 'station_event'), 'a+')
-        syn_file.close()
 
     for i in range(len(events)):
         quake_file = open(os.path.join(eventpath, events[i]['event_id'],

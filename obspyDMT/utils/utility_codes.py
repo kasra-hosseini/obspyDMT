@@ -75,6 +75,10 @@ def goodbye_printer(input_dics, t1_pro):
 def read_list_stas(add_list, normal_mode_syn, specfem3D):
     """
     read a list of stations instead of checking the availability.
+    :param add_list:
+    :param normal_mode_syn:
+    :param specfem3D:
+    :return:
     """
 
     print '\n----------------------------------------'
@@ -88,24 +92,24 @@ def read_list_stas(add_list, normal_mode_syn, specfem3D):
     for sta in range(len(list_stas)):
         if not list_stas[sta].startswith('\n'):
             list_stas[sta] = list_stas[sta].split()
-    final_list = []
 
+    final_list = []
     if specfem3D == 'Y':
         for sta in range(len(list_stas)):
             for chan in ['MXE', 'MXN', 'MXZ']:
                 final_list.append(['SY', list_stas[sta][0],
                                    'S3', chan,
-                                   list_stas[sta][2],
-                                   list_stas[sta][3],
-                                   list_stas[sta][4]])
+                                   list_stas[sta][4],
+                                   list_stas[sta][5],
+                                   list_stas[sta][6]])
     elif normal_mode_syn == 'Y':
         for sta in range(len(list_stas)):
             for chan in ['LXE', 'LXN', 'LXZ']:
                 final_list.append(['SY', list_stas[sta][0],
                                    'S1', chan,
-                                   list_stas[sta][2],
-                                   list_stas[sta][3],
-                                   list_stas[sta][4]])
+                                   list_stas[sta][4],
+                                   list_stas[sta][5],
+                                   list_stas[sta][6]])
     else:
         for sta in range(len(list_stas)):
             # for chan in ['BH1', 'BH2', 'BHE', 'BHN', 'BHZ']:
@@ -113,7 +117,6 @@ def read_list_stas(add_list, normal_mode_syn, specfem3D):
                                list_stas[sta][2], list_stas[sta][3],
                                list_stas[sta][4], list_stas[sta][5],
                                list_stas[sta][6], list_stas[sta][7]])
-
     return final_list
 
 # ##################### read_station_event ##############################
@@ -245,8 +248,11 @@ def locate(root='.', target='info'):
 
 def calculate_time_phase(event, sta):
     """
-    calculate arrival time of the requested phase
-    to use in retrieving waveforms.
+    calculate arrival time of the requested phase to use in retrieving
+    waveforms.
+    :param event:
+    :param sta:
+    :return:
     """
 
     ev_lat = event['latitude']
@@ -258,21 +264,21 @@ def calculate_time_phase(event, sta):
     tt = taup.getTravelTimes(delta, ev_dp)
     phase_list = ['P', 'Pdiff', 'PKIKP']
 
-    time = 0
+    time_ph = 0
     flag = False
     for ph in phase_list:
         for i in range(len(tt)):
             if tt[i]['phase_name'] == ph:
                 flag = True
-                time = tt[i]['time']
+                time_ph = tt[i]['time']
                 break
             else:
                 continue
         if flag:
             print 'Phase: %s' % ph
             break
-    t_start = event['t1'] + time
-    t_end = event['t2'] + time
+    t_start = event['t1'] + time_ph
+    t_end = event['t2'] + time_ph
     return t_start, t_end
 
 # ##################### getFolderSize ###################################
