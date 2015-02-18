@@ -66,20 +66,20 @@ def FDSN_network(input_dics, events):
                                        input_dics['specfem3D'])
 
         if input_dics['fdsn_bulk'] != 'Y':
-            print '\nFDSN-Availability for event: %s/%s ---> DONE' \
-                  % (i+1, len(events))
+            print '\n%s-Availability for event: %s/%s ---> DONE' \
+                  % (input_dics['fdsn_base_url'], i+1, len(events))
         else:
-            print '\nFDSN-bulkfile for event: %s/%s ---> DONE' % (i+1,
-                                                                  len(events))
+            print '\nFDSN-bulkfile for event: %s/%s ---> DONE' \
+                  % (i+1, len(events))
 
-        print 'Time for checking the availability: %s' % (datetime.now() -
-                                                          t_fdsn_1)
+        print 'Time for checking the availability: %s' \
+              % (datetime.now() - t_fdsn_1)
 
         if Stas_fdsn != [[]]:
             FDSN_waveform(input_dics, events, Stas_fdsn, i, req_type='save')
         else:
-            print 'No available station in FDSN for your request and ' \
-                  'for event %s!' % str(i+1)
+            print 'No available station in %s for your request and ' \
+                  'for event %s!' % (input_dics['fdsn_base_name'], str(i+1))
             continue
 
 # ##################### FDSN_available ##################################
@@ -190,8 +190,8 @@ def FDSN_waveform(input_dics, events, Sta_req, i, req_type):
         eventpath = os.path.join(input_dics['datapath'], period)
         for k in range(len(events)):
             add_event.append(os.path.join(eventpath, events[k]['event_id']))
-            events_fio = open(os.path.join(add_event[k], 'info', 'event.pkl'),
-                              'w')
+            events_fio = open(os.path.join(add_event[k],
+                                           'info', 'event.pkl'), 'w')
             pickle.dump(events[k], events_fio)
             events_fio.close()
     elif req_type == 'update':
