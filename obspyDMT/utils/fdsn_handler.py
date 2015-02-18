@@ -94,7 +94,8 @@ def FDSN_available(input_dics, event, target_path, event_number):
     :param event_number:
     :return:
     """
-    print "Check the availablity of FDSN stations"
+    print "Check the availablity of FDSN stations: %s" \
+          % input_dics['fdsn_base_url']
     client_fdsn = Client_fdsn(base_url=input_dics['fdsn_base_url'],
                               user=input_dics['fdsn_user'],
                               password=input_dics['fdsn_pass'])
@@ -177,7 +178,6 @@ def FDSN_waveform(input_dics, events, Sta_req, i, req_type):
     :param req_type:
     :return:
     """
-
     t_wave_1 = datetime.now()
 
     add_event = []
@@ -190,6 +190,10 @@ def FDSN_waveform(input_dics, events, Sta_req, i, req_type):
         eventpath = os.path.join(input_dics['datapath'], period)
         for k in range(len(events)):
             add_event.append(os.path.join(eventpath, events[k]['event_id']))
+            events_fio = open(os.path.join(add_event[k], 'info', 'event.pkl'),
+                              'w')
+            pickle.dump(events[k], events_fio)
+            events_fio.close()
     elif req_type == 'update':
         events, add_event = \
             quake_info(input_dics['fdsn_update'], target='info')
@@ -202,23 +206,7 @@ def FDSN_waveform(input_dics, events, Sta_req, i, req_type):
     if input_dics['fdsn_bulk'] == 'Y':
         try:
             t11 = datetime.now()
-            client_fdsn = Client_fdsn(base_url=input_dics['fdsn_base_url'],
-                                      user=input_dics['fdsn_user'],
-                                      password=input_dics['fdsn_pass'])
-            bulk_list_fio = open(os.path.join(add_event[i], 'info',
-                                              'bulkdata_list'))
-            bulk_list = pickle.load(bulk_list_fio)
-            bulk_smgrs = client_fdsn.get_waveforms_bulk(bulk_list)
-            print 'Saving the retrieved waveforms...',
-            for bulk_st in bulk_smgrs:
-                bulk_st.stats = bulk_st.stats
-                bulk_st.write(os.path.join(add_event[i], 'BH_RAW',
-                                           '%s.%s.%s.%s'
-                                           % (bulk_st.stats['network'],
-                                              bulk_st.stats['station'],
-                                              bulk_st.stats['location'],
-                                              bulk_st.stats['channel'])),
-                              'MSEED')
+            FDSN_bulk_request(i, add_event, input_dics)
         except Exception as e:
             print 'WARNING: %s' % e
             t11 = 0
@@ -233,6 +221,32 @@ def FDSN_waveform(input_dics, events, Sta_req, i, req_type):
         print '\nbulkdataselect request is done for event: %s/%s in %s' \
               % (i+1, len(events), t22-t11)
 
+    FDSN_serial_parallel(i, events, add_event, Sta_req, input_dics,
+                         len_req_fdsn)
+    if input_dics['SAC'] == 'Y':
+        print '\nConverting the MSEED files to SAC...',
+        writesac_all(i=i, address_events=add_event)
+        print 'DONE'
+
+    try:
+        len_sta_ev_open = open(os.path.join(add_event[i], 'info',
+                                            'station_event'), 'r')
+        len_sta_ev = len(len_sta_ev_open.readlines())
+    except IOError:
+        len_sta_ev = 'Can not open station_event file: %s' \
+                     % (os.path.join(add_event[i], 'info', 'station_event'))
+
+    FDSN_reporter(i, add_event, events, input_dics, Sta_req, len_sta_ev,
+                  req_type, t_wave_1)
+
+# ##################### FDSN_serial_parallel ##################################
+
+
+def FDSN_serial_parallel(i, events, add_event, Sta_req, input_dics,
+                         len_req_fdsn):
+    """
+    FDSN serial/parallel request
+    """
     dic = {}
     print '\nFDSN-Event: %s/%s' % (i+1, len(events))
 
@@ -241,7 +255,6 @@ def FDSN_waveform(input_dics, events, Sta_req, i, req_type):
                               password=input_dics['fdsn_pass'])
     if input_dics['req_parallel'] == 'Y':
         print "Parallel request with %s processes.\n" % input_dics['req_np']
-
         par_jobs = []
         for j in range(len_req_fdsn):
             p = multiprocessing.Process(target=FDSN_download_core,
@@ -257,7 +270,6 @@ def FDSN_waveform(input_dics, events, Sta_req, i, req_type):
                 for ll in range(len(sub_par_jobs)):
                     if par_jobs[sub_par_jobs[ll]].is_alive():
                         counter += 1
-
             par_jobs[l].start()
             sub_par_jobs.append(l)
 
@@ -267,15 +279,6 @@ def FDSN_waveform(input_dics, events, Sta_req, i, req_type):
             for ll in range(len(par_jobs)):
                 if par_jobs[ll].is_alive():
                     counter += 1
-
-        # for l in range(len(len_par_grp)):
-        #     for ll in len_par_grp[l]:
-        #         par_jobs[ll].start()
-        #         time.sleep(0.01)
-        #     for ll in len_par_grp[l]:
-        #         while par_jobs[ll].is_alive():
-        #             time.sleep(0.01)
-
     else:
         for j in range(len_req_fdsn):
             FDSN_download_core(i=i, j=j, dic=dic, len_events=len(events),
@@ -297,9 +300,10 @@ def FDSN_waveform(input_dics, events, Sta_req, i, req_type):
         sta_ev_new = []
         for line in fileinput.FileInput(
                 os.path.join(add_event[i], 'info', 'station_event')):
-            if not '%s.%s.%s.%s' % (line.split(',')[0], line.split(',')[1],
-                                    line.split(',')[2], line.split(',')[3]) \
-                    in sta_saved_list:
+            line_split = line.split(',')
+            if not '%s.%s.%s.%s' \
+                    % (line_split[0], line_split[1], line_split[2],
+                       line_split[3]) in sta_saved_list:
                 pass
             else:
                 sta_ev_new.append(line)
@@ -309,67 +313,6 @@ def FDSN_waveform(input_dics, events, Sta_req, i, req_type):
         file_staev_open.writelines(sta_ev_new)
         file_staev_open.close()
         print 'DONE'
-
-    if input_dics['SAC'] == 'Y':
-        print '\nConverting the MSEED files to SAC...',
-        writesac_all(i=i, address_events=add_event)
-        print 'DONE'
-
-    try:
-        len_sta_ev_open = open(os.path.join(add_event[i],
-                                            'info',
-                                            'station_event'), 'r')
-        len_sta_ev = len(len_sta_ev_open.readlines())
-    except IOError:
-        len_sta_ev = 'Can not open station_event file: %s' \
-                     % (os.path.join(add_event[i], 'info', 'station_event'))
-
-    report = open(os.path.join(add_event[i], 'info', 'report_st'), 'a')
-    eventsID = events[i]['event_id']
-    report.writelines('<><><><><><><><><><><><><><><><><>\n')
-    report.writelines(eventsID + '\n')
-    report.writelines('---------------FDSN---------------\n')
-    report.writelines('---------------%s---------------\n' % input_dics['cha'])
-    rep = 'FDSN-Available stations for channel %s and for event-%s: %s\n' \
-          % (input_dics['cha'], i, len(Sta_req))
-    report.writelines(rep)
-    rep = 'FDSN-%s stations for channel %s and for event-%s: %s\n' \
-          % (req_type, input_dics['cha'], i, len_sta_ev)
-    report.writelines(rep)
-    report.writelines('----------------------------------\n')
-
-    t_wave = datetime.now() - t_wave_1
-
-    rep = 'Time for %sing Waveforms from FDSN: %s\n' % (req_type, t_wave)
-    report.writelines(rep)
-    report.writelines('----------------------------------\n')
-    report.close()
-
-    if input_dics['req_parallel'] == 'Y':
-        report_parallel_open = open(os.path.join(add_event[i], 'info',
-                                                 'report_parallel'), 'a')
-        report_parallel_open.writelines('---------------FDSN---------------\n')
-        report_parallel_open.writelines('Request\n')
-        if input_dics['fdsn_bulk'] == 'Y':
-            report_parallel_open.writelines('Number of Nodes: (bulk) %s\n'
-                                            % input_dics['req_np'])
-        else:
-            report_parallel_open.writelines('Number of Nodes: %s\n'
-                                            % input_dics['req_np'])
-
-        size = getFolderSize(os.path.join(add_event[i]))
-        ti = '%s,%s,%s,+,\n' % (t_wave.seconds,
-                                t_wave.microseconds,
-                                size/(1024.**2))
-
-        report_parallel_open.writelines('Total Time     : %s\n' % t_wave)
-        report_parallel_open.writelines(ti)
-        report_parallel_open.close()
-
-    print "\n------------------------"
-    print 'FDSN for event-%s is Done' % (i+1)
-    print 'Total Time: %s' % t_wave
-    print "------------------------"
 
 # ##################### FDSN_download_core ##################################
 
@@ -510,6 +453,90 @@ def FDSN_download_core(i, j, dic, len_events, events, add_event,
         Exception_file.writelines(ee)
         Exception_file.close()
         print 'ERROR: %s' % ee
+
+# ##################### FDSN_bulk_request ##################################
+
+
+def FDSN_bulk_request(i, add_event, input_dics):
+    """
+    Send bulk request to FDSN
+    """
+    print '\nSending bulk request to FDSN: %s' % input_dics['fdsn_base_url']
+    client_fdsn = Client_fdsn(base_url=input_dics['fdsn_base_url'],
+                              user=input_dics['fdsn_user'],
+                              password=input_dics['fdsn_pass'])
+    bulk_list_fio = open(os.path.join(add_event[i], 'info',
+                                      'bulkdata_list'))
+    bulk_list = pickle.load(bulk_list_fio)
+    bulk_smgrs = client_fdsn.get_waveforms_bulk(bulk_list)
+    print 'Saving the retrieved waveforms...',
+    for bulk_st in bulk_smgrs:
+        bulk_st.write(os.path.join(add_event[i], 'BH_RAW',
+                                   '%s.%s.%s.%s'
+                                   % (bulk_st.stats['network'],
+                                      bulk_st.stats['station'],
+                                      bulk_st.stats['location'],
+                                      bulk_st.stats['channel'])),
+                      'MSEED')
+
+# ##################### FDSN_reporter ##################################
+
+
+def FDSN_reporter(i, add_event, events, input_dics, Sta_req, len_sta_ev,
+                  req_type, t_wave_1):
+    """
+    Writing reports for the request
+    """
+    report = open(os.path.join(add_event[i], 'info', 'report_st'), 'a')
+    eventsID = events[i]['event_id']
+    report.writelines('<><><><><><><><><><><><><><><><><>\n')
+    report.writelines(eventsID + '\n')
+    report.writelines('---------------%s---------------\n'
+                      % input_dics['fdsn_base_url'])
+    report.writelines('---------------%s---------------\n' % input_dics['cha'])
+    rep = 'FDSN-Available stations for channel %s and for event-%s: %s\n' \
+          % (input_dics['cha'], i, len(Sta_req))
+    report.writelines(rep)
+    rep = 'FDSN-%s stations for channel %s and for event-%s: %s\n' \
+          % (req_type, input_dics['cha'], i, len_sta_ev)
+    report.writelines(rep)
+    report.writelines('----------------------------------\n')
+
+    t_wave = datetime.now() - t_wave_1
+
+    rep = 'Time for %sing Waveforms from FDSN: %s\n' % (req_type, t_wave)
+    report.writelines(rep)
+    report.writelines('----------------------------------\n')
+    report.close()
+
+    if input_dics['req_parallel'] == 'Y':
+        report_parallel_open = open(os.path.join(add_event[i], 'info',
+                                                 'report_parallel'), 'a')
+        report_parallel_open.writelines(
+            '---------------%s---------------\n'
+            % input_dics['fdsn_base_url'])
+        report_parallel_open.writelines('Request\n')
+        if input_dics['fdsn_bulk'] == 'Y':
+            report_parallel_open.writelines('Number of Nodes: (bulk) %s\n'
+                                            % input_dics['req_np'])
+        else:
+            report_parallel_open.writelines('Number of Nodes: %s\n'
+                                            % input_dics['req_np'])
+
+        size = getFolderSize(os.path.join(add_event[i]))
+        ti = '%s,%s,%s,+,\n' % (t_wave.seconds,
+                                t_wave.microseconds,
+                                size/(1024.**2))
+
+        report_parallel_open.writelines('Total Time     : %s\n' % t_wave)
+        report_parallel_open.writelines(ti)
+        report_parallel_open.close()
+
+    print "\n------------------------"
+    print 'FDSN for event-%s is Done' % (i+1)
+    print 'Total Time: %s' % t_wave
+    print "------------------------"
+
 
 # -------------------------------- TRASH
 # parallel_len_req_fdsn = range(0, len_req_fdsn)
