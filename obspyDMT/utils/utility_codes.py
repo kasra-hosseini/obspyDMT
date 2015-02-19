@@ -322,3 +322,26 @@ def send_email(input_dics):
     except Exception as err:
         print '\nNo e-mail sent, as:\n>>:\t', err
         # err_info = traceback.extract_tb(sys.exc_info()[2])
+
+# ##################### check_par_jobs ######################################
+
+
+def check_par_jobs(jobs, sleep_time=1):
+    """
+    check whether all the parallel jobs are finished or not
+    :param jobs:
+    :param sleep_time:
+    :return:
+    """
+    pp_flag = True
+    while pp_flag:
+        for proc in jobs:
+            if proc.is_alive():
+                time.sleep(sleep_time)
+                pp_flag = True
+                break
+            else:
+                pp_flag = False
+    if not pp_flag:
+        print '\n\nAll %s processes are finished...\n' % len(jobs)
+
