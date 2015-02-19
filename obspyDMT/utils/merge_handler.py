@@ -3,7 +3,7 @@
 
 # -------------------------------------------------------------------
 #   Filename:  merge_handler.py
-#   Purpose:   helping functions for handling merging mode
+#   Purpose:   handling merging mode in obspyDMT
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -29,21 +29,25 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def FDSN_ARC_merge(input_dics, clients):
     """
-    Call "merge_stream" function that merges the
-    retrieved waveforms in continuous request
+    Call "merge_stream" function that merges the retrieved waveforms in
+    continuous request
+    :param input_dics:
+    :param clients:
+    :return:
     """
     print '\n*****************************'
     print '%s -- Merging the waveforms' % clients
     print '*****************************'
-    # Following two if-conditions create address
-    # to which merging should be applied
+    # Following two if-conditions create address to which merging
+    # should be applied
     # Please note that these two conditions can not happen at the same time
     network_name = None
     address = None
-    if clients != 'arc':
-        clients_name = 'fdsn'
-    else:
+    BH_file = None
+    if clients == 'arc':
         clients_name = 'arc'
+    else:
+        clients_name = 'fdsn'
     if input_dics[clients_name + '_merge_auto'] == 'Y':
         period = '{0:s}_{1:s}_{2:s}_{3:s}'.\
             format(input_dics['min_date'].split('T')[0],
@@ -59,55 +63,21 @@ def FDSN_ARC_merge(input_dics, clients):
 
     ls_saved_stas_tmp = []
     for i in range(len(events)):
-
         sta_ev = read_station_event(address_events[i])
-
         # initialize some parameters which will be used later in merge_stream
         for s_ev in sta_ev[0]:
             if input_dics[clients_name + '_merge_auto'] == 'Y':
                 if clients == s_ev[13]:
-                    if input_dics['merge_type'] == 'raw':
-                        BH_file = 'BH_RAW'
-                        network = s_ev[0]
-                        network_name = 'raw'
-                    elif input_dics['merge_type'] == 'corrected':
-                        if input_dics['corr_unit'] == 'DIS':
-                            BH_file = 'BH'
-                            network = 'dis.%s' % s_ev[0]
-                            network_name = 'dis'
-                        elif input_dics['corr_unit'] == 'VEL':
-                            BH_file = 'BH_' + input_dics['corr_unit']
-                            network = 'vel.%s' % s_ev[0]
-                            network_name = 'vel'
-                        elif input_dics['corr_unit'] == 'ACC':
-                            BH_file = 'BH_' + input_dics['corr_unit']
-                            network = 'acc.%s' % s_ev[0]
-                            network_name = 'acc'
-
+                    network, network_name, BH_file = \
+                        init_merging(input_dics, s_ev[0])
                     station_id = '%s.%s.%s.%s' % (network, s_ev[1],
                                                   s_ev[2], s_ev[3])
                     ls_saved_stas_tmp.append(
                         os.path.join(address_events[i], BH_file, station_id))
 
             else:
-                if input_dics['merge_type'] == 'raw':
-                    BH_file = 'BH_RAW'
-                    network = s_ev[0]
-                    network_name = 'raw'
-                elif input_dics['merge_type'] == 'corrected':
-                    if input_dics['corr_unit'] == 'DIS':
-                        BH_file = 'BH'
-                        network = 'dis.%s' % s_ev[0]
-                        network_name = 'dis'
-                    elif input_dics['corr_unit'] == 'VEL':
-                        BH_file = 'BH_' + input_dics['corr_unit']
-                        network = 'vel.%s' % s_ev[0]
-                        network_name = 'vel'
-                    elif input_dics['corr_unit'] == 'ACC':
-                        BH_file = 'BH_' + input_dics['corr_unit']
-                        network = 'acc.%s' % s_ev[0]
-                        network_name = 'acc'
-
+                network, network_name, BH_file = \
+                    init_merging(input_dics, s_ev[0])
                 station_id = '%s.%s.%s.%s' % (network, s_ev[1],
                                               s_ev[2], s_ev[3])
                 ls_saved_stas_tmp.append(
@@ -161,6 +131,12 @@ def merge_stream(input_dics, ls_address, ls_sta, network_name):
     Trace 1: AAAAAAAA
     Trace 2:     FFFFFFFF
     1 + 2  : AAAAFFFFFFFF
+
+    :param input_dics:
+    :param ls_address:
+    :param ls_sta:
+    :param network_name:
+    :return:
     """
     address = os.path.dirname(os.path.dirname(ls_address[0]))
 
@@ -196,3 +172,33 @@ def merge_stream(input_dics, ls_address, ls_sta, network_name):
                                           % network_name, trace_identity),
                              format='MSEED')
                 break
+
+# ##################### init_merging ####################################
+
+
+def init_merging(input_dics, net_name):
+    """
+    Create required variables for merging
+    """
+    network_name = None
+    network = None
+    BH_file = None
+
+    if input_dics['merge_type'] == 'raw':
+        BH_file = 'BH_RAW'
+        network = net_name
+        network_name = 'raw'
+    elif input_dics['merge_type'] == 'corrected':
+        if input_dics['corr_unit'] == 'DIS':
+            BH_file = 'BH'
+            network = 'dis.%s' % net_name
+            network_name = 'dis'
+        elif input_dics['corr_unit'] == 'VEL':
+            BH_file = 'BH_' + input_dics['corr_unit']
+            network = 'vel.%s' % net_name
+            network_name = 'vel'
+        elif input_dics['corr_unit'] == 'ACC':
+            BH_file = 'BH_' + input_dics['corr_unit']
+            network = 'acc.%s' % net_name
+            network_name = 'acc'
+    return network, network_name, BH_file

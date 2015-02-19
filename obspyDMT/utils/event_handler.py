@@ -871,8 +871,8 @@ def quake_info(address, target):
                    'julday0': int(quake_read_tmp[1]),
                    'hour0': int(quake_read_tmp[2]),
                    'minute0': int(quake_read_tmp[3]),
-                   'second0': int(quake_read_tmp[4]) +
-                              int(quake_read_tmp[5]),
+                   'second0': int(quake_read_tmp[4]),
+                   'micros0': int(quake_read_tmp[5]),
                    'lat': float(quake_read_tmp[6]),
                    'lon': float(quake_read_tmp[7]),
                    'dp': float(quake_read_tmp[8]),
@@ -881,30 +881,33 @@ def quake_info(address, target):
                    'julday1': int(quake_read_tmp[11]),
                    'hour1': int(quake_read_tmp[14]),
                    'minute1': int(quake_read_tmp[15]),
-                   'second1': int(quake_read_tmp[16]) +
-                              int(quake_read_tmp[17]),
+                   'second1': int(quake_read_tmp[16]),
+                   'micros1': int(quake_read_tmp[17]),
                    'year2': int(quake_read_tmp[18]),
                    'julday2': int(quake_read_tmp[19]),
                    'hour2': int(quake_read_tmp[22]),
                    'minute2': int(quake_read_tmp[23]),
-                   'second2': int(quake_read_tmp[24]) +
-                              int(quake_read_tmp[25])}
+                   'second2': int(quake_read_tmp[24]),
+                   'micros2': int(quake_read_tmp[25])}
 
         quake_t0 = UTCDateTime(year=quake_d['year0'],
                                julday=quake_d['julday0'],
                                hour=quake_d['hour0'],
                                minute=quake_d['minute0'],
-                               second=quake_d['second0'])
+                               second=quake_d['second0'],
+                               microsecond=quake_d['micros0'])
         quake_t1 = UTCDateTime(year=quake_d['year1'],
                                julday=quake_d['julday1'],
                                hour=quake_d['hour1'],
                                minute=quake_d['minute1'],
-                               second=quake_d['second1'])
+                               second=quake_d['second1'],
+                               microsecond=quake_d['micros1'])
         quake_t2 = UTCDateTime(year=quake_d['year2'],
                                julday=quake_d['julday2'],
                                hour=quake_d['hour2'],
                                minute=quake_d['minute2'],
-                               second=quake_d['second2'])
+                               second=quake_d['second2'],
+                               microsecond=quake_d['micros2'])
 
         events.append({'number': False,
                        'latitude': quake_d['lat'],
