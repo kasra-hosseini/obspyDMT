@@ -3,7 +3,7 @@
 
 # -------------------------------------------------------------------
 #   Filename:  instrument_handler.py
-#   Purpose:   helping functions for handling instrument correction
+#   Purpose:   handling instrument correction in obspyDMT
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -22,10 +22,9 @@ from obspy import read_inventory
 from obspy.xseed import Parser
 import os
 import sys
-import time
 
 from event_handler import quake_info
-from utility_codes import read_station_event
+from utility_codes import read_station_event, check_par_jobs
 
 # ##################### FDSN_ARC_IC #####################################
 
@@ -36,18 +35,21 @@ def FDSN_ARC_IC(input_dics, clients):
     Group the stations that have been retrieved from specific client
     Grouping is necessary in applying the instrument correction correctly
     (different clients are treated differently)
+    :param input_dics:
+    :param clients:
+    :return:
     """
     print '\n*****************************'
     print '%s -- Instrument Correction' % clients
     print '*****************************'
-    # Following two if-conditions create address
-    # to which instrument correction should be applied
+    # Following two if-conditions create address to which
+    # instrument correction should be applied
     # Please note that these two conditions can not happen at the same time
     address = None
-    if clients != 'arc':
-        clients_name = 'fdsn'
-    else:
+    if clients == 'arc':
         clients_name = 'arc'
+    else:
+        clients_name = 'fdsn'
     if input_dics[clients_name + '_ic_auto'] == 'Y':
         period = '{0:s}_{1:s}_{2:s}_{3:s}'.\
             format(input_dics['min_date'].split('T')[0],
@@ -62,24 +64,23 @@ def FDSN_ARC_IC(input_dics, clients):
     events, address_events = quake_info(address, 'info')
 
     for i in range(len(events)):
-
         sta_ev = read_station_event(address_events[i])
-
         ls_saved_stas_tmp = []
-        for sta_e in sta_ev[0]:
+        for s_ev in sta_ev[0]:
             if clients.lower() == 'all_fdsn':
-                if not sta_e[13].lower() == 'arc':
-                    station_id = '%s.%s.%s.%s' % (sta_e[0], sta_e[1],
-                                                  sta_e[2], sta_e[3])
+                if not s_ev[13].lower() == 'arc':
+                    station_id = '%s.%s.%s.%s' % (s_ev[0], s_ev[1],
+                                                  s_ev[2], s_ev[3])
                     ls_saved_stas_tmp.append(
                         os.path.join(address_events[i], 'BH_RAW', station_id))
-            elif clients.lower() == sta_e[13].lower():
-                station_id = '%s.%s.%s.%s' % (sta_e[0], sta_e[1],
-                                              sta_e[2], sta_e[3])
-                ls_saved_stas_tmp.append(os.path.join(address_events[i],
-                                                      'BH_RAW', station_id))
+            elif clients.lower() == s_ev[13].lower():
+                station_id = '%s.%s.%s.%s' % (s_ev[0], s_ev[1],
+                                              s_ev[2], s_ev[3])
+                ls_saved_stas_tmp.append(
+                    os.path.join(address_events[i], 'BH_RAW', station_id))
             else:
-                sys.exit('%s does not exist!' % clients)
+                sys.exit('ERROR: No station available for %s does not '
+                         'exist!' % clients)
 
         if not input_dics['net'].startswith('_'):
             pattern_sta = '%s.%s.%s.%s' % (input_dics['net'],
@@ -87,7 +88,8 @@ def FDSN_ARC_IC(input_dics, clients):
                                            input_dics['loc'],
                                            input_dics['cha'])
         else:
-            pattern_sta = '*.%s.%s.%s' % (input_dics['sta'], input_dics['loc'],
+            pattern_sta = '*.%s.%s.%s' % (input_dics['sta'],
+                                          input_dics['loc'],
                                           input_dics['cha'])
 
         ls_saved_stas = []
@@ -117,9 +119,17 @@ def inst_correct(input_dics, ls_saved_stas, address, clients):
         3) pre-filtering and deconvolution of Resp file from Raw counts
 
     Remove the instrument type by deconvolution using spectral division.
+    :param input_dics:
+    :param ls_saved_stas:
+    :param address:
+    :param clients:
+    :return:
     """
     t_inst_1 = datetime.now()
 
+    if not input_dics['corr_unit'] in ['DIS', 'VEL', 'ACC']:
+        sys.exit('ERROR: %s can not be recognized.\n'
+                 'Available options: DIS, VEL, ACC' % input_dics['corr_unit'])
     if input_dics['corr_unit'] == 'DIS':
         BH_file = 'BH'
     else:
@@ -131,6 +141,30 @@ def inst_correct(input_dics, ls_saved_stas, address, clients):
         print "\nWARNING: can not create %s" % os.path.join(address, BH_file)
         print "%s\n" % e
         pass
+
+    ic_serial_parallel(input_dics, ls_saved_stas, clients, address, BH_file)
+    t_inst_2 = datetime.now()
+
+    if input_dics['ic_parallel'] == 'Y':
+        ic_reporter(input_dics, address, clients, ls_saved_stas, t_inst_1,
+                    t_inst_2)
+
+    print '\nTime for instrument correction of %s channels: %s' \
+          % (len(ls_saved_stas), t_inst_2-t_inst_1)
+
+# ##################### ic_serial_parallel ###################################
+
+
+def ic_serial_parallel(input_dics, ls_saved_stas, clients, address, BH_file):
+    """
+    instrument correction in serial/parallel
+    :param input_dics:
+    :param ls_saved_stas:
+    :param clients:
+    :param address:
+    :param BH_file:
+    :return:
+    """
 
     if input_dics['ic_parallel'] == 'Y':
         print '\nParallel instrument correction with %s processes.\n' \
@@ -144,6 +178,7 @@ def inst_correct(input_dics, ls_saved_stas, address, clients):
         for index in xrange(input_dics['ic_np']):
             starti = start+index*step
             endi = min(start+(index+1)*step, end)
+            print starti, endi
             p = multiprocessing.Process(target=IC_core_iterate,
                                         args=(input_dics, ls_saved_stas,
                                               clients, address, BH_file,
@@ -151,42 +186,13 @@ def inst_correct(input_dics, ls_saved_stas, address, clients):
             jobs.append(p)
         for i in range(len(jobs)):
             jobs[i].start()
-
-        pp_flag = True
-        while pp_flag:
-            for proc in jobs:
-                if proc.is_alive():
-                    time.sleep(1)
-                    pp_flag = True
-                    break
-                else:
-                    pp_flag = False
-            if not pp_flag:
-                print '\nAll the processes are finished...'
+        check_par_jobs(jobs)
 
     else:
         for i in range(len(ls_saved_stas)):
             IC_core(input_dics=input_dics, ls_saved_sta=ls_saved_stas[i],
-                    clients=clients,
-                    address=address, BH_file=BH_file,
+                    clients=clients, address=address, BH_file=BH_file,
                     inform='%s -- %s/%s' % (clients, i+1, len(ls_saved_stas)))
-
-    t_inst_2 = datetime.now()
-
-    if input_dics['ic_parallel'] == 'Y':
-        report_parallel_open = open(os.path.join(address, 'info',
-                                                 'report_parallel'), 'a')
-        report_parallel_open.writelines('---------------%s---------------\n'
-                                        % clients.upper())
-        report_parallel_open.writelines('Instrument Correction\n')
-        report_parallel_open.writelines('Number of Nodes: %s\n'
-                                        % input_dics['ic_np'])
-        report_parallel_open.writelines('Number of Stas : %s\n'
-                                        % len(ls_saved_stas))
-        report_parallel_open.writelines('Total Time     : %s\n'
-                                        % (t_inst_2 - t_inst_1))
-    print '\nTime for instrument correction of %s channels: %s' \
-          % (len(ls_saved_stas), t_inst_2-t_inst_1)
 
 # ##################### IC_core_iterate ######################################
 
@@ -194,13 +200,20 @@ def inst_correct(input_dics, ls_saved_stas, address, clients):
 def IC_core_iterate(input_dics, ls_saved_stas, clients, address, BH_file,
                     starti, endi):
     """
-    Simple iterator over IC_core
-    Designed to be used for parallel instrument correction
+    Simple iterator over IC_core Designed to be used for
+    parallel instrument correction
+    :param input_dics:
+    :param ls_saved_stas:
+    :param clients:
+    :param address:
+    :param BH_file:
+    :param starti:
+    :param endi:
+    :return:
     """
     for i in range(starti, endi):
-        IC_core(input_dics=input_dics,
-                ls_saved_sta=ls_saved_stas[i], clients=clients,
-                address=address, BH_file=BH_file,
+        IC_core(input_dics=input_dics, ls_saved_sta=ls_saved_stas[i],
+                clients=clients, address=address, BH_file=BH_file,
                 inform='%s -- %s/%s' % (clients, i+1, len(ls_saved_stas)))
 
 # ##################### IC_core #########################################
@@ -210,6 +223,13 @@ def IC_core(input_dics, ls_saved_sta, clients, address, BH_file, inform):
     """
     Function that prepare the waveforms for instrument correction and
     divert the program to the right instrument correction function!
+    :param input_dics:
+    :param ls_saved_sta:
+    :param clients:
+    :param address:
+    :param BH_file:
+    :param inform:
+    :return:
     """
     try:
         if input_dics['ic_obspy_full'] == 'Y':
@@ -218,37 +238,47 @@ def IC_core(input_dics, ls_saved_sta, clients, address, BH_file, inform):
                 stxml_file = \
                     os.path.join(address, 'Resp',
                                  'STXML.%s' % os.path.basename(ls_saved_sta))
-                obspy_fullresp_STXML(input_dics=input_dics,
-                                     trace=tr, stxml_file=stxml_file,
+                obspy_fullresp_STXML(input_dics=input_dics, trace=tr,
+                                     stxml_file=stxml_file,
                                      Address=os.path.join(address, BH_file),
                                      unit=input_dics['corr_unit'],
                                      BP_filter=input_dics['pre_filt'],
                                      inform=inform)
             else:
-                resp_file = os.path.join(
-                    address, 'Resp',
-                    'DATALESS.%s' % os.path.basename(ls_saved_sta))
-                obspy_fullresp_RESP(input_dics=input_dics,
-                                    trace=tr, resp_file=resp_file,
+                resp_file = \
+                    os.path.join(address, 'Resp',
+                                 'DATALESS.%s'
+                                 % os.path.basename(ls_saved_sta))
+                obspy_fullresp_RESP(input_dics=input_dics, trace=tr,
+                                    resp_file=resp_file,
                                     Address=os.path.join(address, BH_file),
                                     unit=input_dics['corr_unit'],
                                     BP_filter=input_dics['pre_filt'],
                                     inform=inform)
+        else:
+            sys.exit('ERROR: only ic_obspy_full is implemented for '
+                     'instrument correction')
     except Exception as e:
         print e
 
 # ##################### obspy_fullresp_STXML #################################
 
 
-def obspy_fullresp_STXML(input_dics, trace, stxml_file, Address,
-                         unit='DIS', BP_filter=(0.008, 0.012, 3.0, 4.0),
-                         inform='N/N'):
+def obspy_fullresp_STXML(input_dics, trace, stxml_file, Address, unit='DIS',
+                         BP_filter=(0.008, 0.012, 3.0, 4.0), inform='N/N'):
     """
     Instrument correction using station_XML --->
     equivalent to full response file steps: detrend, demean, taper, filter,
     deconvolution
+    :param input_dics:
+    :param trace:
+    :param stxml_file:
+    :param Address:
+    :param unit:
+    :param BP_filter:
+    :param inform:
+    :return:
     """
-
     try:
         trace.detrend('linear')
         # To keep it consistant with obspy.remove_response method!
@@ -260,20 +290,10 @@ def obspy_fullresp_STXML(input_dics, trace, stxml_file, Address,
 
         inv = read_inventory(stxml_file, format="stationxml")
         trace.attach_response(inv)
-        # rm_process = multiprocessing.Process(target=trace.remove_response,
-        #                                      args=(unit, 600.0,
-        #                                            eval(BP_filter),
-        #                                            True, True, 0.05))
-        # rm_process.start()
-        # rm_process.join()
-
-        # comment out the following line because of
-        # segmentation fault inside EVAL_RESP
         trace.remove_response(output=unit,
                               water_level=input_dics['water_level'],
                               pre_filt=eval(BP_filter), zero_mean=True,
                               taper=True, taper_fraction=0.05)
-
         # Remove the following line to keep the units
         # as it is in the stationXML
         # trace.data *= 1.e9
@@ -313,6 +333,14 @@ def obspy_fullresp_RESP(input_dics, trace, resp_file, Address, unit='DIS',
     Instrument correction using dataless seed --->
     equivalent to full response file steps: detrend, demean, taper, filter,
     deconvolution
+    :param input_dics:
+    :param trace:
+    :param resp_file:
+    :param Address:
+    :param unit:
+    :param BP_filter:
+    :param inform:
+    :return:
     """
     dataless_parser = Parser(resp_file)
     seedresp = {'filename': dataless_parser, 'units': unit}
@@ -333,15 +361,13 @@ def obspy_fullresp_RESP(input_dics, trace, resp_file, Address, unit='DIS',
                                           trace.stats['location'],
                                           trace.stats['channel'])
         if input_dics['mseed'] == 'N':
-            trace.write(
-                os.path.join(Address, '%s.%s'
-                             % (unit.lower(), trace_identity)),
-                format='SAC')
+            trace.write(os.path.join(Address, '%s.%s' % (unit.lower(),
+                                                         trace_identity)),
+                        format='SAC')
         else:
-            trace.write(
-                os.path.join(Address, '%s.%s'
-                             % (unit.lower(), trace_identity)),
-                format='MSEED')
+            trace.write(os.path.join(Address, '%s.%s' % (unit.lower(),
+                                                         trace_identity)),
+                        format='MSEED')
 
         if unit.lower() == 'dis':
             unit_print = 'displacement'
@@ -356,3 +382,30 @@ def obspy_fullresp_RESP(input_dics, trace, resp_file, Address, unit='DIS',
 
     except Exception as e:
         print '%s -- %s' % (inform, e)
+
+# ##################### ic_reporter ##################################
+
+
+def ic_reporter(input_dics, address, clients, ls_saved_stas, t_inst_1,
+                t_inst_2):
+    """
+    writing log files for instrument correction
+    :param input_dics:
+    :param address:
+    :param clients:
+    :param ls_saved_stas:
+    :param t_inst_1:
+    :param t_inst_2:
+    :return:
+    """
+    report_parallel_open = open(os.path.join(address, 'info',
+                                             'report_parallel'), 'a')
+    report_parallel_open.writelines('---------------%s---------------\n'
+                                    % clients.upper())
+    report_parallel_open.writelines('Instrument Correction\n')
+    report_parallel_open.writelines('Number of Nodes: %s\n'
+                                    % input_dics['ic_np'])
+    report_parallel_open.writelines('Number of Stas : %s\n'
+                                    % len(ls_saved_stas))
+    report_parallel_open.writelines('Total Time     : %s\n'
+                                    % (t_inst_2 - t_inst_1))
