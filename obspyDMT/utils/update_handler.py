@@ -3,7 +3,7 @@
 
 # -------------------------------------------------------------------
 #   Filename:  update_handler.py
-#   Purpose:   helping functions for handling update mode
+#   Purpose:   handling update mode in obspyDMT
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -18,9 +18,9 @@ import copy
 from datetime import datetime
 import os
 
+from arclink_handler import ARC_available, ARC_waveform
 from event_handler import quake_info
 from fdsn_handler import FDSN_available, FDSN_waveform
-from arclink_handler import ARC_available, ARC_waveform
 from utility_codes import read_station_event
 
 import warnings
@@ -33,6 +33,9 @@ def FDSN_update(input_dics, address):
     """
     Initialize directories and pass the required stations
     (removing the duplications) for FDSN update requests
+    :param input_dics:
+    :param address:
+    :return:
     """
     print '\n*********************'
     print 'FDSN -- Updating Mode'
@@ -42,15 +45,14 @@ def FDSN_update(input_dics, address):
     events, address_events = quake_info(address, 'info')
 
     for i in range(len(events)):
-        Stas_fdsn = FDSN_available(input_dics, events[i],
-                                   address_events[i],
+        Stas_fdsn = FDSN_available(input_dics, events[i], address_events[i],
                                    event_number=i)
 
         if input_dics['fdsn_bulk'] != 'Y':
-            print '\nFDSN-Availability for event: %s/%s ---> DONE' \
-                  % (i+1, len(events))
+            print '\n%s-Availability for event: %s/%s ---> DONE' \
+                  % (input_dics['fdsn_base_url'], i+1, len(events))
         else:
-            print '\nFDSN-bulkfile for event    : %s/%s ---> DONE' \
+            print '\nFDSN-bulkfile for event: %s/%s ---> DONE' \
                   % (i+1, len(events))
 
         if Stas_fdsn != [[]]:
@@ -68,7 +70,8 @@ def FDSN_update(input_dics, address):
         if Stas_req:
             FDSN_waveform(input_dics, events, Stas_req, i, req_type='update')
         else:
-            print '\nNo available station in FDSN for your request!'
+            print '\nNo available station in %s for your request!' \
+                  % input_dics['fdsn_base_url']
             print 'Check the next event...'
             continue
 
@@ -81,6 +84,9 @@ def ARC_update(input_dics, address):
     """
     Initialize directories and pass the required stations
     (removing the duplications) for ArcLink update requests
+    :param input_dics:
+    :param address:
+    :return:
     """
     print '\n************************'
     print 'ArcLink -- Updating Mode'
@@ -90,8 +96,7 @@ def ARC_update(input_dics, address):
     events, address_events = quake_info(address, 'info')
 
     for i in range(len(events)):
-        Stas_arc = ARC_available(input_dics, events[i],
-                                 address_events[i],
+        Stas_arc = ARC_available(input_dics, events[i], address_events[i],
                                  event_number=i)
 
         print '\nArcLink-Availability for event: %s/%s ---> DONE' \
@@ -133,12 +138,12 @@ def rm_duplicate(all_sta_avail, address):
             sta[2] = ''
         if len(sta) == 7:
             id_avai_stas.append('%s_%s_%s_%s_%s_%s_%s'
-                                % (sta[0], sta[1], sta[2],
-                                   sta[3], sta[4], sta[5], sta[6]))
+                                % (sta[0], sta[1], sta[2], sta[3],
+                                   sta[4], sta[5], sta[6]))
         elif len(sta) == 8:
             id_avai_stas.append('%s_%s_%s_%s_%s_%s_%s_%s'
-                                % (sta[0], sta[1], sta[2],
-                                   sta[3], sta[4], sta[5], sta[6], sta[7]))
+                                % (sta[0], sta[1], sta[2], sta[3],
+                                   sta[4], sta[5], sta[6], sta[7]))
 
     sta_ev_saved = read_station_event(address)
 
