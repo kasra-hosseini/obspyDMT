@@ -41,8 +41,8 @@ def FDSN_ARC_merge(input_dics, clients):
     # Following two if-conditions create address to which merging
     # should be applied
     # Please note that these two conditions can not happen at the same time
-    network_name = None
     address = None
+    network_name = None
     BH_file = None
     if clients == 'arc':
         clients_name = 'arc'
