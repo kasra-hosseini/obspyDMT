@@ -144,9 +144,10 @@ def plot_xml_response(input_dics):
     plotxml_datetime = input_dics['plotxml_date']
     min_freq = input_dics['plotxml_min_freq']
     output = input_dics['plotxml_output']
+    if output.lower() == 'dis':
+        output = 'DISP'
     start_stage = input_dics['plotxml_start_stage']
     end_stage = input_dics['plotxml_end_stage']
-    unwrap_phase = input_dics['plotxml_unwrap_phase']
     percentage = input_dics['plotxml_percentage']/100.
     threshold = input_dics['plotxml_phase_threshold']
     plot_response = input_dics['plotxml_response']
@@ -162,125 +163,128 @@ def plot_xml_response(input_dics):
     else:
         sys.exit('[ERROR] wrong address: %s' % stxml_dir)
 
-    lat_good = []
-    lon_good = []
-    lat_bad = []
-    lon_bad = []
+    addxml_all.sort()
+
+    sta_lat = []
+    sta_lon = []
+    latlon_color = []
+    report_fio = open(os.path.join('report_stationxml'), 'w')
     for addxml in addxml_all:
         try:
             xml_inv = read_inventory(addxml, format='stationXML')
-            for cha_name in xml_inv.get_contents()['channels']:
-                # cha_name = xml_inv.get_contents()['channels'][0]
-                if plotxml_datetime:
-                    cha_date = plotxml_datetime
-                else:
-                    print '[INFO] plotxml_date has not been set, the start_date ' \
-                          'of stationXML file will be used instead!'
-                    cha_date = xml_inv.networks[0][0][0].start_date
+            print "[STATIONXML] %s" % addxml
+            cha_name = xml_inv.get_contents()['channels'][0]
+            if plotxml_datetime:
+                cha_date = plotxml_datetime
+            else:
+                cha_date = xml_inv.networks[0][0][-1].start_date
+                print '[INFO] plotxml_date has not been set, the start_date ' \
+                      'of the last channel in stationXML file will be used ' \
+                      'instead: %s' % cha_date
 
-                xml_response = xml_inv.get_response(cha_name, cha_date)
-                for stage in xml_response.response_stages[::-1]:
-                    if (stage.decimation_input_sample_rate is not None
-                            and stage.decimation_factor is not None):
-                        sampling_rate = (stage.decimation_input_sample_rate /
-                                         stage.decimation_factor)
-                        break
+            xml_response = xml_inv.get_response(cha_name, cha_date + 0.1)
+            for stage in xml_response.response_stages[::-1]:
+                if (stage.decimation_input_sample_rate is not None
+                        and stage.decimation_factor is not None):
+                    sampling_rate = (stage.decimation_input_sample_rate /
+                                     stage.decimation_factor)
+                    break
 
-                t_samp = 1.0 / sampling_rate
-                nyquist = sampling_rate / 2.0
-                nfft = int(sampling_rate / min_freq)
+            t_samp = 1.0 / sampling_rate
+            nyquist = sampling_rate / 2.0
+            nfft = int(sampling_rate / min_freq)
 
-                if plotallstages:
-                    plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft,
-                                           min_freq, output,
-                                           start_stage, end_stage,
-                                           unwrap_phase, cha_name)
+            end_stage = min(len(xml_response.response_stages), end_stage)
 
-                try:
-                    cpx_response, freq = xml_response.get_evalresp_response(
-                        t_samp=t_samp, nfft=nfft, output=output,
-                        start_stage=start_stage, end_stage=end_stage)
-                    cpx_paz, freq = xml_response.get_evalresp_response(
-                        t_samp=t_samp, nfft=nfft, output=output, start_stage=1,
-                        end_stage=2)
-                except Exception, e:
-                    print 'WARNING: %s' % e
-                    continue
+            if plotallstages:
+                plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft,
+                                       min_freq, output,
+                                       start_stage, end_stage, cha_name)
 
-                paz = convert_xml_paz(xml_response, output)
+            try:
+                cpx_response, freq = xml_response.get_evalresp_response(
+                    t_samp=t_samp, nfft=nfft, output=output,
+                    start_stage=start_stage, end_stage=end_stage)
+                cpx_12, freq = xml_response.get_evalresp_response(
+                    t_samp=t_samp, nfft=nfft, output=output, start_stage=1,
+                    end_stage=2)
+            except Exception, e:
+                print 'WARNING: %s' % e
+                continue
 
-                h, f = pazToFreqResp(paz['poles'], paz['zeros'], paz['gain'],
-                                     1./sampling_rate, nfft, freq=True)
+            paz = convert_xml_paz(xml_response, output)
 
-                phase_resp = np.angle(cpx_response)
-                if unwrap_phase:
-                    phase_resp = np.unwrap(phase_resp)
-                phase_paz = np.angle(cpx_paz)
-                if unwrap_phase:
-                    phase_paz = np.unwrap(phase_paz)
+            h, f = pazToFreqResp(paz['poles'], paz['zeros'], paz['gain'],
+                                 1./sampling_rate, nfft, freq=True)
 
-                if plot_response:
-                    if not os.path.isdir('./stationxml_plots'):
-                        print '[INFO] creating stationxml_plots directory...',
-                        os.mkdir('./stationxml_plots')
-                        print 'DONE'
-                    plt.close()
-                    plt.ion()
-                    plt.figure(figsize=(20, 10))
-                    plt.suptitle(cha_name, size=24, weight='bold')
+            phase_resp = np.angle(cpx_response)
+            phase_12 = np.angle(cpx_12)
+
+            if plot_response:
+                if not os.path.isdir('./stationxml_plots'):
+                    print '[INFO] creating stationxml_plots directory...',
+                    os.mkdir('./stationxml_plots')
+                    print 'DONE'
+                plt.close()
+                plt.ion()
+                plt.figure(figsize=(20, 10))
+                plt.suptitle(cha_name, size=24, weight='bold')
+                if plotpaz or plotstage12:
                     plt.subplot(2, 2, 1)
-                    plt.loglog(freq, abs(cpx_response), color='blue',
-                               lw=3, label='full-resp')
-                    if plotstage12:
-                        plt.loglog(freq, abs(cpx_paz), ls='--', color='black',
-                                   lw=3, label='Stage1,2')
-                    if plotpaz:
-                        plt.loglog(f, abs(h)*paz['sensitivity'], color='red',
-                                   lw=3, label='PAZ')
-                    plt.axvline(nyquist, ls="--", color='blue', lw=3)
-                    plt.ylabel('Amplitude', size=24, weight='bold')
-                    plt.xticks(size=18, weight='bold')
-                    plt.yticks(size=18, weight='bold')
-                    plt.xlim(xmin=min_freq, xmax=nyquist+5)
-                    plt.ylim(ymax=max(abs(cpx_response))+10e9)
-                    plt.legend(loc=0, prop={'size': 18, 'weight': 'bold'})
-                    plt.grid()
+                else:
+                    plt.subplot(2, 1, 1)
+                plt.loglog(freq, abs(cpx_response), color='blue',
+                           lw=3, label='full-resp')
+                if plotstage12:
+                    plt.loglog(freq, abs(cpx_12), ls='--', color='black',
+                               lw=3, label='Stage1,2')
+                if plotpaz:
+                    plt.loglog(f, abs(h)*paz['sensitivity'], color='red',
+                               lw=3, label='PAZ')
+                plt.axvline(nyquist, ls="--", color='blue', lw=3)
+                plt.ylabel('Amplitude', size=24, weight='bold')
+                plt.xticks(size=18, weight='bold')
+                plt.yticks(size=18, weight='bold')
+                plt.xlim(xmin=min_freq, xmax=nyquist+5)
+                plt.ylim(ymax=max(abs(cpx_response))+10e9)
+                plt.legend(loc=0, prop={'size': 18, 'weight': 'bold'})
+                plt.grid()
 
+                if plotpaz or plotstage12:
                     plt.subplot(2, 2, 3)
-                    plt.semilogx(freq, phase_resp, color='blue',
-                                 lw=3, label='full-resp')
-                    if plotstage12:
-                        plt.semilogx(freq, phase_paz, ls='--', color='black',
-                                     lw=3, label='Stage1,2')
-                    if plotpaz:
-                        plt.semilogx(f, np.angle(h), color='red',
-                                     lw=3, label='PAZ')
-                    plt.axvline(nyquist, ls="--", color='blue', lw=3)
-                    plt.xlabel('Frequency [Hz]', size=24, weight='bold')
-                    plt.ylabel('Phase [rad]', size=24, weight='bold')
-                    plt.xticks(size=18, weight='bold')
-                    plt.yticks(size=18, weight='bold')
-                    plt.xlim(xmin=min_freq, xmax=nyquist+5)
-                    plt.legend(loc=0, prop={'size': 18, 'weight': 'bold'})
-                    plt.grid()
+                else:
+                    plt.subplot(2, 1, 2)
+                plt.semilogx(freq, phase_resp, color='blue',
+                             lw=3, label='full-resp')
+                if plotstage12:
+                    plt.semilogx(freq, phase_12, ls='--', color='black',
+                                 lw=3, label='Stage1,2')
+                if plotpaz:
+                    plt.semilogx(f, np.angle(h), color='red',
+                                 lw=3, label='PAZ')
+                plt.axvline(nyquist, ls="--", color='blue', lw=3)
+                plt.xlabel('Frequency [Hz]', size=24, weight='bold')
+                plt.ylabel('Phase [rad]', size=24, weight='bold')
+                plt.xticks(size=18, weight='bold')
+                plt.yticks(size=18, weight='bold')
+                plt.xlim(xmin=min_freq, xmax=nyquist+5)
+                plt.legend(loc=0, prop={'size': 18, 'weight': 'bold'})
+                plt.grid()
 
+                if plotstage12 or plotpaz:
                     plt.subplot(2, 2, 2)
                     if plotstage12:
-                        plt.loglog(freq, abs(abs(cpx_response) - abs(cpx_paz)),
+                        plt.loglog(freq, abs(abs(cpx_response) - abs(cpx_12)),
                                    '--', color='black', lw=3,
                                    label='|full-resp - Stage1,2|')
-
-                        plt.axvline(nyquist, ls="--", color='blue', lw=3)
-                        plt.axvline(percentage*nyquist, ls="--",
-                                    color='blue', lw=3)
                     if plotpaz:
                         plt.loglog(f, abs(abs(cpx_response) -
                                           abs(h)*paz['sensitivity']),
                                    color='red', lw=3,
                                    label='|full-resp - PAZ|')
-                        plt.axvline(nyquist, ls="--", color='blue', lw=3)
-                        plt.axvline(percentage*nyquist, ls="--",
-                                    color='blue', lw=3)
+                    plt.axvline(nyquist, ls="--", color='blue', lw=3)
+                    plt.axvline(percentage*nyquist, ls="--",
+                                color='blue', lw=3)
                     plt.ylabel('Amplitude Difference', size=24, weight='bold')
                     plt.xticks(size=18, weight='bold')
                     plt.yticks(size=18, weight='bold')
@@ -291,19 +295,16 @@ def plot_xml_response(input_dics):
 
                     plt.subplot(2, 2, 4)
                     if plotstage12:
-                        plt.semilogx(freq, abs(phase_resp - phase_paz),
+                        plt.semilogx(freq, abs(phase_resp - phase_12),
                                      color='black', ls='--', lw=3,
                                      label='|full-resp - Stage1,2|')
-                        plt.axvline(nyquist, ls="--", color='blue', lw=3)
-                        plt.axvline(percentage*nyquist, ls="--",
-                                    color='blue', lw=3)
                     if plotpaz:
                         plt.semilogx(freq, abs(phase_resp - np.angle(h)),
                                      color='red', lw=3,
                                      label='|full-resp - PAZ|')
-                        plt.axvline(nyquist, ls="--", color='blue', lw=3)
-                        plt.axvline(percentage*nyquist, ls="--",
-                                    color='blue', lw=3)
+                    plt.axvline(nyquist, ls="--", color='blue', lw=3)
+                    plt.axvline(percentage*nyquist, ls="--",
+                                color='blue', lw=3)
                     plt.xlabel('Frequency [Hz]', size=24, weight='bold')
                     plt.ylabel('Phase Difference [rad]',
                                size=24, weight='bold')
@@ -312,8 +313,8 @@ def plot_xml_response(input_dics):
                     plt.xlim(xmin=min_freq, xmax=nyquist+5)
                     plt.legend(loc=0, prop={'size': 18, 'weight': 'bold'})
                     plt.grid()
-                    plt.savefig(os.path.join('stationxml_plots',
-                                             cha_name + '.png'))
+                plt.savefig(os.path.join('stationxml_plots',
+                                         cha_name + '.png'))
 
             # compare = abs(phase[:int(0.8*len(phase))] -
             #              np.angle(h[:int(0.8*len(phase))]))
@@ -326,42 +327,53 @@ def plot_xml_response(input_dics):
             #    lat_blue.append(xml_inv.get_coordinates(cha_name)['latitude'])
             #    lon_blue.append(xml_inv.get_coordinates(cha_name)['longitude'])
 
-            compare = abs(phase_resp[:int(percentage*len(phase_resp))] -
-                          phase_paz[:int(percentage*len(phase_paz))])
-            if len(compare[compare > threshold]) > 0:
-                lat_bad.append(xml_inv.get_coordinates(cha_name)['latitude'])
-                lon_bad.append(xml_inv.get_coordinates(cha_name)['longitude'])
-                print cha_name
-            else:
-                lat_good.append(xml_inv.get_coordinates(cha_name)['latitude'])
-                lon_good.append(xml_inv.get_coordinates(cha_name)['longitude'])
+            phase_resp_check = phase_resp[:int(percentage*len(phase_resp))]
+            phase_h_check = np.angle(h)[:int(percentage*len(phase_12))]
+            compare = abs(phase_resp_check - phase_h_check)
+            percent_compare = \
+                float(len(compare[compare > 0.1]))/len(compare)*100
+            sta_lat.append(
+                xml_inv.get_coordinates(cha_name, cha_date + 0.1)['latitude'])
+            sta_lon.append(
+                xml_inv.get_coordinates(cha_name, cha_date + 0.1)['longitude'])
+            latlon_color.append(percent_compare)
+            if percent_compare > threshold:
+                print '>>>>>>>>>>>>>>>>>>>>'
+                plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft,
+                                       min_freq, output,
+                                       start_stage, end_stage, cha_name)
+            print os.path.join('./stationxml_plots', 'report_stationxml')
+
+            report_fio = open(os.path.join('report_stationxml'), 'a')
+            report_fio.writelines('%s\t%s\n' % (cha_name, percent_compare))
+            report_fio.close()
         except Exception, e:
             print 'Exception: %s' % e
 
+
     if plot_map_compare:
-        m = Basemap(projection='cyl', lon_0=0, lat_0=0, resolution='l')
+        plt.figure()
+        m = Basemap(projection='robin', lon_0=0, lat_0=0)
         # m.drawcoastlines()
         m.fillcontinents()
         m.drawparallels(np.arange(-90., 120., 30.))
         m.drawmeridians(np.arange(0., 420., 60.))
         m.drawmapboundary()
 
-        x_bad, y_bad = m(lon_bad, lat_bad)
-        m.scatter(x_bad, y_bad, 100, color='red', marker="v",
-                  edgecolor=None, zorder=10)
-
-        x_good, y_good = m(lon_good, lat_good)
-        m.scatter(x_good, y_good, 100, color='blue', marker="v",
-                  edgecolor=None, zorder=10)
+        x, y = m(sta_lon, sta_lat)
+        m.scatter(x, y, 100, c=latlon_color, marker="v",
+                  edgecolor='none', zorder=10)
+        plt.colorbar(orientation='horizontal')
         plt.show()
+        raw_input('Press Enter...')
+        plt.savefig(os.path.join('stationxml_plots', 'compare_plots.png'))
     sys.exit('[EXIT] obspyDMT finished normally...')
 
 # ##################### plot_xml_plotallstages ##########################
 
 
 def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
-                           output, start_stage, end_stage, unwrap_phase,
-                           cha_name):
+                           output, start_stage, end_stage, cha_name):
     """
     plot all the stages in a StationXML file.
     This is controlled by start_stage and end_stage
@@ -373,7 +385,6 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
     :param output:
     :param start_stage:
     :param end_stage:
-    :param unwrap_phase:
     :param cha_name:
     :return:
     """
@@ -392,23 +403,18 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
                 t_samp=t_samp, nfft=nfft, output=output,
                 start_stage=i, end_stage=i)
         except Exception, e:
-            print 'WARNING: %s' % e
             continue
 
         try:
-            inp = xml_response.response_stages[i].input_units
+            inp = xml_response.response_stages[i-1].input_units
         except Exception, e:
-            print 'WARNING: %s' % e
             inp = ''
         try:
-            out = xml_response.response_stages[i].output_units
+            out = xml_response.response_stages[i-1].output_units
         except Exception, e:
-            print 'WARNING: %s' % e
             out = ''
 
         phase_resp = np.angle(cpx_response)
-        if unwrap_phase:
-            phase_resp = np.unwrap(phase_resp)
 
         ax = plt.subplot(2, 1, 1)
         ax.loglog(freq, abs(cpx_response), lw=3,
@@ -460,18 +466,28 @@ def convert_xml_paz(xml_response, output):
         try:
             normalization_factor.append(resp_stage.normalization_factor)
         except Exception as e:
-            print 'WARNING: %s' % e
             pass
         try:
             poles.append(resp_stage.poles)
             zeros.append(resp_stage.zeros)
         except Exception as e:
-            print 'WARNING: %s' % e
             pass
 
     paz = {'poles': poles[0]}
-    if output.lower() == 'disp':
-        zeros[0].append(0j)
+
+    input_units = xml_response.response_stages[0].input_units
+    if not input_units.lower() in ['m/s', 'm/s**2']:
+        sys.exit('ERROR: input unit is not defined: %s\nContact the '
+                 'developer' % input_units)
+    if input_units.lower() == 'm/s':
+        if output.lower() == 'disp':
+            zeros[0].append(0.0j)
+    if input_units.lower() == 'm/s**2':
+        if output.lower() == 'disp':
+            zeros[0].append(0.0j)
+            zeros[0].append(0.0j)
+        if output.lower() == 'vel':
+            zeros[0].append(0.0j)
     if output.lower() == 'acc':
         sys.exit('%s output has not implemented!' % output)
     paz['zeros'] = zeros[0]

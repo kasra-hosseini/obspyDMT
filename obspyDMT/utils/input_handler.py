@@ -678,10 +678,6 @@ def command_parse():
     group_pltxml.add_option("--plotxml_min_freq", action="store",
                             dest="plotxml_min_freq", help=helpmsg)
 
-    helpmsg = "to not use unwrap phase in plotting the transfer function."
-    group_pltxml.add_option("--plotxml_no_unwrap_phase", action="store_true",
-                            dest="plotxml_no_unwrap_phase", help=helpmsg)
-
     helpmsg = "plot all the stations that have been compared in terms of " \
               "instrument response."
     group_pltxml.add_option("--plotxml_map_compare", action="store_true",
@@ -701,7 +697,7 @@ def command_parse():
     group_pltxml.add_option("--plotxml_phase_threshold", action="store",
                             dest="plotxml_phase_threshold", help=helpmsg)
 
-    helpmsg = "output of the transfer function: DISP/VEL. [Default: VEL]"
+    helpmsg = "output of the transfer function: DIS/VEL/ACC. [Default: VEL]"
     group_pltxml.add_option("--plotxml_output", action="store",
                             dest="plotxml_output", help=helpmsg)
 
