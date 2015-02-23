@@ -555,6 +555,10 @@ def command_parse():
     group_plt.add_option("--depth_bins_seismicity", action="store",
                          dest="depth_bins_seismicity", help=helpmsg)
 
+    helpmsg = "specify directory for plotting purposes [Default: 'N']"
+    group_plt.add_option("--plot_dir", action="store",
+                         dest="plot_dir", help=helpmsg)
+
     helpmsg = "plot 'raw' or 'corrected' waveforms. [Default: 'raw']"
     group_plt.add_option("--plot_type", action="store",
                          dest="plot_type", help=helpmsg)
@@ -590,35 +594,28 @@ def command_parse():
                          dest="max_epi", help=helpmsg)
 
     helpmsg = "plot all the events, stations and ray path between them " \
-              "found in the specified folder, " \
-              "syntax: --plot_ray_gmt address_of_the_target_folder. " \
-              "[Default: 'N']"
-    group_plt.add_option("--plot_ray_gmt", action="store",
+              "found in the specified directory (--plot_dir)."
+    group_plt.add_option("--plot_ray_gmt", action="store_true",
                          dest="plot_ray_gmt", help=helpmsg)
 
     helpmsg = "plot the ray coverage for all the station-event pairs " \
-              "found in the specified folder, " \
-              "syntax: --plot_ray address_of_the_target_folder. [Default: 'N']"
-    group_plt.add_option("--plot_ray", action="store",
+              "found in the specified folder (--plot_dir)."
+    group_plt.add_option("--plot_ray", action="store_true",
                          dest="plot_ray", help=helpmsg)
 
-    helpmsg = "plot all the events found in the specified folder, " \
-              "syntax: --plot_ev address_of_the_target_folder. " \
-              "[Default: 'N']"
-    group_plt.add_option("--plot_ev", action="store",
+    helpmsg = "plot all the events found " \
+              "in the specified directory (--plot_dir)."
+    group_plt.add_option("--plot_ev", action="store_true",
                          dest="plot_ev", help=helpmsg)
 
-    helpmsg = "plot all the stations found in the specified folder, " \
-              "syntax: --plot_sta address_of_the_target_folder. " \
-              "[Default: 'N']"
-    group_plt.add_option("--plot_sta", action="store",
-                         dest="plot_sta", help=helpmsg)
+    helpmsg = "plot Beachballs instead of dots for the event location."
+    group_plt.add_option("--plot_focal", action="store_true",
+                         dest="plot_focal", help=helpmsg)
 
-    helpmsg = "plot both all the stations and all the events found " \
-              "in the specified folder, " \
-              "syntax: --plot_se address_of_the_target_folder. [Default: 'N']"
-    group_plt.add_option("--plot_se", action="store",
-                         dest="plot_se", help=helpmsg)
+    helpmsg = "plot all the stations found " \
+              "in the specified directory (--plot_dir)."
+    group_plt.add_option("--plot_sta", action="store_true",
+                         dest="plot_sta", help=helpmsg)
 
     helpmsg = "plot \"Data(MB)-Time(Sec)\" -- ATTENTION: " \
               "\"time_fdsn\" and/or \"time_arc\" should exist in the " \
@@ -792,11 +789,10 @@ def read_input_command(parser, **kwargs):
                   'fdsn_merge': 'N', 'fdsn_merge_auto': 'Y',
                   'merge_type': 'raw',
                   'arc_merge': 'N', 'arc_merge_auto': 'Y',
+                  'plot_dir': 'N',
                   'plot_all': 'Y',
                   'plot_type': 'raw',
-                  'plot_ev': 'N', 'plot_sta': 'N', 'plot_se': 'N',
-                  'plot_ray': 'N', 'plot_epi': 'N', 'plot_dt': 'N',
-                  'plot_ray_gmt': 'N',
+                  'plot_epi': 'N', 'plot_dt': 'N',
                   'plot_save': '.', 'plot_format': 'png',
                   'min_epi': 0.0, 'max_epi': 180.0,
                   'plotxml_dir': False,
@@ -883,8 +879,7 @@ def read_input_command(parser, **kwargs):
     # ############Parse paths and make sure that they are all absolute path
     for paths in ['datapath', 'fdsn_update', 'arc_update', 'update_all',
                   'fdsn_ic', 'arc_ic', 'ic_all', 'fdsn_merge', 'arc_merge',
-                  'merge_all', 'plot_ev', 'plot_sta', 'plot_se', 'plot_ray',
-                  'plot_ray_gmt', 'plot_epi', 'plot_dt', 'plot_save',
+                  'merge_all', 'plot_dir', 'plot_epi', 'plot_dt', 'plot_save',
                   'plotxml_dir']:
         optatr_path = getattr(options, paths)
         if optatr_path:
@@ -1171,11 +1166,27 @@ def read_input_command(parser, **kwargs):
     if options.plot_arc:
         options.plot_arc = 'Y'
     input_dics['plot_arc'] = options.plot_arc
-    input_dics['plot_ev'] = options.plot_ev
-    input_dics['plot_sta'] = options.plot_sta
-    input_dics['plot_se'] = options.plot_se
-    input_dics['plot_ray'] = options.plot_ray
-    input_dics['plot_ray_gmt'] = options.plot_ray_gmt
+    input_dics['plot_dir'] = options.plot_dir
+    if options.plot_ev:
+        input_dics['plot_ev'] = True
+    else:
+        input_dics['plot_ev'] = False
+    if options.plot_focal:
+        input_dics['plot_focal'] = True
+    else:
+        input_dics['plot_focal'] = False
+    if options.plot_sta:
+        input_dics['plot_sta'] = True
+    else:
+        input_dics['plot_sta'] = False
+    if options.plot_ray:
+        input_dics['plot_ray'] = True
+    else:
+        input_dics['plot_ray'] = False
+    if options.plot_ray_gmt:
+        input_dics['plot_ray_gmt'] = True
+    else:
+        input_dics['plot_ray_gmt'] = False
     input_dics['plot_epi'] = options.plot_epi
     input_dics['plot_dt'] = options.plot_dt
     input_dics['min_epi'] = float(options.min_epi)
@@ -1204,8 +1215,7 @@ def read_input_command(parser, **kwargs):
 
     for opts in ['fdsn_update', 'arc_update', 'fdsn_ic', 'arc_ic',
                  'fdsn_merge', 'arc_merge',
-                 'plot_se', 'plot_sta', 'plot_ev', 'plot_ray',
-                 'plot_ray_gmt', 'plot_epi', 'plot_dt']:
+                 'plot_dir', 'plot_epi', 'plot_dt']:
         if input_dics[opts] != 'N':
             input_dics['datapath'] = input_dics[opts]
             input_dics['get_events'] = 'N'

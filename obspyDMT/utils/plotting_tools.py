@@ -30,7 +30,7 @@ import random
 import sys
 
 from event_handler import quake_info
-from utility_codes import read_station_event
+from utility_codes import read_station_event, read_event_dic
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -40,78 +40,81 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def plot_tools(input_dics, clients):
     """
-    Plotting tools
+    Managing the required inputs for plotting tools
     :param input_dics:
     :param clients:
     :return:
     """
     events = None
-    for i in ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray',
-              'plot_ray_gmt', 'plot_epi', 'plot_dt']:
-        if input_dics[i] != 'N':
-            events, address_events = quake_info(input_dics[i], 'info')
+    for i in ['plot_sta', 'plot_ev', 'plot_ray', 'plot_ray_gmt', 'plot_epi',
+              'plot_dt']:
+        if input_dics[i]:
+            events, address_events = quake_info(input_dics['plot_dir'], 'info')
+            break
 
     ls_saved_stas = []
     ls_add_stas = []
-    for k in ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray',
-              'plot_ray_gmt', 'plot_epi']:
+    for k in ['plot_sta', 'plot_ev', 'plot_ray', 'plot_ray_gmt', 'plot_epi']:
+        if input_dics[k] == 'N':
+            continue
+        for i in range(len(events)):
+            ls_saved_stas_tmp = []
+            ls_add_stas_tmp = []
+            sta_ev = read_station_event(address_events[i])
+            event_dic = read_event_dic(address_events[i])
 
-        if input_dics[k] != 'N':
-            for i in range(len(events)):
-                ls_saved_stas_tmp = []
-                ls_add_stas_tmp = []
-                sta_ev = read_station_event(address_events[i])
+            for j in range(len(sta_ev[0])):
+                if input_dics['plot_type'].lower() == 'raw':
+                    BH_file = 'BH_RAW'
+                    network = sta_ev[0][j][0]
+                elif input_dics['plot_type'].lower() == 'corrected':
+                    if input_dics['corr_unit'].lower() == 'dis':
+                        BH_file = 'BH'
+                        network = 'dis.%s' % sta_ev[0][j][0]
+                    elif input_dics['corr_unit'].lower() == 'vel':
+                        BH_file = 'BH_VEL'
+                        network = 'vel.%s' % sta_ev[0][j][0]
+                    elif input_dics['corr_unit'].lower() == 'acc':
+                        BH_file = 'BH_ACC'
+                        network = 'acc.%s' % sta_ev[0][j][0]
 
-                for j in range(len(sta_ev[0])):
-                    if input_dics['plot_type'] == 'raw':
-                        BH_file = 'BH_RAW'
-                        network = sta_ev[0][j][0]
-                    elif input_dics['plot_type'] == 'corrected':
-                        if input_dics['corr_unit'] == 'DIS':
-                            BH_file = 'BH'
-                            network = 'dis.%s' % sta_ev[0][j][0]
-                        elif input_dics['corr_unit'] == 'VEL':
-                            BH_file = 'BH_%s' % input_dics['corr_unit']
-                            network = 'vel.%s' % sta_ev[0][j][0]
-                        elif input_dics['corr_unit'] == 'ACC':
-                            BH_file = 'BH_%s' % input_dics['corr_unit']
-                            network = 'acc.%s' % sta_ev[0][j][0]
+                station_id = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' \
+                             % (network, sta_ev[0][j][1], sta_ev[0][j][2],
+                                sta_ev[0][j][3], sta_ev[0][j][4],
+                                sta_ev[0][j][5], sta_ev[0][j][6],
+                                sta_ev[0][j][7], sta_ev[0][j][8],
+                                sta_ev[0][j][9], sta_ev[0][j][10],
+                                sta_ev[0][j][11], sta_ev[0][j][12],
+                                sta_ev[0][j][13])
 
-                    station_id = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' \
-                                 % (network, sta_ev[0][j][1], sta_ev[0][j][2],
-                                    sta_ev[0][j][3], sta_ev[0][j][4],
-                                    sta_ev[0][j][5], sta_ev[0][j][6],
-                                    sta_ev[0][j][7], sta_ev[0][j][8],
-                                    sta_ev[0][j][9], sta_ev[0][j][10],
-                                    sta_ev[0][j][11], sta_ev[0][j][12],
-                                    sta_ev[0][j][13])
-
-                    if input_dics['plot_all'] != 'Y':
-                        if clients == sta_ev[0][j][13]:
-                            ls_saved_stas_tmp.append(station_id)
-                            ls_add_stas_tmp.append(
-                                os.path.join(address_events[i], BH_file,
-                                             '%s.%s.%s.%s'
-                                             % (network, sta_ev[0][j][1],
-                                                sta_ev[0][j][2],
-                                                sta_ev[0][j][3])))
-                    elif input_dics['plot_all'] == 'Y':
+                if input_dics['plot_all'] != 'Y':
+                    if clients == sta_ev[0][j][13]:
+                        station_id = station_id.split(',')
+                        station_id.extend(event_dic['focal_mechanism'])
                         ls_saved_stas_tmp.append(station_id)
                         ls_add_stas_tmp.append(
                             os.path.join(address_events[i], BH_file,
                                          '%s.%s.%s.%s'
                                          % (network, sta_ev[0][j][1],
-                                            sta_ev[0][j][2], sta_ev[0][j][3])))
+                                            sta_ev[0][j][2],
+                                            sta_ev[0][j][3])))
 
-                ls_saved_stas.append(ls_saved_stas_tmp)
-                ls_add_stas.append(ls_add_stas_tmp)
+                elif input_dics['plot_all'] == 'Y':
+                    station_id = station_id.split(',')
+                    station_id.extend(event_dic['focal_mechanism'])
+                    ls_saved_stas_tmp.append(station_id)
+                    ls_add_stas_tmp.append(
+                        os.path.join(address_events[i], BH_file,
+                                     '%s.%s.%s.%s'
+                                     % (network, sta_ev[0][j][1],
+                                        sta_ev[0][j][2], sta_ev[0][j][3])))
 
-            for i in range(len(ls_saved_stas)):
-                for j in range(len(ls_saved_stas[i])):
-                    ls_saved_stas[i][j] = ls_saved_stas[i][j].split(',')
+            ls_saved_stas.append(ls_saved_stas_tmp)
+            ls_add_stas.append(ls_add_stas_tmp)
 
-    for i in ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray']:
-        if input_dics[i] != 'N':
+    import ipdb; ipdb.set_trace()
+    for i in ['plot_sta', 'plot_ev', 'plot_ray']:
+        if input_dics[i]:
             plot_se_ray(input_dics, ls_saved_stas)
 
     if input_dics['plot_ray_gmt'] != 'N':
@@ -122,6 +125,137 @@ def plot_tools(input_dics, clients):
 
     if input_dics['plot_dt'] != 'N':
         plot_dt(input_dics, address_events)
+
+# ##################### plot_sta_ev_ray ###############################
+
+
+def plot_sta_ev_ray(input_dics, sta_ev, ev_info, events, stations, ray_path):
+    """
+    Plots stations, events and ray paths on a map with basemap.
+    :param input_dics:
+    :param sta_ev:
+    :param ev_info:
+    :param events:
+    :param stations:
+    :param ray_path:
+    :return:
+    """
+
+    if input_dics['evlatmin'] is None:
+        evlatmin = -90
+        evlatmax = +90
+        evlonmin = -180
+        evlonmax = +180
+        glob_map = True
+    else:
+        evlatmin = input_dics['evlatmin']
+        evlatmax = input_dics['evlatmax']
+        evlonmin = input_dics['evlonmin']
+        evlonmax = input_dics['evlonmax']
+        glob_map = False
+
+    if ray_path:
+        # hammer, kav7, cyl, mbtfpq, moll
+        m = Basemap(projection='aeqd', lon_0=0, lat_0=0)
+        m.fillcontinents(color='lightgray', lake_color='lightblue')
+        m.drawmapboundary(fill_color='lightblue')
+        m.drawcoastlines(color='darkgray')
+        parallels = np.arange(-90, 90, 30.)
+        m.drawparallels(parallels, color='gray')
+        meridians = np.arange(-180., 180., 60.)
+        m.drawmeridians(meridians, color='gray')
+        width_beach = 5e5
+        width_station = 10
+        plt.title('')
+    elif not glob_map:
+        m = Basemap(projection='cyl',
+                    llcrnrlat=evlatmin,
+                    urcrnrlat=evlatmax,
+                    llcrnrlon=evlonmin,
+                    urcrnrlon=evlonmax,
+                    resolution=None)
+        width_beach = 5
+        width_station = 10
+        parallels = np.arange(-90, 90, 5.)
+        m.drawparallels(parallels, labels=[1, 0, 0, 1], fontsize=8)
+        meridians = np.arange(-180., 180., 5.)
+        m.drawmeridians(meridians, labels=[1, 0, 0, 1], fontsize=8)
+        plt.title('')
+    elif glob_map:
+        # hammer, kav7, cyl, mbtfpq, moll
+        m = Basemap(projection='mbtfpq', lon_0=0, resolution=None)
+        width_beach = 5e5
+        width_station = 10
+        parallels = np.arange(-90, 90, 30.)
+        m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=8)
+        meridians = np.arange(-180., 180., 60.)
+        m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=8)
+        plt.title('')
+    else:
+        sys.exit('Available options: ray_path and glob_map')
+
+    if not ray_path:
+        raw_input_resp = raw_input('Choose your map style:\n'
+                                   '1. Bluemarble\n'
+                                   '2. Etopo\n'
+                                   '3. Shaderelief')
+        if raw_input_resp == '1':
+            m.bluemarble(scale=0.5)
+        elif raw_input_resp == '2':
+            m.etopo(scale=0.5)
+        elif raw_input_resp == '3':
+            m.shadedrelief(scale=0.1)
+        else:
+            print "Available options: 1, 2, 3...Proceed with ETOPO"
+            m.etopo(scale=0.5)
+
+    if events:
+        for i in range(len(ev_info)):
+            try:
+                ev_lon = ev_info.events[i].preferred_origin().longitude
+                ev_lat = ev_info.events[i].preferred_origin().latitude
+
+                ev_mrr = ev_info.events[i].preferred_focal_mechanism().moment_tensor.tensor.m_rr
+                ev_mtt = ev_info.events[i].preferred_focal_mechanism().moment_tensor.tensor.m_tt
+                ev_mpp = ev_info.events[i].preferred_focal_mechanism().moment_tensor.tensor.m_pp
+                ev_mrt = ev_info.events[i].preferred_focal_mechanism().moment_tensor.tensor.m_rt
+                ev_mrp = ev_info.events[i].preferred_focal_mechanism().moment_tensor.tensor.m_rp
+                ev_mtp = ev_info.events[i].preferred_focal_mechanism().moment_tensor.tensor.m_tp
+
+                x, y = m(ev_lon, ev_lat)
+                focmecs = [ev_mrr, ev_mtt, ev_mpp, ev_mrt, ev_mrp, ev_mtp]
+                ax = plt.gca()
+                b = Beach(focmecs, xy=(x, y), facecolor='red', width=width_beach, linewidth=1, alpha=0.85)
+                b.set_zorder(10)
+                ax.add_collection(b)
+            except Exception as e:
+                x, y = m(ev_lon, ev_lat)
+                magnitude = ev_info.events[i].preferred_magnitude().mag
+                m.scatter(x, y, color="red", marker="o", s=10*magnitude, zorder=5, alpha=0.6)
+        if Exception:
+            print 'WARNING: %s' % Exception
+    else:
+        print 'No events will be plotted.'
+
+    if stations == True:
+        for i in range(len(sta_ev[0])):
+            x, y = m(sta_ev[0][i][5], sta_ev[0][i][4])
+            m.scatter(x, y, color='black', s=width_station, marker="v", zorder=4, alpha=0.9)
+    else:
+        print 'No stations will be plotted on your map!'
+
+    if events == stations == ray_path ==True:
+        print 'Map with ray paths is created!'
+        for i in range(len(sta_ev[0])):
+            for j in range(len(ev_info)):
+                ev_lon = ev_info.events[j].preferred_origin().longitude
+                ev_lat = ev_info.events[j].preferred_origin().latitude
+
+                m.drawgreatcircle(ev_lon, ev_lat, eval(sta_ev[0][i][5]), eval(sta_ev[0][i][4]), color= 'red', alpha=0.1)
+    else:
+        print 'No rays path will be plotted on your map!'
+
+    plt.show()
 
 # ##################### plot_xml_response ###############################
 
@@ -231,7 +365,9 @@ def plot_xml_response(input_dics):
                 print 'WARNING: %s' % e
                 continue
 
-            paz = convert_xml_paz(xml_response, output)
+            paz = convert_xml_paz(xml_response, output, cha_name, cha_date)
+            if not paz:
+                continue
             h, f = pazToFreqResp(paz['poles'], paz['zeros'], paz['gain'],
                                  1./sampling_rate, nfft, freq=True)
 
@@ -475,12 +611,14 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
 # ##################### convert_xml_paz ######################################
 
 
-def convert_xml_paz(xml_response, output):
+def convert_xml_paz(xml_response, output, cha_name, cha_date):
     """
     convert Stationxml file into PAZ dictionary
     :param xml_response:
     :param output:
-    :return: paz
+    :param cha_name:
+    :param cha_date:
+    :return:
     """
     gain_arr = []
     normalization_factor = []
@@ -517,8 +655,13 @@ def convert_xml_paz(xml_response, output):
 
     input_units = xml_response.response_stages[0].input_units
     if not input_units.lower() in ['m', 'm/s', 'm/s**2']:
-        sys.exit('ERROR: input unit is not defined: %s\nContact the '
-                 'developer' % input_units)
+        print('ERROR: input unit is not defined: %s\nContact the developer'
+              % input_units)
+        error_fio = open(os.path.join('./stationxml_plots',
+                                      'error_format'), 'a')
+        error_fio.writelines('%s\t\t%s\t\t%s\n' % (cha_name, cha_date,
+                                                   input_units))
+        return False
     if input_units.lower() == 'm/s':
         if output.lower() == 'disp':
             zeros[0].append(0.0j)
@@ -729,8 +872,7 @@ def plot_se_ray(input_dics, ls_saved_stas):
             input_dics['evlatmax'] = +90
             input_dics['evlonmin'] = -180
             input_dics['evlonmax'] = +180
-        if input_dics['plot_se'] != 'N' or \
-           input_dics['plot_ev'] != 'N' or \
+        if input_dics['plot_ev'] != 'N' or \
            input_dics['plot_ray'] != 'N':
             if not input_dics['evlatmin'] <= float(ls_stas[0][9]) <= \
                     input_dics['evlatmax'] or not \
@@ -745,8 +887,7 @@ def plot_se_ray(input_dics, ls_saved_stas):
                     input_dics['max_mag']:
                 continue
 
-        if input_dics['plot_se'] != 'N' or \
-           input_dics['plot_ev'] != 'N' or \
+        if input_dics['plot_ev'] != 'N' or \
            input_dics['plot_ray'] != 'N':
             x_ev, y_ev = m(float(ls_stas[0][10]), float(ls_stas[0][9]))
             m.scatter(x_ev, y_ev, math.log(float(ls_stas[0][12])) ** 6,
@@ -782,8 +923,7 @@ def plot_se_ray(input_dics, ls_saved_stas):
                 if input_dics['plot_ray'] != 'N':
                     m.drawgreatcircle(ev_lon, ev_lat,
                                       st_lon, st_lat, alpha=0.1)
-                if input_dics['plot_se'] != 'N' or \
-                   input_dics['plot_sta'] != 'N' or \
+                if input_dics['plot_sta'] != 'N' or \
                    input_dics['plot_ray'] != 'N':
                     x_sta, y_sta = m(st_lon, st_lat)
                     m.scatter(x_sta, y_sta, 40, color='blue', marker="v",

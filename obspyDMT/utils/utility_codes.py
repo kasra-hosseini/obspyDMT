@@ -21,6 +21,7 @@ from obspy.core.util import locations2degrees
 from obspy.core import read
 from obspy.taup import taup
 import os
+import pickle
 import smtplib
 import sys
 import time
@@ -118,6 +119,39 @@ def read_list_stas(add_list, normal_mode_syn, specfem3D):
                                list_stas[sta][4], list_stas[sta][5],
                                list_stas[sta][6], list_stas[sta][7]])
     return final_list
+
+# ##################### read_event_dic ##############################
+
+
+def read_event_dic(address):
+    """
+    Reads event dictionary ("info" folder)
+    :param address:
+    :return:
+    """
+    if not os.path.isabs(address):
+        address = os.path.abspath(address)
+
+    if os.path.basename(address) == 'info':
+        target_add = [address]
+    elif locate(address, 'info'):
+        target_add = locate(address, 'info')
+    else:
+        print 'Error: There is no "info" directory in %s' % address
+        target_add = None
+
+    if len(target_add) > 1:
+        sys.exit('length of directories to read the event info: %s'
+                 % len(target_add))
+
+    event_dic = False
+    for t_add in target_add:
+        if os.path.isfile(os.path.join(t_add, 'event.pkl')):
+            ev_file_fio = open(os.path.join(t_add, 'event.pkl'), 'r')
+            event_dic = pickle.load(ev_file_fio)
+        else:
+            sys.exit('event.pkl can not be found in: %s' % t_add)
+    return event_dic
 
 # ##################### read_station_event ##############################
 
