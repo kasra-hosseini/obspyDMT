@@ -178,7 +178,7 @@ def plot_xml_response(input_dics):
     report_fio = open(os.path.join('./stationxml_plots',
                                    'report_stationxml'), 'w')
     report_fio.writelines('#channel\t\t\t\t%(Phase)\t'
-                          'Max Diff(abs)\t\tLat\t\t\tLon\n')
+                          'Max Diff(abs)\t\tLat\t\t\tLon\t\t\tDatetime\n')
     report_fio.close()
     for addxml in addxml_all:
         try:
@@ -353,11 +353,14 @@ def plot_xml_response(input_dics):
                                        start_stage, end_stage, cha_name)
             report_fio = open(os.path.join('./stationxml_plots',
                                            'report_stationxml'), 'a')
-            report_fio.writelines('%s\t\t\t%s\t\t\t%s\t\t\t\t%s\t\t%s\n'
-                                  % (cha_name, round(percent_compare, 2),
-                                     round(max(abs(compare)), 2),
-                                     round(sta_lat[-1], 2),
-                                     round(sta_lon[-1], 2)))
+            report_fio.writelines(
+                '%s\t\t\t%s\t\t\t%s\t\t\t\t%s\t\t%s\t\t%s\n'
+                % (cha_name,
+                   round(percent_compare, 2),
+                   round(max(abs(compare)), 2),
+                   round(sta_lat[-1], 2),
+                   round(sta_lon[-1], 2),
+                   cha_date))
             report_fio.close()
         except Exception, e:
             print 'Exception: %s' % e
@@ -373,11 +376,11 @@ def plot_xml_response(input_dics):
 
         x, y = m(sta_lon, sta_lat)
         m.scatter(x, y, 100, c=latlon_color, marker="v",
-                  edgecolor='none', zorder=10)
+                  edgecolor='none', zorder=10, cmap='hot_r')
         plt.colorbar(orientation='horizontal')
+        plt.savefig(os.path.join('stationxml_plots', 'compare_plots.png'))
         plt.show()
         raw_input('Press Enter...')
-        plt.savefig(os.path.join('stationxml_plots', 'compare_plots.png'))
     sys.exit('[EXIT] obspyDMT finished normally...')
 
 # ##################### plot_xml_plotallstages ##########################
