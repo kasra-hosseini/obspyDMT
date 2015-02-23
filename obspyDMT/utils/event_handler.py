@@ -62,7 +62,7 @@ def get_Events(input_dics, request):
             print "ERROR: no event available to proceed"
         return 0
 
-    events, catalog, events2, row_format, header = \
+    events, catalog, events2, row_format, header, input_dics = \
         output_shell_event(input_dics, events, catalog, successful_read,
                            request)
 
@@ -405,7 +405,7 @@ def output_shell_event(input_dics, events, catalog, successful_read, request):
             delete_events(events=events, catalog=catalog)
 
     else:
-        garbage = '0'
+        garbage = []
         if len(events) == 0:
             pass
 
@@ -441,7 +441,7 @@ def output_shell_event(input_dics, events, catalog, successful_read, request):
         input_dics['min_date'] = str(min([e['datetime'] for e in events]))
         input_dics['max_mag'] = str(max([e['magnitude'] for e in events]))
         input_dics['min_mag'] = str(min([e['magnitude'] for e in events]))
-    return events, catalog, events2, row_format, header
+    return events, catalog, events2, row_format, header, input_dics
 
 # ##################### write_cat_logger ############################
 
