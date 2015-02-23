@@ -177,8 +177,8 @@ def plot_xml_response(input_dics):
     latlon_color = []
     report_fio = open(os.path.join('./stationxml_plots',
                                    'report_stationxml'), 'w')
-    report_fio.writelines('#channel\t\t\t\t%(Phase)\t'
-                          'Max Diff(abs)\t\tLat\t\t\tLon\t\t\tDatetime\n')
+    report_fio.writelines('#channel\t\t\t\t%(Phase)\t\t'
+                          'Max Diff(abs) \tLat\t\t\tLon\t\t\tDatetime\n')
     report_fio.close()
     for addxml in addxml_all:
         try:
@@ -354,7 +354,7 @@ def plot_xml_response(input_dics):
             report_fio = open(os.path.join('./stationxml_plots',
                                            'report_stationxml'), 'a')
             report_fio.writelines(
-                '%s\t\t\t%s\t\t\t%s\t\t\t\t%s\t\t%s\t\t%s\n'
+                '%s\t\t\t%6.2f\t\t\t%6.2f\t\t\t%6.2f\t\t%7.2f\t\t%s\n'
                 % (cha_name,
                    round(percent_compare, 2),
                    round(max(abs(compare)), 2),
@@ -498,8 +498,12 @@ def convert_xml_paz(xml_response, output):
 
     if len(poles) > 1:
         print 'WARNING: More than one group of poles was found: %s' % poles
+        for i in range(1, len(poles)):
+            poles[0].extend(poles[i])
     if len(zeros) > 1:
         print 'WARNING: More than one group of zeros was found: %s' % zeros
+        for i in range(1, len(zeros)):
+            zeros[0].extend(zeros[i])
 
     paz = {'poles': poles[0]}
 
