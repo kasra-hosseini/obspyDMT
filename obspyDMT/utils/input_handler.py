@@ -747,7 +747,7 @@ def read_input_command(parser, **kwargs):
                   'min_date': str(UTCDateTime() - 60 * 60 * 24 * 10 * 1),
                   'max_date': str(UTCDateTime() - 60 * 60 * 24 * 5 * 1),
                   'event_url': 'IRIS',
-                  'event_catalog': None,
+                  'event_catalog': 'GCMT_COMBO',
                   'mag_type': None,
                   'min_mag': 5.5, 'max_mag': 9.9,
                   'min_depth': -10.0, 'max_depth': +6000.0,
@@ -887,9 +887,10 @@ def read_input_command(parser, **kwargs):
                   'plot_ray_gmt', 'plot_epi', 'plot_dt', 'plot_save',
                   'plotxml_dir']:
         optatr_path = getattr(options, paths)
-        if optatr_path != 'N' and not os.path.isabs(optatr_path):
-            setattr(options, paths, os.path.join(os.getcwd(),
-                                                 getattr(options, paths)))
+        if optatr_path:
+            if optatr_path != 'N' and not os.path.isabs(optatr_path):
+                setattr(options, paths, os.path.join(os.getcwd(),
+                                                     getattr(options, paths)))
     # ############END Parse paths
 
     # extract min. and max. longitude and latitude for event
