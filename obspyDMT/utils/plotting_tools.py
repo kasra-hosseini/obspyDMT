@@ -24,6 +24,7 @@ from obspy import read_inventory
 from obspy.signal import pazToFreqResp
 from obspy.core.util import locations2degrees
 from obspy.core import read
+from obspy.imaging.beachball import Beach
 import os
 import random
 import sys
@@ -40,6 +41,9 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 def plot_tools(input_dics, clients):
     """
     Plotting tools
+    :param input_dics:
+    :param clients:
+    :return:
     """
     events = None
     for i in ['plot_se', 'plot_sta', 'plot_ev', 'plot_ray',
@@ -180,7 +184,11 @@ def plot_xml_response(input_dics):
     report_fio.writelines('#channel\t\t\t\t%(Phase)\t\t'
                           'Max Diff(abs) \tLat\t\t\tLon\t\t\tDatetime\n')
     report_fio.close()
+    add_counter = 0
     for addxml in addxml_all:
+        add_counter += 1
+        print 40*'-'
+        print '%s/%s' % (add_counter, len(addxml_all))
         try:
             xml_inv = read_inventory(addxml, format='stationXML')
             print "[STATIONXML] %s" % addxml
@@ -508,7 +516,7 @@ def convert_xml_paz(xml_response, output):
     paz = {'poles': poles[0]}
 
     input_units = xml_response.response_stages[0].input_units
-    if not input_units.lower() in ['m/s', 'm/s**2']:
+    if not input_units.lower() in ['m', 'm/s', 'm/s**2']:
         sys.exit('ERROR: input unit is not defined: %s\nContact the '
                  'developer' % input_units)
     if input_units.lower() == 'm/s':
@@ -532,7 +540,10 @@ def convert_xml_paz(xml_response, output):
 
 def seismicity(input_dics, events):
     """
-    Create a seismicity map
+    Create seismicity map
+    :param input_dics:
+    :param events:
+    :return:
     """
     print '\n##############'
     print 'Seismicity map'
@@ -566,18 +577,19 @@ def seismicity(input_dics, events):
     m.scatter(x_ev, y_ev, 20, color='blue', marker="o",
               edgecolor="black", zorder=10, label='300< km')
 
-    m.scatter(x_ev, y_ev, 5, color='white', marker="o",
+    m.scatter(x_ev, y_ev, 10, color='white', marker="o",
               edgecolor="black", zorder=10, label='<=4.0')
-    m.scatter(x_ev, y_ev, 20, color='white', marker="o",
+    m.scatter(x_ev, y_ev, 40, color='white', marker="o",
               edgecolor="black", zorder=10, label='4.0-5.0')
-    m.scatter(x_ev, y_ev, 35, color='white', marker="o",
+    m.scatter(x_ev, y_ev, 70, color='white', marker="o",
               edgecolor="black", zorder=10, label='5.0-6.0')
-    m.scatter(x_ev, y_ev, 50, color='white', marker="o",
+    m.scatter(x_ev, y_ev, 100, color='white', marker="o",
               edgecolor="black", zorder=10, label='6.0<')
 
     ev_dp_all = []
     ev_mag_all = []
     ev_info_ar = np.array([])
+    plot_focal_mechanism = False
     for ev in events:
         x_ev, y_ev = m(float(ev['longitude']), float(ev['latitude']))
         ev_dp_all.append(abs(float(ev['depth'])))
@@ -597,22 +609,64 @@ def seismicity(input_dics, events):
             size = 70
         elif 6.0 < float(ev['magnitude']):
             size = 100
+
+        if ev['focal_mechanism']:
+            plot_focal_mechanism = True
+            f1 = ev['focal_mechanism'][0]
+            f2 = ev['focal_mechanism'][1]
+            f3 = ev['focal_mechanism'][2]
+            f4 = ev['focal_mechanism'][3]
+            f5 = ev['focal_mechanism'][4]
+            f6 = ev['focal_mechanism'][5]
+        else:
+            f1 = False
+            f2 = False
+            f3 = False
+            f4 = False
+            f5 = False
+            f6 = False
         if np.size(ev_info_ar) < 1:
             ev_info_ar = np.append(ev_info_ar,
                                    [float(ev['depth']), float(x_ev),
-                                    float(y_ev), size, color])
+                                    float(y_ev), size, color,
+                                    f1, f2, f3, f4, f5, f6])
         else:
             ev_info_ar = np.vstack((ev_info_ar,
                                     [float(ev['depth']), float(x_ev),
-                                     float(y_ev), size, color]))
+                                     float(y_ev), size, color,
+                                     f1, f2, f3, f4, f5, f6]))
     ev_info_ar = sorted(ev_info_ar,
                         key=lambda ev_info_iter: float(ev_info_iter[0]))
 
-    for ev in ev_info_ar[::-1]:
+    for ev in ev_info_ar:
         m.scatter(float(ev[1]), float(ev[2]), float(ev[3]),
                   color=ev[4], marker="o", edgecolor=None, zorder=10)
 
     plt.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0.)
+
+    if plot_focal_mechanism:
+        plt.figure()
+        # Set-up the map
+        m = Basemap(projection='cyl',
+                    llcrnrlat=input_dics['evlatmin'],
+                    urcrnrlat=input_dics['evlatmax'],
+                    llcrnrlon=input_dics['evlonmin'],
+                    urcrnrlon=input_dics['evlonmax'],
+                    resolution='l')
+        # m.drawcoastlines()
+        m.fillcontinents()
+        m.drawparallels(np.arange(-90., 120., 30.))
+        m.drawmeridians(np.arange(0., 420., 60.))
+        m.drawmapboundary()
+        for evfoc in ev_info_ar:
+            ax = plt.gca()
+            focmec = (float(evfoc[5]), float(evfoc[6]), float(evfoc[7]),
+                      float(evfoc[8]), float(evfoc[9]), float(evfoc[10]))
+            b = Beach(focmec, xy=(float(evfoc[1]), float(evfoc[2])),
+                      facecolor=evfoc[4], width=float(evfoc[3])/100.,
+                      linewidth=1, alpha=0.85)
+            b.set_zorder(10)
+            ax.add_collection(b)
 
     plt.figure()
     plt.hist(ev_dp_all, input_dics['depth_bins_seismicity'],
@@ -626,10 +680,10 @@ def seismicity(input_dics, events):
 
     plt.figure()
     plt.hist(ev_mag_all,
-             bins=np.linspace(int(input_dics['min_mag']),
-                              int(input_dics['max_mag']),
-                              int(input_dics['max_mag']) -
-                              int(input_dics['min_mag'])+1),
+             bins=np.linspace(int(float(input_dics['min_mag'])),
+                              int(float(input_dics['max_mag'])),
+                              (int(float(input_dics['max_mag'])) -
+                              int(float(input_dics['min_mag'])))*2+1),
              facecolor='green', alpha=0.75, log=True, histtype='stepfilled')
     plt.xlabel('Magnitude', size=24, weight='bold')
     plt.ylabel('#Events (log)', size=24, weight='bold')
