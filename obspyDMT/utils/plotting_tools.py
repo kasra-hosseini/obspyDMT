@@ -136,10 +136,13 @@ def plot_xml_response(input_dics):
 
     print '[INFO] plotting StationXML file/files in: %s' % \
           input_dics['plotxml_dir']
-    print '[INFO] stationxml_plots dir will be created!'
+    if not os.path.isdir('./stationxml_plots'):
+        print '[INFO] creating stationxml_plots directory...',
+        os.mkdir('./stationxml_plots')
+        print 'DONE'
 
-    # Assign the input_dics parameters to the
-    # running parameters in this function:
+    # Assign the input_dics parameters to the running parameters
+    # in this function:
     stxml_dir = input_dics['plotxml_dir']
     plotxml_datetime = input_dics['plotxml_date']
     min_freq = input_dics['plotxml_min_freq']
@@ -161,14 +164,22 @@ def plot_xml_response(input_dics):
     elif os.path.isdir(stxml_dir):
         addxml_all = glob.glob(os.path.join(stxml_dir, 'STXML.*'))
     else:
-        sys.exit('[ERROR] wrong address: %s' % stxml_dir)
+        try:
+            addxml_all = glob.glob(os.path.join(stxml_dir))
+        except Exception, e:
+            print 'ERROR: %s' % e
+            sys.exit('[ERROR] wrong address: %s' % stxml_dir)
 
     addxml_all.sort()
 
     sta_lat = []
     sta_lon = []
     latlon_color = []
-    report_fio = open(os.path.join('report_stationxml'), 'w')
+    report_fio = open(os.path.join('./stationxml_plots',
+                                   'report_stationxml'), 'w')
+    report_fio.writelines('#channel\t\t\t\t%(Phase)\t'
+                          'Max Diff(abs)\t\tLat\t\t\tLon\n')
+    report_fio.close()
     for addxml in addxml_all:
         try:
             xml_inv = read_inventory(addxml, format='stationXML')
@@ -213,7 +224,6 @@ def plot_xml_response(input_dics):
                 continue
 
             paz = convert_xml_paz(xml_response, output)
-
             h, f = pazToFreqResp(paz['poles'], paz['zeros'], paz['gain'],
                                  1./sampling_rate, nfft, freq=True)
 
@@ -221,10 +231,6 @@ def plot_xml_response(input_dics):
             phase_12 = np.angle(cpx_12)
 
             if plot_response:
-                if not os.path.isdir('./stationxml_plots'):
-                    print '[INFO] creating stationxml_plots directory...',
-                    os.mkdir('./stationxml_plots')
-                    print 'DONE'
                 plt.close()
                 plt.ion()
                 plt.figure(figsize=(20, 10))
@@ -246,7 +252,7 @@ def plot_xml_response(input_dics):
                 plt.xticks(size=18, weight='bold')
                 plt.yticks(size=18, weight='bold')
                 plt.xlim(xmin=min_freq, xmax=nyquist+5)
-                plt.ylim(ymax=max(abs(cpx_response))+10e9)
+                plt.ylim(ymax=max(1.2*abs(cpx_response)))
                 plt.legend(loc=0, prop={'size': 18, 'weight': 'bold'})
                 plt.grid()
 
@@ -289,7 +295,7 @@ def plot_xml_response(input_dics):
                     plt.xticks(size=18, weight='bold')
                     plt.yticks(size=18, weight='bold')
                     plt.xlim(xmin=min_freq, xmax=nyquist+5)
-                    plt.ylim(ymax=max(abs(cpx_response))+10e9)
+                    plt.ylim(ymax=max(1.2*abs(cpx_response)))
                     plt.legend(loc=0, prop={'size': 18, 'weight': 'bold'})
                     plt.grid()
 
@@ -328,28 +334,33 @@ def plot_xml_response(input_dics):
             #    lon_blue.append(xml_inv.get_coordinates(cha_name)['longitude'])
 
             phase_resp_check = phase_resp[:int(percentage*len(phase_resp))]
-            phase_h_check = np.angle(h)[:int(percentage*len(phase_12))]
+            phase_h_check = np.angle(h)[:int(percentage*len(np.angle(h)))]
+            if not len(phase_resp_check) == len(phase_h_check):
+                sys.exit('Lengths of phase responses do not match: '
+                         '%s (StationXML) != %s (PAZ)'
+                         % (len(phase_resp_check), len(phase_h_check)))
             compare = abs(phase_resp_check - phase_h_check)
             percent_compare = \
-                float(len(compare[compare > 0.1]))/len(compare)*100
+                float(len(compare[compare >= 0.05]))/len(compare)*100
             sta_lat.append(
                 xml_inv.get_coordinates(cha_name, cha_date + 0.1)['latitude'])
             sta_lon.append(
                 xml_inv.get_coordinates(cha_name, cha_date + 0.1)['longitude'])
             latlon_color.append(percent_compare)
-            if percent_compare > threshold:
-                print '>>>>>>>>>>>>>>>>>>>>'
+            if percent_compare >= threshold:
                 plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft,
                                        min_freq, output,
                                        start_stage, end_stage, cha_name)
-            print os.path.join('./stationxml_plots', 'report_stationxml')
-
-            report_fio = open(os.path.join('report_stationxml'), 'a')
-            report_fio.writelines('%s\t%s\n' % (cha_name, percent_compare))
+            report_fio = open(os.path.join('./stationxml_plots',
+                                           'report_stationxml'), 'a')
+            report_fio.writelines('%s\t\t\t%s\t\t\t%s\t\t\t\t%s\t\t%s\n'
+                                  % (cha_name, round(percent_compare, 2),
+                                     round(max(abs(compare)), 2),
+                                     round(sta_lat[-1], 2),
+                                     round(sta_lon[-1], 2)))
             report_fio.close()
         except Exception, e:
             print 'Exception: %s' % e
-
 
     if plot_map_compare:
         plt.figure()
@@ -403,15 +414,18 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
                 t_samp=t_samp, nfft=nfft, output=output,
                 start_stage=i, end_stage=i)
         except Exception, e:
+            print 'WARNING: %s' % e
             continue
 
         try:
             inp = xml_response.response_stages[i-1].input_units
         except Exception, e:
+            print 'WARNING: %s' % e
             inp = ''
         try:
             out = xml_response.response_stages[i-1].output_units
         except Exception, e:
+            print 'WARNING: %s' % e
             out = ''
 
         phase_resp = np.angle(cpx_response)
@@ -465,13 +479,24 @@ def convert_xml_paz(xml_response, output):
         gain_arr.append(resp_stage.stage_gain)
         try:
             normalization_factor.append(resp_stage.normalization_factor)
+            if not isinstance(resp_stage, 'PolesZerosResponseStage'):
+                print 'WARNING: normalization factor read from a stage ' \
+                      'other than PAZ'
         except Exception as e:
             pass
         try:
             poles.append(resp_stage.poles)
             zeros.append(resp_stage.zeros)
+            if not isinstance(resp_stage, 'PolesZerosResponseStage'):
+                print 'WARNING: Poles and Zeros read from a stage ' \
+                      'other than PAZ'
         except Exception as e:
             pass
+
+    if len(poles) > 1:
+        print 'WARNING: More than one group of poles was found: %s' % poles
+    if len(zeros) > 1:
+        print 'WARNING: More than one group of zeros was found: %s' % zeros
 
     paz = {'poles': poles[0]}
 

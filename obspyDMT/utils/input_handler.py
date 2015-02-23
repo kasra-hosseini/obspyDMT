@@ -691,9 +691,9 @@ def command_parse():
     group_pltxml.add_option("--plotxml_percentage", action="store",
                             dest="plotxml_percentage", help=helpmsg)
 
-    helpmsg = "maximum allowable difference between two different methods of" \
-              "instrument correction. This only applies to phase " \
-              "difference. [Default: 0.1]"
+    helpmsg = "maximum allowable length (in percentage) to differ between " \
+              "two different methods of instrument correction. " \
+              "This only applies to phase difference. [Default: 10]"
     group_pltxml.add_option("--plotxml_phase_threshold", action="store",
                             dest="plotxml_phase_threshold", help=helpmsg)
 
@@ -806,7 +806,7 @@ def read_input_command(parser, **kwargs):
                   'plotxml_start_stage': 1,
                   'plotxml_end_stage': 100,
                   'plotxml_percentage': 80,
-                  'plotxml_phase_threshold': 0.1,
+                  'plotxml_phase_threshold': 10.,
                   }
 
     # feed input_dics dictionary of defaults into parser object
@@ -887,8 +887,6 @@ def read_input_command(parser, **kwargs):
                   'plot_ray_gmt', 'plot_epi', 'plot_dt', 'plot_save',
                   'plotxml_dir']:
         optatr_path = getattr(options, paths)
-        if not optatr_path:
-            continue
         if optatr_path != 'N' and not os.path.isabs(optatr_path):
             setattr(options, paths, os.path.join(os.getcwd(),
                                                  getattr(options, paths)))
@@ -989,10 +987,6 @@ def read_input_command(parser, **kwargs):
     input_dics['plotxml_output'] = options.plotxml_output
     input_dics['plotxml_start_stage'] = int(options.plotxml_start_stage)
     input_dics['plotxml_end_stage'] = int(options.plotxml_end_stage)
-    if options.plotxml_no_unwrap_phase:
-        input_dics['plotxml_unwrap_phase'] = False
-    else:
-        input_dics['plotxml_unwrap_phase'] = True
     input_dics['plotxml_percentage'] = float(options.plotxml_percentage)
     input_dics['plotxml_phase_threshold'] = \
         float(options.plotxml_phase_threshold)
