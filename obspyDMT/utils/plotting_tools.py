@@ -23,7 +23,7 @@ import numpy as np
 from obspy import read_inventory
 from obspy.signal import pazToFreqResp
 from obspy.core.util import locations2degrees
-from obspy.core import read
+from obspy.core import read, UTCDateTime
 from obspy.imaging.beachball import Beach
 import os
 import random
@@ -38,7 +38,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 # ##################### plot_tools ############################################
 
 
-def plot_tools(input_dics, clients):
+def plot_tools(input_dics, clients, all_events=False, all_stations=False):
     """
     Managing the required inputs for plotting tools
     :param input_dics:
@@ -46,6 +46,9 @@ def plot_tools(input_dics, clients):
     :return:
     """
     """
+    XXX filtering the events before plotting
+    XXX plot epi is not yet cleaned up
+    XXX plot_dt is not yet cleaned up
     XXX add an option to plotxml to plot the report with saturation
     """
     events = None
@@ -56,51 +59,45 @@ def plot_tools(input_dics, clients):
 
     ls_saved_stas = []
     ls_add_stas = []
-    for k in ['plot_sta', 'plot_ev', 'plot_ray', 'plot_ray_gmt', 'plot_epi']:
-        if not input_dics[k]:
-            continue
-        for i in range(len(events)):
-            ls_saved_stas_tmp = []
-            ls_add_stas_tmp = []
-            sta_ev = read_station_event(address_events[i])
-            event_dic = read_event_dic(address_events[i])
-            for j in range(len(sta_ev[0])):
-                if input_dics['plot_type'].lower() == 'raw':
-                    BH_file = 'BH_RAW'
-                    network = sta_ev[0][j][0]
-                elif input_dics['plot_type'].lower() == 'corrected':
-                    if input_dics['corr_unit'].lower() == 'dis':
-                        BH_file = 'BH'
-                        network = 'dis.%s' % sta_ev[0][j][0]
-                    elif input_dics['corr_unit'].lower() == 'vel':
-                        BH_file = 'BH_VEL'
-                        network = 'vel.%s' % sta_ev[0][j][0]
-                    elif input_dics['corr_unit'].lower() == 'acc':
-                        BH_file = 'BH_ACC'
-                        network = 'acc.%s' % sta_ev[0][j][0]
+    for i in range(len(events)):
+        ls_saved_stas_tmp = []
+        ls_add_stas_tmp = []
+        sta_ev = read_station_event(address_events[i])
+        event_dic = read_event_dic(address_events[i])
+        if not all_events:
+            pass_ev = plot_filter_event(input_dics, event_dic)
+            if not pass_ev:
+                continue
+        for j in range(len(sta_ev[0])):
+            if input_dics['plot_type'].lower() == 'raw':
+                BH_file = 'BH_RAW'
+                network = sta_ev[0][j][0]
+            elif input_dics['plot_type'].lower() == 'corrected':
+                if input_dics['corr_unit'].lower() == 'dis':
+                    BH_file = 'BH'
+                    network = 'dis.%s' % sta_ev[0][j][0]
+                elif input_dics['corr_unit'].lower() == 'vel':
+                    BH_file = 'BH_VEL'
+                    network = 'vel.%s' % sta_ev[0][j][0]
+                elif input_dics['corr_unit'].lower() == 'acc':
+                    BH_file = 'BH_ACC'
+                    network = 'acc.%s' % sta_ev[0][j][0]
 
-                station_id = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' \
-                             % (network, sta_ev[0][j][1], sta_ev[0][j][2],
-                                sta_ev[0][j][3], sta_ev[0][j][4],
-                                sta_ev[0][j][5], sta_ev[0][j][6],
-                                sta_ev[0][j][7], sta_ev[0][j][8],
-                                sta_ev[0][j][9], sta_ev[0][j][10],
-                                sta_ev[0][j][11], sta_ev[0][j][12],
-                                sta_ev[0][j][13])
+            if not all_stations:
+                pass_sta = plot_filter_station(input_dics, sta_ev[0][j])
+                if not pass_sta:
+                    continue
+            station_id = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' \
+                         % (network, sta_ev[0][j][1], sta_ev[0][j][2],
+                            sta_ev[0][j][3], sta_ev[0][j][4],
+                            sta_ev[0][j][5], sta_ev[0][j][6],
+                            sta_ev[0][j][7], sta_ev[0][j][8],
+                            sta_ev[0][j][9], sta_ev[0][j][10],
+                            sta_ev[0][j][11], sta_ev[0][j][12],
+                            sta_ev[0][j][13])
 
-                if input_dics['plot_all'] != 'Y':
-                    if clients == sta_ev[0][j][13]:
-                        station_id = station_id.split(',')
-                        station_id.extend(event_dic['focal_mechanism'])
-                        ls_saved_stas_tmp.append(station_id)
-                        ls_add_stas_tmp.append(
-                            os.path.join(address_events[i], BH_file,
-                                         '%s.%s.%s.%s'
-                                         % (network, sta_ev[0][j][1],
-                                            sta_ev[0][j][2],
-                                            sta_ev[0][j][3])))
-
-                elif input_dics['plot_all'] == 'Y':
+            if input_dics['plot_all'] != 'Y':
+                if clients == sta_ev[0][j][13]:
                     station_id = station_id.split(',')
                     station_id.extend(event_dic['focal_mechanism'])
                     ls_saved_stas_tmp.append(station_id)
@@ -108,10 +105,21 @@ def plot_tools(input_dics, clients):
                         os.path.join(address_events[i], BH_file,
                                      '%s.%s.%s.%s'
                                      % (network, sta_ev[0][j][1],
-                                        sta_ev[0][j][2], sta_ev[0][j][3])))
+                                        sta_ev[0][j][2],
+                                        sta_ev[0][j][3])))
 
-            ls_saved_stas.append(ls_saved_stas_tmp)
-            ls_add_stas.append(ls_add_stas_tmp)
+            elif input_dics['plot_all'] == 'Y':
+                station_id = station_id.split(',')
+                station_id.extend(event_dic['focal_mechanism'])
+                ls_saved_stas_tmp.append(station_id)
+                ls_add_stas_tmp.append(
+                    os.path.join(address_events[i], BH_file,
+                                 '%s.%s.%s.%s'
+                                 % (network, sta_ev[0][j][1],
+                                    sta_ev[0][j][2], sta_ev[0][j][3])))
+
+        ls_saved_stas.append(ls_saved_stas_tmp)
+        ls_add_stas.append(ls_add_stas_tmp)
 
     if input_dics['plot_ray_gmt']:
         plot_ray_gmt(input_dics, ls_saved_stas)
@@ -127,6 +135,68 @@ def plot_tools(input_dics, clients):
     if input_dics['plot_dt'] != 'N':
         plot_dt(input_dics, address_events)
 
+# ##################### plot_filter_event ###############################
+
+
+def plot_filter_event(input_dics, event_dic):
+    """
+    check whether the event can pass the criteria
+    :param input_dics:
+    :param event_dic:
+    :return:
+    """
+    if not event_dic['datetime'] <= UTCDateTime(input_dics['max_date']):
+        return False
+    if not event_dic['datetime'] >= UTCDateTime(input_dics['min_date']):
+        return False
+    if not event_dic['magnitude'] <= float(input_dics['max_mag']):
+        return False
+    if not event_dic['magnitude'] >= float(input_dics['min_mag']):
+        return False
+    if not event_dic['depth'] <= float(input_dics['max_depth']):
+        return False
+    if not event_dic['depth'] >= float(input_dics['min_depth']):
+        return False
+    if input_dics['evlatmin']:
+        if not event_dic['latitude'] <= float(input_dics['evlatmax']):
+            return False
+        if not event_dic['longitude'] <= float(input_dics['evlonmax']):
+            return False
+        if not event_dic['latitude'] >= float(input_dics['evlatmin']):
+            return False
+        if not event_dic['longitude'] >= float(input_dics['evlonmin']):
+            return False
+    return True
+
+# ##################### plot_filter_station ###############################
+
+
+def plot_filter_station(input_dics, sta_ev):
+    """
+    check whether the station can pass the criteria
+    :param input_dics:
+    :param sta_ev:
+    :return:
+    """
+    if not fnmatch.fnmatch(sta_ev[0], input_dics['net']):
+        return False
+    if not fnmatch.fnmatch(sta_ev[1], input_dics['sta']):
+        return False
+    if not fnmatch.fnmatch(sta_ev[2], input_dics['loc']):
+        return False
+    if not fnmatch.fnmatch(sta_ev[3], input_dics['cha']):
+        return False
+    if input_dics['mlat_rbb']:
+        if not float(sta_ev[4]) <= input_dics['Mlat_rbb']:
+            return False
+        if not float(sta_ev[4]) >= input_dics['mlat_rbb']:
+            return False
+        if not float(sta_ev[5]) <= input_dics['Mlon_rbb']:
+            return False
+        if not float(sta_ev[5]) >= input_dics['mlon_rbb']:
+            return False
+    return True
+
 # ##################### plot_sta_ev_ray ###############################
 
 
@@ -138,6 +208,8 @@ def plot_sta_ev_ray(input_dics, ls_saved_stas):
     :return:
     """
 
+    plt.figure()
+    plt.ion()
     plt_stations = input_dics['plot_sta']
     plt_events = input_dics['plot_ev']
     plt_ray_path = input_dics['plot_ray']
@@ -156,35 +228,37 @@ def plot_sta_ev_ray(input_dics, ls_saved_stas):
         glob_map = False
 
     if plt_ray_path:
-        # hammer, kav7, cyl, mbtfpq, moll
-        m = Basemap(projection='aeqd', lon_0=0, lat_0=0)
-        parallels = np.arange(-90, 90, 30.)
-        m.drawparallels(parallels, color='gray')
-        meridians = np.arange(-180., 180., 60.)
-        m.drawmeridians(meridians, color='gray')
-        width_beach = 5e5
-        width_station = 10
-        plt.title('')
-    elif not glob_map:
-        m = Basemap(projection='cyl', llcrnrlat=evlatmin, urcrnrlat=evlatmax,
-                    llcrnrlon=evlonmin, urcrnrlon=evlonmax, resolution=None)
-        width_beach = 5
-        width_station = 10
-        parallels = np.arange(-90, 90, 5.)
-        m.drawparallels(parallels, labels=[1, 0, 0, 1], fontsize=8)
-        meridians = np.arange(-180., 180., 5.)
-        m.drawmeridians(meridians, labels=[1, 0, 0, 1], fontsize=8)
-        plt.title('')
-    elif glob_map:
-        # hammer, kav7, cyl, mbtfpq, moll
-        m = Basemap(projection='mbtfpq', lon_0=0, resolution=None)
-        width_beach = 5e5
-        width_station = 10
+        # # hammer, kav7, cyl, mbtfpq, moll
+        # m = Basemap(projection='aeqd', lon_0=0, lat_0=0)
+        # parallels = np.arange(-90, 90, 30.)
+        # m.drawparallels(parallels, color='gray')
+        # meridians = np.arange(-180., 180., 60.)
+        # m.drawmeridians(meridians, color='gray')
+        m = Basemap(projection='robin', lon_0=180)
         parallels = np.arange(-90, 90, 30.)
         m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=8)
         meridians = np.arange(-180., 180., 60.)
         m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=8)
-        plt.title('')
+        width_beach = 5e5
+        width_station = 10
+    elif not glob_map:
+        m = Basemap(projection='cyl', llcrnrlat=evlatmin, urcrnrlat=evlatmax,
+                    llcrnrlon=evlonmin, urcrnrlon=evlonmax)
+        parallels = np.arange(-90, 90, 5.)
+        m.drawparallels(parallels, labels=[1, 0, 0, 1], fontsize=8)
+        meridians = np.arange(-180., 180., 5.)
+        m.drawmeridians(meridians, labels=[1, 0, 0, 1], fontsize=8)
+        width_beach = 5
+        width_station = 10
+    elif glob_map:
+        # hammer, kav7, cyl, mbtfpq, moll
+        m = Basemap(projection='robin', lon_0=180)
+        parallels = np.arange(-90, 90, 30.)
+        m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=8)
+        meridians = np.arange(-180., 180., 60.)
+        m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=8)
+        width_beach = 5e5
+        width_station = 10
     else:
         sys.exit('ERROR: %s' % input_dics)
 
@@ -201,7 +275,6 @@ def plot_sta_ev_ray(input_dics, ls_saved_stas):
         m.shadedrelief(scale=0.1)
     else:
         m.fillcontinents()
-        print "Available options: 1, 2, 3...Proceed with Simple"
 
     if plt_events:
         for i in range(len(ls_saved_stas)):
@@ -242,13 +315,36 @@ def plot_sta_ev_ray(input_dics, ls_saved_stas):
 
     if plt_ray_path:
         for i in range(len(ls_saved_stas)):
+            print 'Projecting Event: %s/%s' % (i+1, len(ls_saved_stas))
             for j in range(len(ls_saved_stas[i])):
-                m.drawgreatcircle(
+                gcline = m.drawgreatcircle(
                     float(ls_saved_stas[i][j][10]),
                     float(ls_saved_stas[i][j][9]),
                     float(ls_saved_stas[i][j][5]),
                     float(ls_saved_stas[i][j][4]),
-                    color='k', alpha=0.1)
+                    color='k', alpha=0.0)
+                gcx, gcy = gcline[0].get_data()
+                gcx_diff = gcx[0:-1] - gcx[1:]
+                gcy_diff = gcy[0:-1] - gcy[1:]
+                if np.max(abs(gcx_diff))/abs(gcx_diff[0]) > 50:
+                    gcx_max_arg = abs(gcx_diff).argmax()
+                    plt.plot(gcx[0:gcx_max_arg], gcy[0:gcx_max_arg],
+                             color='k', alpha=0.1)
+                    plt.plot(gcx[gcx_max_arg+1:], gcy[gcx_max_arg+1:],
+                             color='k', alpha=0.1)
+                elif np.max(abs(gcy_diff))/abs(gcy_diff[0]) > 50:
+                    gcy_max_arg = abs(gcy_diff).argmax()
+                    plt.plot(gcy[0:gcy_max_arg], gcy[0:gcy_max_arg],
+                             color='k', alpha=0.1)
+                    plt.plot(gcy[gcy_max_arg+1:], gcy[gcy_max_arg+1:],
+                             color='k', alpha=0.1)
+                else:
+                    m.drawgreatcircle(
+                        float(ls_saved_stas[i][j][10]),
+                        float(ls_saved_stas[i][j][9]),
+                        float(ls_saved_stas[i][j][5]),
+                        float(ls_saved_stas[i][j][4]),
+                        color='k', alpha=0.1)
     else:
         print 'No rays path will be plotted on your map!'
 
@@ -336,12 +432,12 @@ def plot_ray_gmt(input_dics, ls_saved_stas):
     os.system('pscoast -Rd -JK180/9i -B45g30:."World-wide Ray Path Coverage": '
               '-Dc -A1000 -Glightgray -Wthinnest -t0 -O -K >> gmt_output.ps')
 
-    os.system('psxy ./gmt_sta_ev_path.txt -JK180/9i -Rd -O -K -W0.7,'
-              'black -t80  >> gmt_output.ps')
+    os.system('psxy ./gmt_sta_ev_path.txt -JK180/9i -Rd -O -K -W0.1,'
+              'black -t20  >> gmt_output.ps')
     os.system('psxy ./gmt_station.txt -JK180/9i -Rd -Si0.2c -Gblue -O -K >> '
               'gmt_output.ps')
     os.system('psmeca gmt_psmeca.txt -h1 -JK180/9i -Rd -W1 -G255/000/000 '
-              '-Sd0.35  -O >> gmt_output.ps')
+              '-Sd1.0  -O >> gmt_output.ps')
 
     os.system('ps2raster gmt_output.ps -A -P -Tf')
 
@@ -349,6 +445,49 @@ def plot_ray_gmt(input_dics, ls_saved_stas):
     os.system('mv gmt_output.pdf plot.pdf')
 
     os.system('xdg-open plot.pdf')
+
+# ##################### plot_epi ########################################
+
+
+def plot_epi(input_dics, ls_add_stas, ls_saved_stas):
+    """
+    Plot arranged waveforms by epicentral distance versus time
+    """
+
+    plt.clf()
+
+    for target in range(len(ls_add_stas)):
+        sys.stdout.write('\r')
+        sys.stdout.write("[%-100s] %d%%"
+                         % ('='*int(100.*(target+1)/len(ls_add_stas)),
+                            100.*(target+1)/len(ls_add_stas)))
+        sys.stdout.flush()
+
+        for i in range(len(ls_add_stas[target])):
+            try:
+                tr = read(ls_add_stas[target][i])[0]
+                tr.normalize()
+                dist = locations2degrees(float(ls_saved_stas[target][i][9]),
+                                         float(ls_saved_stas[target][i][10]),
+                                         float(ls_saved_stas[target][i][4]),
+                                         float(ls_saved_stas[target][i][5]))
+                if input_dics['min_epi'] <= dist <= input_dics['max_epi']:
+                    plt.plot(
+                        np.linspace(0,
+                                    (tr.stats.npts-1)/tr.stats.sampling_rate,
+                                    tr.stats.npts), tr.data + dist,
+                        color='black')
+            except Exception as e:
+                print 'WARNING: %s' % e
+                pass
+            plt.xlabel('Time (sec)')
+            plt.ylabel('Epicentral distance (deg)')
+
+    print '\nSaving the plot in the following address:'
+    print os.path.join(input_dics['plot_save'],
+                       'plot.%s' % input_dics['plot_format'])
+    plt.savefig(os.path.join(input_dics['plot_save'],
+                             'plot.%s' % input_dics['plot_format']))
 
 # ##################### plot_xml_response ###############################
 
@@ -929,151 +1068,6 @@ def seismicity(input_dics, events):
     plt.tight_layout()
 
     plt.show()
-
-# ##################### plot_se_ray #####################################
-
-
-def plot_se_ray(input_dics, ls_saved_stas):
-    """
-    one of the following configurations (based on the inputs) will be Plotted:
-    station
-    event
-    both station and event
-    ray path
-    """
-    plt.clf()
-    m = Basemap(projection='aeqd', lon_0=-100, lat_0=40)
-    # m.drawcoastlines()
-    m.fillcontinents()
-    m.drawparallels(np.arange(-90., 120., 30.))
-    m.drawmeridians(np.arange(0., 420., 60.))
-    m.drawmapboundary()
-
-    pattern_sta = '%s.%s.%s' % (input_dics['sta'],
-                                input_dics['loc'],
-                                input_dics['cha'])
-    for i in range(len(ls_saved_stas)):
-        sys.stdout.write('\r')
-        sys.stdout.write("[%-100s] %d%%"
-                         % ('='*int(100.*(i+1)/len(ls_saved_stas)),
-                            100.*(i+1)/len(ls_saved_stas)))
-        sys.stdout.flush()
-
-        ls_stas = ls_saved_stas[i]
-        if not input_dics['evlatmin']:
-            input_dics['evlatmin'] = -90
-            input_dics['evlatmax'] = +90
-            input_dics['evlonmin'] = -180
-            input_dics['evlonmax'] = +180
-        if input_dics['plot_ev'] != 'N' or \
-           input_dics['plot_ray'] != 'N':
-            if not input_dics['evlatmin'] <= float(ls_stas[0][9]) <= \
-                    input_dics['evlatmax'] or not \
-                    input_dics['evlonmin'] <= \
-                    float(ls_stas[0][10]) <= \
-                    input_dics['evlonmax'] or not \
-                    input_dics['max_depth'] <= \
-                    float(ls_stas[0][11]) <= \
-                    input_dics['min_depth'] or not \
-                    input_dics['min_mag'] <= \
-                    float(ls_stas[0][12]) <= \
-                    input_dics['max_mag']:
-                continue
-
-        if input_dics['plot_ev'] != 'N' or \
-           input_dics['plot_ray'] != 'N':
-            x_ev, y_ev = m(float(ls_stas[0][10]), float(ls_stas[0][9]))
-            m.scatter(x_ev, y_ev, math.log(float(ls_stas[0][12])) ** 6,
-                      color="red", marker="o", edgecolor="black", zorder=10)
-
-        for j in range(len(ls_stas)):
-            try:
-                station_name = '%s.%s.%s' % (ls_stas[j][1],
-                                             ls_stas[j][2],
-                                             ls_stas[j][3])
-                # station_ID = ls_stas[j][0] + '.' + station_name
-
-                if not fnmatch.fnmatch(station_name, pattern_sta):
-                    continue
-                if not input_dics['mlat_rbb']:
-                    input_dics['mlat_rbb'] = -90.0
-                    input_dics['Mlat_rbb'] = +90.0
-                    input_dics['mlon_rbb'] = -180.0
-                    input_dics['Mlon_rbb'] = +180.0
-                if not input_dics['mlat_rbb'] <= \
-                        float(ls_stas[j][4]) <= \
-                        input_dics['Mlat_rbb'] or not \
-                   input_dics['mlon_rbb'] <= \
-                   float(ls_stas[j][5]) <= \
-                   input_dics['Mlon_rbb']:
-                    continue
-                st_lat = float(ls_stas[j][4])
-                st_lon = float(ls_stas[j][5])
-                ev_lat = float(ls_stas[j][9])
-                ev_lon = float(ls_stas[j][10])
-                # ev_mag = float(ls_stas[j][12])
-
-                if input_dics['plot_ray'] != 'N':
-                    m.drawgreatcircle(ev_lon, ev_lat,
-                                      st_lon, st_lat, alpha=0.1)
-                if input_dics['plot_sta'] != 'N' or \
-                   input_dics['plot_ray'] != 'N':
-                    x_sta, y_sta = m(st_lon, st_lat)
-                    m.scatter(x_sta, y_sta, 40, color='blue', marker="v",
-                              edgecolor="black", zorder=10)
-
-            except Exception as e:
-                print 'WARNING: %s' % e
-                pass
-
-    print '\nSaving the plot in the following address:'
-    print os.path.join(input_dics['plot_save'], 'plot.%s'
-                       % input_dics['plot_format'])
-    plt.savefig(os.path.join(input_dics['plot_save'],
-                             'plot.%s' % input_dics['plot_format']))
-
-# ##################### plot_epi ########################################
-
-
-def plot_epi(input_dics, ls_add_stas, ls_saved_stas):
-    """
-    Plot arranged waveforms by epicentral distance versus time
-    """
-
-    plt.clf()
-
-    for target in range(len(ls_add_stas)):
-        sys.stdout.write('\r')
-        sys.stdout.write("[%-100s] %d%%"
-                         % ('='*int(100.*(target+1)/len(ls_add_stas)),
-                            100.*(target+1)/len(ls_add_stas)))
-        sys.stdout.flush()
-
-        for i in range(len(ls_add_stas[target])):
-            try:
-                tr = read(ls_add_stas[target][i])[0]
-                tr.normalize()
-                dist = locations2degrees(float(ls_saved_stas[target][i][9]),
-                                         float(ls_saved_stas[target][i][10]),
-                                         float(ls_saved_stas[target][i][4]),
-                                         float(ls_saved_stas[target][i][5]))
-                if input_dics['min_epi'] <= dist <= input_dics['max_epi']:
-                    plt.plot(
-                        np.linspace(0,
-                                    (tr.stats.npts-1)/tr.stats.sampling_rate,
-                                    tr.stats.npts), tr.data + dist,
-                        color='black')
-            except Exception as e:
-                print 'WARNING: %s' % e
-                pass
-            plt.xlabel('Time (sec)')
-            plt.ylabel('Epicentral distance (deg)')
-
-    print '\nSaving the plot in the following address:'
-    print os.path.join(input_dics['plot_save'],
-                       'plot.%s' % input_dics['plot_format'])
-    plt.savefig(os.path.join(input_dics['plot_save'],
-                             'plot.%s' % input_dics['plot_format']))
 
 # ##################### plot_dt #########################################
 
