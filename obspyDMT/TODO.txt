@@ -1,14 +1,14 @@
 1. Check and change the procedure:
 input_handler.py               ----------> CHECKED 
 event_handler.py               ----------> CHECKED
-fdsn_handler.py                ---------->    
-arclink_handler.py             ---------->    
-instrument_handler.py          ---------->        
-update_handler.py              ---------->      
-merge_handler.py               ---------->         
-utility_codes.py               ---------->     
-plotting_tools.py              ---------->         
-format_converter.py            ---------->        
+fdsn_handler.py                ----------> CHECKED   
+arclink_handler.py             ----------> CHECKED   
+instrument_handler.py          ----------> CHECKED       
+update_handler.py              ----------> CHECKED     
+merge_handler.py               ----------> CHECKED        
+utility_codes.py               ----------> CHECKED    
+plotting_tools.py              ----------> CHECKED        
+format_converter.py            ----------> CHECKED       
 obspyDMT.py                    ----------> CHECKED
 
 2. plotxml and nightly based checks!
