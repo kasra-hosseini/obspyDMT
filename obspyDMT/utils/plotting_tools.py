@@ -1178,7 +1178,7 @@ def plot_dt(input_dics, address_events):
                                ['Serial', 'Parallel'], loc=4)
 
                 plt.savefig(
-                    os.path.join('Data-Time_%s_%s.%s'
+                    os.path.join('data-time_%s_%s.%s'
                                  % (client_time.split('_')[1],
                                     os.path.basename(address_events[i]),
                                     input_dics['plot_format'])))
