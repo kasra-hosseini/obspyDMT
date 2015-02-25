@@ -17,7 +17,6 @@
 import fnmatch
 import glob
 import matplotlib.pyplot as plt
-import math as math
 from mpl_toolkits.basemap import Basemap
 import numpy as np
 from obspy import read_inventory
@@ -26,7 +25,6 @@ from obspy.core.util import locations2degrees
 from obspy.core import read, UTCDateTime
 from obspy.imaging.beachball import Beach
 import os
-import random
 import sys
 
 from event_handler import quake_info
@@ -44,9 +42,6 @@ def plot_tools(input_dics, clients, all_events=False, all_stations=False):
     :param input_dics:
     :param clients:
     :return:
-    """
-    """
-    XXX add an option to plotxml to plot the report with saturation
     """
     if input_dics['plot_dir'].lower() != 'n':
         events, address_events = quake_info(input_dics['plot_dir'], 'info')
