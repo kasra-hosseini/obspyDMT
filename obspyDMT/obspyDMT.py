@@ -80,14 +80,12 @@ def obspyDMT(**kwargs):
     if input_dics['arc_merge'] != 'N' or input_dics['arc_merge_auto'] == 'Y':
         FDSN_ARC_merge(input_dics, clients='arc')
     # ------------------plot_tools--------------------------------------------
-    ls_plot_options = ['plot_dir', 'plot_dt']
-    for plt_opt in ls_plot_options:
-        if input_dics[plt_opt] != 'N':
-            print 'Plotting %s' % plt_opt
-            if input_dics['plot_all'] == 'Y' or input_dics['plot_fdsn'] == 'Y':
-                plot_tools(input_dics, clients=input_dics['fdsn_base_url'])
-            if input_dics['plot_arc'] == 'Y':
-                plot_tools(input_dics, clients='arc')
+    if input_dics['plot_dir'].lower() != 'n':
+        print 'Plotting %s' % input_dics['plot_dir']
+        if input_dics['plot_all'] == 'Y' or input_dics['plot_fdsn'] == 'Y':
+            plot_tools(input_dics, clients=input_dics['fdsn_base_url'])
+        if input_dics['plot_arc'] == 'Y':
+            plot_tools(input_dics, clients='arc')
     if input_dics['plot_all_events']:
         raw_input('\nPress enter to continue ..\n')
     # ------------------Compressing-------------------------------------------

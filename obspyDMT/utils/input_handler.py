@@ -616,11 +616,12 @@ def command_parse():
     group_plt.add_option("--plot_sta", action="store_true",
                          dest="plot_sta", help=helpmsg)
 
-    helpmsg = "plot \"Data(MB)-Time(Sec)\" -- ATTENTION: " \
-              "\"time_fdsn\" and/or \"time_arc\" should exist in the " \
-              "\"info\" folder [refer to \"time_fdsn\" and " \
-              "\"time_arc\" options] [Default: 'N']"
-    group_plt.add_option("--plot_dt", action="store",
+    helpmsg = "plot \"Data(MB)-Time(Sec)\" for the " \
+              "specified directory (--plot_dir) " \
+              "-- ATTENTION: \"time_fdsn\" and/or \"time_arc\" should " \
+              "exist in the \"info\" folder [refer to \"time_fdsn\" and " \
+              "\"time_arc\" options]"
+    group_plt.add_option("--plot_dt", action="store_true",
                          dest="plot_dt", help=helpmsg)
 
     helpmsg = "the path where obspyDMT will store the plots " \
@@ -791,7 +792,6 @@ def read_input_command(parser, **kwargs):
                   'plot_dir': 'N',
                   'plot_all': 'Y',
                   'plot_type': 'raw',
-                  'plot_dt': 'N',
                   'plot_save': '.', 'plot_format': 'png',
                   'min_epi': 0.0, 'max_epi': 180.0,
                   'plotxml_dir': False,
@@ -878,8 +878,7 @@ def read_input_command(parser, **kwargs):
     # ############Parse paths and make sure that they are all absolute path
     for paths in ['datapath', 'fdsn_update', 'arc_update', 'update_all',
                   'fdsn_ic', 'arc_ic', 'ic_all', 'fdsn_merge', 'arc_merge',
-                  'merge_all', 'plot_dir', 'plot_dt', 'plot_save',
-                  'plotxml_dir']:
+                  'merge_all', 'plot_dir', 'plot_save', 'plotxml_dir']:
         optatr_path = getattr(options, paths)
         if optatr_path:
             if optatr_path != 'N' and not os.path.isabs(optatr_path):
@@ -1190,7 +1189,10 @@ def read_input_command(parser, **kwargs):
         input_dics['plot_epi'] = True
     else:
         input_dics['plot_epi'] = False
-    input_dics['plot_dt'] = options.plot_dt
+    if options.plot_dt:
+        input_dics['plot_dt'] = True
+    else:
+        input_dics['plot_dt'] = False
     input_dics['min_epi'] = float(options.min_epi)
     input_dics['max_epi'] = float(options.max_epi)
     input_dics['plot_save'] = options.plot_save
@@ -1216,8 +1218,7 @@ def read_input_command(parser, **kwargs):
         input_dics['merge_type'] = options.merge_type
 
     for opts in ['fdsn_update', 'arc_update', 'fdsn_ic', 'arc_ic',
-                 'fdsn_merge', 'arc_merge',
-                 'plot_dir', 'plot_dt']:
+                 'fdsn_merge', 'arc_merge', 'plot_dir']:
         if input_dics[opts] != 'N':
             input_dics['datapath'] = input_dics[opts]
             input_dics['get_events'] = 'N'

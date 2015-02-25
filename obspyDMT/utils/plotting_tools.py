@@ -46,14 +46,12 @@ def plot_tools(input_dics, clients, all_events=False, all_stations=False):
     :return:
     """
     """
-    XXX plot_dt is not yet cleaned up
     XXX add an option to plotxml to plot the report with saturation
     """
-    events = None
-    for k in ['plot_dir', 'plot_dt']:
-        if input_dics[k].lower() != 'n':
-            events, address_events = quake_info(input_dics[k], 'info')
-            break
+    if input_dics['plot_dir'].lower() != 'n':
+        events, address_events = quake_info(input_dics['plot_dir'], 'info')
+    else:
+        sys.exit('ERROR: --plot_dir has not set!')
 
     ls_saved_stas = []
     ls_add_stas = []
@@ -133,7 +131,7 @@ def plot_tools(input_dics, clients, all_events=False, all_stations=False):
     if input_dics['plot_epi']:
         plot_epi(input_dics, ls_add_stas, ls_saved_stas)
 
-    if input_dics['plot_dt'] != 'N':
+    if input_dics['plot_dt']:
         plot_dt(input_dics, address_events)
 
 # ##################### plot_filter_event ###############################
@@ -1088,18 +1086,22 @@ def seismicity(input_dics, events):
 def plot_dt(input_dics, address_events):
     """
     Plot stored Data(MB) as a function of Time(Sec)
+    :param input_dics:
+    :param address_events:
+    :return:
     """
 
     single_succ = None
     parallel_succ = None
-
     for i in range(len(address_events)):
         for client_time in ['time_fdsn', 'time_arc']:
             print 'Event address: %s' % address_events[i]
-            if os.path.isfile(os.path.join(address_events[i], 'info',
+            if os.path.isfile(os.path.join(address_events[i],
+                                           'info',
                                            client_time)):
                 plt.clf()
-                dt_open = open(os.path.join(address_events[i], 'info',
+                dt_open = open(os.path.join(address_events[i],
+                                            'info',
                                             client_time))
                 dt_read = dt_open.readlines()
                 for j in range(len(dt_read)):
@@ -1112,8 +1114,8 @@ def plot_dt(input_dics, address_events):
                 time_all = []
 
                 for k in range(len(dt_read)):
-                    time_single += \
-                        eval(dt_read[k][4]) + eval(dt_read[k][5])/(1024.**2)
+                    time_single += eval(dt_read[k][4]) + \
+                                   eval(dt_read[k][5])/1.e6
                     time_all.append(time_single)
 
                     MB_single = eval(dt_read[k][6])
@@ -1141,7 +1143,7 @@ def plot_dt(input_dics, address_events):
                     rep_par_read = rep_par_open.readlines()
                     time_parallel = \
                         eval(rep_par_read[4].split(',')[0]) + \
-                        eval(rep_par_read[4].split(',')[1])/(1024.**2)
+                        eval(rep_par_read[4].split(',')[1])/1.e6
                     MB_parallel = eval(rep_par_read[4].split(',')[2])
                     # trans_rate_parallel = MB_parallel/time_parallel*60
                     parallel_succ = plt.scatter(time_parallel,
@@ -1154,19 +1156,17 @@ def plot_dt(input_dics, address_events):
                 MB_array = np.array(MB_all)
 
                 poly = np.poly1d(np.polyfit(time_array, MB_array, 1))
-                # time_poly = np.linspace(0, time_all[-1], len(time_all))
                 plt.plot(time_array, poly(time_array), 'k--')
 
-                trans_rate = (poly(time_array[-1]) -
-                              poly(time_array[0])) / \
-                             (time_array[-1]-time_array[0])*60
+                trans_rate = (poly(time_array[-1]) - poly(time_array[0])) / \
+                             (time_array[-1]-time_array[0])
 
                 plt.xlabel('Time (sec)', size='large', weight='bold')
                 plt.ylabel('Stored Data (MB)', size='large', weight='bold')
                 plt.xticks(size='large', weight='bold')
                 plt.yticks(size='large', weight='bold')
                 plt_title = \
-                    '%s\nAll: %s--Succ: %s (%s%%)-Fail: %s (%s%%)--%sMb/min' \
+                    '%s\nAll: %s--Succ: %s (%s%%)-Fail: %s (%s%%)--%sMB/sec' \
                     % (client_time.split('_')[1].upper(), (succ + fail), succ,
                        round(float(succ)/(succ + fail)*100., 1), fail,
                        round(float(fail)/(succ + fail)*100., 1),
@@ -1177,7 +1177,8 @@ def plot_dt(input_dics, address_events):
                     plt.legend([single_succ, parallel_succ],
                                ['Serial', 'Parallel'], loc=4)
 
-                plt.savefig(os.path.join(address_events[i], 'info',
-                                         'Data-Time_%s.%s'
-                                         % (client_time.split('_')[1],
-                                            input_dics['plot_format'])))
+                plt.savefig(
+                    os.path.join('Data-Time_%s_%s.%s'
+                                 % (client_time.split('_')[1],
+                                    os.path.basename(address_events[i]),
+                                    input_dics['plot_format'])))
