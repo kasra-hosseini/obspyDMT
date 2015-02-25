@@ -576,9 +576,8 @@ def command_parse():
                          dest="plot_arc", help=helpmsg)
 
     helpmsg = "plot \"epicentral distance-time\" for " \
-              "all the waveforms found in the specified folder, " \
-              "syntax: --plot_epi address_of_the_target_folder. [Default: 'N']"
-    group_plt.add_option("--plot_epi", action="store",
+              "all the waveforms found in the specified folder (--plot_dir)."
+    group_plt.add_option("--plot_epi", action="store_true",
                          dest="plot_epi", help=helpmsg)
 
     helpmsg = "plot \"epicentral distance-time\" (refer to --plot_epi') " \
@@ -792,7 +791,7 @@ def read_input_command(parser, **kwargs):
                   'plot_dir': 'N',
                   'plot_all': 'Y',
                   'plot_type': 'raw',
-                  'plot_epi': 'N', 'plot_dt': 'N',
+                  'plot_dt': 'N',
                   'plot_save': '.', 'plot_format': 'png',
                   'min_epi': 0.0, 'max_epi': 180.0,
                   'plotxml_dir': False,
@@ -879,7 +878,7 @@ def read_input_command(parser, **kwargs):
     # ############Parse paths and make sure that they are all absolute path
     for paths in ['datapath', 'fdsn_update', 'arc_update', 'update_all',
                   'fdsn_ic', 'arc_ic', 'ic_all', 'fdsn_merge', 'arc_merge',
-                  'merge_all', 'plot_dir', 'plot_epi', 'plot_dt', 'plot_save',
+                  'merge_all', 'plot_dir', 'plot_dt', 'plot_save',
                   'plotxml_dir']:
         optatr_path = getattr(options, paths)
         if optatr_path:
@@ -1187,7 +1186,10 @@ def read_input_command(parser, **kwargs):
         input_dics['plot_ray_gmt'] = True
     else:
         input_dics['plot_ray_gmt'] = False
-    input_dics['plot_epi'] = options.plot_epi
+    if options.plot_epi:
+        input_dics['plot_epi'] = True
+    else:
+        input_dics['plot_epi'] = False
     input_dics['plot_dt'] = options.plot_dt
     input_dics['min_epi'] = float(options.min_epi)
     input_dics['max_epi'] = float(options.max_epi)
@@ -1215,7 +1217,7 @@ def read_input_command(parser, **kwargs):
 
     for opts in ['fdsn_update', 'arc_update', 'fdsn_ic', 'arc_ic',
                  'fdsn_merge', 'arc_merge',
-                 'plot_dir', 'plot_epi', 'plot_dt']:
+                 'plot_dir', 'plot_dt']:
         if input_dics[opts] != 'N':
             input_dics['datapath'] = input_dics[opts]
             input_dics['get_events'] = 'N'

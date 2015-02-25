@@ -45,24 +45,25 @@ def plot_tools(input_dics, clients):
     :param clients:
     :return:
     """
+    """
+    XXX add an option to plotxml to plot the report with saturation
+    """
     events = None
-    for i in ['plot_sta', 'plot_ev', 'plot_ray', 'plot_ray_gmt', 'plot_epi',
-              'plot_dt']:
-        if input_dics[i]:
-            events, address_events = quake_info(input_dics['plot_dir'], 'info')
+    for k in ['plot_dir', 'plot_dt']:
+        if input_dics[k].lower() != 'n':
+            events, address_events = quake_info(input_dics[k], 'info')
             break
 
     ls_saved_stas = []
     ls_add_stas = []
     for k in ['plot_sta', 'plot_ev', 'plot_ray', 'plot_ray_gmt', 'plot_epi']:
-        if input_dics[k] == 'N':
+        if not input_dics[k]:
             continue
         for i in range(len(events)):
             ls_saved_stas_tmp = []
             ls_add_stas_tmp = []
             sta_ev = read_station_event(address_events[i])
             event_dic = read_event_dic(address_events[i])
-
             for j in range(len(sta_ev[0])):
                 if input_dics['plot_type'].lower() == 'raw':
                     BH_file = 'BH_RAW'
@@ -112,15 +113,15 @@ def plot_tools(input_dics, clients):
             ls_saved_stas.append(ls_saved_stas_tmp)
             ls_add_stas.append(ls_add_stas_tmp)
 
-    import ipdb; ipdb.set_trace()
-    for i in ['plot_sta', 'plot_ev', 'plot_ray']:
-        if input_dics[i]:
-            plot_se_ray(input_dics, ls_saved_stas)
-
-    if input_dics['plot_ray_gmt'] != 'N':
+    if input_dics['plot_ray_gmt']:
         plot_ray_gmt(input_dics, ls_saved_stas)
+    else:
+        for k in ['plot_sta', 'plot_ev', 'plot_ray']:
+            if input_dics[k]:
+                plot_sta_ev_ray(input_dics, ls_saved_stas)
+                break
 
-    if input_dics['plot_epi'] != 'N':
+    if input_dics['plot_epi']:
         plot_epi(input_dics, ls_add_stas, ls_saved_stas)
 
     if input_dics['plot_dt'] != 'N':
@@ -129,17 +130,17 @@ def plot_tools(input_dics, clients):
 # ##################### plot_sta_ev_ray ###############################
 
 
-def plot_sta_ev_ray(input_dics, sta_ev, ev_info, events, stations, ray_path):
+def plot_sta_ev_ray(input_dics, ls_saved_stas):
     """
     Plots stations, events and ray paths on a map with basemap.
     :param input_dics:
-    :param sta_ev:
-    :param ev_info:
-    :param events:
-    :param stations:
-    :param ray_path:
+    :param ls_saved_stas:
     :return:
     """
+
+    plt_stations = input_dics['plot_sta']
+    plt_events = input_dics['plot_ev']
+    plt_ray_path = input_dics['plot_ray']
 
     if input_dics['evlatmin'] is None:
         evlatmin = -90
@@ -154,12 +155,9 @@ def plot_sta_ev_ray(input_dics, sta_ev, ev_info, events, stations, ray_path):
         evlonmax = input_dics['evlonmax']
         glob_map = False
 
-    if ray_path:
+    if plt_ray_path:
         # hammer, kav7, cyl, mbtfpq, moll
         m = Basemap(projection='aeqd', lon_0=0, lat_0=0)
-        m.fillcontinents(color='lightgray', lake_color='lightblue')
-        m.drawmapboundary(fill_color='lightblue')
-        m.drawcoastlines(color='darkgray')
         parallels = np.arange(-90, 90, 30.)
         m.drawparallels(parallels, color='gray')
         meridians = np.arange(-180., 180., 60.)
@@ -168,12 +166,8 @@ def plot_sta_ev_ray(input_dics, sta_ev, ev_info, events, stations, ray_path):
         width_station = 10
         plt.title('')
     elif not glob_map:
-        m = Basemap(projection='cyl',
-                    llcrnrlat=evlatmin,
-                    urcrnrlat=evlatmax,
-                    llcrnrlon=evlonmin,
-                    urcrnrlon=evlonmax,
-                    resolution=None)
+        m = Basemap(projection='cyl', llcrnrlat=evlatmin, urcrnrlat=evlatmax,
+                    llcrnrlon=evlonmin, urcrnrlon=evlonmax, resolution=None)
         width_beach = 5
         width_station = 10
         parallels = np.arange(-90, 90, 5.)
@@ -192,70 +186,171 @@ def plot_sta_ev_ray(input_dics, sta_ev, ev_info, events, stations, ray_path):
         m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=8)
         plt.title('')
     else:
-        sys.exit('Available options: ray_path and glob_map')
+        sys.exit('ERROR: %s' % input_dics)
 
-    if not ray_path:
-        raw_input_resp = raw_input('Choose your map style:\n'
-                                   '1. Bluemarble\n'
-                                   '2. Etopo\n'
-                                   '3. Shaderelief')
-        if raw_input_resp == '1':
-            m.bluemarble(scale=0.5)
-        elif raw_input_resp == '2':
-            m.etopo(scale=0.5)
-        elif raw_input_resp == '3':
-            m.shadedrelief(scale=0.1)
-        else:
-            print "Available options: 1, 2, 3...Proceed with ETOPO"
-            m.etopo(scale=0.5)
+    raw_input_resp = raw_input('Choose your map style:\n'
+                               '1. Bluemarble\n'
+                               '2. Etopo\n'
+                               '3. Shaderelief\n'
+                               '4. Simple\n')
+    if raw_input_resp == '1':
+        m.bluemarble(scale=0.5)
+    elif raw_input_resp == '2':
+        m.etopo(scale=0.5)
+    elif raw_input_resp == '3':
+        m.shadedrelief(scale=0.1)
+    else:
+        m.fillcontinents()
+        print "Available options: 1, 2, 3...Proceed with Simple"
 
-    if events:
-        for i in range(len(ev_info)):
-            try:
-                ev_lon = ev_info.events[i].preferred_origin().longitude
-                ev_lat = ev_info.events[i].preferred_origin().latitude
-
-                ev_mrr = ev_info.events[i].preferred_focal_mechanism().moment_tensor.tensor.m_rr
-                ev_mtt = ev_info.events[i].preferred_focal_mechanism().moment_tensor.tensor.m_tt
-                ev_mpp = ev_info.events[i].preferred_focal_mechanism().moment_tensor.tensor.m_pp
-                ev_mrt = ev_info.events[i].preferred_focal_mechanism().moment_tensor.tensor.m_rt
-                ev_mrp = ev_info.events[i].preferred_focal_mechanism().moment_tensor.tensor.m_rp
-                ev_mtp = ev_info.events[i].preferred_focal_mechanism().moment_tensor.tensor.m_tp
-
-                x, y = m(ev_lon, ev_lat)
-                focmecs = [ev_mrr, ev_mtt, ev_mpp, ev_mrt, ev_mrp, ev_mtp]
+    if plt_events:
+        for i in range(len(ls_saved_stas)):
+            if input_dics['plot_focal']:
+                x, y = m(float(ls_saved_stas[i][0][10]),
+                         float(ls_saved_stas[i][0][9]))
+                focmecs = [float(ls_saved_stas[i][0][14]),
+                           float(ls_saved_stas[i][0][15]),
+                           float(ls_saved_stas[i][0][16]),
+                           float(ls_saved_stas[i][0][17]),
+                           float(ls_saved_stas[i][0][18]),
+                           float(ls_saved_stas[i][0][19])]
                 ax = plt.gca()
-                b = Beach(focmecs, xy=(x, y), facecolor='red', width=width_beach, linewidth=1, alpha=0.85)
+                b = Beach(focmecs, xy=(x, y), facecolor='blue',
+                          width=width_beach, linewidth=1, alpha=0.85)
                 b.set_zorder(10)
                 ax.add_collection(b)
-            except Exception as e:
-                x, y = m(ev_lon, ev_lat)
-                magnitude = ev_info.events[i].preferred_magnitude().mag
-                m.scatter(x, y, color="red", marker="o", s=10*magnitude, zorder=5, alpha=0.6)
-        if Exception:
-            print 'WARNING: %s' % Exception
+            else:
+                x, y = m(float(ls_saved_stas[i][0][10]),
+                         float(ls_saved_stas[i][0][9]))
+                magnitude = float(ls_saved_stas[i][0][12])
+                m.scatter(x, y, color="blue", s=10*magnitude,
+                          edgecolors='none', marker="o",
+                          zorder=5, alpha=0.6)
     else:
         print 'No events will be plotted.'
 
-    if stations == True:
-        for i in range(len(sta_ev[0])):
-            x, y = m(sta_ev[0][i][5], sta_ev[0][i][4])
-            m.scatter(x, y, color='black', s=width_station, marker="v", zorder=4, alpha=0.9)
+    if plt_stations:
+        for i in range(len(ls_saved_stas)):
+            for j in range(len(ls_saved_stas[i])):
+                x, y = m(float(ls_saved_stas[i][j][5]),
+                         float(ls_saved_stas[i][j][4]))
+                m.scatter(x, y, color='red', s=width_station,
+                          edgecolors='none', marker='v',
+                          zorder=4, alpha=0.9)
     else:
         print 'No stations will be plotted on your map!'
 
-    if events == stations == ray_path ==True:
-        print 'Map with ray paths is created!'
-        for i in range(len(sta_ev[0])):
-            for j in range(len(ev_info)):
-                ev_lon = ev_info.events[j].preferred_origin().longitude
-                ev_lat = ev_info.events[j].preferred_origin().latitude
-
-                m.drawgreatcircle(ev_lon, ev_lat, eval(sta_ev[0][i][5]), eval(sta_ev[0][i][4]), color= 'red', alpha=0.1)
+    if plt_ray_path:
+        for i in range(len(ls_saved_stas)):
+            for j in range(len(ls_saved_stas[i])):
+                m.drawgreatcircle(
+                    float(ls_saved_stas[i][j][10]),
+                    float(ls_saved_stas[i][j][9]),
+                    float(ls_saved_stas[i][j][5]),
+                    float(ls_saved_stas[i][j][4]),
+                    color='k', alpha=0.1)
     else:
         print 'No rays path will be plotted on your map!'
 
+    plt.savefig(os.path.join(input_dics['plot_save'],
+                             'plot.%s' % input_dics['plot_format']))
     plt.show()
+
+# ##################### plot_ray_gmt ####################################
+
+
+def plot_ray_gmt(input_dics, ls_saved_stas):
+    """
+    Plot: stations, events and ray paths for the specified directory using GMT
+    :param input_dics:
+    :param ls_saved_stas:
+    :return:
+    """
+    with open('./psmeca.txt', 'w') as outfile:
+        outfile.write('lon lat depth mrr mtt mpp mrt mrp mtp iexp name \n')
+        for i in range(len(ls_saved_stas)):
+            ev_lon = ls_saved_stas[i][0][10]
+            ev_lat = ls_saved_stas[i][0][9]
+            ev_dep = ls_saved_stas[i][0][11]
+            ev_mrr = float(ls_saved_stas[i][0][14])
+            ev_mtt = float(ls_saved_stas[i][0][15])
+            ev_mpp = float(ls_saved_stas[i][0][16])
+            ev_mrt = float(ls_saved_stas[i][0][17])
+            ev_mrp = float(ls_saved_stas[i][0][18])
+            ev_mtp = float(ls_saved_stas[i][0][19])
+
+            scalar_moment = np.sqrt(np.power(ev_mrr, 2) +
+                                    np.power(ev_mtt, 2) +
+                                    np.power(ev_mpp, 2) +
+                                    np.power(ev_mrt, 2) +
+                                    np.power(ev_mrp, 2) +
+                                    np.power(ev_mtp, 2))/np.sqrt(2)
+
+            ev_mom_max = max(abs(ev_mrr),
+                             abs(ev_mtt),
+                             abs(ev_mpp),
+                             abs(ev_mrt),
+                             abs(ev_mrp),
+                             abs(ev_mtp))
+            ev_mrr_fl = format(ev_mrr/ev_mom_max, 'f')
+            ev_mtt_fl = format(ev_mtt/ev_mom_max, 'f')
+            ev_mpp_fl = format(ev_mpp/ev_mom_max, 'f')
+            ev_mrt_fl = format(ev_mrt/ev_mom_max, 'f')
+            ev_mrp_fl = format(ev_mrp/ev_mom_max, 'f')
+            ev_mtp_fl = format(ev_mtp/ev_mom_max, 'f')
+
+            outfile.write('%s  %s  %s  %s  %s  %s  %s  %s  %s  %s\n'
+                          % (ev_lon, ev_lat, ev_dep,
+                             ev_mrr_fl,
+                             ev_mtt_fl,
+                             ev_mpp_fl,
+                             ev_mrt_fl,
+                             ev_mrp_fl,
+                             ev_mtp_fl,
+                             str(scalar_moment).split('e')[1][1:]))
+
+    with open('./sta_ev_path.txt', 'w') as outfile:
+        for i in range(len(ls_saved_stas)):
+            for j in range(len(ls_saved_stas[i])):
+                ev_lon = ls_saved_stas[i][j][10]
+                ev_lat = ls_saved_stas[i][j][9]
+                sta_lon = ls_saved_stas[i][j][5]
+                sta_lat = ls_saved_stas[i][j][4]
+                outfile.write('%s   %s \n %s   %s\n'
+                              % (ev_lon, ev_lat,
+                                 sta_lon, sta_lat))
+
+    with open('./station.txt', 'w') as outfile:
+        for i in range(len(ls_saved_stas)):
+            for j in range(len(ls_saved_stas[i])):
+                sta_lon = ls_saved_stas[i][j][5]
+                sta_lat = ls_saved_stas[i][j][4]
+                outfile.write('%s   %s \n' % (sta_lon, sta_lat))
+
+    pwd_str = os.getcwd()
+
+    os.chdir(input_dics['plot_save'])
+    # GMT part:
+    os.system('psbasemap -Rd -JK180/9i -B45g30 -K -Xc -Yc> output.ps')
+
+    os.system('pscoast -Rd -JK180/9i -B45g30:."World-wide Ray Path Coverage": '
+              '-Dc -A1000 -Glightgray -Wthinnest -t0 -O -K >> output.ps')
+
+    os.system('psxy ./sta_ev_path.txt -JK180/9i -Rd -O -K -W0.7,black -t80  >> '
+              'output.ps')
+    os.system('psxy ./station.txt -JK180/9i -Rd -Si0.2c -Gblue -O -K >> '
+              'output.ps')
+    os.system('psmeca psmeca.txt -h1 -JK180/9i -Rd -W1 -G255/000/000 '
+              '-Sd0.35  -O >> output.ps')
+
+    os.system('ps2raster output.ps -A -P -Tf')
+
+    os.system('mv output.ps plot.ps')
+    os.system('mv output.pdf plot.pdf')
+
+    os.system('xdg-open plot.pdf')
+
+    os.chdir(pwd_str)
 
 # ##################### plot_xml_response ###############################
 
@@ -938,120 +1033,6 @@ def plot_se_ray(input_dics, ls_saved_stas):
                        % input_dics['plot_format'])
     plt.savefig(os.path.join(input_dics['plot_save'],
                              'plot.%s' % input_dics['plot_format']))
-
-# ##################### plot_ray_gmt ####################################
-
-
-def plot_ray_gmt(input_dics, ls_saved_stas):
-    """
-    Plot: stations, events and ray paths for the specified directory using GMT
-    """
-    evsta_info_open = open(os.path.join(input_dics['plot_save'],
-                                        'evsta_info.txt'), 'w')
-    evsta_plot_open = open(os.path.join(input_dics['plot_save'],
-                                        'evsta_plot.txt'), 'w')
-    ev_plot_open = open(os.path.join(input_dics['plot_save'],
-                                     'ev_plot.txt'), 'w')
-    sta_plot_open = open(os.path.join(input_dics['plot_save'],
-                                      'sta_plot.txt'), 'w')
-
-    ls_sta = []
-    for i in range(len(ls_saved_stas)):
-        sys.stdout.write('\r')
-        sys.stdout.write("[%-100s] %d%%"
-                         % ('='*int(100.*(i+1)/len(ls_saved_stas)),
-                            100.*(i+1)/len(ls_saved_stas)))
-        sys.stdout.flush()
-
-        ls_stas = ls_saved_stas[i]
-        if not input_dics['evlatmin']:
-            input_dics['evlatmin'] = -90
-            input_dics['evlatmax'] = +90
-            input_dics['evlonmin'] = -180
-            input_dics['evlonmax'] = +180
-        if not input_dics['evlatmin'] <= \
-                float(ls_stas[0][9]) <= \
-                input_dics['evlatmax'] or not \
-                input_dics['evlonmin'] <= \
-                float(ls_stas[0][10]) <= \
-                input_dics['evlonmax'] or not \
-                input_dics['max_depth'] <= \
-                float(ls_stas[0][11]) <= \
-                input_dics['min_depth'] or not \
-                input_dics['min_mag'] <= \
-                float(ls_stas[0][12]) <= \
-                input_dics['max_mag']:
-            continue
-        ev_plot_open.writelines('%s %s \n'
-                                % (round(float(ls_stas[0][10]), 5),
-                                   round(float(ls_stas[0][9]), 5)))
-        pattern_sta = '%s.%s.%s' % (input_dics['sta'],
-                                    input_dics['loc'],
-                                    input_dics['cha'])
-
-        for j in range(len(ls_stas)):
-            station_name = '%s.%s.%s' % (ls_stas[j][1],
-                                         ls_stas[j][2],
-                                         ls_stas[j][3])
-            station_ID = '%s.%s' % (ls_stas[j][0], station_name)
-
-            if not fnmatch.fnmatch(station_name, pattern_sta):
-                continue
-            if not input_dics['mlat_rbb']:
-                    input_dics['mlat_rbb'] = -90.0
-                    input_dics['Mlat_rbb'] = +90.0
-                    input_dics['mlon_rbb'] = -180.0
-                    input_dics['Mlon_rbb'] = +180.0
-            if not input_dics['mlat_rbb'] <= \
-                    float(ls_stas[j][4]) <= \
-                    input_dics['Mlat_rbb'] or not \
-                    input_dics['mlon_rbb'] <= \
-                    float(ls_stas[j][5]) <= \
-                    input_dics['Mlon_rbb']:
-                continue
-
-            evsta_info_open.writelines('%s , %s , \n' % (ls_stas[j][8],
-                                                         station_ID))
-
-            evsta_plot_open.writelines(
-                '> -G%s/%s/%s\n%s %s %s\n%s %s %s \n'
-                % (int(random.random()*256), int(random.random()*256),
-                   int(random.random()*256), round(float(ls_stas[j][10]), 5),
-                   round(float(ls_stas[j][9]), 5), random.random(),
-                   round(float(ls_stas[j][5]), 5),
-                   round(float(ls_stas[j][4]), 5), random.random()))
-            ls_sta.append([station_ID, [str(round(float(ls_stas[j][4]), 5)),
-                                        str(round(float(ls_stas[j][5]), 5))]])
-
-    for k in range(len(ls_sta)):
-        sta_plot_open.writelines('%s %s \n'
-                                 % (ls_sta[k][1][1], ls_sta[k][1][0]))
-
-    evsta_info_open.close()
-    evsta_plot_open.close()
-    ev_plot_open.close()
-    sta_plot_open.close()
-
-    pwd_str = os.getcwd()
-
-    os.chdir(input_dics['plot_save'])
-    os.system('psbasemap -Rd -JK180/9i -B45g30 -K > output.ps')
-    os.system('pscoast -Rd -JK180/9i -B45g30:."World-wide Ray Path Coverage": '
-              '-Dc -A1000 -Glightgray -Wthinnest -t0 -O -K >> output.ps')
-    os.system('psxy ./evsta_plot.txt -JK180/9i -Rd -O -K -W0.2 -t85 >> '
-              'output.ps')
-    os.system('psxy ./sta_plot.txt -JK180/9i -Rd -Si0.2c -Gblue -O -K >>'
-              ' output.ps')
-    os.system('psxy ./ev_plot.txt -JK180/9i -Rd -Sa0.28c -Gred -O >>'
-              ' output.ps')
-    os.system('ps2raster output.ps -A -P -Tf')
-
-    os.system('mv output.ps plot.ps')
-    os.system('mv output.pdf plot.pdf')
-
-    os.system('xdg-open plot.pdf')
-
-    os.chdir(pwd_str)
 
 # ##################### plot_epi ########################################
 
