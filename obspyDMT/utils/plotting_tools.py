@@ -362,48 +362,55 @@ def plot_ray_gmt(input_dics, ls_saved_stas):
     :param ls_saved_stas:
     :return:
     """
-    with open('./gmt_psmeca.txt', 'w') as outfile:
-        outfile.write('lon lat depth mrr mtt mpp mrt mrp mtp iexp name \n')
-        for i in range(len(ls_saved_stas)):
-            ev_lon = ls_saved_stas[i][0][10]
-            ev_lat = ls_saved_stas[i][0][9]
-            ev_dep = ls_saved_stas[i][0][11]
-            ev_mrr = float(ls_saved_stas[i][0][14])
-            ev_mtt = float(ls_saved_stas[i][0][15])
-            ev_mpp = float(ls_saved_stas[i][0][16])
-            ev_mrt = float(ls_saved_stas[i][0][17])
-            ev_mrp = float(ls_saved_stas[i][0][18])
-            ev_mtp = float(ls_saved_stas[i][0][19])
+    if input_dics['plot_focal']:
+        with open('./gmt_psmeca.txt', 'w') as outfile:
+            outfile.write('lon lat depth mrr mtt mpp mrt mrp mtp iexp name \n')
+            for i in range(len(ls_saved_stas)):
+                ev_lon = ls_saved_stas[i][0][10]
+                ev_lat = ls_saved_stas[i][0][9]
+                ev_dep = ls_saved_stas[i][0][11]
+                ev_mrr = float(ls_saved_stas[i][0][14])
+                ev_mtt = float(ls_saved_stas[i][0][15])
+                ev_mpp = float(ls_saved_stas[i][0][16])
+                ev_mrt = float(ls_saved_stas[i][0][17])
+                ev_mrp = float(ls_saved_stas[i][0][18])
+                ev_mtp = float(ls_saved_stas[i][0][19])
 
-            scalar_moment = np.sqrt(np.power(ev_mrr, 2) +
-                                    np.power(ev_mtt, 2) +
-                                    np.power(ev_mpp, 2) +
-                                    np.power(ev_mrt, 2) +
-                                    np.power(ev_mrp, 2) +
-                                    np.power(ev_mtp, 2))/np.sqrt(2)
+                scalar_moment = np.sqrt(np.power(ev_mrr, 2) +
+                                        np.power(ev_mtt, 2) +
+                                        np.power(ev_mpp, 2) +
+                                        np.power(ev_mrt, 2) +
+                                        np.power(ev_mrp, 2) +
+                                        np.power(ev_mtp, 2))/np.sqrt(2)
 
-            ev_mom_max = max(abs(ev_mrr),
-                             abs(ev_mtt),
-                             abs(ev_mpp),
-                             abs(ev_mrt),
-                             abs(ev_mrp),
-                             abs(ev_mtp))
-            ev_mrr_fl = format(ev_mrr/ev_mom_max, 'f')
-            ev_mtt_fl = format(ev_mtt/ev_mom_max, 'f')
-            ev_mpp_fl = format(ev_mpp/ev_mom_max, 'f')
-            ev_mrt_fl = format(ev_mrt/ev_mom_max, 'f')
-            ev_mrp_fl = format(ev_mrp/ev_mom_max, 'f')
-            ev_mtp_fl = format(ev_mtp/ev_mom_max, 'f')
+                ev_mom_max = max(abs(ev_mrr),
+                                 abs(ev_mtt),
+                                 abs(ev_mpp),
+                                 abs(ev_mrt),
+                                 abs(ev_mrp),
+                                 abs(ev_mtp))
+                ev_mrr_fl = format(ev_mrr/ev_mom_max, 'f')
+                ev_mtt_fl = format(ev_mtt/ev_mom_max, 'f')
+                ev_mpp_fl = format(ev_mpp/ev_mom_max, 'f')
+                ev_mrt_fl = format(ev_mrt/ev_mom_max, 'f')
+                ev_mrp_fl = format(ev_mrp/ev_mom_max, 'f')
+                ev_mtp_fl = format(ev_mtp/ev_mom_max, 'f')
 
-            outfile.write('%s  %s  %s  %s  %s  %s  %s  %s  %s  %s\n'
-                          % (ev_lon, ev_lat, ev_dep,
-                             ev_mrr_fl,
-                             ev_mtt_fl,
-                             ev_mpp_fl,
-                             ev_mrt_fl,
-                             ev_mrp_fl,
-                             ev_mtp_fl,
-                             str(scalar_moment).split('e')[1][1:]))
+                outfile.write('%s  %s  %s  %s  %s  %s  %s  %s  %s  %s\n'
+                              % (ev_lon, ev_lat, ev_dep,
+                                 ev_mrr_fl,
+                                 ev_mtt_fl,
+                                 ev_mpp_fl,
+                                 ev_mrt_fl,
+                                 ev_mrp_fl,
+                                 ev_mtp_fl,
+                                 str(scalar_moment).split('e')[1][1:]))
+    else:
+        with open('./gmt_events.txt', 'w') as outfile:
+            for i in range(len(ls_saved_stas)):
+                ev_lon = ls_saved_stas[i][0][10]
+                ev_lat = ls_saved_stas[i][0][9]
+                outfile.write('%s   %s \n' % (ev_lon, ev_lat))
     outfile.close()
 
     with open('./gmt_sta_ev_path.txt', 'w') as outfile:
@@ -434,10 +441,14 @@ def plot_ray_gmt(input_dics, ls_saved_stas):
 
     os.system('psxy ./gmt_sta_ev_path.txt -JK180/9i -Rd -O -K -W0.1,'
               'black -t20  >> gmt_output.ps')
-    os.system('psxy ./gmt_station.txt -JK180/9i -Rd -Si0.2c -Gblue -O -K >> '
+    os.system('psxy ./gmt_station.txt -JK180/9i -Rd -Si0.2c -GRed -O -K >> '
               'gmt_output.ps')
-    os.system('psmeca gmt_psmeca.txt -h1 -JK180/9i -Rd -W1 -G255/000/000 '
-              '-Sd1.0  -O >> gmt_output.ps')
+    if input_dics['plot_focal']:
+        os.system('psmeca gmt_psmeca.txt -h1 -JK180/9i -Rd -W1 -GBlue '
+                  '-Sd1.0  -O >> gmt_output.ps')
+    else:
+        os.system('psxy ./gmt_events.txt -JK180/9i -Rd -Sc0.2c '
+                  '-GBlue -O >> gmt_output.ps')
 
     os.system('ps2raster gmt_output.ps -A -P -Tf')
 
