@@ -46,8 +46,6 @@ def plot_tools(input_dics, clients, all_events=False, all_stations=False):
     :return:
     """
     """
-    XXX filtering the events before plotting
-    XXX plot epi is not yet cleaned up
     XXX plot_dt is not yet cleaned up
     XXX add an option to plotxml to plot the report with saturation
     """
@@ -64,10 +62,12 @@ def plot_tools(input_dics, clients, all_events=False, all_stations=False):
         ls_add_stas_tmp = []
         sta_ev = read_station_event(address_events[i])
         event_dic = read_event_dic(address_events[i])
+
+        pass_ev = True
         if not all_events:
             pass_ev = plot_filter_event(input_dics, event_dic)
-            if not pass_ev:
-                continue
+        if not pass_ev:
+            continue
         for j in range(len(sta_ev[0])):
             if input_dics['plot_type'].lower() == 'raw':
                 BH_file = 'BH_RAW'
@@ -83,10 +83,11 @@ def plot_tools(input_dics, clients, all_events=False, all_stations=False):
                     BH_file = 'BH_ACC'
                     network = 'acc.%s' % sta_ev[0][j][0]
 
+            pass_sta = True
             if not all_stations:
                 pass_sta = plot_filter_station(input_dics, sta_ev[0][j])
-                if not pass_sta:
-                    continue
+            if not pass_sta:
+                continue
             station_id = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' \
                          % (network, sta_ev[0][j][1], sta_ev[0][j][2],
                             sta_ev[0][j][3], sta_ev[0][j][4],
@@ -157,7 +158,7 @@ def plot_filter_event(input_dics, event_dic):
         return False
     if not event_dic['depth'] >= float(input_dics['min_depth']):
         return False
-    if input_dics['evlatmin']:
+    if isinstance(input_dics['evlatmin'], float):
         if not event_dic['latitude'] <= float(input_dics['evlatmax']):
             return False
         if not event_dic['longitude'] <= float(input_dics['evlonmax']):
@@ -186,7 +187,7 @@ def plot_filter_station(input_dics, sta_ev):
         return False
     if not fnmatch.fnmatch(sta_ev[3], input_dics['cha']):
         return False
-    if input_dics['mlat_rbb']:
+    if isinstance(input_dics['mlat_rbb'], float):
         if not float(sta_ev[4]) <= input_dics['Mlat_rbb']:
             return False
         if not float(sta_ev[4]) >= input_dics['mlat_rbb']:
@@ -208,8 +209,7 @@ def plot_sta_ev_ray(input_dics, ls_saved_stas):
     :return:
     """
 
-    plt.figure()
-    plt.ion()
+    plt.figure(figsize=(20., 10.))
     plt_stations = input_dics['plot_sta']
     plt_events = input_dics['plot_ev']
     plt_ray_path = input_dics['plot_ray']
@@ -326,30 +326,30 @@ def plot_sta_ev_ray(input_dics, ls_saved_stas):
                 gcx, gcy = gcline[0].get_data()
                 gcx_diff = gcx[0:-1] - gcx[1:]
                 gcy_diff = gcy[0:-1] - gcy[1:]
-                if np.max(abs(gcx_diff))/abs(gcx_diff[0]) > 50:
+                if np.max(abs(gcx_diff))/abs(gcx_diff[0]) > 100:
                     gcx_max_arg = abs(gcx_diff).argmax()
                     plt.plot(gcx[0:gcx_max_arg], gcy[0:gcx_max_arg],
-                             color='k', alpha=0.1)
+                             color='k', alpha=0.2)
                     plt.plot(gcx[gcx_max_arg+1:], gcy[gcx_max_arg+1:],
-                             color='k', alpha=0.1)
-                elif np.max(abs(gcy_diff))/abs(gcy_diff[0]) > 50:
+                             color='k', alpha=0.2)
+                elif np.max(abs(gcy_diff))/abs(gcy_diff[0]) > 100:
                     gcy_max_arg = abs(gcy_diff).argmax()
                     plt.plot(gcy[0:gcy_max_arg], gcy[0:gcy_max_arg],
-                             color='k', alpha=0.1)
+                             color='k', alpha=0.2)
                     plt.plot(gcy[gcy_max_arg+1:], gcy[gcy_max_arg+1:],
-                             color='k', alpha=0.1)
+                             color='k', alpha=0.2)
                 else:
                     m.drawgreatcircle(
                         float(ls_saved_stas[i][j][10]),
                         float(ls_saved_stas[i][j][9]),
                         float(ls_saved_stas[i][j][5]),
                         float(ls_saved_stas[i][j][4]),
-                        color='k', alpha=0.1)
+                        color='k', alpha=0.2)
     else:
         print 'No rays path will be plotted on your map!'
 
     plt.savefig(os.path.join(input_dics['plot_save'],
-                             'plot.%s' % input_dics['plot_format']))
+                             'ev_sta_ray.%s' % input_dics['plot_format']))
     plt.show()
 
 # ##################### plot_ray_gmt ####################################
@@ -441,10 +441,10 @@ def plot_ray_gmt(input_dics, ls_saved_stas):
 
     os.system('ps2raster gmt_output.ps -A -P -Tf')
 
-    os.system('mv gmt_output.ps plot.ps')
-    os.system('mv gmt_output.pdf plot.pdf')
+    os.system('mv gmt_output.ps ray_coverage_gmt.ps')
+    os.system('mv gmt_output.pdf ray_coverage_gmt.pdf')
 
-    os.system('xdg-open plot.pdf')
+    os.system('xdg-open ray_coverage_gmt.pdf')
 
 # ##################### plot_epi ########################################
 
@@ -452,16 +452,15 @@ def plot_ray_gmt(input_dics, ls_saved_stas):
 def plot_epi(input_dics, ls_add_stas, ls_saved_stas):
     """
     Plot arranged waveforms by epicentral distance versus time
+    :param input_dics:
+    :param ls_add_stas:
+    :param ls_saved_stas:
+    :return:
     """
 
-    plt.clf()
-
     for target in range(len(ls_add_stas)):
-        sys.stdout.write('\r')
-        sys.stdout.write("[%-100s] %d%%"
-                         % ('='*int(100.*(target+1)/len(ls_add_stas)),
-                            100.*(target+1)/len(ls_add_stas)))
-        sys.stdout.flush()
+        plt.clf()
+        plt.figure(figsize=(20., 10.))
 
         for i in range(len(ls_add_stas[target])):
             try:
@@ -483,11 +482,14 @@ def plot_epi(input_dics, ls_add_stas, ls_saved_stas):
             plt.xlabel('Time (sec)')
             plt.ylabel('Epicentral distance (deg)')
 
-    print '\nSaving the plot in the following address:'
-    print os.path.join(input_dics['plot_save'],
-                       'plot.%s' % input_dics['plot_format'])
-    plt.savefig(os.path.join(input_dics['plot_save'],
-                             'plot.%s' % input_dics['plot_format']))
+        print os.path.join(input_dics['plot_save'],
+                           'epi_time_%s.%s'
+                           % (ls_saved_stas[target][0][8],
+                              input_dics['plot_format']))
+        plt.savefig(os.path.join(input_dics['plot_save'],
+                                 'epi_time_%s.%s'
+                                 % (ls_saved_stas[target][0][8],
+                                    input_dics['plot_format'])))
 
 # ##################### plot_xml_response ###############################
 
