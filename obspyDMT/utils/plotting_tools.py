@@ -266,7 +266,7 @@ def plot_ray_gmt(input_dics, ls_saved_stas):
     :param ls_saved_stas:
     :return:
     """
-    with open('./psmeca.txt', 'w') as outfile:
+    with open('./gmt_psmeca.txt', 'w') as outfile:
         outfile.write('lon lat depth mrr mtt mpp mrt mrp mtp iexp name \n')
         for i in range(len(ls_saved_stas)):
             ev_lon = ls_saved_stas[i][0][10]
@@ -308,8 +308,9 @@ def plot_ray_gmt(input_dics, ls_saved_stas):
                              ev_mrp_fl,
                              ev_mtp_fl,
                              str(scalar_moment).split('e')[1][1:]))
+    outfile.close()
 
-    with open('./sta_ev_path.txt', 'w') as outfile:
+    with open('./gmt_sta_ev_path.txt', 'w') as outfile:
         for i in range(len(ls_saved_stas)):
             for j in range(len(ls_saved_stas[i])):
                 ev_lon = ls_saved_stas[i][j][10]
@@ -319,38 +320,35 @@ def plot_ray_gmt(input_dics, ls_saved_stas):
                 outfile.write('%s   %s \n %s   %s\n'
                               % (ev_lon, ev_lat,
                                  sta_lon, sta_lat))
+    outfile.close()
 
-    with open('./station.txt', 'w') as outfile:
+    with open('./gmt_station.txt', 'w') as outfile:
         for i in range(len(ls_saved_stas)):
             for j in range(len(ls_saved_stas[i])):
                 sta_lon = ls_saved_stas[i][j][5]
                 sta_lat = ls_saved_stas[i][j][4]
                 outfile.write('%s   %s \n' % (sta_lon, sta_lat))
+    outfile.close()
 
-    pwd_str = os.getcwd()
-
-    os.chdir(input_dics['plot_save'])
     # GMT part:
-    os.system('psbasemap -Rd -JK180/9i -B45g30 -K -Xc -Yc> output.ps')
+    os.system('psbasemap -Rd -JK180/9i -B45g30 -K -Xc -Yc> gmt_output.ps')
 
     os.system('pscoast -Rd -JK180/9i -B45g30:."World-wide Ray Path Coverage": '
-              '-Dc -A1000 -Glightgray -Wthinnest -t0 -O -K >> output.ps')
+              '-Dc -A1000 -Glightgray -Wthinnest -t0 -O -K >> gmt_output.ps')
 
-    os.system('psxy ./sta_ev_path.txt -JK180/9i -Rd -O -K -W0.7,black -t80  >> '
-              'output.ps')
-    os.system('psxy ./station.txt -JK180/9i -Rd -Si0.2c -Gblue -O -K >> '
-              'output.ps')
-    os.system('psmeca psmeca.txt -h1 -JK180/9i -Rd -W1 -G255/000/000 '
-              '-Sd0.35  -O >> output.ps')
+    os.system('psxy ./gmt_sta_ev_path.txt -JK180/9i -Rd -O -K -W0.7,'
+              'black -t80  >> gmt_output.ps')
+    os.system('psxy ./gmt_station.txt -JK180/9i -Rd -Si0.2c -Gblue -O -K >> '
+              'gmt_output.ps')
+    os.system('psmeca gmt_psmeca.txt -h1 -JK180/9i -Rd -W1 -G255/000/000 '
+              '-Sd0.35  -O >> gmt_output.ps')
 
-    os.system('ps2raster output.ps -A -P -Tf')
+    os.system('ps2raster gmt_output.ps -A -P -Tf')
 
-    os.system('mv output.ps plot.ps')
-    os.system('mv output.pdf plot.pdf')
+    os.system('mv gmt_output.ps plot.ps')
+    os.system('mv gmt_output.pdf plot.pdf')
 
     os.system('xdg-open plot.pdf')
-
-    os.chdir(pwd_str)
 
 # ##################### plot_xml_response ###############################
 
