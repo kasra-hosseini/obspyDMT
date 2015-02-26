@@ -638,8 +638,8 @@ Seismicity
 Geographical and historical distribution of earthquake activities (seismicity) can be plotted using *--seismicity* option in obspyDMT. In this mode, the software finds the events according to the input parameters and generates an image in which the events are categorized based on depth and magnitude.
 
 **Example 1:** the command line to create *Japan* seismicity map from all the
-events available in GCMT archive with magnitude more than 3.0 since 1976 is as
- follow:
+events available in GCMT archive with magnitude more than 3.0 since 1976 is
+as follow:
 
 ::
 
@@ -665,7 +665,7 @@ events available in GCMT archive with magnitude more than 3.0 since 1976 is as
 
 **Example 2:** the command line to create *global* seismicity map from all the
 events available in GCMT archive with magnitude more than 5.0 since 1976 is as
- follow: (35061 e)
+follow: (35061 events)
 
 ::
 
@@ -681,11 +681,11 @@ events available in GCMT archive with magnitude more than 5.0 since 1976 is as
    :align: center
 
 .. image:: figures/seismicity_focal_south_america.png
-   :scale: 50%
+   :scale: 20%
    :align: center
 
 .. image:: figures/seismicity_focal_indonesia.png
-   :scale: 50%
+   :scale: 20%
    :align: center
 
 .. image:: figures/seismicity_depth.png
