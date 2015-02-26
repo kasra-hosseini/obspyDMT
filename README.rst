@@ -651,13 +651,19 @@ as follow:
    :scale: 50%
    :align: center
 
+Japan seismicity map (focal mechanism):
+
 .. image:: figures/seismicity_japan_focal.png
    :scale: 50%
    :align: center
 
+Distribution of events with depth:
+
 .. image:: figures/seismicity_depth_japan.png
    :scale: 20%
    :align: center
+
+Distribution of events with magnitude:
 
 .. image:: figures/seismicity_magnitude_japan.png
    :scale: 20%
