@@ -205,15 +205,23 @@ The options specified by *--option=OPTION* are type-1 (with value) and *--option
 
 **ONE GOOD THING:** the order of options is commutative!
 
+Another way to differentiate between option-1 and option-2 is to: (here, we only look at option group number 3)
+
+::
+
+    $ obspyDMT --list_option 3
+
+The third column is either: string (option-1 type) or None (option-2 type)
+
 ------------------
 event-info request
 ------------------
 
 In this type of request, obspyDMT will search for all the available events based on the options specified by the user, print the results and create an event catalog without retrieving waveforms or stationXML/response files.
 
-The following lines show how to send an `event-info request`_ with obspyDMT followed by some examples.
+The following lines show how to send an *event-info request* followed by some examples.
 
-The general way to define an `event-info request`_ is:
+The general way to define an *event-info request* is:
 
 ::
 
@@ -222,23 +230,17 @@ The general way to define an `event-info request`_ is:
 The *--event_info* flag forces the code to just retrieve the event information and create an event catalog.
 For details on *option-1* and *option-2* please refer to `Option types`_ section.
 
-**Example 1:** run with the default values:
-
-::
-
-    $ obspyDMT --event_info
-
-When the job starts, a folder will be created with the address specified with *--datapath* flag (by default: *obspyDMT-data* in the current directory). To access the event information for this example, go to */path/specified/in/datapath/2014-10-16_2014-10-21_5.5_9.9/EVENTS-info and check the *EVENT-CATALOG* text file (Please refer to `Folder structure`_ section for more information).
-
-**WARNING:** it can happen that obspyDMT does not find any event with the above command. This is due to the default values and the availability of the events at the time that you are testing the code. For customizing the request, refer to the next example.
-
-**Example 2:** by adding flags to the above command, one can change the default values and add/remove functionalities of the code. As an example, the following command shows how to get the info of all the events with event magnitude in the range of 6.6-8.0 occurred after 2013-05-01 and before 2014-01-01:
+**Example 1:** requesting all the events with 6.6 <= magnitude <= 8.0 that happened in the time period of: 2013-05-01 until 2014-01-01:
 
 ::
 
     $ obspyDMT --datapath event_info_example --event_info --min_mag 6.6 --max_mag 8.0 --min_date 2013-05-01 --max_date 2014-01-01
 
-In the above command, *--datapath* is an option to specify the directory in which the data will be stored, *--event_info* determines that obspyDMT_ should just search for the event information and do not retrieve any seismic data (waveforms, stationxml files and metadata) and the other options *--min_mag*, *--max_mag*, *--min_date*, *--max_date* specify the minimum/maximum magnitude, minimum and maximum date.
+
+**command:** *--datapath* is an option to specify the directory in which the data will be stored, *--event_info* determines that obspyDMT_ should just search for the event information and do not retrieve any seismic data (waveforms, stationxml files and metadata) and the other options *--min_mag*, *--max_mag*, *--min_date*, *--max_date* specify the minimum/maximum magnitude, minimum and maximum date.
+
+When the job starts, a folder will be created with the address specified with *--datapath* flag (by default: *obspyDMT-data* in the current directory). To access the event information for this example, go to ./event_info_example/2013-05-01_2014-01-01_6.6_8.0/EVENTS-INFO and check the *catalog_table.txt* and *catalog.txt* text files or *catalog.ml* which is in QuakeML format (Please refer to `Folder structure`_ section for more information).
+
 
 .. image:: figures/event_info_events.png
    :scale: 75%
