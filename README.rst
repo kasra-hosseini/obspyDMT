@@ -230,7 +230,7 @@ The general way to define an *event-info request* is:
 The *--event_info* flag forces the code to just retrieve the event information and create an event catalog.
 For details on *option-1* and *option-2* please refer to `Option types`_ section.
 
-**Example 1:** requesting all the events with 6.6 <= magnitude <= 8.0 that happened in the time period of: 2013-05-01 until 2014-01-01:
+**Example 1:** requesting all the events with *6.6 <= magnitude <= 8.0* that happened in the time period of: 2013-05-01 until 2014-01-01:
 
 ::
 
@@ -239,12 +239,19 @@ For details on *option-1* and *option-2* please refer to `Option types`_ section
 
 **command:** *--datapath* is an option to specify the directory in which the data will be stored, *--event_info* determines that obspyDMT_ should just search for the event information and do not retrieve any seismic data (waveforms, stationxml files and metadata) and the other options *--min_mag*, *--max_mag*, *--min_date*, *--max_date* specify the minimum/maximum magnitude, minimum and maximum date.
 
-When the job starts, a folder will be created with the address specified with *--datapath* flag (by default: *obspyDMT-data* in the current directory). To access the event information for this example, go to ./event_info_example/2013-05-01_2014-01-01_6.6_8.0/EVENTS-INFO and check the *catalog_table.txt* and *catalog.txt* text files or *catalog.ml* which is in QuakeML format (Please refer to `Folder structure`_ section for more information).
+When the job starts, a folder will be created with the address specified by *--datapath* flag (by default: *obspyDMT-data* in the current directory). To access the event information for this example, go to:
 
+::
+
+    cd ./event_info_example/2013-05-01_2014-01-01_6.6_8.0/EVENTS-INFO
+
+and check the *catalog_table.txt* and *catalog.txt* text files or *catalog.ml* which is in QuakeML format (Please refer to `Folder structure`_ section for more information).
 
 .. image:: figures/event_info_events.png
    :scale: 75%
    :align: center
+
+**ATTENTION:** In the above example, we did not change the *--event_catalog*. Therefore, obspyDMT uses the default catalog: *GCMT*.
 
 -------------------
 event-based request
