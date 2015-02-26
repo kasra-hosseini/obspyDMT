@@ -676,21 +676,21 @@ follow: (35061 events)
    :scale: 50%
    :align: center
 
+
 .. image:: figures/seismicity_focal.png
    :scale: 50%
    :align: center
+
 
 .. image:: figures/seismicity_focal_south_america.png
    :scale: 20%
    :align: center
 
-.. image:: figures/seismicity_focal_indonesia.png
-   :scale: 20%
-   :align: center
 
 .. image:: figures/seismicity_depth.png
    :scale: 20%
    :align: center
+
 
 .. image:: figures/seismicity_magnitude.png
    :scale: 20%
