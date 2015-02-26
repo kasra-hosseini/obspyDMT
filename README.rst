@@ -685,8 +685,8 @@ follow: (35061 events)
    :align: center
 
 .. image:: figures/seismicity_focal_indonesia.png
-   :height: 100px
-   :width: 200px
+   :height: 10px
+   :width: 20px
    :align: center
 
 .. image:: figures/seismicity_depth.png
