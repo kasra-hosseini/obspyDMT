@@ -5,7 +5,7 @@ obspyDMT: A Python Toolbox for Retrieving and Processing of Large Seismological 
 
 Welcome!
 
-obspyDMT_ (obspy Data Management Tool) is a command line tool for retrieving, processing and management of large seismological datasets in a fully automatic way which can be run in serial or in parallel. 
+obspyDMT_ (obspy Data Management Tool) is a command line tool for retrieving, processing and management of large seismological datasets in a fully automatic way which can be run in serial or in parallel.
 
 This tool is developed to mainly address the following tasks automatically: 
 
@@ -134,19 +134,23 @@ To have an overview on the retrieved raw counts, the waveforms can be plotted by
 
 ::
 
-    $ obspyDMT --plot_epi 'dmt-tour-data'
+    $ obspyDMT --plot_dir 'dmt-tour-data' --plot_epi --min_date 2011-01-01
 
-.. image:: figures/tourepiraw.png
+.. image:: figures/epi_time_20110311_1_raw.png
    :scale: 60%
    :align: center
+
+In this command, *--plot_dir* specifies the address, *--plot_epi* changes
+the mode of the plotting to epicentral-time plot and *--min_date* filters
+the event datetime (in this case, we only have one event).
 
 for plotting the corrected waveforms:
 
 ::
 
-    $ obspyDMT --plot_epi 'dmt-tour-data' --plot_type corrected
+    $ obspyDMT --plot_dir 'dmt-tour-data' --plot_epi --min_date 2011-01-01 --plot_type corrected
 
-.. image:: figures/tourepicorrected.png
+.. image:: figures/epi_time_20110311_1.png
    :scale: 60%
    :align: center
 
