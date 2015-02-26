@@ -653,7 +653,7 @@ as follow:
 
 Japan seismicity map (focal mechanism):
 
-.. image:: figures/seismicity_japan_focal.png
+.. image:: figures/seismicity_focal_japan.png
    :scale: 50%
    :align: center
 
