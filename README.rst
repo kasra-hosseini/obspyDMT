@@ -290,8 +290,7 @@ earthquake of magnitude Mw 9.0:
 magnitude, start and end datetime parameters for event search.
 *--net*, *--sta* and *--cha* change the network to II, stations to A* or B*
 and channel to BHZ.
-*--offset* changes the required length for waveforms after the event time to
- 3600sec (default: 1800sec).
+*--offset* changes the required length for waveforms after the event time to 3600sec (default: 1800sec).
 
 We can look at the event and station distributions for this request by:
 
@@ -328,15 +327,15 @@ continuous request
 
 In this type of request, the following steps will be done automatically:
 
-1. Get the time span from input and in case of large time spans, divide it into small intervals.
+1. Get the time span from input and in case of large time spans, divide it into smaller intervals.
 2. Check the availability of the requested stations for each interval.
 3. Start to retrieve the waveforms and/or stationXML/response files for each interval and for all the available stations. (default: waveforms, stationXML/response files and metadata will be retrieved.)
 4. Applying instrument correction to all saved waveforms based on the specified options.
 5. Merging the retrieved waveforms for all time intervals to get a waveform with the original requested time span and save the final product.
 
-The following lines show how to send a `continuous request`_ with obspyDMT followed by some short examples.
+The following lines show how to send a *continuous request* with obspyDMT followed by some short examples.
 
-The general way to define a `continuous request`_ is:
+The general way to define a *continuous request* is:
 
 ::
 
@@ -348,31 +347,30 @@ For details on *option-1* and *option-2* please refer to `Option types`_ section
 
 ::
 
-    $ obspyDMT --continuous --identity 'TA.Z*.*.BHZ' --min_date '2011-01-01' --max_date '2011-01-03'
+    $ obspyDMT --continuous --min_date '2011-01-01' --max_date '2011-01-03' --net TA --sta Z* --cha BHZ
 
-**WARNING:** it is possible that this request takes a long time on your machine (depends on your internet connection). In this case, you can send parallel requests:
-
-::
-
-    $ obspyDMT --continuous --identity 'TA.Z*.*.BHZ' --min_date '2011-01-01' --max_date '2011-01-03' --req_parallel --req_np 10
-
-or instead of using *identity* option:
+**WARNING:** it is possible that this request takes a long time on your machine (depends on your internet connection). If this is the case, you can send parallel requests:
 
 ::
 
-    $ obspyDMT --continuous --net 'TA' --sta 'Z*' --cha 'BHZ' --min_date '2011-01-01' --max_date '2011-01-03'
+    $ obspyDMT --continuous --min_date '2011-01-01' --max_date '2011-01-03' --net TA --sta Z* --cha BHZ --req_parallel --req_np 10
 
-**Example 2:** By default, obspyDMT saves the waveforms in *SAC* format. In this case, it will fill in the station location (stla and stlo), station elevation (stel), station depth (stdp), event location (evla and evlo), event depth (evdp) and event magnitude (mag) in the SAC headers. However, if the desired format is *MSEED*: (for downloading the same event and station identity as *Example 1*)
+
+**Example 2:** By default, obspyDMT saves the waveforms in *SAC* format. In
+this case, it will fill in the station location (stla and stlo), station
+elevation (stel) and station depth (stdp) in the SAC headers.
+However, if the desired format is *MSEED*: (for downloading the same time span
+and station identity as *Example 1*)
 
 ::
 
-    $ obspyDMT --continuous --identity 'TA.Z*.*.BHZ' --min_date '2011-01-01' --max_date '2011-01-03' --mseed
+    $ obspyDMT --continuous --min_date '2011-01-01' --max_date '2011-01-03' --net TA --sta Z* --cha BHZ --mseed
 
 **Example 3:** for downloading just the raw waveforms without response file and instrument correction:
 
 ::
 
-    $ obspyDMT --continuous --identity 'TA.Z*.*.BHZ' --min_date '2011-01-01' --max_date '2011-01-03' --mseed --response 'N' --ic_no
+    $ obspyDMT --continuous --min_date '2011-01-01' --max_date '2011-01-03' --net TA --sta Z* --cha BHZ --mseed --response 'N' --ic_no
 
 ------
 Update
@@ -391,28 +389,56 @@ Please note that all the commands presented in this section could be applied to 
 
 ::
 
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ'
+    $ obspyDMT --datapath test_update_option --min_mag 8.9 --min_date 2011-03-01 --max_date 2011-03-30 --net TA --sta Z* --cha BHZ
 
 now, we want to update the folder for *BHE* channels:
 
 ::
 
-    $ obspyDMT --fdsn_update './obspyDMT-data' --identity 'TA.Z*.*.BHE'
+    $ obspyDMT --fdsn_update test_update_option --net TA --sta Z* --cha BHE
+
+To check all the retrieved stations:
+
+::
+
+    $ obspyDMT --plot_dir test_update_option --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
+
+
+.. image:: figures/pre_update_ex1.png
+   :scale: 75%
+   :align: center
 
 **we can send requests to other data-centers available in FDSN for both retrieving and updating.**
 
-As an example, we want to update the directory for all available *BHZ* channels in *RESIF* data-center with *FR* as network name:
+As an example, we want to update the directory for all available *BHZ*
+channels in *GFZ* data-center:
+
+::
+    $ obspyDMT --fdsn_update test_update_option --cha BHZ --fdsn_base_url GFZ
+
+**WARNING:** it is possible that this request takes a long time on your machine (depends on your internet connection). If this is the case, you can send parallel requests:
 
 ::
 
-    $ obspyDMT --fdsn_update './obspyDMT-data' --identity 'FR.*.*.BHZ' --fdsn_base_url RESIF
+    $ obspyDMT --fdsn_update test_update_option --cha BHZ --fdsn_base_url GFZ --req_parallel --req_np 4
 
-**WARNING:** it is possible that this request takes a long time on your machine (depends on your internet connection). In this case, you can send parallel requests:
+
+Another way to speed up the retrieving is to use: *--fdsn_bulk*
 
 ::
 
-    $ obspyDMT --fdsn_update './obspyDMT-data' --identity 'FR.*.*.BHZ' --fdsn_base_url RESIF --req_parallel --req_np 10
+    $ obspyDMT --fdsn_update test_update_option --cha BHZ --fdsn_base_url GFZ --fdsn_bulk
 
+To check all the retrieved stations:
+
+::
+
+    $ obspyDMT --plot_dir test_update_option --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
+
+
+.. image:: figures/post_update_ex1.png
+   :scale: 75%
+   :align: center
 
 ------------------------
 Geographical restriction
