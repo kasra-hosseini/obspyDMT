@@ -1,21 +1,21 @@
-==========================================================================================
-obspyDMT: A Python Toolbox for Retrieving and Processing of Massive Seismological Datasets
-==========================================================================================
+========================================================================================
+obspyDMT: A Python Toolbox for Retrieving and Processing of Large Seismological Datasets
+========================================================================================
 
 
 Welcome!
 
-obspyDMT_ (obspy Data Management Tool) is a command line tool for retrieving, processing and management of massive seismological data in a fully automatic way which can be run in serial or in parallel. 
+obspyDMT_ (obspy Data Management Tool) is a command line tool for retrieving, processing and management of large seismological datasets in a fully automatic way which can be run in serial or in parallel. 
 
 This tool is developed to mainly address the following tasks automatically: 
 
 1. Retrieval of waveforms (MSEED or SAC), stationXML/response files and metadata from FDSN and ArcLink archives. This could be done in *serial* or in *parallel* for single or large requests.
 2. Supports both event-based and continuous requests.
-3. Extracting the information of all the events via user-defined options (time span, magnitude, depth and event location) from IRIS.
+3. Extracting the information of all the events via user-defined options (time span, magnitude, depth and event location) from GCMT, NEIC and IRIS. Therefore, moment tensor information can also be retrieved.
 4. Updating existing archives (waveforms, stationXML/response files and metadata).
 5. Processing the data in *serial* or in *parallel* (e.g. *removing the trend of the time series, tapering, filtering and Instrument correction*).
 6. Management of large seismic datasets.
-7. Plotting tools (events and/or station locations, ray coverage (event-station pair), epicentral-distance plots for all archived waveforms and seismicity maps).
+7. Plotting tools (events and/or station locations, ray coverage (event-station pair), epicentral-distance plots for all archived waveforms and seismicity maps). In case that the moment tensor information is retrieved, it is possible to plot the beachballs at the location of events.
 8. Exploring stationXML files by plotting the instrument response for all stages and/or for each stage.
 
 
@@ -46,7 +46,7 @@ If you use obspyDMT, please consider citing the code as:
 
 ::
 
-    Kasra Hosseini (2014), obspyDMT (Version 0.7.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
+    Kasra Hosseini (2015), obspyDMT (Version 1.0.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
 
 We have also published a paper in SRL (Seismological Research Letters) for obspyDMT's predecessor that we kindly ask you to cite in case that you found obspyDMT useful for your research:
 
@@ -90,6 +90,18 @@ obspyDMT can be used from a system shell without explicitly calling the *Python*
 ::
 
     $ obspyDMT --help
+
+As you can see, there are lots of available options (not necessarily required for your work) and it is difficult to explore them. However, you can look at the list of option groups by:
+
+::
+
+    $ obspyDMT --options
+    
+And to know the available options in each group: (in this example, we are interested in option group number 2 [Path specification])
+
+::
+
+    $ obspyDMT --list_option 2
 
 To check the dependencies required for running the code properly:
 
