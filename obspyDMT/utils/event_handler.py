@@ -129,10 +129,6 @@ def events_info(input_dics, request):
                     return
 
             else:
-                print 'Event(s) are based on:\t',
-
-                print input_dics['event_url']
-                print 'Specified catalog:\t', input_dics['event_catalog']
 
                 evlatmin = input_dics['evlatmin']
                 evlatmax = input_dics['evlatmax']
@@ -148,6 +144,14 @@ def events_info(input_dics, request):
                 if input_dics['event_catalog']:
                     if input_dics['event_catalog'].lower() == 'gcmt_combo':
                         event_switch = 'gcmt_combo'
+                    else:
+                        print 'Event(s) are based on:\t',
+                        print input_dics['event_url']
+                else:
+                    print 'Event(s) are based on:\t',
+                    print input_dics['event_url']
+
+                print 'Specified catalog: \t%s\n' % input_dics['event_catalog']
 
                 if event_switch == 'fdsn':
                     client_fdsn = Client_fdsn(base_url=input_dics['event_url'])

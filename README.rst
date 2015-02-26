@@ -7,15 +7,15 @@ Welcome!
 
 obspyDMT_ (obspy Data Management Tool) is a command line tool for retrieving, processing and management of large seismological datasets in a fully automatic way which can be run in serial or in parallel.
 
-This tool is developed to mainly address the following tasks automatically: 
+This tool is developed mainly to address the following tasks automatically:
 
 1. Retrieval of waveforms (MSEED or SAC), stationXML/response files and metadata from FDSN and ArcLink archives. This could be done in *serial* or in *parallel* for single or large requests.
 2. Supports both event-based and continuous requests.
 3. Extracting the information of all the events via user-defined options (time span, magnitude, depth and event location) from GCMT, NEIC and IRIS. Therefore, moment tensor information can also be retrieved.
 4. Updating existing archives (waveforms, stationXML/response files and metadata).
 5. Processing the data in *serial* or in *parallel* (e.g. *removing the trend of the time series, tapering, filtering and Instrument correction*).
-6. Management of large seismic datasets.
-7. Plotting tools (events and/or station locations, ray coverage (event-station pair), epicentral-distance plots for all archived waveforms and seismicity maps). In case that the moment tensor information is retrieved, it is possible to plot the beachballs at the location of events.
+6. Management of large seismological datasets.
+7. Plotting tools (events and/or station locations, ray coverage (event-station pair), epicentral-distance plots for all archived waveforms and seismicity maps). In case that the moment tensor information is retrieved, it is also possible to plot the beachballs at the location of events.
 8. Exploring stationXML files by plotting the instrument response for all stages and/or for each stage.
 
 
@@ -91,7 +91,7 @@ obspyDMT can be used from a system shell without explicitly calling the *Python*
 
     $ obspyDMT --help
 
-As you can see, there are lots of available options (not necessarily required for your work) and it is difficult to explore them. However, you can look at the list of option groups by:
+As you can see, there are lots of available options (not necessarily required for your work) and it is difficult to explore them. An alternative to this is to list option groups by:
 
 ::
 
@@ -140,7 +140,7 @@ To have an overview on the retrieved raw counts, the waveforms can be plotted by
    :scale: 60%
    :align: center
 
-In this command, *--plot_dir* specifies the address, *--min_date* filters the
+**command:** *--plot_dir* specifies the address, *--min_date* filters the
 event datetime (in this case, we only have one event) and *--plot_epi* changes
 the mode of the plotting to epicentral-time plot.
 
@@ -154,7 +154,7 @@ for plotting the corrected waveforms:
    :scale: 60%
    :align: center
 
-obspyDMT plots the ray coverage (ray path between each event-station pair) by:
+obspyDMT plots the ray coverage (ray path between each source-receiver pair) by:
 
 ::
 
@@ -164,8 +164,7 @@ obspyDMT plots the ray coverage (ray path between each event-station pair) by:
    :scale: 75%
    :align: center
 
-*--plot_ray*, *--plot_sta* and *--plot_ev* mean that ray, stations and
-events should be plotted respectively.
+**command:** *--plot_ray*, *--plot_sta* and *--plot_ev* mean that ray, stations and events should be plotted respectively.
 
 However, it is also possible to plot the beachballs at the event locations:
 
@@ -177,8 +176,10 @@ However, it is also possible to plot the beachballs at the event locations:
    :scale: 75%
    :align: center
 
-The only required option compare to the previous command line is:
-*--plot_focal*
+The only additional option compare to the previous command line is: *--plot_focal*
+
+**ATTENTION:** when you run the plotting tools, obspyDMT asks for the type
+of map which can be Bluemarble, Etopo, Shaderelief and Simple.
 
 ------------
 Option types
