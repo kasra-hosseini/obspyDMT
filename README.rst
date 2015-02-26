@@ -134,21 +134,21 @@ To have an overview on the retrieved raw counts, the waveforms can be plotted by
 
 ::
 
-    $ obspyDMT --plot_dir 'dmt-tour-data' --plot_epi --min_date 2011-01-01
+    $ obspyDMT --plot_dir 'dmt-tour-data' --min_date 2011-01-01 --plot_epi
 
 .. image:: figures/epi_time_20110311_1_raw.png
    :scale: 60%
    :align: center
 
-In this command, *--plot_dir* specifies the address, *--plot_epi* changes
-the mode of the plotting to epicentral-time plot and *--min_date* filters
-the event datetime (in this case, we only have one event).
+In this command, *--plot_dir* specifies the address, *--min_date* filters the
+event datetime (in this case, we only have one event) and *--plot_epi* changes
+the mode of the plotting to epicentral-time plot.
 
 for plotting the corrected waveforms:
 
 ::
 
-    $ obspyDMT --plot_dir 'dmt-tour-data' --plot_epi --min_date 2011-01-01 --plot_type corrected
+    $ obspyDMT --plot_dir 'dmt-tour-data' --min_date 2011-01-01 --plot_epi --plot_type corrected
 
 .. image:: figures/epi_time_20110311_1.png
    :scale: 60%
@@ -158,12 +158,28 @@ obspyDMT plots the ray coverage (ray path between each event-station pair) by:
 
 ::
 
-    $ obspyDMT --plot_ray 'dmt-tour-data'
+    $ obspyDMT --plot_dir 'dmt-tour-data' --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev
    
-.. image:: figures/tourray.png
+.. image:: figures/tour_ray.png
    :scale: 75%
    :align: center
-    
+
+*--plot_ray*, *--plot_sta* and *--plot_ev* mean that ray, stations and
+events should be plotted respectively.
+
+However, it is also possible to plot the beachballs at the event locations:
+
+::
+
+    $ obspyDMT --plot_dir 'dmt-tour-data' --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
+
+.. image:: figures/tour_ray_focal.png
+   :scale: 75%
+   :align: center
+
+The only required option compare to the previous command line is:
+*--plot_focal*
+
 ------------
 Option types
 ------------

@@ -229,29 +229,29 @@ def plot_sta_ev_ray(input_dics, ls_saved_stas):
         # m.drawmeridians(meridians, color='gray')
         m = Basemap(projection='robin', lon_0=180)
         parallels = np.arange(-90, 90, 30.)
-        m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=8)
+        m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=24)
         meridians = np.arange(-180., 180., 60.)
-        m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=8)
+        m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=24)
         width_beach = 5e5
-        width_station = 10
+        width_station = 50
     elif not glob_map:
         m = Basemap(projection='cyl', llcrnrlat=evlatmin, urcrnrlat=evlatmax,
                     llcrnrlon=evlonmin, urcrnrlon=evlonmax)
         parallels = np.arange(-90, 90, 5.)
-        m.drawparallels(parallels, labels=[1, 0, 0, 1], fontsize=8)
+        m.drawparallels(parallels, labels=[1, 0, 0, 1], fontsize=12)
         meridians = np.arange(-180., 180., 5.)
-        m.drawmeridians(meridians, labels=[1, 0, 0, 1], fontsize=8)
+        m.drawmeridians(meridians, labels=[1, 0, 0, 1], fontsize=12)
         width_beach = 5
         width_station = 10
     elif glob_map:
         # hammer, kav7, cyl, mbtfpq, moll
         m = Basemap(projection='robin', lon_0=180)
         parallels = np.arange(-90, 90, 30.)
-        m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=8)
+        m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=24)
         meridians = np.arange(-180., 180., 60.)
-        m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=8)
+        m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=24)
         width_beach = 5e5
-        width_station = 10
+        width_station = 50
     else:
         sys.exit('ERROR: %s' % input_dics)
 
