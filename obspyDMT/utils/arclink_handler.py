@@ -46,7 +46,7 @@ def ARC_network(input_dics, events):
 
     if input_dics['FDSN'] != 'Y':
         print 'Initializing folders and files...',
-        create_folders_files(events, eventpath)
+        create_folders_files(events, eventpath, input_dics)
         print 'DONE'
 
     for i in range(len(events)):

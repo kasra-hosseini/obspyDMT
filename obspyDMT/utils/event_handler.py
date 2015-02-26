@@ -191,8 +191,6 @@ def events_info(input_dics, request):
             if input_dics['plot_all_events']:
                 plt.ion()
                 events_QML.plot()
-                raw_input('Press enter to close all the windows...')
-                return [], [], []
 
             events = []
             for i in range(len(events_QML)):
@@ -1191,11 +1189,12 @@ def quake_modify(quake_item, address_info):
 # ##################### create_folders_files ############################
 
 
-def create_folders_files(events, eventpath):
+def create_folders_files(events, eventpath, input_dics):
     """
     Create required folders and files in the event folder(s)
     :param events:
     :param eventpath:
+    :param input_dics:
     :return:
     """
     for i in range(len(events)):
@@ -1206,6 +1205,11 @@ def create_folders_files(events, eventpath):
                                      'Resp'))
             os.makedirs(os.path.join(eventpath, events[i]['event_id'],
                                      'info'))
+
+            inp_file = open(os.path.join(eventpath, events[i]['event_id'],
+                                         'info', 'input_dics.pkl'), 'w')
+            pickle.dump(input_dics, inp_file)
+            inp_file.close()
             report = open(os.path.join(eventpath, events[i]['event_id'],
                                        'info', 'report_st'), 'a+')
             report.close()

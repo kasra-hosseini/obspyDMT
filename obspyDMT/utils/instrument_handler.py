@@ -58,6 +58,12 @@ def FDSN_ARC_IC(input_dics, clients):
                    str(input_dics['max_mag']))
         address = os.path.join(input_dics['datapath'], period)
 
+    if input_dics['fdsn_update'] != 'N':
+        address = os.path.join(input_dics['datapath'])
+
+    if input_dics['arc_update'] != 'N':
+        address = os.path.join(input_dics['datapath'])
+
     if input_dics[clients_name + '_ic'] != 'N':
         address = input_dics[clients_name + '_ic']
 
@@ -82,20 +88,22 @@ def FDSN_ARC_IC(input_dics, clients):
                 sys.exit('ERROR: No station available for %s does not '
                          'exist!' % clients)
 
-        if not input_dics['net'].startswith('_'):
-            pattern_sta = '%s.%s.%s.%s' % (input_dics['net'],
-                                           input_dics['sta'],
-                                           input_dics['loc'],
-                                           input_dics['cha'])
+        if input_dics['net'].startswith('_'):
+            net_pat = '*'
         else:
-            pattern_sta = '*.%s.%s.%s' % (input_dics['sta'],
-                                          input_dics['loc'],
-                                          input_dics['cha'])
+            net_pat = input_dics['net']
 
         ls_saved_stas = []
-        for saved_sta in ls_saved_stas_tmp:
-            if fnmatch.fnmatch(os.path.basename(saved_sta), pattern_sta):
-                ls_saved_stas.append(saved_sta)
+        for net_iter in net_pat.split(','):
+            for sta_iter in input_dics['sta'].split(','):
+                for loc_iter in input_dics['loc'].split(','):
+                    for cha_iter in input_dics['cha'].split(','):
+                        pattern_sta = '%s.%s.%s.%s' % (net_iter, sta_iter,
+                                                       loc_iter, cha_iter)
+                        for saved_sta in ls_saved_stas_tmp:
+                            if fnmatch.fnmatch(os.path.basename(saved_sta),
+                                               pattern_sta):
+                                ls_saved_stas.append(saved_sta)
 
         if len(ls_saved_stas) != 0:
             print '\nevent: %s/%s -- %s\n' % (i+1, len(events), clients)

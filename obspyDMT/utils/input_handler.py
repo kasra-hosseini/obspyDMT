@@ -1218,8 +1218,7 @@ def read_input_command(parser, **kwargs):
         input_dics['arc_merge_auto'] = options.arc_merge_auto
         input_dics['merge_type'] = options.merge_type
 
-    for opts in ['fdsn_update', 'arc_update', 'fdsn_ic', 'arc_ic',
-                 'fdsn_merge', 'arc_merge', 'plot_dir']:
+    for opts in ['fdsn_ic', 'arc_ic', 'fdsn_merge', 'arc_merge', 'plot_dir']:
         if input_dics[opts] != 'N':
             input_dics['datapath'] = input_dics[opts]
             input_dics['get_events'] = 'N'
@@ -1230,6 +1229,14 @@ def read_input_command(parser, **kwargs):
             input_dics['arc_ic_auto'] = 'N'
             input_dics['fdsn_merge_auto'] = 'N'
             input_dics['arc_merge_auto'] = 'N'
+
+    for opts in ['fdsn_update', 'arc_update']:
+        if input_dics[opts] != 'N':
+            input_dics['datapath'] = input_dics[opts]
+            input_dics['get_events'] = 'N'
+            input_dics['get_continuous'] = 'N'
+            input_dics['FDSN'] = 'N'
+            input_dics['ArcLink'] = 'N'
 
     if options.event_info:
         input_dics['FDSN'] = 'N'

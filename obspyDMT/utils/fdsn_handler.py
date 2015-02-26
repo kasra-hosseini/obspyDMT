@@ -50,7 +50,7 @@ def FDSN_network(input_dics, events):
     eventpath = os.path.join(input_dics['datapath'], period)
 
     print 'Initializing folders and files...',
-    create_folders_files(events, eventpath)
+    create_folders_files(events, eventpath, input_dics)
     print 'DONE'
 
     for i in range(len(events)):
@@ -79,7 +79,7 @@ def FDSN_network(input_dics, events):
             FDSN_waveform(input_dics, events, Stas_fdsn, i, req_type='save')
         else:
             print 'No available station in %s for your request and ' \
-                  'for event %s!' % (input_dics['fdsn_base_name'], str(i+1))
+                  'for event %s!' % (input_dics['fdsn_base_url'], str(i+1))
             continue
 
 # ##################### FDSN_available ##################################
@@ -101,7 +101,18 @@ def FDSN_available(input_dics, event, target_path, event_number):
                               password=input_dics['fdsn_pass'])
     Sta_fdsn = []
     try:
-        if 'YV' in input_dics['net']:
+        if input_dics['fdsn_base_url'].lower() in ['resif']:
+            msg = 'WARNING\n' \
+                  'You have selected RESIF as fdsn_base_url!\n\n' \
+                  'I have detected some problems in sending request to ' \
+                  'this data provider:\n' \
+                  'It seems that the start and end times in channel level ' \
+                  'are not set correctly.\n\n' \
+                  'It is better to use --list_stas options other ' \
+                  'than sending the availability\nrequest directly.'
+            print '\n\n' + 80*'='
+            print msg
+            print 80*'=' + '\n\n'
             start_time = None
             end_time = None
         else:

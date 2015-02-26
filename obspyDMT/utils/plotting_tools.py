@@ -937,19 +937,36 @@ def seismicity(input_dics, events):
         input_dics['evlatmax'] = +90
         input_dics['evlonmin'] = -180
         input_dics['evlonmax'] = +180
+        map_proj = 'cyl'
+    else:
+        map_proj = 'cyl'
 
     # Set-up the map
-    m = Basemap(projection='cyl',
+    m = Basemap(projection=map_proj,
                 llcrnrlat=input_dics['evlatmin'],
                 urcrnrlat=input_dics['evlatmax'],
                 llcrnrlon=input_dics['evlonmin'],
                 urcrnrlon=input_dics['evlonmax'],
+                lon_0=0,
                 resolution='l')
-    # m.drawcoastlines()
-    m.fillcontinents()
-    m.drawparallels(np.arange(-90., 120., 30.))
-    m.drawmeridians(np.arange(0., 420., 60.))
-    m.drawmapboundary()
+    parallels = np.arange(-90, 90, 30.)
+    m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=24)
+    meridians = np.arange(-180., 180., 60.)
+    m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=24)
+
+    raw_input_resp = raw_input('Choose your map style:\n'
+                               '1. Bluemarble\n'
+                               '2. Etopo\n'
+                               '3. Shaderelief\n'
+                               '4. Simple\n')
+    if raw_input_resp == '1':
+        m.bluemarble(scale=0.5)
+    elif raw_input_resp == '2':
+        m.etopo(scale=0.5)
+    elif raw_input_resp == '3':
+        m.shadedrelief(scale=0.1)
+    else:
+        m.fillcontinents()
 
     # Defining Labels:
     x_ev, y_ev = m(-360, 0)
@@ -1030,26 +1047,40 @@ def seismicity(input_dics, events):
     if plot_focal_mechanism:
         plt.figure()
         # Set-up the map
-        m = Basemap(projection='cyl',
+        m = Basemap(projection=map_proj,
                     llcrnrlat=input_dics['evlatmin'],
                     urcrnrlat=input_dics['evlatmax'],
                     llcrnrlon=input_dics['evlonmin'],
                     urcrnrlon=input_dics['evlonmax'],
+                    lon_0=0,
                     resolution='l')
-        # m.drawcoastlines()
-        m.fillcontinents()
-        m.drawparallels(np.arange(-90., 120., 30.))
-        m.drawmeridians(np.arange(0., 420., 60.))
-        m.drawmapboundary()
+        parallels = np.arange(-90, 90, 30.)
+        m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=24)
+        meridians = np.arange(-180., 180., 60.)
+        m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=24)
+        if raw_input_resp == '1':
+            m.bluemarble(scale=0.5)
+        elif raw_input_resp == '2':
+            m.etopo(scale=0.5)
+        elif raw_input_resp == '3':
+            m.shadedrelief(scale=0.1)
+        else:
+            m.fillcontinents()
         for evfoc in ev_info_ar:
-            ax = plt.gca()
-            focmec = (float(evfoc[5]), float(evfoc[6]), float(evfoc[7]),
-                      float(evfoc[8]), float(evfoc[9]), float(evfoc[10]))
-            b = Beach(focmec, xy=(float(evfoc[1]), float(evfoc[2])),
-                      facecolor=evfoc[4], width=float(evfoc[3])/100.,
-                      linewidth=1, alpha=0.85)
-            b.set_zorder(10)
-            ax.add_collection(b)
+            try:
+                ax = plt.gca()
+                focmec = (float(evfoc[5]), float(evfoc[6]), float(evfoc[7]),
+                          float(evfoc[8]), float(evfoc[9]), float(evfoc[10]))
+                b = Beach(focmec, xy=(float(evfoc[1]), float(evfoc[2])),
+                          facecolor=evfoc[4], width=float(evfoc[3])/100.,
+                          linewidth=1, alpha=0.85)
+                b.set_zorder(10)
+                ax.add_collection(b)
+            except Exception, e:
+                print 'EXCEPTION: %s' % e
+                print 'Focal Mechanism:'
+                print focmec
+                print '----------------'
 
     plt.figure()
     plt.hist(ev_dp_all, input_dics['depth_bins_seismicity'],
