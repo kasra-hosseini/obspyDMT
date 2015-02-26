@@ -479,12 +479,14 @@ def plot_epi(input_dics, ls_add_stas, ls_saved_stas):
                         np.linspace(0,
                                     (tr.stats.npts-1)/tr.stats.sampling_rate,
                                     tr.stats.npts), tr.data + dist,
-                        color='black')
+                        color='black', lw=2)
             except Exception as e:
                 print 'WARNING: %s' % e
                 pass
-            plt.xlabel('Time (sec)')
-            plt.ylabel('Epicentral distance (deg)')
+            plt.xlabel('Time (sec)', size=24, weight='bold')
+            plt.ylabel('Epicentral distance (deg)', size=24, weight='bold')
+            plt.xticks(size=18, weight='bold')
+            plt.yticks(size=18, weight='bold')
 
         print os.path.join(input_dics['plot_save'],
                            'epi_time_%s.%s'

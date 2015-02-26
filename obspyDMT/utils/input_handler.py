@@ -269,7 +269,8 @@ def command_parse():
     group_ev.add_option("--event_url", action="store",
                         dest="event_url", help=helpmsg)
 
-    helpmsg = "event catalog (EMSC, GCMT, NEIC PDE, ISC). [Default: None]"
+    helpmsg = "event catalog (GCMT_COMBO, EMSC, GCMT, NEIC PDE, ISC). " \
+              "[Default: GCMT_COMBO]"
     group_ev.add_option("--event_catalog", action="store",
                         dest="event_catalog", help=helpmsg)
 
