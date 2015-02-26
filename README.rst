@@ -676,21 +676,25 @@ follow: (35061 events)
    :scale: 50%
    :align: center
 
+Global seismicity map (beachballs):
 
 .. image:: figures/seismicity_focal.png
    :scale: 50%
    :align: center
 
+South America (global seismicity map, beachballs):
 
 .. image:: figures/seismicity_focal_south_america.png
    :scale: 20%
    :align: center
 
+Distribution of events with depth:
 
 .. image:: figures/seismicity_depth.png
    :scale: 20%
    :align: center
 
+Distribution of events with magnitude:
 
 .. image:: figures/seismicity_magnitude.png
    :scale: 20%
