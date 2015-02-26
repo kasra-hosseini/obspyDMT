@@ -247,11 +247,11 @@ When the job starts, a folder will be created with the address specified by *--d
 
 and check the *catalog_table.txt* and *catalog.txt* text files or *catalog.ml* which is in QuakeML format (Please refer to `Folder structure`_ section for more information).
 
+**ATTENTION:** In the above example, we did not change the *--event_catalog*. Therefore, obspyDMT uses the default catalog: *GCMT*.
+
 .. image:: figures/event_info_events.png
    :scale: 75%
    :align: center
-
-**ATTENTION:** In the above example, we did not change the *--event_catalog*. Therefore, obspyDMT uses the default catalog: *GCMT*.
 
 -------------------
 event-based request
@@ -266,9 +266,9 @@ In this type of request, the following steps will be done automatically:
 
 Retrieving and processing could be done in **serial** or in **parallel**.
 
-The following lines show how to send an `event-based request`_ with obspyDMT followed by some short examples.
+The following lines show how to send an *event-based request* with obspyDMT followed by some short examples.
 
-The general way to define an `event-based request`_ is:
+The general way to define an *event-based request* is:
 
 ::
 
@@ -276,29 +276,45 @@ The general way to define an `event-based request`_ is:
 
 For details on *option-1* and *option-2* please refer to `Option types`_ section.
 
-**Example 1:** the following command shows how to get all the waveforms, stationXML/response files and metadata of *BHZ* channels available in *TA* network with station names start with *Z* for the great Tohoku-oki earthquake of magnitude Mw 9.0:
+**Example 1:** the following command shows how to get all the waveforms,
+stationXML/response files and metadata of *BHZ* channels available in *II*
+network with station names start with *A* or *B* for the great Tohoku-oki
+earthquake of magnitude Mw 9.0:
 
 ::
 
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ'
+    $ obspyDMT --min_mag 8.9 --min_date 2011-03-01 --max_date 2011-03-30 --net II --sta A*,B* --cha BHZ --offset 3600
 
-or instead of using *identity* option:
+
+**command:** *--min_mag*, *--min_date* and *max_date* specify the minimum
+magnitude, start and end datetime parameters for event search.
+*--net*, *--sta* and *--cha* change the network to II, stations to A* or B*
+and channel to BHZ.
+*--offset* changes the required length for waveforms after the event time to
+ 3600sec (default: 1800sec).
+
+We can look at the event and station distributions for this request by:
 
 ::
 
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --net 'TA' --sta 'Z*' --cha 'BHZ'
+    $ obspyDMT --plot_dir obspyDMT-data/2011-03-01_2011-03-30_8.9_9.9/ --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
+
+
+.. image:: figures/event_based_ex1.png
+   :scale: 75%
+   :align: center
 
 **Example 2:** By default, obspyDMT saves the waveforms in *SAC* format. In this case, it will fill in the station location (stla and stlo), station elevation (stel), station depth (stdp), event location (evla and evlo), event depth (evdp) and event magnitude (mag) in the SAC headers. However, if the desired format is *MSEED*: (for downloading the same event and station identity as *Example 1*)
 
 ::
 
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --mseed
+    $ obspyDMT --min_mag 8.9 --min_date 2011-03-01 --max_date 2011-03-30 --net II --sta A*,B* --cha BHZ --offset 3600 --mseed
 
 **Example 3:** for downloading just the raw waveforms without stationXML/response file and instrument correction:
 
 ::
 
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ' --mseed --response 'N' --ic_no
+    $ obspyDMT --min_mag 8.9 --min_date 2011-03-01 --max_date 2011-03-30 --net II --sta A*,B* --cha BHZ --offset 3600 --mseed --response 'N' --ic_no
 
 **Example 4:** the default values for the preset (how close the time series (waveform) will be cropped before the origin time of the event) and the offset (how close the time series (waveform) will be cropped after the origin time of the event) are 0 and 1800 seconds. You can change them by adding the following flags:
 
