@@ -51,39 +51,41 @@ for i in range(1, len(report_fi)):
         per_phase_diff_g.append(float(line_report_fi[1]))
         max_diff_g.append(float(line_report_fi[2]))
 
-# Plot GOOD stations
-plt.figure()
-m = Basemap(projection='robin', lon_0=0, lat_0=0)
-m.fillcontinents()
-parallels = np.arange(-90, 90, 30.)
-m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=18)
-meridians = np.arange(-180., 180., 60.)
-m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=18)
-m.drawmapboundary()
+if len(sta_lat_g) > 0:
+    # Plot GOOD stations
+    plt.figure()
+    m = Basemap(projection='robin', lon_0=0, lat_0=0)
+    m.fillcontinents()
+    parallels = np.arange(-90, 90, 30.)
+    m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=18)
+    meridians = np.arange(-180., 180., 60.)
+    m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=18)
+    m.drawmapboundary()
 
-x, y = m(sta_lon_g, sta_lat_g)
-m.scatter(x, y, 20, c=per_phase_diff_g, marker="o", edgecolor='none',
-          zorder=10, cmap='gray', vmin=0., vmax=1.)
-cbar = plt.colorbar(orientation='horizontal', shrink=0.9)
-cbar.ax.tick_params(labelsize=18)
-plt.savefig('compare_plots_good.png')
+    x, y = m(sta_lon_g, sta_lat_g)
+    m.scatter(x, y, 20, c=per_phase_diff_g, marker="o", edgecolor='none',
+              zorder=10, cmap='gray', vmin=0., vmax=1.)
+    cbar = plt.colorbar(orientation='horizontal', shrink=0.9)
+    cbar.ax.tick_params(labelsize=18)
+    plt.savefig('compare_plots_good.png')
 
-# Plot BAD stations
-plt.figure()
-m = Basemap(projection='robin', lon_0=0, lat_0=0)
-m.fillcontinents()
-parallels = np.arange(-90, 90, 30.)
-m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=18)
-meridians = np.arange(-180., 180., 60.)
-m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=18)
-m.drawmapboundary()
+if len(sta_lat_b) > 0:
+    # Plot BAD stations
+    plt.figure()
+    m = Basemap(projection='robin', lon_0=0, lat_0=0)
+    m.fillcontinents()
+    parallels = np.arange(-90, 90, 30.)
+    m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=18)
+    meridians = np.arange(-180., 180., 60.)
+    m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=18)
+    m.drawmapboundary()
 
-x, y = m(sta_lon_b, sta_lat_b)
-m.scatter(x, y, 100, c=per_phase_diff_b, marker="o", edgecolor='none',
-          zorder=10, cmap='jet',
-          vmin=min(per_phase_diff_b), vmax=max(per_phase_diff_b))
-cbar = plt.colorbar(orientation='horizontal', shrink=0.9)
-cbar.ax.tick_params(labelsize=18)
-plt.savefig('compare_plots_bad.png')
+    x, y = m(sta_lon_b, sta_lat_b)
+    m.scatter(x, y, 100, c=per_phase_diff_b, marker="o", edgecolor='none',
+              zorder=10, cmap='jet',
+              vmin=min(per_phase_diff_b), vmax=max(per_phase_diff_b))
+    cbar = plt.colorbar(orientation='horizontal', shrink=0.9)
+    cbar.ax.tick_params(labelsize=18)
+    plt.savefig('compare_plots_bad.png')
 
 plt.show()

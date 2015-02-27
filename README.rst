@@ -688,7 +688,7 @@ the default format is *png*, but assume that we want *pdf* for our figures, then
 Explore stationXML file
 -----------------------
 
-obspyDMT is able to plot the content of stationXML files by the following command: (all the figures will be saved at ./stationxml_plots by default)
+stationXML files are retrieved from the data-providers in order to apply the instrument correction to the raw counts. Albeit convenient, it is usually difficult to explore the content of stationXML files. For this reason, obspyDMT has the functionality to plot the content of stationXML files. This has been shown in some examples (all the figures will be saved at ./stationxml_plots by default)
 
 **Example 1:** plot the amplitude and phase components of a stationXML file that was retrieved in `event-based request`_:
 
@@ -702,9 +702,70 @@ obspyDMT is able to plot the content of stationXML files by the following comman
    :scale: 75%
    :align: center
 
-Moreover, it plots the stages of the stationXML file as well.
+Moreover, it is possible to plot the stages of the stationXML file as well:
+
+::
+
+    $ obspyDMT --plotxml_dir path/to/STXML.TA.Z33A..BHZ --plotxml_paz --plotxml_allstages
 
 .. image:: figures/TA.Z33A..BHZ_stages.png
+   :scale: 75%
+   :align: center
+
+**Example 2:** minimum frequency in *Example 1* was 0.01Hz by default, this value can be changes by:
+
+::
+
+    $ obspyDMT --plotxml_dir path/to/STXML.TA.Z33A..BHZ --plotxml_paz --plotxml_min_freq 0.0001
+
+.. image:: figures/TA.Z33A..BHZ_stages_0_0001.png
+   :scale: 75%
+   :align: center
+
+**Example 3:** in *Example 1* and *Example 2*, we only plot one stationXML file. It is possible to do the same for a directory of stationXML files. As an example, for GSN stations in *Example 5* of `event-based request`_:
+
+::
+
+    $ obspyDMT --plotxml_dir gsn_example/2014-01-01_2014-03-01_6.0_9.9/20140226_1/Resp --plotxml_paz
+
+All the results will be stored at *./stationxml_plots*. As an example:
+
+.. image:: figures/GT.LBTB.00.BHZ.png
+   :scale: 75%
+   :align: center
+
+Moreover, a text file will be created: *report_stationxml* that contains
+some information about the comparison between stationXML and PolesAndZeros
+with the following columns:
+
+::
+
+    channel_id   %(Phase)   Max Diff(abs)   Lat   Lon   Datetime
+
+The comparison is done as follow:
+
+1. Phase responses of full StationXML file and only PAZ are extracted from stationXML file.
+2. Based on *--plotxml_percentage (default 80)*, the phase response is cut from the lowest frequency (specified by --plotxml_min_freq) up to 80% (specified by --plotxml_percen) of its length (up to Nyquist frequency).
+3. L1 norm between these cut phase responses is calculated.
+4. The length of non-zero values are compared with the total length of the cut phase response and will be reported in *%(Phase)*
+5. Maximum difference (abs value) is reported in *%Max Diff(abs)*
+
+At this stage, we can plot the report (a simple Python script is provided at /path/to/obspyDMT/obspyDMT/utils/plotxml_report.py):
+
+::
+
+
+    $ python plotxml_report.py /path/to/report_stationxml
+
+which will create two figures. One figure are those stations that there was not difference between full stationXML and PAZ:
+
+.. image:: figures/gsn_good.png
+   :scale: 75%
+   :align: center
+
+The second figure shows those stations that the full stationXML and PAZ were different and the colorbar shows the percentage of difference *%(Phase)*:
+
+.. image:: figures/gsn_bad.png
    :scale: 75%
    :align: center
 
