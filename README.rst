@@ -628,23 +628,23 @@ The general syntax for plotting tools is:
 
 ::
 
-    $ obspyDMT --plot_option 'address'
+    $ obspyDMT --plot_dir 'address' [--plot_options]
 
-that *--plot_option* could be *--plot_ev* for events, *--plot_sta* for stations, *--plot_se* for stations and events, *--plot_ray* for ray path between each event-station pairs and *--plot_epi* for epicentral-distance/time. 
+that *--plot_options* could be *--plot_ev* for events, *--plot_sta* for stations, *--plot_se* for stations and events, *--plot_ray* for ray path between each event-station pairs and *--plot_epi* for epicentral-distance/time.
 
 All the examples showed in this section are based on a database created by the following request:
 
 ::
 
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ'
+    $ obspyDMT --datapath plot_ex --min_mag 8.9 --min_date 2011-03-01 --max_date 2011-03-30 --identity 'TA.Z*.*.BHZ'
 
 **Example 1:** let's plot both stations and events available in the folder:
 
 ::
 
-    $ obspyDMT --plot_se './obspyDMT-data'
+    $ obspyDMT --plot_dir plot_ex --min_date 2011-01-01 --plot_sta --plot_ev
 
-.. image:: figures/plotse.png
+.. image:: figures/plot_sta_ev.png
    :scale: 75%
    :align: center
 
@@ -652,23 +652,37 @@ the default format is *png*, but assume that we want *pdf* for our figures, then
 
 ::
 
-    $ obspyDMT --plot_se './obspyDMT-data' --plot_format 'pdf'
+    $ obspyDMT --plot_dir plot_ex --min_date 2011-01-01 --plot_sta --plot_ev --plot_format 'pdf'
 
 **Example 2:** in this example, we want to plot the ray path for event-station pairs but save the result in *$HOME/Desktop*:
 
 ::
 
-    $ obspyDMT --plot_ray './obspyDMT-data' --plot_format 'pdf' --plot_save '$HOME/Desktop'
+    $ obspyDMT --plot_dir plot_ex --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev --plot_save '/home/hosseini/Desktop'
 
-.. image:: figures/plotray.png
+.. image:: figures/plot_sta_ev_ray.png
    :scale: 75%
    :align: center
 
-**Example 3:** obspyDMT supports GMT plots as well. For this reason, GMT5_ should be installed on your machine. In this example, we want to plot the ray path for event-station pairs (similat to *Example 2*) by using GMT5_:
+**Example 3:** now to the above example, we include the focal mechanism of the event (i.e. beachball should be plotted):
 
 ::
 
-    $ obspyDMT --plot_ray_gmt './obspyDMT-data'
+    $ obspyDMT --plot_dir plot_ex --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
+
+.. image:: figures/plot_sta_ev_ray_focal.png
+   :scale: 75%
+   :align: center
+
+**Example 4:** obspyDMT supports GMT plots as well. For this reason, GMT5_ should be installed on your machine. In this example, we want to plot the ray path for event-station pairs (similat to *Example 3*) by using GMT5_:
+
+::
+
+    $ obspyDMT --plot_dir plot_ex --min_date 2011-01-01 --plot_ray_gmt
+
+.. image:: figures/plot_sta_ev_ray_focal_gmt.pdf
+   :scale: 75%
+   :align: center
 
 -----------------------
 Explore stationXML file
