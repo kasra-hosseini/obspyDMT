@@ -706,7 +706,7 @@ as follow:
 
 ::
 
-    $ obspyDMT --datapath 'seismicity_japan' --seismicity --min_mag 3.0 --min_date 1976-01-01 --max_date 2013-12-31 --event_rect 120.0/155.0/25.0/55.0
+    $ obspyDMT --datapath 'seismicity_japan' --seismicity --min_mag 5.0 --min_date 1976-01-01 --max_date 2013-12-31 --event_rect 120.0/155.0/25.0/55.0
 
 *--datapath* is the address where the event catalog will be created, *--seismicity* enables the seismicity mode and *--min_mag*, *--min_date*, *--max_date* and *--event_rect* are event search parameters.
 
@@ -741,25 +741,25 @@ follow: (35061 events)
     $ obspyDMT --datapath 'seismicity_glob' --seismicity --min_mag 5.0 --min_date 1976-01-01 --max_date 2013-12-31
 
 
-.. image:: figures/seismicity.png
+.. image:: figures/seismicity_glob.png
    :scale: 50%
    :align: center
 
 Global seismicity map:
 
-.. image:: figures/seismicity_focal.png
+.. image:: figures/seismicity_focal_glob.png
    :scale: 50%
    :align: center
 
 Distribution of events with depth:
 
-.. image:: figures/seismicity_depth.png
+.. image:: figures/seismicity_depth_glob.png
    :scale: 20%
    :align: center
 
 Distribution of events with magnitude:
 
-.. image:: figures/seismicity_magnitude.png
+.. image:: figures/seismicity_magnitude_glob.png
    :scale: 20%
    :align: center
 
