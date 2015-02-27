@@ -321,6 +321,25 @@ We can look at the event and station distributions for this request by:
 
     $ obspyDMT --preset time_before --offset time_after --option-1 value --option-2 
 
+**Example 5:** to retrieve all the *GSN* stations (BHZ channel) for the events with magnitude more than 6.0 that occured from 2014-01-01 to 2014-03-01 (or 2014-02-28-23-59-59):
+
+::
+
+    $ obspyDMT --datapath gsn_example --min_date 2014-01-01 --max_date 2014-03-01 --min_mag 6.0 --net _GSN --cha BHZ --req_parallel --req_np 10
+
+**ATTENTION:** *_GSN* is GSN virtual network.
+
+To check all the retrieved stations:
+
+::
+
+    $ obspyDMT --plot_dir gsn_example --min_date 2014-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
+
+
+.. image:: figures/event_based_ex5.png
+   :scale: 75%
+   :align: center
+
 ------------------
 continuous request
 ------------------
@@ -537,13 +556,33 @@ To make it clearer, let's take a look at an example with following steps:
 
 ::
 
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --identity 'TA.Z*.*.BHZ'
+    $ obspyDMT --datapath ic_ex1 --min_mag 8.9 --min_date 2011-03-01 --max_date 2011-03-30 --identity TA.Z*.*.BHZ
 
-**Step 2:** now to correct the raw waveforms for velocity:
+**Step 2:** now to correct the raw waveforms to velocity:
 
 ::
 
-    $ obspyDMT --ic_all '/path/specified/in/datapath' --corr_unit 'VEL'
+    $ obspyDMT --ic_all ic_ex1 --corr_unit 'VEL'
+
+Sure enough, plotting the displacement seismograms:
+
+::
+
+    $ obspyDMT --plot_dir ic_ex1 --min_date 2011-01-01 --plot_epi --plot_type corrected
+
+.. image:: figures/ic_ex1_disp.png
+   :scale: 75%
+   :align: center
+
+and plotting the velocity seismograms:
+
+::
+
+    $ obspyDMT --plot_dir ic_ex1 --min_date 2011-01-01 --plot_epi --plot_type corrected --corr_unit VEL
+
+.. image:: figures/ic_ex1_vel.png
+   :scale: 75%
+   :align: center
 
 ----------------------------------
 Parallel retrieving and processing
