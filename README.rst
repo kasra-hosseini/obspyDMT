@@ -680,7 +680,7 @@ the default format is *png*, but assume that we want *pdf* for our figures, then
 
     $ obspyDMT --plot_dir plot_ex --min_date 2011-01-01 --plot_ray_gmt
 
-.. image:: figures/plot_sta_ev_ray_focal_gmt.pdf
+.. image:: figures/plot_sta_ev_ray_focal_gmt.png
    :scale: 75%
    :align: center
 
