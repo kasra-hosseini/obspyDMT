@@ -718,7 +718,7 @@ Moreover, it is possible to plot the stages of the stationXML file as well:
 
     $ obspyDMT --plotxml_dir path/to/STXML.TA.Z33A..BHZ --plotxml_paz --plotxml_min_freq 0.0001
 
-.. image:: figures/TA.Z33A..BHZ_stages_0_0001.png
+.. image:: figures/TA.Z33A..BHZ_0_0001.png
    :scale: 75%
    :align: center
 
