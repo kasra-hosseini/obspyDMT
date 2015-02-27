@@ -528,7 +528,7 @@ def plot_xml_response(input_dics):
     if output.lower() == 'dis':
         output = 'DISP'
     start_stage = input_dics['plotxml_start_stage']
-    end_stage = input_dics['plotxml_end_stage']
+    end_stage_input = input_dics['plotxml_end_stage']
     percentage = input_dics['plotxml_percentage']/100.
     threshold = input_dics['plotxml_phase_threshold']
     plot_response = input_dics['plotxml_response']
@@ -560,6 +560,7 @@ def plot_xml_response(input_dics):
     report_fio.close()
     add_counter = 0
     for addxml in addxml_all:
+        end_stage = end_stage_input
         add_counter += 1
         print 40*'-'
         print '%s/%s' % (add_counter, len(addxml_all))
@@ -861,37 +862,56 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
     :return:
     """
     gain_arr = []
-    normalization_factor = []
-    poles = []
-    zeros = []
+
+    # for resp_stage in xml_response.response_stages:
+    #     gain_arr.append(resp_stage.stage_gain)
+    #     try:
+    #         normalization_factor.append(resp_stage.normalization_factor)
+    #         import ipdb; ipdb.set_trace()
+    #         if not isinstance(resp_stage, 'PolesZerosResponseStage'):
+    #             print 'WARNING: normalization factor read from a stage ' \
+    #                   'other than PAZ'
+    #     except Exception as e:
+    #         pass
+    #     try:
+    #         poles.append(resp_stage.poles)
+    #         zeros.append(resp_stage.zeros)
+    #         if not isinstance(resp_stage, 'PolesZerosResponseStage'):
+    #             print 'WARNING: Poles and Zeros read from a stage ' \
+    #                   'other than PAZ'
+    #     except Exception as e:
+    #         pass
+
+    # if len(poles) > 1:
+    #     print 'WARNING: More than one group of poles was found: %s' % poles
+    #     for i in range(1, len(poles)):
+    #         poles[0].extend(poles[i])
+    # if len(zeros) > 1:
+    #     print 'WARNING: More than one group of zeros was found: %s' % zeros
+    #     for i in range(1, len(zeros)):
+    #         zeros[0].extend(zeros[i])
+
     for resp_stage in xml_response.response_stages:
         gain_arr.append(resp_stage.stage_gain)
-        try:
-            normalization_factor.append(resp_stage.normalization_factor)
-            if not isinstance(resp_stage, 'PolesZerosResponseStage'):
-                print 'WARNING: normalization factor read from a stage ' \
-                      'other than PAZ'
-        except Exception as e:
-            pass
-        try:
-            poles.append(resp_stage.poles)
-            zeros.append(resp_stage.zeros)
-            if not isinstance(resp_stage, 'PolesZerosResponseStage'):
-                print 'WARNING: Poles and Zeros read from a stage ' \
-                      'other than PAZ'
-        except Exception as e:
-            pass
 
-    if len(poles) > 1:
-        print 'WARNING: More than one group of poles was found: %s' % poles
-        for i in range(1, len(poles)):
-            poles[0].extend(poles[i])
-    if len(zeros) > 1:
-        print 'WARNING: More than one group of zeros was found: %s' % zeros
-        for i in range(1, len(zeros)):
-            zeros[0].extend(zeros[i])
+    xml_paz = xml_response.get_paz()
+    normalization_factor = xml_paz.normalization_factor
+    poles = xml_paz.poles
+    zeros = xml_paz.zeros
 
-    paz = {'poles': poles[0]}
+    pz_type = xml_response.response_stages[0].pz_transfer_function_type
+    if 'hertz' in pz_type.lower():
+        poles = np.array(poles)*2*np.pi
+        zeros = np.array(zeros)*2*np.pi
+        normalization_factor = \
+            normalization_factor*np.power(2*np.pi, len(poles) - len(zeros))
+    elif 'radian' in pz_type.lower():
+        poles = np.array(poles)
+        zeros = np.array(zeros)
+    else:
+        sys.exit('pz_type: %s' % pz_type)
+
+    paz = {'poles': poles}
 
     input_units = xml_response.response_stages[0].input_units
     if not input_units.lower() in ['m', 'm/s', 'm/s**2']:
@@ -913,8 +933,8 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
             zeros[0].append(0.0j)
     if output.lower() == 'acc':
         sys.exit('%s output has not implemented!' % output)
-    paz['zeros'] = zeros[0]
-    paz['gain'] = np.prod(np.array(normalization_factor))
+    paz['zeros'] = zeros
+    paz['gain'] = normalization_factor
     paz['sensitivity'] = np.prod(np.array(gain_arr))
     return paz
 
