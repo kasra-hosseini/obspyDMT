@@ -269,7 +269,7 @@ def command_parse():
     group_ev.add_option("--event_url", action="store",
                         dest="event_url", help=helpmsg)
 
-    helpmsg = "event catalog (GCMT_COMBO, EMSC, GCMT, NEIC PDE, ISC). " \
+    helpmsg = "event catalog (GCMT_COMBO, IRIS, ISC, EMSC, GCMT, NEIC PDE). " \
               "[Default: GCMT_COMBO]"
     group_ev.add_option("--event_catalog", action="store",
                         dest="event_catalog", help=helpmsg)
@@ -1013,8 +1013,12 @@ def read_input_command(parser, **kwargs):
     input_dics['min_date'] = str(UTCDateTime(options.min_date))
     input_dics['max_date'] = str(UTCDateTime(options.max_date))
     input_dics['event_url'] = options.event_url.upper()
+
     if options.event_catalog:
         input_dics['event_catalog'] = options.event_catalog.upper()
+    if input_dics['event_catalog'].upper() == 'IRIS':
+        input_dics['event_catalog'] = None
+
     if options.read_catalog:
         input_dics['read_catalog'] = options.read_catalog
     else:

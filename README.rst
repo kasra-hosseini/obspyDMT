@@ -29,7 +29,7 @@ This tutorial has been divided into the following sections:
 6.  `event-based request`_: retrieve the waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
 7.  `continuous request`_: retrieve the waveforms, stationXML/response files and meta-data of all the requested stations and for the requested time span.
 8.  `Update`_: if you want to continue an interrupted request or complete your existing archive.
-9.  `Geographical restriction`_: if you are interested in the events happened in a specific geographical coordinate and/or retrieving the data from the stations in a specific circular or rectangular bounding area.
+9.  `Geographical restriction`_: if you want to work with the events happened in a specific geographical coordinate and/or retrieving the data from the stations in a specific circular or rectangular bounding area.
 10. `Instrument correction`_: applying instrument correction to raw counts using stationXML/response files.
 11. `Parallel retrieving and processing`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
 12. `Plot`_: for an existing archive, you can plot all the events and/or all the stations, ray path for event-station pairs and epicentral-distance/time for the waveforms using GMT-5 or basemap tools.
@@ -445,13 +445,15 @@ To check all the retrieved stations:
 Geographical restriction
 ------------------------
 
-If you are interested in the events happened in a specific geographical coordinate and/or retrieving the data from the stations in a specific circular or rectangular bounding area, you are in the right section! Here, we have two examples:
+If you want to work with the events happened in a specific geographical coordinate and/or retrieving the data from the stations in a specific circular or rectangular bounding area, you are in the right section! Here, we have two examples:
 
-**Example 1:** to extract the info of all the events occurred from January 2000 until October 2014 in a rectangular area (*lon1=44.38E* *lon2=63.41E* *lat1=24.21N* *lat2=40.01N*) with magnitude more than 3.0:
+**Example 1:** to extract the info of all the events occurred from 2000-01-01 until 2014-12-31 in a rectangular area (*lon1=44.38E* *lon2=63.41E* *lat1=24.21N* *lat2=40.01N*) with magnitude more than 3.0:
 
 ::
 
-    $ obspyDMT --event_info --min_mag '3.0' --min_date '2000-01-01' --max_date '2014-10-01' --event_rect '44.38/63.41/24.21/40.01'
+    $ obspyDMT --event_info --min_mag 3.0 --min_date 2000-01-01 --max_date 2014-12-31 --event_rect 44.38/63.41/24.21/40.01 --event_catalog IRIS
+
+**command:** *--event_info* changes the mode of obspyDMT to only retrieving the event information, *--event_rect* specifies a rectangular bounding area. **--event_catalog** changes the default event catalog (GCMT) to IRIS for this example.
 
 .. image:: figures/geo_restrict_example.png
    :scale: 75%
@@ -461,7 +463,29 @@ If you are interested in the events happened in a specific geographical coordina
 
 ::
 
-    $ obspyDMT --min_mag '8.9' --min_date '2011-03-01' --cha 'BHZ' --station_rect '-125.0/-70.0/25.0/45.0'
+    $ obspyDMT --datapath geo_restrict_ex2 --min_mag 8.9 --min_date 2011-03-01 --max_date 2011-03-31 --cha 'BHZ' --station_rect '-125.0/-70.0/25.0/45.0'
+
+**WARNING:** it is possible that this request takes a long time on your machine (depends on your internet connection). If this is the case, you can send parallel requests:
+
+::
+
+    $ obspyDMT --datapath geo_restrict_ex2 --min_mag 8.9 --min_date 2011-03-01 --max_date 2011-03-31 --cha 'BHZ' --station_rect '-125.0/-70.0/25.0/45.0' --req_parallel --req_np 10
+
+Alternatively, you can send bulk requests:
+
+::
+
+    $ obspyDMT --datapath geo_restrict_ex2 --min_mag 8.9 --min_date 2011-03-01 --max_date 2011-03-31 --cha 'BHZ' --station_rect '-125.0/-70.0/25.0/45.0' --fdsn_bulk
+
+To check all the retrieved stations:
+
+::
+
+    $ obspyDMT --plot_dir geo_restrict_ex2 --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
+
+.. image:: figures/geo_restrict_example_src_rcv.png
+   :scale: 75%
+   :align: center
 
 ---------------------
 Instrument correction
