@@ -88,4 +88,20 @@ if len(sta_lat_b) > 0:
     cbar.ax.tick_params(labelsize=18)
     plt.savefig('compare_plots_bad.png')
 
+    plt.figure()
+    plt.hist(per_phase_diff_b, bins=1000)
+    plt.xlabel('%Difference', size=24, weight='bold')
+    plt.ylabel('#channels', size=24, weight='bold')
+    plt.xticks(size=18, weight='bold')
+    plt.yticks(size=18, weight='bold')
+
+    plt.figure()
+    plt.hist(max_diff_b, bins=1000)
+    plt.xlabel('abs(maximum difference)', size=24, weight='bold')
+    plt.ylabel('#channels', size=24, weight='bold')
+    plt.xticks(size=18, weight='bold')
+    plt.yticks(size=18, weight='bold')
+
 plt.show()
+
+
