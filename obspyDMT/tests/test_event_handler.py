@@ -19,10 +19,13 @@ from obspy.core import UTCDateTime
 from obspyDMT.utils.input_handler import command_parse, read_input_command
 from obspyDMT.utils.event_handler import gcmt_catalog, events_info
 
+# ##################### test_gmt_catalog ##################################
+
 
 def test_gmt_catalog():
     (options, args, parser) = command_parse()
     input_dics = read_input_command(parser)
+    # Changing the input_dics values for testing
     input_dics['min_date'] = UTCDateTime('2011-03-01')
     input_dics['max_date'] = UTCDateTime('2011-03-20')
     input_dics['min_mag'] = 8.9
@@ -50,10 +53,13 @@ def test_gmt_catalog():
     assert events_QML[0].preferred_origin().longitude == 143.050
     assert events_QML[0].preferred_origin().depth == 20000.
 
+# ##################### test_continuous ##################################
+
 
 def test_continuous():
     (options, args, parser) = command_parse()
     input_dics = read_input_command(parser)
+    # Changing the input_dics values for testing
     input_dics['min_date'] = UTCDateTime('2011-03-01')
     input_dics['max_date'] = UTCDateTime('2011-03-20')
 

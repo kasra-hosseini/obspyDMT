@@ -26,11 +26,13 @@ from obspyDMT.utils.update_handler import FDSN_update
 
 dir_name = int(UTCDateTime.now().timestamp)
 
+# ##################### test_FDSN_network ##################################
+
 
 def test_FDSN_network():
     (options, args, parser) = command_parse()
     input_dics = read_input_command(parser)
-
+    # Changing the input_dics values for testing
     input_dics['min_date'] = '2011-03-01'
     input_dics['max_date'] = '2011-03-20'
     input_dics['min_mag'] = 8.9
@@ -60,11 +62,13 @@ def test_FDSN_network():
         tr_diff = abs(tr_raw.data - tr_wilber.data)
         assert max(tr_diff) == 0.
 
+# ##################### test_FDSN_ARC_IC ##################################
+
 
 def test_FDSN_ARC_IC():
     (options, args, parser) = command_parse()
     input_dics = read_input_command(parser)
-
+    # Changing the input_dics values for testing
     input_dics['min_date'] = '2011-03-01'
     input_dics['max_date'] = '2011-03-20'
     input_dics['min_mag'] = 8.9
@@ -116,12 +120,13 @@ def test_FDSN_ARC_IC():
         # amplitude of the traces is in the order of 1e6 or so
         assert max(tr_diff) < 0.001
 
+# ##################### test_FDSN_update ##################################
+
 
 def test_FDSN_update():
-
     (options, args, parser) = command_parse()
     input_dics = read_input_command(parser)
-
+    # Changing the input_dics values for testing
     input_dics['min_date'] = '2011-03-01'
     input_dics['max_date'] = '2011-03-20'
     input_dics['min_mag'] = 8.9
@@ -200,5 +205,5 @@ def test_FDSN_update():
                               sacsim=True)
         tr_wilber_corr.data = corr_wilber
         tr_diff = abs(tr_cor.data - tr_wilber_corr.data)
-        # amplitude of the traces is in the order of 1e6 or so
+        # amplitude of the traces is in the order of 1e13 or so
         assert max(tr_diff) < 0.001

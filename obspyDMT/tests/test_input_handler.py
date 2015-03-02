@@ -19,10 +19,14 @@ from obspy.core import UTCDateTime
 
 from obspyDMT.utils.input_handler import command_parse, read_input_command
 
+# ##################### test_command_parse ##################################
+
 
 def test_command_parse():
     (options, args, parser) = command_parse()
     assert len(parser.option_groups) == 15
+
+# ##################### test_read_input_command ###############################
 
 
 def test_read_input_command():
@@ -48,12 +52,16 @@ def test_read_input_command():
 
     return input_dics
 
+# ##################### test_default_inputs ###############################
+
 
 def test_default_inputs():
     input_dics = test_read_input_command()
     assert os.path.basename(input_dics['datapath']) == 'obspyDMT-data'
     assert (UTCDateTime(input_dics['max_date']) -
             UTCDateTime(input_dics['min_date']) < (60 * 60 * 24 * 5 + 1))
+    assert (UTCDateTime(input_dics['max_date']) -
+            UTCDateTime(input_dics['min_date']) > (60 * 60 * 24 * 5 - 1))
     assert input_dics['event_url'] == 'IRIS'
     assert input_dics['event_catalog'] == 'GCMT_COMBO'
     assert input_dics['mag_type'] is None
