@@ -22,6 +22,9 @@ from obspyDMT.utils.event_handler import get_Events
 from obspyDMT.utils.fdsn_handler import FDSN_network
 from obspyDMT.utils.input_handler import command_parse, read_input_command
 from obspyDMT.utils.instrument_handler import FDSN_ARC_IC
+from obspyDMT.utils.update_handler import FDSN_update
+
+dir_name = int(UTCDateTime.now().timestamp)
 
 
 def test_FDSN_network():
@@ -31,7 +34,6 @@ def test_FDSN_network():
     input_dics['min_date'] = '2011-03-01'
     input_dics['max_date'] = '2011-03-20'
     input_dics['min_mag'] = 8.9
-    dir_name = int(UTCDateTime.now().timestamp)
     input_dics['datapath'] = 'test_%s' % dir_name
     input_dics['net'] = 'TA'
     input_dics['sta'] = 'Z3*'
@@ -58,6 +60,21 @@ def test_FDSN_network():
         tr_diff = abs(tr_raw.data - tr_wilber.data)
         assert max(tr_diff) == 0.
 
+
+def test_FDSN_ARC_IC():
+    (options, args, parser) = command_parse()
+    input_dics = read_input_command(parser)
+
+    input_dics['min_date'] = '2011-03-01'
+    input_dics['max_date'] = '2011-03-20'
+    input_dics['min_mag'] = 8.9
+    input_dics['datapath'] = 'test_%s' % dir_name
+    input_dics['net'] = 'TA'
+    input_dics['sta'] = 'Z3*'
+    input_dics['cha'] = 'BHZ'
+    input_dics['req_parallel'] = 'Y'
+    input_dics['req_np'] = 4
+
     FDSN_ARC_IC(input_dics, input_dics['fdsn_base_url'])
 
     st_cor = read(os.path.join(input_dics['datapath'],
@@ -65,6 +82,8 @@ def test_FDSN_network():
                                '20110311_1',
                                'BH', '*'))
     assert len(st_cor) == 7
+
+    st_wilber = read(os.path.join('tests', 'fdsn_waveforms', 'TA*'))
 
     paz_35 = {'gain': 5.714000e+08,
               'sensitivity': 6.309070e+08,
@@ -98,3 +117,88 @@ def test_FDSN_network():
         assert max(tr_diff) < 0.001
 
 
+def test_FDSN_update():
+
+    (options, args, parser) = command_parse()
+    input_dics = read_input_command(parser)
+
+    input_dics['min_date'] = '2011-03-01'
+    input_dics['max_date'] = '2011-03-20'
+    input_dics['min_mag'] = 8.9
+    input_dics['datapath'] = 'test_%s' % dir_name
+    input_dics['net'] = 'TA'
+    input_dics['sta'] = 'T40A'
+    input_dics['cha'] = 'BHZ'
+    input_dics['req_parallel'] = 'N'
+    input_dics['ic_parallel'] = 'Y'
+    input_dics['ic_np'] = 4
+
+    input_dics['fdsn_update'] = input_dics['datapath']
+
+    FDSN_update(input_dics, address=input_dics['fdsn_update'])
+
+    FDSN_ARC_IC(input_dics, input_dics['fdsn_base_url'])
+
+    st_cor = read(os.path.join(input_dics['datapath'],
+                               '2011-03-01_2011-03-20_8.9_9.9',
+                               '20110311_1',
+                               'BH', '*'))
+    assert len(st_cor) == 8
+
+    st_wilber = read(os.path.join('tests', 'fdsn_waveforms', 'TA*'))
+
+    paz_t40 = {'gain': 3.484620e+17,
+               'sensitivity': 6.271920e+08,
+               'zeros': (+0.000000e+00+0.000000e+00j,
+                         +0.000000e+00+0.000000e+00j,
+                         +0.000000e+00+0.000000e+00j,
+                         -4.631000e+02+4.305000e+02j,
+                         -4.631000e+02-4.305000e+02j,
+                         -1.766000e+02+0.000000e+00j,
+                         -1.515000e+01+0.000000e+00j),
+               'poles': (-1.330000e+04+0.000000e+00j,
+                         -1.053000e+04+1.005000e+04j,
+                         -1.053000e+04-1.005000e+04j,
+                         -5.203000e+02+0.000000e+00j,
+                         -3.748000e+02+0.000000e+00j,
+                         -9.734000e+01+4.007000e+02j,
+                         -9.734000e+01-4.007000e+02j,
+                         -1.564000e+01+0.000000e+00j,
+                         -3.700000e-02+3.700000e-02j,
+                         -3.700000e-02-3.700000e-02j,
+                         -2.551000e+02+0.000000e+00j)}
+
+    paz_35 = {'gain': 5.714000e+08,
+              'sensitivity': 6.309070e+08,
+              'zeros': (0.0, 0.0, 0.0),
+              'poles': (-3.701000e-02+3.701000e-02j,
+                        -3.701000e-02-3.701000e-02j,
+                        -1.131000e+03+0.000000e+00j,
+                        -1.005000e+03+0.000000e+00j,
+                        -5.027000e+02+0.000000e+00j)}
+
+    for sta in ['T40A', 'Z35A', 'Z37A', 'Z39A']:
+        if sta not in ['T40A']:
+            paz_req = paz_35
+        else:
+            paz_req = paz_t40
+        tr_cor = st_cor.select(station=sta)[0]
+        tr_wilber = st_wilber.select(station=sta)[0]
+        tr_wilber_corr = tr_wilber.copy()
+        corr_wilber = seisSim(tr_wilber.data,
+                              tr_wilber.stats.sampling_rate,
+                              paz_remove=paz_req,
+                              paz_simulate=None,
+                              remove_sensitivity=True,
+                              simulate_sensitivity=False,
+                              water_level=600.,
+                              zero_mean=True,
+                              taper=True,
+                              taper_fraction=0.05,
+                              pre_filt=(0.008, 0.012, 3.0, 4.0),
+                              pitsasim=False,
+                              sacsim=True)
+        tr_wilber_corr.data = corr_wilber
+        tr_diff = abs(tr_cor.data - tr_wilber_corr.data)
+        # amplitude of the traces is in the order of 1e6 or so
+        assert max(tr_diff) < 0.001
