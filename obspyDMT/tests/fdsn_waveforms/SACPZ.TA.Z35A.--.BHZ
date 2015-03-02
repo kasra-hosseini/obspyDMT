@@ -1,0 +1,37 @@
+* **********************************
+* NETWORK   (KNETWK): TA
+* STATION    (KSTNM): Z35A
+* LOCATION   (KHOLE):   
+* CHANNEL   (KCMPNM): BHZ
+* CREATED           : 2015-03-02T14:12:08
+* START             : 2010-12-07T00:00:00
+* END               : 2011-09-10T16:35:00
+* DESCRIPTION       : Perchaven, Sanger, TX, USA
+* LATITUDE          : 33.330800
+* LONGITUDE         : -97.253000
+* ELEVATION         : 235.0
+* DEPTH             : 0.0
+* DIP               : 0.0
+* AZIMUTH           : 0.0
+* SAMPLE RATE       : 40.0
+* INPUT UNIT        : M
+* OUTPUT UNIT       : COUNTS
+* INSTTYPE          : Guralp CMG3T/Quanterra 330 Linear Phase Composite
+* INSTGAIN          : 1.504200e+03 (M/S)
+* COMMENT           : T34270 0100000EAA57AA2C
+* SENSITIVITY       : 6.309070e+08 (M/S)
+* A0                : 5.714000e+08
+* **********************************
+ZEROS	3
+	+0.000000e+00	+0.000000e+00	
+	+0.000000e+00	+0.000000e+00	
+	+0.000000e+00	+0.000000e+00	
+POLES	5
+	-3.701000e-02	+3.701000e-02	
+	-3.701000e-02	-3.701000e-02	
+	-1.131000e+03	+0.000000e+00	
+	-1.005000e+03	+0.000000e+00	
+	-5.027000e+02	+0.000000e+00	
+CONSTANT	3.605003e+17
+
+

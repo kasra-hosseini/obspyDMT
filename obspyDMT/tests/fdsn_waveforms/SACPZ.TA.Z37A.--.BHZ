@@ -1,0 +1,37 @@
+* **********************************
+* NETWORK   (KNETWK): TA
+* STATION    (KSTNM): Z37A
+* LOCATION   (KHOLE):   
+* CHANNEL   (KCMPNM): BHZ
+* CREATED           : 2015-03-02T14:12:08
+* START             : 2010-04-26T00:00:00
+* END               : 2012-01-21T15:25:00
+* DESCRIPTION       : Pogue Cattle Company, Sulphur Springs, TX, USA
+* LATITUDE          : 33.198100
+* LONGITUDE         : -95.622900
+* ELEVATION         : 146.0
+* DEPTH             : 0.0
+* DIP               : 0.0
+* AZIMUTH           : 0.0
+* SAMPLE RATE       : 40.0
+* INPUT UNIT        : M
+* OUTPUT UNIT       : COUNTS
+* INSTTYPE          : Guralp CMG3T/Quanterra 330 Linear Phase Composite
+* INSTGAIN          : 1.504200e+03 (M/S)
+* COMMENT           : T3K25 0100000B69A6F883
+* SENSITIVITY       : 6.309070e+08 (M/S)
+* A0                : 5.714000e+08
+* **********************************
+ZEROS	3
+	+0.000000e+00	+0.000000e+00	
+	+0.000000e+00	+0.000000e+00	
+	+0.000000e+00	+0.000000e+00	
+POLES	5
+	-3.701000e-02	+3.701000e-02	
+	-3.701000e-02	-3.701000e-02	
+	-1.131000e+03	+0.000000e+00	
+	-1.005000e+03	+0.000000e+00	
+	-5.027000e+02	+0.000000e+00	
+CONSTANT	3.605003e+17
+
+

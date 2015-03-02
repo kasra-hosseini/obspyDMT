@@ -14,8 +14,8 @@
 # -----------------------------------------------------------------------
 
 # Required Python and Obspy modules will be imported in this part.
-from obspy.core import UTCDateTime
 import os
+from obspy.core import UTCDateTime
 
 from obspyDMT.utils.input_handler import command_parse, read_input_command
 
