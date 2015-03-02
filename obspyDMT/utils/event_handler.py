@@ -573,11 +573,15 @@ def write_cat_logger(input_dics, eventpath, period, events, catalog,
         catalog.write(
             os.path.join(eventpath, 'EVENTS-INFO', 'catalog.ml'),
             format="QUAKEML")
+    except Exception as err:
+        print '\nCouldn\'t write catalog object to QuakeML as:\n>>:\t %s\n' \
+              'Proceed without ..\n' % err
+    try:
         catalog.write(
             os.path.join(eventpath, 'EVENTS-INFO', 'catalog.json'),
             format="JSON")
     except Exception as err:
-        print '\nCouldn\'t write catalog object to file as:\n>>:\t %s\n' \
+        print '\nCouldn\'t write catalog object to JSON as:\n>>:\t %s\n' \
               'Proceed without ..\n' % err
 
 # ##################### neic_catalog ############################
@@ -643,8 +647,8 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
 
     # This function at this moment only provides these settings
     br.form1['format'] = ['quakeml']
-    # br.form1['includeallorigins'] = ['true']
-    # br.form1['includeallmagnitudes'] = ['true']
+    br.form1['includeallorigins'] = ['true']
+    br.form1['includeallmagnitudes'] = ['true']
     br.form1['producttype'] = 'moment-tensor'
 
     m_date = UTCDateTime(t_start)
