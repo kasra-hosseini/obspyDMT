@@ -677,12 +677,15 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
             remotefile = ('%s' % url)
             page = urllib2.urlopen(remotefile)
             page_content = page.read()
-
-            with open(os.path.join(dir_name,
-                                   'temp_neic_xml_%05i.xml' % i),
-                      'w') as fid:
-                fid.write(page_content)
-            fid.close()
+            
+            if 'quakeml' in page_content:
+                with open(os.path.join(dir_name,
+                                       'temp_neic_xml_%05i.xml' % i),
+                          'w') as fid:
+                    fid.write(page_content)
+                fid.close()
+            else:
+                continue
 
         final_time = m_date + num_div*interval
         if not M_date == final_time:
@@ -701,16 +704,17 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
             page = urllib2.urlopen(remotefile)
             page_content = page.read()
 
-            with open(os.path.join(dir_name,
-                                   'temp_neic_xml_%05i.xml' % (num_div+1)),
-                      'w') as fid:
-                fid.write(page_content)
-            fid.close()
+            if 'quakeml' in page_content:
+                with open(os.path.join(dir_name,
+                                       'temp_neic_xml_%05i.xml' % (num_div+1)),
+                          'w') as fid:
+                    fid.write(page_content)
+                fid.close()
 
     xml_add = glob.glob(os.path.join(dir_name, 'temp_neic_xml_*.xml'))
     xml_add.sort()
     cat = Catalog()
-    print 'Start assembling the xml files...\n'
+    print 'Start assembling the xml files: %s...\n' % len(xml_add)
     counter = 1
     for x_add in xml_add:
         print counter,
