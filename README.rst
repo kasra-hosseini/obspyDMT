@@ -840,7 +840,7 @@ obspyDMT organizes the retrieved and processed data in a homogeneous way. When y
 
 obspyDMT will create the folder (*/path/to/my/desired/address*) then start to create folders and files during retrieving and processing as it is shown in the following figure: 
 
-.. image:: figures/Folderstruct.png
+.. image:: figures/folder_structure.eps
    :scale: 80%
    :align: center
 
@@ -855,7 +855,20 @@ All the options currently available in obspyDMT could be seen by:
     $ obspyDMT --help
 
 The options specified by *--option=OPTION* are type-1 (with value) and *--option* are type-2 (without value).
-Please refer to `Option types`_ section for more info about type 1 and type 2
+Please refer to `Option types`_ section for more info about type 1 and type 2.
+
+As you can see, there are lots of available options (not necessarily required for your work) and it is difficult to explore them. An alternative to this is to list option groups by:
+
+::
+
+    $ obspyDMT --options
+
+And to know the available options in each group: (in this example, we are interested in option group number 2 [Path specification])
+
+::
+
+    $ obspyDMT --list_option 2
+
 
 .. Here, you could also find some of the options available in obspyDMT with a short description.
 .. Options marked by (*) or (**) are:
