@@ -869,6 +869,15 @@ And to know the available options in each group: (in this example, we are intere
 
     $ obspyDMT --list_option 2
 
+---------
+Algorithm
+---------
+
+obspyDMT works in different modes (event-based request, continuous request, updating mode, plotting and instrument correction), here is the flow chart of the main steps in each mode:
+
+.. image:: figures/obspyDMT_full_algorithm.png
+   :scale: 80%
+   :align: center
 
 .. Here, you could also find some of the options available in obspyDMT with a short description.
 .. Options marked by (*) or (**) are:
