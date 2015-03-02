@@ -37,6 +37,7 @@ This tutorial has been divided into the following sections:
 14. `Seismicity`_: plot the geographical and historical distribution of earthquake activities (seismicity).
 15. `Folder structure`_: the way that obspyDMT organizes your retrieved and processed data in the file-based mode.
 16. `Available options`_: all options currently available in obspyDMT.
+17. `Algorithm`_: flow chart of the main steps in each obspyDMT mode.
 
 --------------------
 How to cite obspyDMT
