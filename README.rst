@@ -840,7 +840,7 @@ obspyDMT organizes the retrieved and processed data in a homogeneous way. When y
 
 obspyDMT will create the folder (*/path/to/my/desired/address*) then start to create folders and files during retrieving and processing as it is shown in the following figure: 
 
-.. image:: figures/folder_structure.eps
+.. image:: figures/folder_structure.png
    :scale: 80%
    :align: center
 
