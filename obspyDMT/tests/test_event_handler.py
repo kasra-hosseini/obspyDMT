@@ -17,7 +17,7 @@
 from obspy.core import UTCDateTime
 
 from obspyDMT.utils.input_handler import command_parse, read_input_command
-from obspyDMT.utils.event_handler import gcmt_catalog
+from obspyDMT.utils.event_handler import gcmt_catalog, events_info
 
 
 def test_gmt_catalog():
@@ -49,3 +49,20 @@ def test_gmt_catalog():
     assert events_QML[0].preferred_origin().latitude == 37.520
     assert events_QML[0].preferred_origin().longitude == 143.050
     assert events_QML[0].preferred_origin().depth == 20000.
+
+
+def test_continuous():
+    (options, args, parser) = command_parse()
+    input_dics = read_input_command(parser)
+    input_dics['min_date'] = UTCDateTime('2011-03-01')
+    input_dics['max_date'] = UTCDateTime('2011-03-20')
+
+    events, events_QML, successful_read = events_info(input_dics, 'continuous')
+    assert len(events) == 19
+
+    input_dics['min_date'] = UTCDateTime('2011-03-01-10-00-00')
+    input_dics['max_date'] = UTCDateTime('2011-03-01-13-00-00')
+    input_dics['interval'] = 1000.
+
+    events, events_QML, successful_read = events_info(input_dics, 'continuous')
+    assert len(events) == 11
