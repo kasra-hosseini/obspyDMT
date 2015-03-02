@@ -378,4 +378,3 @@ def check_par_jobs(jobs, sleep_time=1):
                 pp_flag = False
     if not pp_flag:
         print '\n\nAll %s processes are finished...\n' % len(jobs)
-

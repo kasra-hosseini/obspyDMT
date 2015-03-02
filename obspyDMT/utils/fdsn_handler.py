@@ -118,8 +118,6 @@ def FDSN_available(input_dics, event, target_path, event_number):
             # start_time = event['t1']
             # end_time = event['t2']
         else:
-            # start_time = None
-            # end_time = None
             start_time = event['t1']
             end_time = event['t2']
         available = client_fdsn.get_stations(

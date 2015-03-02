@@ -103,5 +103,3 @@ if len(sta_lat_b) > 0:
     plt.yticks(size=18, weight='bold')
 
 plt.show()
-
-

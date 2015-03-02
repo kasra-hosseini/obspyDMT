@@ -335,8 +335,9 @@ def events_info(input_dics, request):
                       input_dics['offset_cont']),
                      ]))
 
-            if not M_date == (m_date + num_div*input_dics['interval'] +
-                                  input_dics['offset_cont']):
+            final_time = m_date + num_div*input_dics['interval'] + \
+                         input_dics['offset_cont']
+            if not M_date == final_time:
                 cont_dir_name = str(num_div+1)
                 events.append(OrderedDict(
                     [('number', num_div+1),
@@ -955,7 +956,7 @@ def quake_create(address_info):
         print '\nERROR: There is no reference (BH_RAW or BH) ' \
               'to create a quake file...'
         sta_address = None
-    sta_stas = None
+    sta_stats = False
     sta_indx = 0
     try:
         ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
@@ -968,6 +969,7 @@ def quake_create(address_info):
             except Exception, e:
                 search_flag = True
                 sta_indx += 1
+                print 'EXCEPTION: %s' % e
                 pass
         print '\nCreate the quake file based on: \n%s' % ls_stas[sta_indx]
         quake_file.writelines(repr(sta_stats.starttime.year).rjust(15) +
