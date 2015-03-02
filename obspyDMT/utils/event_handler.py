@@ -144,6 +144,8 @@ def events_info(input_dics, request):
                 if input_dics['event_catalog']:
                     if input_dics['event_catalog'].lower() == 'gcmt_combo':
                         event_switch = 'gcmt_combo'
+                    if input_dics['event_catalog'].lower() == 'neic_usgs':
+                        event_switch = 'neic_usgs'
                     else:
                         print 'Event(s) are based on:\t',
                         print input_dics['event_url']
@@ -173,7 +175,7 @@ def events_info(input_dics, request):
                         orderby='time',
                         catalog=input_dics['event_catalog'],
                         magnitudetype=input_dics['mag_type'])
-                else:
+                elif event_switch == 'gcmt_combo':
                     events_QML = \
                         gcmt_catalog(input_dics['min_date'],
                                      input_dics['max_date'],
@@ -183,6 +185,19 @@ def events_info(input_dics, request):
                                      input_dics['max_depth'],
                                      input_dics['min_mag'],
                                      input_dics['max_mag'])
+                elif event_switch == 'neic_usgs':
+                    events_QML = \
+                        neic_catalog(input_dics['min_date'],
+                                     input_dics['max_date'],
+                                     evlatmin, evlatmax, evlonmin, evlonmax,
+                                     evlat, evlon, evradmin, evradmax,
+                                     input_dics['min_depth'],
+                                     input_dics['max_depth'],
+                                     input_dics['min_mag'],
+                                     input_dics['max_mag'])
+                else:
+                    sys.exit('%s is not supported'
+                             % input_dics['event_catalog'])
 
             # no matter if list was passed or requested, sort catalogue,
             # plot events and proceed
@@ -564,6 +579,151 @@ def write_cat_logger(input_dics, eventpath, period, events, catalog,
     except Exception as err:
         print '\nCouldn\'t write catalog object to file as:\n>>:\t %s\n' \
               'Proceed without ..\n' % err
+
+# ##################### neic_catalog ############################
+
+
+def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
+                 max_longitude, latitude, longitude, radius_min, radius_max,
+                 d_min, d_max, mag_min, mag_max,
+                 link_neic="http://earthquake.usgs.gov/earthquakes/search/"):
+    """
+    Function for downloading data from NEIC
+    :param t_start:
+    :param t_end:
+    :param min_latitude:
+    :param max_latitude:
+    :param min_longitude:
+    :param max_longitude:
+    :param latitude:
+    :param longitude:
+    :param radius_min:
+    :param radius_max:
+    :param d_min:
+    :param d_max:
+    :param mag_min:
+    :param mag_max:
+    :param link_neic:
+    :return:
+    """
+    import mechanize
+    tic = time.clock()
+
+    dir_name = '%s_temp_xml_files' % int(UTCDateTime.now().timestamp)
+    os.mkdir(dir_name)
+
+    # Defines which website we want to look at
+    br = mechanize.Browser()
+    br.open(link_neic)
+
+    # NEIC has two forms, but the relevant one for us is the first form!
+    br.form1 = list(br.forms())[0]
+
+    br.form1['minmagnitude'] = str(mag_min)
+    br.form1['maxmagnitude'] = str(mag_max)
+    br.form1['mindepth'] = str(d_min)
+    br.form1['maxdepth'] = str(d_max)
+
+    if None in [latitude, longitude, radius_min, radius_max]:
+        if None in [min_latitude, max_latitude, min_longitude, max_longitude]:
+            br.form1['minlongitude'] = '-180'
+            br.form1['maxlongitude'] = '180'
+            br.form1['minlatitude'] = '-90'
+            br.form1['maxlatitude'] = '90'
+        else:
+            br.form1['maxlatitude'] = str(max_latitude)
+            br.form1['minlongitude'] = str(min_longitude)
+            br.form1['maxlongitude'] = str(max_longitude)
+            br.form1['minlatitude'] = str(min_latitude)
+    else:
+        br.form1['latitude'] = str(latitude)
+        br.form1['longitude'] = str(longitude)
+        br.form1['minradiuskm'] = str(radius_min)
+        br.form1['maxradiuskm'] = str(radius_max)
+
+    # This function at this moment only provides these settings
+    br.form1['format'] = ['quakeml']
+    # br.form1['includeallorigins'] = ['true']
+    # br.form1['includeallmagnitudes'] = ['true']
+    br.form1['producttype'] = 'moment-tensor'
+
+    m_date = UTCDateTime(t_start)
+    M_date = UTCDateTime(t_end)
+    dur_event = M_date - m_date
+    interval = 30.*24.*60.*60.
+
+    if dur_event > interval:
+        num_div = int(dur_event/interval)
+        print 'Number of divisions: %s' % num_div
+        # residual time is: (has not been used here)
+        # t_res = t_cont - num_div*input_dics['interval']
+        for i in range(1, num_div+1):
+            print i,
+            sys.stdout.flush()
+            t_start_split = m_date + (i-1)*interval
+            t_end_split = m_date + i*interval
+            br.form1['starttime'] = str(t_start_split)
+            br.form1['endtime'] = str(t_end_split)
+
+            # Final output will be now porcessed
+            request = br.form1.click()
+            br.open(request)
+            url = br.geturl()
+
+            remotefile = ('%s' % url)
+            page = urllib2.urlopen(remotefile)
+            page_content = page.read()
+
+            with open(os.path.join(dir_name,
+                                   'temp_neic_xml_%05i.xml' % i),
+                      'w') as fid:
+                fid.write(page_content)
+            fid.close()
+
+        final_time = m_date + num_div*interval
+        if not M_date == final_time:
+            t_start_split = m_date + num_div*interval
+            t_end_split = M_date
+            print '\nEnd time: %s\n' % t_end_split
+            br.form1['starttime'] = str(t_start_split)
+            br.form1['endtime'] = str(t_end_split)
+
+            # Final output will be now porcessed
+            request = br.form1.click()
+            br.open(request)
+            url = br.geturl()
+
+            remotefile = ('%s' % url)
+            page = urllib2.urlopen(remotefile)
+            page_content = page.read()
+
+            with open(os.path.join(dir_name,
+                                   'temp_neic_xml_%05i.xml' % (num_div+1)),
+                      'w') as fid:
+                fid.write(page_content)
+            fid.close()
+
+    xml_add = glob.glob(os.path.join(dir_name, 'temp_neic_xml_*.xml'))
+    xml_add.sort()
+    cat = Catalog()
+    print 'Start assembling the xml files...\n'
+    counter = 1
+    for x_add in xml_add:
+        print counter,
+        sys.stdout.flush()
+        counter += 1
+        try:
+            cat.extend(readEvents(x_add, format='QuakeML'))
+            os.remove(x_add)
+        except Exception, e:
+            print 'WARNING: %s' % e
+            os.remove(x_add)
+
+    os.rmdir(dir_name)
+    toc = time.clock()
+    print 'It took %s sec to retrieve the earthquakes form NEIC.' % (toc-tic)
+
+    return cat
 
 # ##################### gcmt_catalog ############################
 

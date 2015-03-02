@@ -1055,8 +1055,12 @@ def seismicity(input_dics, events):
                                     [float(ev['depth']), float(x_ev),
                                      float(y_ev), size, color,
                                      f1, f2, f3, f4, f5, f6]))
-    ev_info_ar = sorted(ev_info_ar,
-                        key=lambda ev_info_iter: float(ev_info_iter[0]))
+
+    if np.shape(ev_info_ar)[0] == np.size(ev_info_ar):
+        ev_info_ar = np.reshape(ev_info_ar, (1, 11))
+    else:
+        ev_info_ar = sorted(ev_info_ar,
+                            key=lambda ev_info_iter: float(ev_info_iter[0]))
 
     for ev in ev_info_ar:
         m.scatter(float(ev[1]), float(ev[2]), float(ev[3]),
@@ -1102,29 +1106,32 @@ def seismicity(input_dics, events):
                 print focmec
                 print '----------------'
 
-    plt.figure()
-    plt.hist(ev_dp_all, input_dics['depth_bins_seismicity'],
-             facecolor='green', alpha=0.75, log=True, histtype='stepfilled')
-    plt.xlabel('Depth', size=24, weight='bold')
-    plt.ylabel('#Events (log)', size=24, weight='bold')
-    plt.yscale('log')
-    plt.xticks(size=18, weight='bold')
-    plt.yticks(size=18, weight='bold')
-    plt.tight_layout()
+    if not len(ev_dp_all) <= 1:
+        plt.figure()
+        plt.hist(ev_dp_all, input_dics['depth_bins_seismicity'],
+                 facecolor='green', alpha=0.75, log=True,
+                 histtype='stepfilled')
+        plt.xlabel('Depth', size=24, weight='bold')
+        plt.ylabel('#Events (log)', size=24, weight='bold')
+        plt.yscale('log')
+        plt.xticks(size=18, weight='bold')
+        plt.yticks(size=18, weight='bold')
+        plt.tight_layout()
 
-    plt.figure()
-    plt.hist(ev_mag_all,
-             bins=np.linspace(int(float(input_dics['min_mag'])),
-                              int(float(input_dics['max_mag'])),
-                              (int(float(input_dics['max_mag'])) -
-                              int(float(input_dics['min_mag'])))*2+1),
-             facecolor='green', alpha=0.75, log=True, histtype='stepfilled')
-    plt.xlabel('Magnitude', size=24, weight='bold')
-    plt.ylabel('#Events (log)', size=24, weight='bold')
-    plt.yscale('log')
-    plt.xticks(size=18, weight='bold')
-    plt.yticks(size=18, weight='bold')
-    plt.tight_layout()
+        plt.figure()
+        plt.hist(ev_mag_all,
+                 bins=np.linspace(int(float(input_dics['min_mag'])),
+                                  int(float(input_dics['max_mag'])),
+                                  (int(float(input_dics['max_mag'])) -
+                                  int(float(input_dics['min_mag'])))*2+1),
+                 facecolor='green', alpha=0.75, log=True,
+                 histtype='stepfilled')
+        plt.xlabel('Magnitude', size=24, weight='bold')
+        plt.ylabel('#Events (log)', size=24, weight='bold')
+        plt.yscale('log')
+        plt.xticks(size=18, weight='bold')
+        plt.yticks(size=18, weight='bold')
+        plt.tight_layout()
 
     plt.show()
 
