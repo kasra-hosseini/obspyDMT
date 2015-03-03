@@ -259,7 +259,7 @@ def FDSN_serial_parallel(i, events, add_event, Sta_req, input_dics,
     FDSN serial/parallel request
     """
     dic = {}
-    print '\nFDSN-Event: %s/%s' % (i+1, len(events))
+    print '\nFDSN-Event: %s/%s -- %s' % (i+1, len(events), add_event[i])
 
     client_fdsn = Client_fdsn(base_url=input_dics['fdsn_base_url'],
                               user=input_dics['fdsn_user'],

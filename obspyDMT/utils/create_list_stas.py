@@ -27,7 +27,7 @@ endtime = "2013-01-01"
 network = "YV"
 station = "*"
 location = '*'
-channel = 'BHZ'
+channel = '*HZ'
 
 file_name = 'list_stas_created.txt'
 # ########################## END INPUT
