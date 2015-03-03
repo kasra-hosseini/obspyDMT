@@ -566,7 +566,8 @@ def plot_xml_response(input_dics):
     report_fio = open(os.path.join('./stationxml_plots',
                                    'report_stationxml'), 'w')
     report_fio.writelines('#channel\t\t\t\t%(Phase)\t\t'
-                          'Max Diff(abs) \tLat\t\t\tLon\t\t\tDatetime\n')
+                          'Max Diff(abs) \tLat\t\t\tLon\t\t\tDatetime\t'
+                          'decimation delay\tdecimation correction\n')
     report_fio.close()
     add_counter = 0
     for addxml in addxml_all:
@@ -616,7 +617,8 @@ def plot_xml_response(input_dics):
                 print 'WARNING: %s' % e
                 continue
 
-            paz = convert_xml_paz(xml_response, output, cha_name, cha_date)
+            paz, decimation_delay, decimation_correction = \
+                convert_xml_paz(xml_response, output, cha_name, cha_date)
             if not paz:
                 continue
             h, f = pazToFreqResp(paz['poles'], paz['zeros'], paz['gain'],
@@ -742,7 +744,13 @@ def plot_xml_response(input_dics):
                                         cha_date + 0.1)
             sta_lat.append(latlondep['latitude'])
             sta_lon.append(latlondep['longitude'])
-            latlon_color.append(percent_compare)
+
+            d_c = np.sum(decimation_delay) - np.sum(decimation_correction)
+            if not d_c == 0:
+                latlon_color.append(0.)
+            else:
+                latlon_color.append(percent_compare)
+
             if percent_compare >= threshold:
                 plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft,
                                        min_freq, output,
@@ -750,13 +758,15 @@ def plot_xml_response(input_dics):
             report_fio = open(os.path.join('./stationxml_plots',
                                            'report_stationxml'), 'a')
             report_fio.writelines(
-                '%s\t\t\t%6.2f\t\t\t%6.2f\t\t\t%6.2f\t\t%7.2f\t\t%s\n'
+                '%s\t\t\t%6.2f\t\t\t%6.2f\t\t\t%6.2f\t\t%7.2f\t\t%s\t%s\t%s\n'
                 % (cha_name,
                    round(percent_compare, 2),
                    round(max(abs(compare)), 2),
                    round(sta_lat[-1], 2),
                    round(sta_lon[-1], 2),
-                   cha_date))
+                   cha_date,
+                   np.sum(decimation_delay),
+                   np.sum(decimation_correction)))
             report_fio.close()
         except Exception, e:
             print 'Exception: %s' % e
@@ -946,6 +956,10 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
     poles = []
     zeros = []
 
+    decimation_delay = []
+    decimation_correction = []
+
+    counter = 0
     for resp_stage in xml_response.response_stages:
         gain_arr.append(resp_stage.stage_gain)
         try:
@@ -954,6 +968,10 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
             normalization_factor.append(resp_stage.normalization_factor)
         except Exception as e:
             pass
+        if counter > 0:
+            decimation_delay.append(resp_stage.decimation_delay)
+            decimation_correction.append(resp_stage.decimation_correction)
+        counter += 1
 
     if len(poles) > 1:
         print 'WARNING: More than one group of poles was found: %s' % poles
@@ -1001,7 +1019,7 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
     paz['zeros'] = zeros
     paz['gain'] = normalization_factor
     paz['sensitivity'] = np.prod(np.array(gain_arr))
-    return paz
+    return paz, decimation_delay, decimation_correction
 
 # ##################### seismicity ######################################
 
