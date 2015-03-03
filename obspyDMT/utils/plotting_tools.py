@@ -278,6 +278,8 @@ def plot_sta_ev_ray(input_dics, ls_saved_stas):
     if plt_events:
         for i in range(len(ls_saved_stas)):
             if input_dics['plot_focal']:
+                if ls_saved_stas[i][0][14] == 'F':
+                    sys.exit('ERROR:\nMoment tensor does not exists!')
                 x, y = m(float(ls_saved_stas[i][0][10]),
                          float(ls_saved_stas[i][0][9]))
                 focmecs = [float(ls_saved_stas[i][0][14]),
@@ -365,6 +367,8 @@ def plot_ray_gmt(input_dics, ls_saved_stas):
         with open('./gmt_psmeca.txt', 'w') as outfile:
             outfile.write('lon lat depth mrr mtt mpp mrt mrp mtp iexp name \n')
             for i in range(len(ls_saved_stas)):
+                if not ls_saved_stas[i][0][14]:
+                    sys.exit('ERROR:\nMoment tensor does not exists!')
                 ev_lon = ls_saved_stas[i][0][10]
                 ev_lat = ls_saved_stas[i][0][9]
                 ev_dep = ls_saved_stas[i][0][11]
