@@ -270,7 +270,7 @@ def command_parse():
                         dest="event_url", help=helpmsg)
 
     helpmsg = "event catalog (GCMT_COMBO, IRIS, ISC, EMSC, GCMT, NEIC PDE). " \
-              "[Default: GCMT_COMBO]"
+              "[Default: IRIS]"
     group_ev.add_option("--event_catalog", action="store",
                         dest="event_catalog", help=helpmsg)
 
@@ -745,7 +745,7 @@ def read_input_command(parser, **kwargs):
                   'min_date': str(UTCDateTime() - 60 * 60 * 24 * 10 * 1),
                   'max_date': str(UTCDateTime() - 60 * 60 * 24 * 5 * 1),
                   'event_url': 'IRIS',
-                  'event_catalog': 'GCMT_COMBO',
+                  'event_catalog': 'IRIS',
                   'mag_type': None,
                   'min_mag': 5.5, 'max_mag': 9.9,
                   'min_depth': -10.0, 'max_depth': +6000.0,
@@ -872,7 +872,7 @@ def read_input_command(parser, **kwargs):
         options.min_mag = '8.9'
         options.identity = 'TA.1*.*.BHZ'
         options.event_url = 'IRIS'
-        options.event_catalog = 'gcmt_combo'
+        options.event_catalog = 'IRIS'
         options.req_parallel = True
         options.ArcLink = 'N'
 

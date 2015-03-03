@@ -610,7 +610,12 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     :param link_neic:
     :return:
     """
-    import mechanize
+    try:
+        import mechanize
+    except Exception, e:
+        sys.exit('ERROR:\nFor NEIC_USGS, "mechanize" should be installed: %s\n'
+                 '\npip install mechanize\n' % e)
+
     tic = time.clock()
 
     dir_name = '%s_temp_xml_files' % int(UTCDateTime.now().timestamp)

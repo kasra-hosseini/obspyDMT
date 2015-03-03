@@ -93,7 +93,10 @@ def plot_tools(input_dics, clients, all_events=False, all_stations=False):
             if input_dics['plot_all'] != 'Y':
                 if clients == sta_ev[0][j][13]:
                     station_id = station_id.split(',')
-                    station_id.extend(event_dic['focal_mechanism'])
+                    if event_dic['focal_mechanism']:
+                        station_id.extend(event_dic['focal_mechanism'])
+                    else:
+                        station_id.extend('False')
                     ls_saved_stas_tmp.append(station_id)
                     ls_add_stas_tmp.append(
                         os.path.join(address_events[i], BH_file,
@@ -104,7 +107,10 @@ def plot_tools(input_dics, clients, all_events=False, all_stations=False):
 
             elif input_dics['plot_all'] == 'Y':
                 station_id = station_id.split(',')
-                station_id.extend(event_dic['focal_mechanism'])
+                if event_dic['focal_mechanism']:
+                    station_id.extend(event_dic['focal_mechanism'])
+                else:
+                    station_id.extend('False')
                 ls_saved_stas_tmp.append(station_id)
                 ls_add_stas_tmp.append(
                     os.path.join(address_events[i], BH_file,
@@ -727,10 +733,11 @@ def plot_xml_response(input_dics):
             compare = abs(phase_resp_check - phase_h_check)
             percent_compare = \
                 float(len(compare[compare >= 0.05]))/len(compare)*100
-            sta_lat.append(
-                xml_inv.get_coordinates(cha_name, cha_date + 0.1)['latitude'])
-            sta_lon.append(
-                xml_inv.get_coordinates(cha_name, cha_date + 0.1)['longitude'])
+            latlondep = get_coordinates(xml_inv.networks[0],
+                                        cha_name,
+                                        cha_date + 0.1)
+            sta_lat.append(latlondep['latitude'])
+            sta_lon.append(latlondep['longitude'])
             latlon_color.append(percent_compare)
             if percent_compare >= threshold:
                 plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft,
@@ -767,6 +774,75 @@ def plot_xml_response(input_dics):
         plt.show()
         raw_input('Press Enter...')
     sys.exit('[EXIT] obspyDMT finished normally...')
+
+# ##################### get_coordinates ##########################
+
+
+def get_coordinates(xml_network, seed_id, datetime=None):
+    """
+    FROM OBSPY WEBPAGE!
+
+    Return coordinates for a given channel.
+
+    :type seed_id: str
+    :param seed_id: SEED ID string of channel to get coordinates for.
+    :type datetime: :class:`~obspy.core.utcdatetime.UTCDateTime`, optional
+    :param datetime: Time to get coordinates for.
+    :rtype: dict
+    :return: Dictionary containing coordinates (latitude, longitude,
+        elevation)
+    """
+    network, station, location, channel = seed_id.split(".")
+    coordinates = []
+    if xml_network.code != network:
+        pass
+    elif xml_network.start_date and xml_network.start_date > datetime:
+        pass
+    elif xml_network.end_date and xml_network.end_date < datetime:
+        pass
+    else:
+        for sta in xml_network.stations:
+            # skip wrong station
+            if sta.code != station:
+                continue
+            # check datetime only if given
+            if datetime:
+                # skip if start date before given datetime
+                if sta.start_date and sta.start_date > datetime:
+                    continue
+                # skip if end date before given datetime
+                if sta.end_date and sta.end_date < datetime:
+                    continue
+            for cha in sta.channels:
+                # skip wrong channel
+                if cha.code != channel:
+                    continue
+                # skip wrong location
+                if cha.location_code != location:
+                    continue
+                # check datetime only if given
+                if datetime:
+                    # skip if start date before given datetime
+                    if cha.start_date and cha.start_date > datetime:
+                        continue
+                    # skip if end date before given datetime
+                    if cha.end_date and cha.end_date < datetime:
+                        continue
+                # prepare coordinates
+                data = {}
+                # if channel latitude or longitude is not given use station
+                data['latitude'] = cha.latitude or sta.latitude
+                data['longitude'] = cha.longitude or sta.longitude
+                data['elevation'] = cha.elevation
+                data['local_depth'] = cha.depth
+                coordinates.append(data)
+    if len(coordinates) > 1:
+        msg = "Found more than one matching coordinates. Returning first."
+        warnings.warn(msg)
+    elif len(coordinates) < 1:
+        msg = "No matching coordinates found."
+        raise Exception(msg)
+    return coordinates[0]
 
 # ##################### plot_xml_plotallstages ##########################
 
@@ -862,42 +938,27 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
     :return:
     """
     gain_arr = []
-
-    # for resp_stage in xml_response.response_stages:
-    #     gain_arr.append(resp_stage.stage_gain)
-    #     try:
-    #         normalization_factor.append(resp_stage.normalization_factor)
-    #         import ipdb; ipdb.set_trace()
-    #         if not isinstance(resp_stage, 'PolesZerosResponseStage'):
-    #             print 'WARNING: normalization factor read from a stage ' \
-    #                   'other than PAZ'
-    #     except Exception as e:
-    #         pass
-    #     try:
-    #         poles.append(resp_stage.poles)
-    #         zeros.append(resp_stage.zeros)
-    #         if not isinstance(resp_stage, 'PolesZerosResponseStage'):
-    #             print 'WARNING: Poles and Zeros read from a stage ' \
-    #                   'other than PAZ'
-    #     except Exception as e:
-    #         pass
-
-    # if len(poles) > 1:
-    #     print 'WARNING: More than one group of poles was found: %s' % poles
-    #     for i in range(1, len(poles)):
-    #         poles[0].extend(poles[i])
-    # if len(zeros) > 1:
-    #     print 'WARNING: More than one group of zeros was found: %s' % zeros
-    #     for i in range(1, len(zeros)):
-    #         zeros[0].extend(zeros[i])
+    normalization_factor = []
+    poles = []
+    zeros = []
 
     for resp_stage in xml_response.response_stages:
         gain_arr.append(resp_stage.stage_gain)
+        try:
+            poles.append(resp_stage.poles)
+            zeros.append(resp_stage.zeros)
+            normalization_factor.append(resp_stage.normalization_factor)
+        except Exception as e:
+            pass
 
-    xml_paz = xml_response.get_paz()
-    normalization_factor = xml_paz.normalization_factor
-    poles = xml_paz.poles
-    zeros = xml_paz.zeros
+    if len(poles) > 1:
+        print 'WARNING: More than one group of poles was found: %s' % poles
+    if len(zeros) > 1:
+        print 'WARNING: More than one group of zeros was found: %s' % zeros
+
+    normalization_factor = normalization_factor[0]
+    poles = poles[0]
+    zeros = zeros[0]
 
     pz_type = xml_response.response_stages[0].pz_transfer_function_type
     if 'hertz' in pz_type.lower():
