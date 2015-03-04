@@ -664,15 +664,16 @@ the default format is *png*, but assume that we want *pdf* for our figures, then
    :scale: 75%
    :align: center
 
-**Example 3:** now to the above example, we include the focal mechanism of the event (i.e. beachball should be plotted):
-
-::
-
-    $ obspyDMT --plot_dir plot_ex --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
-
-.. image:: figures/plot_sta_ev_ray_focal.png
-   :scale: 75%
-   :align: center
+.. **Example 3:** now to the above example, we include the focal mechanism of the event (i.e. beachball should be plotted):
+..
+.. ::
+..
+..     $ obspyDMT --plot_dir plot_ex --min_date 2011-01-01 --plot_ray
+.. --plot_sta --plot_ev --plot_focal
+..
+.. .. image:: figures/plot_sta_ev_ray_focal.png
+..    :scale: 75%
+..    :align: center
 
 **Example 4:** obspyDMT supports GMT plots as well. For this reason, GMT5_ should be installed on your machine. In this example, we want to plot the ray path for event-station pairs (similat to *Example 3*) by using GMT5_:
 
@@ -680,7 +681,7 @@ the default format is *png*, but assume that we want *pdf* for our figures, then
 
     $ obspyDMT --plot_dir plot_ex --min_date 2011-01-01 --plot_ray_gmt
 
-.. image:: figures/plot_sta_ev_ray_focal_gmt.png
+.. image:: figures/plot_sta_ev_ray_gmt.png
    :scale: 75%
    :align: center
 
