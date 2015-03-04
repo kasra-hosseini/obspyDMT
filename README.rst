@@ -35,9 +35,10 @@ This tutorial has been divided into the following sections:
 12. `Plot`_: for an existing archive, you can plot all the events and/or all the stations, ray path for event-station pairs and epicentral-distance/time for the waveforms using GMT-5 or basemap tools.
 13. `Explore stationXML file`_: how to explore and analyze different stages available in a stationXML file.
 14. `Seismicity`_: plot the geographical and historical distribution of earthquake activities (seismicity).
-15. `Folder structure`_: the way that obspyDMT organizes your retrieved and processed data in the file-based mode.
-16. `Available options`_: all options currently available in obspyDMT.
-17. `Algorithm`_: flow chart of the main steps in each obspyDMT mode.
+15. `NEIC and GCMT`_: retrieving event information including moment tensor from NEIC or GCMT.
+16. `Folder structure`_: the way that obspyDMT organizes your retrieved and processed data in the file-based mode.
+17. `Available options`_: all options currently available in obspyDMT.
+18. `Algorithm`_: flow chart of the main steps in each obspyDMT mode.
 
 --------------------
 How to cite obspyDMT
@@ -801,12 +802,11 @@ Seismicity
 Geographical and historical distribution of earthquake activities (seismicity) can be plotted using *--seismicity* option in obspyDMT. In this mode, the software finds the events according to the input parameters and generates an image in which the events are categorized based on depth and magnitude.
 
 **Example 1:** the command line to create *Japan* seismicity map from all the
-events available in GCMT archive with magnitude more than 3.0 since 1976 is
-as follow:
+events available in IRIS with magnitude more than 3.0 since 2000 is as follow:
 
 ::
 
-    $ obspyDMT --datapath 'seismicity_japan' --seismicity --min_mag 5.0 --min_date 1976-01-01 --max_date 2013-12-31 --event_rect 120.0/155.0/25.0/55.0
+    $ obspyDMT --datapath 'seismicity_japan' --seismicity --min_mag 3.0 --min_date 2000-01-01 --max_date 2014-12-31 --event_rect 120.0/155.0/25.0/55.0
 
 *--datapath* is the address where the event catalog will be created, *--seismicity* enables the seismicity mode and *--min_mag*, *--min_date*, *--max_date* and *--event_rect* are event search parameters.
 
@@ -814,28 +814,16 @@ as follow:
    :scale: 50%
    :align: center
 
-Japan seismicity map (focal mechanism):
-
-.. image:: figures/seismicity_focal_japan.png
-   :scale: 50%
-   :align: center
-
 **Example 2:** the command line to create *global* seismicity map from all the
-events available in GCMT archive with magnitude more than 5.0 since 1976 is as
-follow: (35061 events)
+events available in IRIS archive with magnitude more than 5.0 since 2000 is as
+follow: (???? events)
 
 ::
 
-    $ obspyDMT --datapath 'seismicity_glob' --seismicity --min_mag 5.0 --min_date 1976-01-01 --max_date 2013-12-31
+    $ obspyDMT --datapath 'seismicity_glob' --seismicity --min_mag 5.0 --min_date 2000-01-01 --max_date 2014-12-31
 
 
 .. image:: figures/seismicity_glob.png
-   :scale: 50%
-   :align: center
-
-Global seismicity map:
-
-.. image:: figures/seismicity_focal_glob.png
    :scale: 50%
    :align: center
 
@@ -849,6 +837,55 @@ Distribution of events with magnitude:
 
 .. image:: figures/seismicity_magnitude_glob.png
    :scale: 20%
+   :align: center
+
+-------------
+NEIC and GCMT
+-------------
+
+In addition to *IRIS* event web-service, obspyDMT can retrieve the event
+information from NEIC and GCMT. This makes it possible to have moment tensor
+of the events as well.
+
+**NEIC**
+
+This functionality needs mechanize_ python package to be installed. For this
+reason, it is enough to:
+
+::
+
+    pip install mechanize
+
+Otherwise, refer to mechanize_ to see how to install this package.
+
+**Example 1** (similar to Example 1 in `event_based request`_)
+the following command shows how to get all the waveforms,
+stationXML/response files and metadata of *BHZ* channels available in *II*
+network with station names start with *A* or *B* for the great Tohoku-oki
+earthquake of magnitude Mw 9.0 from **NEIC** catalog:
+
+::
+
+    $ obspyDMT --datapath neic_ex1 --min_mag 8.9 --min_date 2011-03-01 --max_date 2011-03-30 --net II --sta A*,B* --cha BHZ --event_catalog NEIC_USGS
+
+
+**command:**
+*--datapath* is the address where the data will be stored.
+*--min_mag*, *--min_date* and *max_date* specify the minimum
+magnitude, start and end datetime parameters for event search.
+*--net*, *--sta* and *--cha* change the network to II, stations to A* or B*
+and channel to BHZ.
+*--offset* changes the required length for waveforms after the event time to 3600sec (default: 1800sec).
+**--event_catalog** changes the default catalog (*IRIS*) to *NEIC*.
+
+We can look at the event and station distributions for this request by:
+
+::
+
+    $ obspyDMT --plot_dir neic_ex1/2011-03-01_2011-03-30_8.9_9.9/ --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
+
+.. image:: figures/neic_ex1.png
+   :scale: 75%
    :align: center
 
 ----------------
@@ -1252,3 +1289,4 @@ obspyDMT works in different modes (event-based request, continuous request, upda
 .. _GitHub: https://github.com/kasra-hosseini/obspyDMT
 .. _pprocess: https://pypi.python.org/pypi/pprocess
 .. _GMT5: http://gmt.soest.hawaii.edu/
+.. _mechanize: http://wwwsearch.sourceforge.net/mechanize/
