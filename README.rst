@@ -11,7 +11,7 @@ This tool is developed mainly to address the following tasks automatically:
 
 1. Retrieval of waveforms (MSEED or SAC), stationXML/response files and metadata from FDSN and ArcLink archives. This could be done in *serial* or in *parallel* for single or large requests.
 2. Supports both event-based and continuous requests.
-3. Extracting the information of all the events via user-defined options (time span, magnitude, depth and event location) from GCMT, NEIC and IRIS. Therefore, moment tensor information can also be retrieved.
+3. Extracting the information of all the events via user-defined options (time span, magnitude, depth and event location) from IRIS, NEIC and GCMT. Therefore, moment tensor information can also be retrieved.
 4. Updating existing archives (waveforms, stationXML/response files and metadata).
 5. Processing the data in *serial* or in *parallel* (e.g. *removing the trend of the time series, tapering, filtering and Instrument correction*).
 6. Management of large seismological datasets.
@@ -137,13 +137,14 @@ To have an overview on the retrieved raw counts, the waveforms can be plotted by
 
     $ obspyDMT --plot_dir 'dmt-tour-data' --min_date 2011-01-01 --plot_epi
 
-.. image:: figures/epi_time_20110311_1_raw.png
-   :scale: 60%
-   :align: center
 
 **command:** *--plot_dir* specifies the address, *--min_date* filters the
 event datetime (in this case, we only have one event) and *--plot_epi* changes
 the mode of the plotting to epicentral-time plot.
+
+.. image:: figures/epi_time_20110311_1_raw.png
+   :scale: 60%
+   :align: center
 
 for plotting the corrected waveforms:
 
@@ -161,32 +162,30 @@ obspyDMT plots the ray coverage (ray path between each source-receiver pair) by:
 
     $ obspyDMT --plot_dir 'dmt-tour-data' --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev
    
+**command:** *--plot_ray*, *--plot_sta* and *--plot_ev* mean that ray, stations and events should be plotted respectively.
+
 .. image:: figures/tour_ray.png
    :scale: 75%
    :align: center
 
-**command:** *--plot_ray*, *--plot_sta* and *--plot_ev* mean that ray, stations and events should be plotted respectively.
+**ATTENTION:** when you run the plotting tools, obspyDMT asks for the type
+of map which can be Bluemarble, Etopo, Shaderelief and Simple.
 
-However, it is also possible to plot the beachballs at the event locations:
+It is also possible to change the map projection in the pop-up menu (with the same command line as above):
 
 ::
 
-    $ obspyDMT --plot_dir 'dmt-tour-data' --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
+    $ obspyDMT --plot_dir 'dmt-tour-data' --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev
 
-.. image:: figures/tour_ray_focal.png
+.. image:: figures/tour_ray_shaded.png
    :scale: 75%
    :align: center
-
-The only additional option compare to the previous command line is: *--plot_focal*
-
-**ATTENTION:** when you run the plotting tools, obspyDMT asks for the type
-of map which can be Bluemarble, Etopo, Shaderelief and Simple.
 
 ------------
 Option types
 ------------
 
-There are two types of options in obspyDMT: option-1 (with value) and option-2 (without value). In the first type, user should provide value/s which will be stored and will be used in the program as input. However, by adding type-2 options, which does not require any value, one feature will be activated or deactivated (e.g. if you enter '--check', refer to `Lets get started`_ section, the program will check all the dependencies required for running the code properly).
+There are two types of options in obspyDMT: option-1 (with value) and option-2 (without value). In the first type, user should provide value which will be stored and will be used in the program as input. However, by adding type-2 options, which does not require any value, one feature will be activated or deactivated (e.g. if you enter '--check', refer to `Lets get started`_ section, the program will check all the dependencies required for running the code properly).
 
 The general form to enter the input (i.e. change the default values) is as follow:
 
@@ -248,7 +247,7 @@ When the job starts, a folder will be created with the address specified by *--d
 
 and check the *catalog_table.txt* and *catalog.txt* text files or *catalog.ml* which is in QuakeML format (Please refer to `Folder structure`_ section for more information).
 
-**ATTENTION:** In the above example, we did not change the *--event_catalog*. Therefore, obspyDMT uses the default catalog: *GCMT*.
+**ATTENTION:** In the above example, we did not change the *--event_catalog*. Therefore, obspyDMT uses the default catalog: *IRIS*.
 
 .. image:: figures/event_info_events.png
    :scale: 75%
@@ -297,7 +296,7 @@ We can look at the event and station distributions for this request by:
 
 ::
 
-    $ obspyDMT --plot_dir obspyDMT-data/2011-03-01_2011-03-30_8.9_9.9/ --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
+    $ obspyDMT --plot_dir obspyDMT-data/2011-03-01_2011-03-30_8.9_9.9/ --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev
 
 
 .. image:: figures/event_based_ex1.png
@@ -334,7 +333,7 @@ To check all the retrieved stations:
 
 ::
 
-    $ obspyDMT --plot_dir gsn_example --min_date 2014-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
+    $ obspyDMT --plot_dir gsn_example --min_date 2014-01-01 --plot_ray --plot_sta --plot_ev
 
 
 .. image:: figures/event_based_ex5.png
@@ -421,7 +420,7 @@ To check all the retrieved stations:
 
 ::
 
-    $ obspyDMT --plot_dir test_update_option --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
+    $ obspyDMT --plot_dir test_update_option --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev
 
 
 .. image:: figures/pre_update_ex1.png
@@ -454,7 +453,7 @@ To check all the retrieved stations:
 
 ::
 
-    $ obspyDMT --plot_dir test_update_option --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
+    $ obspyDMT --plot_dir test_update_option --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev
 
 
 .. image:: figures/post_update_ex1.png
@@ -465,15 +464,15 @@ To check all the retrieved stations:
 Geographical restriction
 ------------------------
 
-If you want to work with the events happened in a specific geographical coordinate and/or retrieving the data from the stations in a specific circular or rectangular bounding area, you are in the right section! Here, we have two examples:
+If you want to work with the events happened in a specific geographical coordinates and/or retrieving the data from the stations in a specific circular or rectangular bounding area, you are in the right section! Here, we have two examples:
 
 **Example 1:** to extract the info of all the events occurred from 2000-01-01 until 2014-12-31 in a rectangular area (*lon1=44.38E* *lon2=63.41E* *lat1=24.21N* *lat2=40.01N*) with magnitude more than 3.0:
 
 ::
 
-    $ obspyDMT --event_info --min_mag 3.0 --min_date 2000-01-01 --max_date 2014-12-31 --event_rect 44.38/63.41/24.21/40.01 --event_catalog IRIS
+    $ obspyDMT --event_info --min_mag 3.0 --min_date 2000-01-01 --max_date 2014-12-31 --event_rect 44.38/63.41/24.21/40.01
 
-**command:** *--event_info* changes the mode of obspyDMT to only retrieving the event information, *--event_rect* specifies a rectangular bounding area. **--event_catalog** changes the default event catalog (GCMT) to IRIS for this example.
+**command:** *--event_info* changes the mode of obspyDMT to only retrieving the event information, *--event_rect* specifies a rectangular bounding area.
 
 .. image:: figures/geo_restrict_example.png
    :scale: 75%
@@ -501,7 +500,7 @@ To check all the retrieved stations:
 
 ::
 
-    $ obspyDMT --plot_dir geo_restrict_ex2 --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
+    $ obspyDMT --plot_dir geo_restrict_ex2 --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev
 
 .. image:: figures/geo_restrict_example_src_rcv.png
    :scale: 75%
@@ -534,7 +533,7 @@ Before applying the instrument correction, a bandpass filter will be applied to 
 
     $ obspyDMT --pre_filt '(f1,f2,f3,f4)' --option-1 value --option-2
 
-where *(f1,f2,f3,f4)* are the four corner frequencies of a cosine taper, one between f2 and f3 and tapers to zero for f1 < f < f2 and f3 < f < f4.
+where *(f1,f2,f3,f4)* are the four corner frequencies of a cosine taper: one between f2 and f3 and tapers to zero for f1 < f < f2 and f3 < f < f4.
 
 If you do not need the pre filter:
 
