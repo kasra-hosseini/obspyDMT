@@ -209,11 +209,15 @@ def events_info(input_dics, request):
 
             events = []
             for i in range(len(events_QML)):
-                event_time = \
-                    events_QML.events[i].preferred_origin().time or \
-                    events_QML.events[i].origins[0].time
-                event_time_month = '%02i' % int(event_time.month)
-                event_time_day = '%02i' % int(event_time.day)
+                try:
+                    event_time = \
+                        events_QML.events[i].preferred_origin().time or \
+                        events_QML.events[i].origins[0].time
+                    event_time_month = '%02i' % int(event_time.month)
+                    event_time_day = '%02i' % int(event_time.day)
+                except Exception, e:
+                    print e
+                    continue
 
                 try:
                     # XXX Check about the preferred?
@@ -237,6 +241,11 @@ def events_info(input_dics, request):
                     print "WARNING: focal_mechanism does not exist for " \
                           "event: %s -- set to False" % (i+1)
                     focal_mechanism = False
+                except TypeError:
+                    focal_mechanism = False
+                except Exception, e:
+                    print e
+                    focal_mechanism = False
                 try:
                     if not events_QML.events[i].focal_mechanisms == []:
                         half_duration = [
@@ -251,39 +260,48 @@ def events_info(input_dics, request):
                     print "WARNING: half_duration does not exist for " \
                           "event: %s -- set to False" % (i+1)
                     half_duration = False
+                except TypeError:
+                    half_duration = False
+                except Exception, e:
+                    print e
+                    focal_mechanism = False
 
-                events.append(OrderedDict(
-                    [('number', i+1),
-                     ('latitude',
-                      events_QML.events[i].preferred_origin().latitude or
-                      events_QML.events[i].origins[0].latitude),
-                     ('longitude',
-                      events_QML.events[i].preferred_origin().longitude or
-                      events_QML.events[i].origins[0].longitude),
-                     ('depth',
-                      events_QML.events[i].preferred_origin().depth/1000. or
-                      events_QML.events[i].origins[0].depth/1000.),
-                     ('datetime', event_time),
-                     ('magnitude',
-                      events_QML.events[i].preferred_magnitude().mag or
-                      events_QML.events[i].magnitudes[0].mag),
-                     ('magnitude_type',
-                      events_QML.events[i].preferred_magnitude().
-                      magnitude_type.lower() or
-                      events_QML.events[i].magnitudes[0].
-                      magnitude_type.lower()),
-                     ('author',
-                      events_QML.events[i].preferred_magnitude().
-                      creation_info.author or
-                      events_QML.events[i].magnitudes[0].creation_info.author),
-                     ('event_id', str(event_time.year) +
-                      event_time_month + event_time_day + '_' + str(i+1)),
-                     ('origin_id', events_QML.events[i].preferred_origin_id or
-                      events_QML.events[i].origins[0].resource_id.resource_id),
-                     ('focal_mechanism', focal_mechanism),
-                     ('half_duration', half_duration),
-                     ('flynn_region', 'NAN'),
-                     ]))
+                try:
+                    events.append(OrderedDict(
+                        [('number', i+1),
+                         ('latitude',
+                          events_QML.events[i].preferred_origin().latitude or
+                          events_QML.events[i].origins[0].latitude),
+                         ('longitude',
+                          events_QML.events[i].preferred_origin().longitude or
+                          events_QML.events[i].origins[0].longitude),
+                         ('depth',
+                          events_QML.events[i].preferred_origin().depth/1000. or
+                          events_QML.events[i].origins[0].depth/1000.),
+                         ('datetime', event_time),
+                         ('magnitude',
+                          events_QML.events[i].preferred_magnitude().mag or
+                          events_QML.events[i].magnitudes[0].mag),
+                         ('magnitude_type',
+                          events_QML.events[i].preferred_magnitude().
+                          magnitude_type or
+                          events_QML.events[i].magnitudes[0].
+                          magnitude_type),
+                         ('author',
+                          events_QML.events[i].preferred_magnitude().
+                          creation_info.author or
+                          events_QML.events[i].magnitudes[0].creation_info.author),
+                         ('event_id', str(event_time.year) +
+                          event_time_month + event_time_day + '_' + str(i+1)),
+                         ('origin_id', events_QML.events[i].preferred_origin_id or
+                          events_QML.events[i].origins[0].resource_id.resource_id),
+                         ('focal_mechanism', focal_mechanism),
+                         ('half_duration', half_duration),
+                         ('flynn_region', 'NAN'),
+                         ]))
+                except Exception, e:
+                    print e
+                    continue
 
                 # if --read_catalog, redefine variables which determine
                 # the name of the folder where results will be stored. (Other-
@@ -661,60 +679,59 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     dur_event = M_date - m_date
     interval = 30.*24.*60.*60.
 
-    if dur_event > interval:
-        num_div = int(dur_event/interval)
-        print 'Number of divisions: %s' % num_div
-        # residual time is: (has not been used here)
-        # t_res = t_cont - num_div*input_dics['interval']
-        for i in range(1, num_div+1):
-            print i,
-            sys.stdout.flush()
-            t_start_split = m_date + (i-1)*interval
-            t_end_split = m_date + i*interval
-            br.form1['starttime'] = str(t_start_split)
-            br.form1['endtime'] = str(t_end_split)
+    num_div = int(dur_event/interval)
+    print 'Number of divisions: %s' % num_div
+    # residual time is: (has not been used here)
+    # t_res = t_cont - num_div*input_dics['interval']
+    for i in range(1, num_div+1):
+        print i,
+        sys.stdout.flush()
+        t_start_split = m_date + (i-1)*interval
+        t_end_split = m_date + i*interval
+        br.form1['starttime'] = str(t_start_split)
+        br.form1['endtime'] = str(t_end_split)
 
-            # Final output will be now porcessed
-            request = br.form1.click()
-            br.open(request)
-            url = br.geturl()
+        # Final output will be now porcessed
+        request = br.form1.click()
+        br.open(request)
+        url = br.geturl()
 
-            remotefile = ('%s' % url)
-            page = urllib2.urlopen(remotefile)
-            page_content = page.read()
-            
-            if 'quakeml' in page_content:
-                with open(os.path.join(dir_name,
-                                       'temp_neic_xml_%05i.xml' % i),
-                          'w') as fid:
-                    fid.write(page_content)
-                fid.close()
-            else:
-                continue
+        remotefile = ('%s' % url)
+        page = urllib2.urlopen(remotefile)
+        page_content = page.read()
 
-        final_time = m_date + num_div*interval
-        if not M_date == final_time:
-            t_start_split = m_date + num_div*interval
-            t_end_split = M_date
-            print '\nEnd time: %s\n' % t_end_split
-            br.form1['starttime'] = str(t_start_split)
-            br.form1['endtime'] = str(t_end_split)
+        if 'quakeml' in page_content:
+            with open(os.path.join(dir_name,
+                                   'temp_neic_xml_%05i.xml' % i),
+                      'w') as fid:
+                fid.write(page_content)
+            fid.close()
+        else:
+            continue
 
-            # Final output will be now porcessed
-            request = br.form1.click()
-            br.open(request)
-            url = br.geturl()
+    final_time = m_date + num_div*interval
+    if not M_date == final_time:
+        t_start_split = m_date + num_div*interval
+        t_end_split = M_date
+        print '\nEnd time: %s\n' % t_end_split
+        br.form1['starttime'] = str(t_start_split)
+        br.form1['endtime'] = str(t_end_split)
 
-            remotefile = ('%s' % url)
-            page = urllib2.urlopen(remotefile)
-            page_content = page.read()
+        # Final output will be now porcessed
+        request = br.form1.click()
+        br.open(request)
+        url = br.geturl()
 
-            if 'quakeml' in page_content:
-                with open(os.path.join(dir_name,
-                                       'temp_neic_xml_%05i.xml' % (num_div+1)),
-                          'w') as fid:
-                    fid.write(page_content)
-                fid.close()
+        remotefile = ('%s' % url)
+        page = urllib2.urlopen(remotefile)
+        page_content = page.read()
+
+        if 'quakeml' in page_content:
+            with open(os.path.join(dir_name,
+                                   'temp_neic_xml_%05i.xml' % (num_div+1)),
+                      'w') as fid:
+                fid.write(page_content)
+            fid.close()
 
     xml_add = glob.glob(os.path.join(dir_name, 'temp_neic_xml_*.xml'))
     xml_add.sort()
@@ -735,7 +752,6 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     os.rmdir(dir_name)
     toc = time.clock()
     print 'It took %s sec to retrieve the earthquakes form NEIC.' % (toc-tic)
-
     return cat
 
 # ##################### gcmt_catalog ############################
