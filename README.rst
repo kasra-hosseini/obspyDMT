@@ -903,6 +903,10 @@ We can look at the event and station distributions for this request by:
 
     $ obspyDMT --datapath 'seismicity_japan_gcmt' --seismicity --min_mag 5.0 --min_date 1976-01-01 --max_date 2013-12-31 --event_rect 120.0/155.0/25.0/55.0 --event_catalog GCMT_COMBO
 
+.. image:: figures/seismicity_japan_gcmt.png
+   :scale: 80%
+   :align: center
+
 ----------------
 Folder structure
 ----------------

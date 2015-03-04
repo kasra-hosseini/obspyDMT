@@ -959,7 +959,6 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
     decimation_delay = []
     decimation_correction = []
 
-    counter = 0
     for resp_stage in xml_response.response_stages:
         gain_arr.append(resp_stage.stage_gain)
         try:
@@ -968,10 +967,10 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
             normalization_factor.append(resp_stage.normalization_factor)
         except Exception as e:
             pass
-        if counter > 0:
+        if resp_stage.decimation_delay:
             decimation_delay.append(resp_stage.decimation_delay)
+        if resp_stage.decimation_correction:
             decimation_correction.append(resp_stage.decimation_correction)
-        counter += 1
 
     if len(poles) > 1:
         print 'WARNING: More than one group of poles was found: %s' % poles
@@ -1019,6 +1018,8 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
     paz['zeros'] = zeros
     paz['gain'] = normalization_factor
     paz['sensitivity'] = np.prod(np.array(gain_arr))
+    print 'Final PAZ:'
+    print paz
     return paz, decimation_delay, decimation_correction
 
 # ##################### seismicity ######################################
