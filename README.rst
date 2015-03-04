@@ -816,7 +816,7 @@ events available in IRIS with magnitude more than 5.0 since 2000 is as follow:
 
 **Example 2:** the command line to create *global* seismicity map from all the
 events available in IRIS archive with magnitude more than 5.0 since 2000 is as
-follow: (???? events)
+follow: (27057 events)
 
 ::
 
