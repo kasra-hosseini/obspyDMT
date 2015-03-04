@@ -739,9 +739,14 @@ Moreover, a text file will be created: *report_stationxml* in the same directory
 
 ::
 
-    channel_id   %(Phase)   Max Diff(abs)   Lat   Lon   Datetime
+    channel_id  %(Phase)  Max Diff(abs)  Lat  Lon  Datetime  decimation delay  decimation correction
 
-*channel_id* is the name of the channel with latitude (Lat) and longitude (Lon). *Datetime* is the creationg time for the StationXML file. The other two parameters (*%(Phase)* and *Max Diff(abs)*) is explained here:
+*channel_id* is the name of the channel with latitude (Lat) and longitude (Lon).
+*Datetime* is the creationg time for the StationXML file.
+*decimation delay* is the delay time that has been caused by decimation stages.
+*decimation correction* is the time that has been already corrected in the
+instrument. The other parameters (*%(Phase)* and *Max Diff(abs)*) is
+explained here:
 
 The comparison between StationXML and PolesAndZeros is done as follow:
 
@@ -758,17 +763,34 @@ At this stage, we can plot the report (a simple Python script is provided at */p
 
     $ python plotxml_report.py /path/to/report_stationxml
 
-which will create two figures.
+which will create four figures.
 
-First figure shows those stations in which there was not difference between full stationXML and PAZ:
+First figure shows those stations in which there was no difference between
+full stationXML and PAZ and/or the correction (decimation delay) has already
+applied:
 
 .. image:: figures/gsn_good.png
    :scale: 75%
    :align: center
 
-The second figure shows those stations that the full stationXML and PAZ were different and the colorbar shows the percentage of difference *%(Phase)*:
+The second figure shows the time shift, i.e. decimation_delay - decimation_correction:
 
-.. image:: figures/gsn_bad.png
+.. image:: figures/gsn_time_shift.png
+   :scale: 75%
+   :align: center
+
+The third figure shows the difference percentage of "bad stations", i.e. full stationXML and PAZ were
+different and the time shift (decimation_delay - decimation_correction)
+was non-zero or decimation_delay was set to zero. For such stations, using
+only PAZ will give different results compared to stationXML:
+
+.. image:: figures/bad_stations_percentage.png
+   :scale: 75%
+   :align: center
+
+The fourth figure is similar to the third one, but the time shifts of "bad stations" are plotted:
+
+.. image:: figures/bad_stations_time_shift.png
    :scale: 75%
    :align: center
 
