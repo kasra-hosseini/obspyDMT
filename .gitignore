@@ -1,4 +1,5 @@
 .idea
 obspyDMT/outputs
 obspyDMT/ignore
+obspyDMT.egg-info
 *pyc
