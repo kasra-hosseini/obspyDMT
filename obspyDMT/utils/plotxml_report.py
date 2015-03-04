@@ -49,7 +49,25 @@ for i in range(1, len(report_fi)):
         sta_lat_time_shift.append(float(line_report_fi[3]))
         sta_lon_time_shift.append(float(line_report_fi[4]))
         time_shift.append(al_corrected)
-    if float(line_report_fi[1]) > 0. and al_corrected != 0.:
+    if float(line_report_fi[1]) > 0. and abs(al_corrected) > 1.e-10:
+        sta_lat_b.append(float(line_report_fi[3]))
+        sta_lon_b.append(float(line_report_fi[4]))
+        per_phase_diff_b.append(float(line_report_fi[1]))
+        max_diff_b.append(float(line_report_fi[2]))
+        id_b.append(line_report_fi[0])
+        time_wrong_b.append(al_corrected)
+        print report_fi[i].split('\n')[0]
+    elif float(line_report_fi[1]) > 0. and \
+                    int(float(line_report_fi[6])*1e5) == 0:
+        sta_lat_b.append(float(line_report_fi[3]))
+        sta_lon_b.append(float(line_report_fi[4]))
+        per_phase_diff_b.append(float(line_report_fi[1]))
+        max_diff_b.append(float(line_report_fi[2]))
+        id_b.append(line_report_fi[0])
+        time_wrong_b.append(al_corrected)
+        print report_fi[i].split('\n')[0]
+    elif float(line_report_fi[1]) > 0. and \
+                    int(float(line_report_fi[7])*1e5) == 0:
         sta_lat_b.append(float(line_report_fi[3]))
         sta_lon_b.append(float(line_report_fi[4]))
         per_phase_diff_b.append(float(line_report_fi[1]))
@@ -71,17 +89,13 @@ if len(sta_lat_g) > 0:
     parallels = np.arange(-90, 90, 30.)
     m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=18)
     meridians = np.arange(-180., 180., 60.)
-    m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=18)
+    m.drawmeridians(meridians, labels=[0, 0, 0, 1], fontsize=18)
     m.drawmapboundary()
 
     x, y = m(sta_lon_g, sta_lat_g)
-    # m.scatter(x, y, 20, c=per_phase_diff_g, marker="o", edgecolor='none',
-    #           zorder=10, cmap='gray', vmin=0., vmax=1.)
     m.scatter(x, y, 20, c=np.array(per_phase_diff_g)*0., marker="o",
               edgecolor='none', zorder=10, cmap='gray', vmin=0., vmax=1.)
-    # cbar = plt.colorbar(orientation='horizontal', shrink=0.9)
-    # cbar.ax.tick_params(labelsize=18)
-    plt.title('Good Stations')
+    plt.title('Good Stations', size=24, weight='bold')
     plt.savefig('compare_plots_good.png')
 
 if len(sta_lat_time_shift) > 0:
@@ -91,7 +105,7 @@ if len(sta_lat_time_shift) > 0:
     parallels = np.arange(-90, 90, 30.)
     m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=18)
     meridians = np.arange(-180., 180., 60.)
-    m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=18)
+    m.drawmeridians(meridians, labels=[0, 0, 0, 1], fontsize=18)
     m.drawmapboundary()
 
     x, y = m(sta_lon_time_shift, sta_lat_time_shift)
@@ -100,7 +114,7 @@ if len(sta_lat_time_shift) > 0:
               vmin=min(time_shift), vmax=max(time_shift))
     cbar = plt.colorbar(orientation='horizontal', shrink=0.9)
     cbar.ax.tick_params(labelsize=18)
-    plt.title('Time Shift')
+    plt.title('Time Shift', size=24, weight='bold')
     plt.savefig('time_shift.png')
 
 if len(sta_lat_b) > 0:
@@ -111,16 +125,16 @@ if len(sta_lat_b) > 0:
     parallels = np.arange(-90, 90, 30.)
     m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=18)
     meridians = np.arange(-180., 180., 60.)
-    m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=18)
+    m.drawmeridians(meridians, labels=[0, 0, 0, 1], fontsize=18)
     m.drawmapboundary()
 
     x, y = m(sta_lon_b, sta_lat_b)
     m.scatter(x, y, 100, c=per_phase_diff_b, marker="o", edgecolor='none',
               zorder=10, cmap='jet',
-              vmin=min(per_phase_diff_b), vmax=max(per_phase_diff_b))
+              vmin=min(per_phase_diff_b), vmax=100.)
     cbar = plt.colorbar(orientation='horizontal', shrink=0.9)
     cbar.ax.tick_params(labelsize=18)
-    plt.title('Bad Stations (percentage)')
+    plt.title('Bad Stations (percentage)', size=24, weight='bold')
     plt.savefig('compare_plots_bad.png')
 
     plt.figure()
@@ -129,7 +143,7 @@ if len(sta_lat_b) > 0:
     parallels = np.arange(-90, 90, 30.)
     m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=18)
     meridians = np.arange(-180., 180., 60.)
-    m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=18)
+    m.drawmeridians(meridians, labels=[0, 0, 0, 1], fontsize=18)
     m.drawmapboundary()
 
     x, y = m(sta_lon_b, sta_lat_b)
@@ -138,7 +152,7 @@ if len(sta_lat_b) > 0:
               vmin=min(time_wrong_b), vmax=max(time_wrong_b))
     cbar = plt.colorbar(orientation='horizontal', shrink=0.9)
     cbar.ax.tick_params(labelsize=18)
-    plt.title('Bad Stations (time shift)')
+    plt.title('Bad Stations (time shift)', size=24, weight='bold')
     plt.savefig('compare_plots_bad_time.png')
 
     plt.figure()

@@ -565,7 +565,7 @@ def plot_xml_response(input_dics):
     latlon_color = []
     report_fio = open(os.path.join('./stationxml_plots',
                                    'report_stationxml'), 'w')
-    report_fio.writelines('#channel\t\t\t\t%(Phase)\t\t'
+    report_fio.writelines('channel_id\t\t\t\t%(Phase)\t\t'
                           'Max Diff(abs) \tLat\t\t\tLon\t\t\tDatetime\t'
                           'decimation delay\tdecimation correction\n')
     report_fio.close()
