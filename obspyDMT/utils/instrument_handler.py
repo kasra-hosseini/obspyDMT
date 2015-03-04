@@ -84,9 +84,6 @@ def FDSN_ARC_IC(input_dics, clients):
                                               s_ev[2], s_ev[3])
                 ls_saved_stas_tmp.append(
                     os.path.join(address_events[i], 'BH_RAW', station_id))
-            else:
-                sys.exit('ERROR: No station available for %s does not '
-                         'exist!' % clients)
 
         if input_dics['net'].startswith('_'):
             net_pat = '*'
