@@ -802,11 +802,11 @@ Seismicity
 Geographical and historical distribution of earthquake activities (seismicity) can be plotted using *--seismicity* option in obspyDMT. In this mode, the software finds the events according to the input parameters and generates an image in which the events are categorized based on depth and magnitude.
 
 **Example 1:** the command line to create *Japan* seismicity map from all the
-events available in IRIS with magnitude more than 3.0 since 2000 is as follow:
+events available in IRIS with magnitude more than 5.0 since 2000 is as follow:
 
 ::
 
-    $ obspyDMT --datapath 'seismicity_japan' --seismicity --min_mag 3.0 --min_date 2000-01-01 --max_date 2014-12-31 --event_rect 120.0/155.0/25.0/55.0
+    $ obspyDMT --datapath 'seismicity_japan' --seismicity --min_mag 5.0 --min_date 2000-01-01 --max_date 2014-12-31 --event_rect 120.0/155.0/25.0/55.0
 
 *--datapath* is the address where the event catalog will be created, *--seismicity* enables the seismicity mode and *--min_mag*, *--min_date*, *--max_date* and *--event_rect* are event search parameters.
 
@@ -821,7 +821,6 @@ follow: (???? events)
 ::
 
     $ obspyDMT --datapath 'seismicity_glob' --seismicity --min_mag 5.0 --min_date 2000-01-01 --max_date 2014-12-31
-
 
 .. image:: figures/seismicity_glob.png
    :scale: 50%
