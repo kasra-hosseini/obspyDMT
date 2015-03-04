@@ -858,7 +858,7 @@ reason, it is enough to:
 
 Otherwise, refer to mechanize_ to see how to install this package.
 
-**Example 1** (similar to Example 1 in `event_based request`_)
+**Example 1** (similar to Example 1 in `event-based request`_)
 the following command shows how to get all the waveforms,
 stationXML/response files and metadata of *BHZ* channels available in *II*
 network with station names start with *A* or *B* for the great Tohoku-oki
