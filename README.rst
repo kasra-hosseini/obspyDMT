@@ -875,7 +875,6 @@ earthquake of magnitude Mw 9.0 from **NEIC** catalog:
 magnitude, start and end datetime parameters for event search.
 *--net*, *--sta* and *--cha* change the network to II, stations to A* or B*
 and channel to BHZ.
-*--offset* changes the required length for waveforms after the event time to 3600sec (default: 1800sec).
 **--event_catalog** changes the default catalog (*IRIS*) to *NEIC*.
 
 We can look at the event and station distributions for this request by:
@@ -887,6 +886,22 @@ We can look at the event and station distributions for this request by:
 .. image:: figures/neic_ex1.png
    :scale: 75%
    :align: center
+
+**GCMT**
+
+**This functionality is currently available only for developer version of obspy, and it does not work with version: 0.9.2**
+
+**Example 2** obspyDMT can retrieve the event information (including moment tensor) from GCMT. Similar to *Example 1*, it is enough to:
+
+::
+
+    $ obspyDMT --datapath gcmt_ex2 --min_mag 8.9 --min_date 2011-03-01 --max_date 2011-03-30 --net II --sta A*,B* --cha BHZ --event_catalog GCMT_COMBO
+
+**Example 3** the command line to create Japan seismicity map from all the events available in GCMT with magnitude more than 5.0 since 1976 is as follow:
+
+::
+
+    $ obspyDMT --datapath 'seismicity_japan_gcmt' --seismicity --min_mag 5.0 --min_date 1976-01-01 --max_date 2013-12-31 --event_rect 120.0/155.0/25.0/55.0 --event_catalog GCMT_COMBO
 
 ----------------
 Folder structure
