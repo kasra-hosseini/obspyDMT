@@ -675,7 +675,7 @@ the default format is *png*, but assume that we want *pdf* for our figures, then
 ..    :scale: 75%
 ..    :align: center
 
-**Example 4:** obspyDMT supports GMT plots as well. For this reason, GMT5_ should be installed on your machine. In this example, we want to plot the ray path for event-station pairs (similat to *Example 3*) by using GMT5_:
+**Example 3:** obspyDMT supports GMT plots as well. For this reason, GMT5_ should be installed on your machine. In this example, we want to plot the ray path for event-station pairs (similat to *Example 3*) by using GMT5_:
 
 ::
 

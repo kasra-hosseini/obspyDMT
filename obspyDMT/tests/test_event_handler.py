@@ -15,9 +15,10 @@
 
 # Required Python and Obspy modules will be imported in this part.
 from obspy.core import UTCDateTime
+from obspy.fdsn import Client as Client_fdsn
 
 from obspyDMT.utils.input_handler import command_parse, read_input_command
-from obspyDMT.utils.event_handler import gcmt_catalog, events_info
+from obspyDMT.utils.event_handler import events_info
 
 # ##################### test_gmt_catalog ##################################
 
@@ -40,18 +41,29 @@ def test_gmt_catalog():
     evradmax = input_dics['evradmax']
     evradmin = input_dics['evradmin']
 
-    events_QML = \
-        gcmt_catalog(input_dics['min_date'],
-                     input_dics['max_date'],
-                     evlatmin, evlatmax, evlonmin, evlonmax,
-                     evlat, evlon, evradmin, evradmax,
-                     input_dics['min_depth'],
-                     input_dics['max_depth'],
-                     input_dics['min_mag'],
-                     input_dics['max_mag'])
-    assert events_QML[0].preferred_origin().latitude == 37.520
-    assert events_QML[0].preferred_origin().longitude == 143.050
-    assert events_QML[0].preferred_origin().depth == 20000.
+    client_fdsn = Client_fdsn(base_url=input_dics['event_url'])
+    events_QML = client_fdsn.get_events(
+        minlatitude=evlatmin,
+        maxlatitude=evlatmax,
+        minlongitude=evlonmin,
+        maxlongitude=evlonmax,
+        latitude=evlat,
+        longitude=evlon,
+        maxradius=evradmax,
+        minradius=evradmin,
+        mindepth=input_dics['min_depth'],
+        maxdepth=input_dics['max_depth'],
+        starttime=input_dics['min_date'],
+        endtime=input_dics['max_date'],
+        minmagnitude=input_dics['min_mag'],
+        maxmagnitude=input_dics['max_mag'],
+        orderby='time',
+        catalog=input_dics['event_catalog'],
+        magnitudetype=input_dics['mag_type'])
+
+    assert events_QML[0].preferred_origin().latitude == 38.2963
+    assert events_QML[0].preferred_origin().longitude == 142.498
+    assert events_QML[0].preferred_origin().depth == 19700.0
 
 # ##################### test_continuous ##################################
 

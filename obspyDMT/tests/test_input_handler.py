@@ -63,7 +63,7 @@ def test_default_inputs():
     assert (UTCDateTime(input_dics['max_date']) -
             UTCDateTime(input_dics['min_date']) > (60 * 60 * 24 * 5 - 1))
     assert input_dics['event_url'] == 'IRIS'
-    assert input_dics['event_catalog'] == 'GCMT_COMBO'
+    assert input_dics['event_catalog'] is None
     assert input_dics['mag_type'] is None
     assert input_dics['min_mag'] == 5.5
     assert input_dics['max_mag'] == 9.9
