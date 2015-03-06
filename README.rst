@@ -993,7 +993,7 @@ obspyDMT works in different modes (event-based request, continuous request, upda
 Example: RHUM-RUM stations
 --------------------------
 
-In this part of the tutorial, we focus on retrieving and processing of *RHUM-RUM* stations designed for *RHUM-RUM* studetns/researchers:
+In this part of the tutorial, we focus on retrieving and processing of *RHUM-RUM* stations designed for *RHUM-RUM* students/researchers:
 
 To create a list of all available stations in *YV* network hosted in *RESIF* data center:
 
@@ -1004,9 +1004,7 @@ To create a list of all available stations in *YV* network hosted in *RESIF* dat
 
 This will generate *list_stas_created.txt* file that contains all the available YV channels (on March 6, 2015: 105 channels).
 
-In case that you want to work with specific channels (e.g. BHZ), it should
-be enough to change the inputs in *create_list_stas.py* to your desired
-setting and re-run the code.
+In case that you want to work with specific channels (e.g. BHZ), it should be enough to change the inputs in *create_list_stas.py* (at top of the script) to your desired setting and re-run the code.
 
 Moreover, we have put some example lists at:
 
@@ -1022,10 +1020,12 @@ As an example, to retrieve all *YV* stations for events happened in 2013-09-01 t
 
     obspyDMT --datapath yv_example --min_date 2013-09-01 --max_date 2013-10-01 --min_mag 7.5 --fdsn_base_url RESIF --fdsn_user 'your_user_name' --fdsn_pass 'your_password' --list_stas rhum_rum_stations/YV_list_HZ.txt
 
+**Do not forget to enter your username and password**
+
 In which *--datapath* specifies the directory to store the retrieved data,
 *--min_date*, *--max_date* and *--min_mag* are searching parameters for
 events, *--fdsn_base_url* should be set to *RESIF* with *--fdsn_user* and
-*fdsb_pass* for username and password. *--list_stas* is the address of the
+*fdsn_pass* for username and password. *--list_stas* is the address of the
 station list created in the previous step.
 
 If it is too slow, you can try:
@@ -1054,7 +1054,7 @@ obspyDMT automatically corrects the waveforms too (you can change the default va
 
 ::
 
-    obspyDMT --plot_dir yv_example --min_date 2013-01-01 --plot_epi
+    obspyDMT --plot_dir yv_example --min_date 2013-01-01 --plot_epi --plot_type corrected
 
 .. image:: figures/epi_time_rhum_rum.png
    :scale: 80%
