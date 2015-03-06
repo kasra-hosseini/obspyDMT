@@ -995,18 +995,24 @@ Example: RHUM-RUM stations
 
 In this part of the tutorial, we focus on retrieving and processing of *RHUM-RUM* stations designed for *RHUM-RUM* studetns/researchers:
 
-To create a list of all available stations in *YV* network hosted in *RESIF* datacenter:
+To create a list of all available stations in *YV* network hosted in *RESIF* data center:
 
 ::
 
     cd /path/to/obspyDMT/utils
     python create_list_stas.py
 
-This will generate *list_stas_created.txt* file that contains all the available YV channels.
+This will generate *list_stas_created.txt* file that contains all the available YV channels (on March 6, 2015: 105 channels).
 
-In case that you want to work with specific channels (e.g. BHZ), it should be enough to change the inputs in *create_list_stas.py* to your desired setting.
+In case that you want to work with specific channels (e.g. BHZ), it should
+be enough to change the inputs in *create_list_stas.py* to your desired
+setting and re-run the code.
 
-Moreover, we have put some example lists at: /path/to/obspyDMT/rhum_rum_stations
+Moreover, we have put some example lists at:
+
+::
+
+    cd /path/to/obspyDMT/rhum_rum_stations
 
 **Retrieving and Processing**
 
@@ -1014,7 +1020,7 @@ As an example, to retrieve all *YV* stations for events happened in 2013-09-01 t
 
 ::
 
-    obspyDMT --datapath yv_BHZ_example --min_date 2013-09-01 --max_date 2013-10-01 --min_mag 7.5 --fdsn_base_url RESIF --fdsn_user 'your_user_name' --fdsn_pass 'your_password' --list_stas rhum_rum_stations/YV_list_BHZ.txt
+    obspyDMT --datapath yv_example --min_date 2013-09-01 --max_date 2013-10-01 --min_mag 7.5 --fdsn_base_url RESIF --fdsn_user 'your_user_name' --fdsn_pass 'your_password' --list_stas rhum_rum_stations/YV_list_HZ.txt
 
 In which *--datapath* specifies the directory to store the retrieved data,
 *--min_date*, *--max_date* and *--min_mag* are searching parameters for
@@ -1026,25 +1032,29 @@ If it is too slow, you can try:
 
 ::
 
-    obspyDMT --datapath yv_BHZ_example --min_date 2013-09-01 --max_date 2013-10-01 --min_mag 7.5 --fdsn_base_url RESIF --fdsn_user 'your_user_name' --fdsn_pass 'your_password' --list_stas rhum_rum_stations/YV_list_BHZ.txt --req_parallel --req_np 4
+    obspyDMT --datapath yv_example --min_date 2013-09-01 --max_date 2013-10-01 --min_mag 7.5 --fdsn_base_url RESIF --fdsn_user 'your_user_name' --fdsn_pass 'your_password' --list_stas rhum_rum_stations/YV_list_HZ.txt --req_parallel --req_np 4
 
 
 To check the source-receiver pairs retrieved in this request:
 
 ::
 
-    obspyDMT --plot_dir yv_BHZ_example --min_date 2013-01-01 --plot_sta --plot_ev --plot_ray
+    obspyDMT --plot_dir yv_example --min_date 2013-01-01 --plot_sta --plot_ev --plot_ray
 
 *--plot_dir* is the address of the stored data, *--min_date* filters the
 events (here we only have one event), *--plot_sta* to plot stations,
 *--plot_ev* to plot events and *--plot_ray* to plot rays between sources and
- receivers.
+receivers.
 
 .. image:: figures/rhum_rum_ex1.png
    :scale: 80%
    :align: center
 
 obspyDMT automatically corrects the waveforms too (you can change the default values, refer to `Instrument correction`_). To plot the corrected waveforms:
+
+::
+
+    obspyDMT --plot_dir yv_example --min_date 2013-01-01 --plot_epi
 
 .. image:: figures/epi_time_rhum_rum.png
    :scale: 80%
@@ -1059,13 +1069,23 @@ procedure as above: (for the great Tohoku-oki earthquake of magnitude Mw 9.0)
 
 ::
 
-    obspyDMT --datapath ya_BHZ_example --min_date 2011-03-01 --max_date 2011-03-30 --min_mag 8.9 --fdsn_base_url RESIF --fdsn_user 'your_user_name' --fdsn_pass 'your_password' --list_stas rhum_rum_stations/YA_list_BHZ.txt --req_parallel --req_np 4
+    obspyDMT --datapath ya_example --min_date 2011-03-01 --max_date 2011-03-30 --min_mag 8.9 --fdsn_base_url RESIF --fdsn_user 'your_user_name' --fdsn_pass 'your_password' --list_stas rhum_rum_stations/YA_list_HZ.txt --req_parallel --req_np 4
 
 To check the source-receiver pairs retrieved in this request:
 
 ::
 
-    obspyDMT --plot_dir ya_BHZ_example --min_date 2011-01-01 --plot_sta --plot_ev --plot_ray
+    obspyDMT --plot_dir ya_example --min_date 2011-01-01 --plot_sta --plot_ev --plot_ray
+
+.. image:: figures/rhum_rum_ex2.png
+   :scale: 80%
+   :align: center
+
+Zoom into the station cluster:
+
+.. image:: figures/rhum_rum_ex2_zoomed.png
+   :scale: 80%
+   :align: center
 
 
 .. Here, you could also find some of the options available in obspyDMT with a short description.

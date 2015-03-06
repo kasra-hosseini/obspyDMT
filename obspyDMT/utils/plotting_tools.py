@@ -262,9 +262,9 @@ def plot_sta_ev_ray(input_dics, ls_saved_stas):
         sys.exit('ERROR: %s' % input_dics)
 
     raw_input_resp = raw_input('Choose your map style:\n'
-                               '1. Bluemarble\n'
-                               '2. Etopo\n'
-                               '3. Shaderelief\n'
+                               '1. Bluemarble (PIL should be installed)\n'
+                               '2. Etopo (PIL should be installed)\n'
+                               '3. Shaderelief (PIL should be installed)\n'
                                '4. Simple\n')
     if raw_input_resp == '1':
         m.bluemarble(scale=0.5)
@@ -1059,9 +1059,9 @@ def seismicity(input_dics, events):
     m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=24)
 
     raw_input_resp = raw_input('Choose your map style:\n'
-                               '1. Bluemarble\n'
-                               '2. Etopo\n'
-                               '3. Shaderelief\n'
+                               '1. Bluemarble (PIL should be installed)\n'
+                               '2. Etopo (PIL should be installed)\n'
+                               '3. Shaderelief (PIL should be installed)\n'
                                '4. Simple\n')
     if raw_input_resp == '1':
         m.bluemarble(scale=0.5)
