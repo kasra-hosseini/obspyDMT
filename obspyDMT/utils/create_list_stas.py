@@ -18,12 +18,13 @@
 # Added this line for python 2.5 compatibility
 from obspy import UTCDateTime
 from obspy.fdsn import Client
+from plotting_tools import get_coordinates
 
 
 # ########################## INPUT
 req_client = "RESIF"
-starttime = "2012-01-01"
-endtime = "2013-01-01"
+starttime = None
+endtime = None
 network = "YV"
 station = "*"
 location = '*'
@@ -33,33 +34,27 @@ file_name = 'list_stas_created.txt'
 # ########################## END INPUT
 
 client = Client(req_client)
-starttime = UTCDateTime(starttime)
-endtime = UTCDateTime(endtime)
+if starttime:
+    starttime = UTCDateTime(starttime)
+if endtime:
+    endtime = UTCDateTime(endtime)
 inv = client.get_stations(network=network, station=station,
                           location=location, channel=channel,
                           starttime=starttime, endtime=endtime,
                           level='channel')
 content = inv.get_contents()
-chans = content['channels']
+chans = list(set(content['channels']))
+chans.sort()
+
+net_inv = inv.networks[0]
 
 fio = open(file_name, 'w')
 for _i in range(len(chans)):
     net, sta, loc, cha = chans[_i].split('.')
-    target_channel = inv.select(net, sta, loc, cha)
-    coord_chan = target_channel.get_coordinates('%s.%s.%s.%s'
-                                                % (net, sta, loc, cha))
-
+    coord_chan = get_coordinates(net_inv, chans[_i], None)
     fio.writelines('%s  %s  %s  %s  %s  %s  %s  %s\n'
                    % (sta, net, loc, cha, coord_chan['latitude'],
                       coord_chan['longitude'], coord_chan['elevation'],
                       coord_chan['local_depth']))
 
 fio.close()
-
-#fio = open('list_stas_created.txt', 'w')
-#
-#for i in range(len(inv)):
-#    if not inv[0][i].code:
-#        sta net location channel lat lon elevation depth
-#        fio.writelines('%s  %s  ??  %s  %s  %s  %s  %s\n' \
-#                % (inv[0][i].code, net, ))

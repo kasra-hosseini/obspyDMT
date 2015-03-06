@@ -2,8 +2,7 @@
 obspyDMT: A Python Toolbox for Retrieving and Processing of Large Seismological Datasets
 ========================================================================================
 
-
-Welcome!
+Welcome to obspyDMT version 0.9.0 tutorial!
 
 obspyDMT_ (obspy Data Management Tool) is a command line tool for retrieving, processing and management of large seismological datasets in a fully automatic way which can be run in serial or in parallel.
 
@@ -39,6 +38,7 @@ This tutorial has been divided into the following sections:
 16. `Folder structure`_: the way that obspyDMT organizes your retrieved and processed data in the file-based mode.
 17. `Available options`_: all options currently available in obspyDMT.
 18. `Algorithm`_: flow chart of the main steps in each obspyDMT mode.
+19. `Example: RHUM-RUM stations`_: exclusively for RHUM-RUM users.
 
 --------------------
 How to cite obspyDMT
@@ -988,6 +988,85 @@ obspyDMT works in different modes (event-based request, continuous request, upda
 .. image:: figures/obspyDMT_full_algorithm.png
    :scale: 80%
    :align: center
+
+--------------------------
+Example: RHUM-RUM stations
+--------------------------
+
+In this part of the tutorial, we focus on retrieving and processing of *RHUM-RUM* stations designed for *RHUM-RUM* studetns/researchers:
+
+To create a list of all available stations in *YV* network hosted in *RESIF* datacenter:
+
+::
+
+    cd /path/to/obspyDMT/utils
+    python create_list_stas.py
+
+This will generate *list_stas_created.txt* file that contains all the available YV channels.
+
+In case that you want to work with specific channels (e.g. BHZ), it should be enough to change the inputs in *create_list_stas.py* to your desired setting.
+
+Moreover, we have put some example lists at: /path/to/obspyDMT/rhum_rum_stations
+
+**Retrieving and Processing**
+
+As an example, to retrieve all *YV* stations for events happened in 2013-09-01 to 2013-10-01 with minimum magnitude 7.5:
+
+::
+
+    obspyDMT --datapath yv_BHZ_example --min_date 2013-09-01 --max_date 2013-10-01 --min_mag 7.5 --fdsn_base_url RESIF --fdsn_user 'your_user_name' --fdsn_pass 'your_password' --list_stas rhum_rum_stations/YV_list_BHZ.txt
+
+In which *--datapath* specifies the directory to store the retrieved data,
+*--min_date*, *--max_date* and *--min_mag* are searching parameters for
+events, *--fdsn_base_url* should be set to *RESIF* with *--fdsn_user* and
+*fdsb_pass* for username and password. *--list_stas* is the address of the
+station list created in the previous step.
+
+If it is too slow, you can try:
+
+::
+
+    obspyDMT --datapath yv_BHZ_example --min_date 2013-09-01 --max_date 2013-10-01 --min_mag 7.5 --fdsn_base_url RESIF --fdsn_user 'your_user_name' --fdsn_pass 'your_password' --list_stas rhum_rum_stations/YV_list_BHZ.txt --req_parallel --req_np 4
+
+
+To check the source-receiver pairs retrieved in this request:
+
+::
+
+    obspyDMT --plot_dir yv_BHZ_example --min_date 2013-01-01 --plot_sta --plot_ev --plot_ray
+
+*--plot_dir* is the address of the stored data, *--min_date* filters the
+events (here we only have one event), *--plot_sta* to plot stations,
+*--plot_ev* to plot events and *--plot_ray* to plot rays between sources and
+ receivers.
+
+.. image:: figures/rhum_rum_ex1.png
+   :scale: 80%
+   :align: center
+
+obspyDMT automatically corrects the waveforms too (you can change the default values, refer to `Instrument correction`_). To plot the corrected waveforms:
+
+.. image:: figures/epi_time_rhum_rum.png
+   :scale: 80%
+   :align: center
+
+**More Stations**
+
+**YA stations (2009-01-01 to 2011-12-31)**
+
+Part of the data is available with *YA* code at *RESIF*. Following the same
+procedure as above: (for the great Tohoku-oki earthquake of magnitude Mw 9.0)
+
+::
+
+    obspyDMT --datapath ya_BHZ_example --min_date 2011-03-01 --max_date 2011-03-30 --min_mag 8.9 --fdsn_base_url RESIF --fdsn_user 'your_user_name' --fdsn_pass 'your_password' --list_stas rhum_rum_stations/YA_list_BHZ.txt --req_parallel --req_np 4
+
+To check the source-receiver pairs retrieved in this request:
+
+::
+
+    obspyDMT --plot_dir ya_BHZ_example --min_date 2011-01-01 --plot_sta --plot_ev --plot_ray
+
 
 .. Here, you could also find some of the options available in obspyDMT with a short description.
 .. Options marked by (*) or (**) are:

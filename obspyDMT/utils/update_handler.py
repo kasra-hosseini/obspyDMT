@@ -21,7 +21,7 @@ import os
 from arclink_handler import ARC_available, ARC_waveform
 from event_handler import quake_info
 from fdsn_handler import FDSN_available, FDSN_waveform
-from utility_codes import read_station_event
+from utility_codes import read_station_event, read_list_stas
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -45,8 +45,13 @@ def FDSN_update(input_dics, address):
     events, address_events = quake_info(address, 'info')
 
     for i in range(len(events)):
-        Stas_fdsn = FDSN_available(input_dics, events[i], address_events[i],
-                                   event_number=i)
+        if not input_dics['list_stas']:
+            Stas_fdsn = FDSN_available(input_dics, events[i],
+                                       address_events[i], event_number=i)
+        else:
+            Stas_fdsn = read_list_stas(input_dics['list_stas'],
+                                       input_dics['normal_mode_syn'],
+                                       input_dics['specfem3D'])
 
         if input_dics['fdsn_bulk'] != 'Y':
             print '\n%s-Availability for event: %s/%s ---> DONE' \
@@ -96,8 +101,13 @@ def ARC_update(input_dics, address):
     events, address_events = quake_info(address, 'info')
 
     for i in range(len(events)):
-        Stas_arc = ARC_available(input_dics, events[i], address_events[i],
-                                 event_number=i)
+        if not input_dics['list_stas']:
+            Stas_arc = ARC_available(input_dics, events[i],
+                                     address_events[i], event_number=i)
+        else:
+            Stas_arc = read_list_stas(input_dics['list_stas'],
+                                      input_dics['normal_mode_syn'],
+                                      input_dics['specfem3D'])
 
         print '\nArcLink-Availability for event: %s/%s ---> DONE' \
               % (i+1, len(events))
