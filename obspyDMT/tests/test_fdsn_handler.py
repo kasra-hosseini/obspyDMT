@@ -14,6 +14,7 @@
 # -----------------------------------------------------------------------
 
 # Required Python and Obspy modules will be imported in this part.
+import matplotlib.pyplot as plt
 import os
 from obspy.core import UTCDateTime, read
 from obspy.signal import seisSim
@@ -102,6 +103,7 @@ def test_FDSN_ARC_IC():
         tr_cor = st_cor.select(station=sta)[0]
         tr_wilber = st_wilber.select(station=sta)[0]
         tr_wilber_corr = tr_wilber.copy()
+        tr_wilber_corr.detrend()
         corr_wilber = seisSim(tr_wilber.data,
                               tr_wilber.stats.sampling_rate,
                               paz_remove=paz_35,
@@ -118,7 +120,7 @@ def test_FDSN_ARC_IC():
         tr_wilber_corr.data = corr_wilber
         tr_diff = abs(tr_cor.data - tr_wilber_corr.data)
         # amplitude of the traces is in the order of 1e6 or so
-        assert max(tr_diff) < 0.001
+        assert max(tr_diff) < 0.00001
 
 # ##################### test_FDSN_update ##################################
 
@@ -190,6 +192,7 @@ def test_FDSN_update():
         tr_cor = st_cor.select(station=sta)[0]
         tr_wilber = st_wilber.select(station=sta)[0]
         tr_wilber_corr = tr_wilber.copy()
+        tr_wilber_corr.detrend()
         corr_wilber = seisSim(tr_wilber.data,
                               tr_wilber.stats.sampling_rate,
                               paz_remove=paz_req,
@@ -205,5 +208,13 @@ def test_FDSN_update():
                               sacsim=True)
         tr_wilber_corr.data = corr_wilber
         tr_diff = abs(tr_cor.data - tr_wilber_corr.data)
+        plt.figure()
+        plt.clf()
+        plt.subplot(2, 1, 1)
+        plt.plot(tr_cor.data, 'b')
+        plt.plot(tr_wilber_corr.data, 'r')
+        plt.subplot(2, 1, 2)
+        plt.plot(tr_diff)
+        plt.savefig(os.path.join(input_dics['datapath'], '%s.png' % sta), format='png')
         # amplitude of the traces is in the order of 1e13 or so
-        assert max(tr_diff) < 0.001
+        assert max(tr_diff) < 0.00001
