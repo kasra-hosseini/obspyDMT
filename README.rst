@@ -886,17 +886,49 @@ We can look at the event and station distributions for this request by:
    :scale: 75%
    :align: center
 
+**Example 2** (similar to Example 2 in `Seismicity`_)
+the command line to create *global* seismicity map from all the
+events available in *NEIC* archive with magnitude more than 5.0 since 1976
+is as follow:
+
+::
+
+    $ obspyDMT --datapath seismicity_glob_neic --seismicity --min_mag 5.0 --min_date 1976-01-01 --max_date 2014-12-31 --event_catalog NEIC_USGS
+
+
+.. image:: figures/seismicity_glob_neic_nonfocal.png
+   :scale: 75%
+   :align: center
+
+Since we can retrieve the moment tensor information from NEIC, it automatically generates the beach-ball map too:
+
+.. image:: figures/seismicity_glob_neic.png
+   :scale: 75%
+   :align: center
+
+Histogram of event magnitudes:
+
+.. image:: figures/neic_magnitude.png
+   :scale: 75%
+   :align: center
+
+Histogram of event depths:
+
+.. image:: figures/neic_depth.png
+   :scale: 75%
+   :align: center
+
 **GCMT**
 
 **This functionality is currently available only for developer version of obspy, and it does not work with version: 0.9.2**
 
-**Example 2** obspyDMT can retrieve the event information (including moment tensor) from GCMT. Similar to *Example 1*, it is enough to:
+**Example 3** obspyDMT can retrieve the event information (including moment tensor) from GCMT. Similar to *Example 1*, it is enough to:
 
 ::
 
     $ obspyDMT --datapath gcmt_ex2 --min_mag 8.9 --min_date 2011-03-01 --max_date 2011-03-30 --net II --sta A*,B* --cha BHZ --event_catalog GCMT_COMBO
 
-**Example 3** the command line to create Japan seismicity map from all the events available in GCMT with magnitude more than 5.0 since 1976 is as follow:
+**Example 4** the command line to create Japan seismicity map from all the events available in GCMT with magnitude more than 5.0 since 1976 is as follow:
 
 ::
 
