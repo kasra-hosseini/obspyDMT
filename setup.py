@@ -10,7 +10,7 @@ setup(
     url="https://github.com/kasra-hosseini/obspyDMT",
     download_url="https://github.com/kasra-hosseini/obspyDMT.git",
     keywords=["obspyDMT", "ObsPy", "Seismology"],
-    packages=["obspyDMT", "utils"],
+    packages=["obspyDMT", "obspyDMT.utils"],
     requires=['matplotlib', 'numpy'],
     entry_points={
         'console_scripts': [
