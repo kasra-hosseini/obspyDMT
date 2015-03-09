@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="obspyDMT",
-    version="0.9.0",
+    version="0.9.2",
     description="obspyDMT: A Python Toolbox for Retrieving and Processing of Large Seismological Datasets",
     author="Kasra Hosseini",
     author_email="hosseini@geophysik.uni-muenchen.de",
