@@ -64,6 +64,9 @@ def FDSN_network(input_dics, events):
             Stas_fdsn = read_list_stas(input_dics['list_stas'],
                                        input_dics['normal_mode_syn'],
                                        input_dics['specfem3D'])
+            if input_dics['fdsn_bulk'] == 'Y':
+                FDSN_create_bulk_list(target_path, input_dics, Stas_fdsn,
+                                      events[i])
 
         if input_dics['fdsn_bulk'] != 'Y':
             print '\n%s-Availability for event: %s/%s ---> DONE' \
@@ -145,6 +148,11 @@ def FDSN_available(input_dics, event, target_path, event_number):
                                      channel.latitude, channel.longitude,
                                      channel.elevation, channel.depth])
         if input_dics['fdsn_bulk'] == 'Y':
+            if input_dics['fdsn_update'] != 'N':
+                if os.path.exists(os.path.join(target_path, 'info',
+                                               'bulkdata.txt')):
+                    os.remove(os.path.join(target_path, 'info',
+                                           'bulkdata.txt'))
             if os.path.exists(os.path.join(target_path, 'info',
                                            'bulkdata.txt')):
                 print 'bulkdata.txt exists in the directory!'
@@ -175,6 +183,41 @@ def FDSN_available(input_dics, event, target_path, event_number):
         Sta_fdsn.append([])
     Sta_fdsn.sort()
     return Sta_fdsn
+
+# ##################### FDSN_create_bulk_list ###############################
+
+
+def FDSN_create_bulk_list(target_path, input_dics, Stas_fdsn, event):
+    """
+    Create bulkdata_list in case of --list_stas flag
+    :param target_path:
+    :param input_dics:
+    :param Stas_fdsn:
+    :param event:
+    :return:
+    """
+    if input_dics['fdsn_update'] != 'N':
+        if os.path.exists(os.path.join(target_path, 'info', 'bulkdata.txt')):
+            os.remove(os.path.join(target_path, 'info', 'bulkdata.txt'))
+
+    if os.path.exists(os.path.join(target_path, 'info', 'bulkdata.txt')):
+        print 'bulkdata.txt exists in the directory!'
+    else:
+        print 'Start creating a list for bulk request'
+        bulk_list = []
+        for bulk_sta in Stas_fdsn:
+            if input_dics['cut_time_phase']:
+                t_start, t_end = calculate_time_phase(event, bulk_sta)
+            else:
+                t_start = event['t1']
+                t_end = event['t2']
+            bulk_list.append((bulk_sta[0], bulk_sta[1], bulk_sta[2],
+                              bulk_sta[3], t_start, t_end))
+
+        bulk_list_fio = open(os.path.join(target_path, 'info',
+                                          'bulkdata_list'), 'a+')
+        pickle.dump(bulk_list, bulk_list_fio)
+        bulk_list_fio.close()
 
 # ##################### FDSN_waveform ###############################
 
@@ -215,12 +258,11 @@ def FDSN_waveform(input_dics, events, Sta_req, i, req_type):
         len_req_fdsn = len(Sta_req)
 
     if input_dics['fdsn_bulk'] == 'Y':
+        t11 = datetime.now()
         try:
-            t11 = datetime.now()
             FDSN_bulk_request(i, add_event, input_dics)
         except Exception as e:
             print 'WARNING: %s' % e
-            t11 = 0
         print 'DONE'
 
         # Following parameter is set to 'N' to avoid
