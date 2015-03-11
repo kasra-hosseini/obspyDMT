@@ -107,10 +107,10 @@ def main():
         from pycallgraph import PyCallGraph
         from pycallgraph.output import GraphvizOutput
 
+        t1_pro = time.time()
         graphviz = GraphvizOutput()
-        graphviz.output_file = 'basic.png'
+        graphviz.output_file = 'profile_%s.png' % int(t1_pro)
         with PyCallGraph(output=graphviz):
-            t1_pro = time.time()
             # Run the main program
             input_dics = obspyDMT()
             goodbye_printer(input_dics, t1_pro)
