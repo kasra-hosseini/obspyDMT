@@ -298,8 +298,7 @@ def obspy_fullresp_STXML(input_dics, trace, stxml_file, Address, unit='DIS',
         trace.remove_response(output=unit,
                               water_level=input_dics['water_level'],
                               pre_filt=eval(BP_filter), zero_mean=True,
-                              taper=True, taper_fraction=0.05,
-                              sacsim=True)
+                              taper=True, taper_fraction=0.05)
         # Remove the following line to keep the units
         # as it is in the stationXML
         # trace.data *= 1.e9
