@@ -45,6 +45,11 @@ def writesac_all(i, address_events):
     for j in range(len(sta_ev[0])):
         try:
             st = read(ls_saved_stas[j])
+            if len(st) > 1:
+                print "WARNING: %s\nprobably has some gaps" % ls_saved_stas[j]
+                print "\nIt will be merged (fill_value=0) before " \
+                      "writing the SAC file!"
+                st.merge(method=1, fill_value=0, interpolation_samples=0)
             st[0].write(ls_saved_stas[j], format='SAC')
             tr = read(ls_saved_stas[j])[0]
             if sta_ev[0][j][4]:

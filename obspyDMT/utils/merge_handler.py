@@ -153,7 +153,10 @@ def merge_stream(input_dics, ls_address, ls_sta, network_name):
                 st = read(os.path.join(ls_address[j], sta))
                 for k in range(j+1, len(ls_address)):
                     try:
-                        st.append(read(os.path.join(ls_address[k], sta))[0])
+                        tr_tmp = read(os.path.join(ls_address[k], sta))
+                        tr_tmp.merge(method=1, fill_value=0,
+                                     interpolation_samples=0)
+                        st.append(tr_tmp[0])
                     except Exception as e:
                         print "ERROR: can not append to the trace! \n%s" % e
 
