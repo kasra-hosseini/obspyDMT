@@ -238,12 +238,13 @@ def IC_core(input_dics, ls_saved_sta, clients, address, BH_file, inform):
     """
     try:
         if input_dics['ic_obspy_full'] == 'Y':
-            tr = read(ls_saved_sta)
-            if len(tr) > 1:
+            st = read(ls_saved_sta)
+            if len(st) > 1:
                 print "WARNING: %s\nprobably has some gaps" % ls_saved_sta
                 print "\nIt will be merged (fill_value=0) before " \
                       "applying the instrument correction"
-                tr.merge(method=1, fill_value=0, interpolation_samples=0)
+                st.merge(method=1, fill_value=0, interpolation_samples=0)
+            tr = st[0]
             if clients.lower() != 'arc':
                 stxml_file = \
                     os.path.join(address, 'Resp',
