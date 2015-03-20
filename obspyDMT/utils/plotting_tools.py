@@ -275,6 +275,10 @@ def plot_sta_ev_ray(input_dics, ls_saved_stas):
     else:
         m.fillcontinents()
 
+    len_src_rcv = 0
+    for i in range(len(ls_saved_stas)):
+        len_src_rcv += len(ls_saved_stas[i])
+    print 'Length src-rcv pairs: %s' % len_src_rcv 
     if plt_events:
         for i in range(len(ls_saved_stas)):
             if input_dics['plot_focal']:
