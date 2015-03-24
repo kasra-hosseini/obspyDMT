@@ -19,6 +19,7 @@ import copy
 from datetime import datetime, timedelta
 import glob
 import matplotlib.pyplot as plt
+import numpy as np
 from obspy.core.event import Catalog, readEvents
 from obspy.core import read, UTCDateTime
 from obspy.core.util import locations2degrees
@@ -255,7 +256,8 @@ def events_info(input_dics, request):
                             ['moment_tensor']['source_time_function']
                             ['duration']]
                     else:
-                        half_duration = False
+                        half_duration = mag_halfduration(
+                            mag=events_QML.events[i].preferred_magnitude().mag)
                 except AttributeError:
                     print "WARNING: half_duration does not exist for " \
                           "event: %s -- set to False" % (i+1)
@@ -1512,3 +1514,28 @@ def compress_gzip(path, tar_file, files):
         tar.add(os.path.basename(infile))
         os.remove(infile)
     tar.close()
+
+# ##################### mag_halfduration ###################################
+
+
+def mag_halfduration(mag, type_curve=1):
+    """
+    Calculate the half_duration out of magnitude
+    type_curve can be 1, 2, 3:
+    1: 2005-2014
+    2: 1976-1990
+    3: 1976-2014
+    :param mag:
+    :param type_curve:
+    :return:
+    """
+    if type_curve == 1:
+        half_duration = 0.00272*np.exp(1.134*mag)
+    elif type_curve == 2:
+        half_duration = 0.00804*np.exp(1.025*mag)
+    elif type_curve == 3:
+        half_duration = 0.00392*np.exp(1.101*mag)
+    else:
+        sys.exit('%s Type for magnitude to half_duration conversion is not '
+                 'implemented' % type_curve)
+    return half_duration
