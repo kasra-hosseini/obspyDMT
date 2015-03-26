@@ -78,11 +78,9 @@ def get_Events(input_dics, request):
           % str(timedelta(seconds=round(float(time.time() - t_event_1))))
 
     # formatting output / check if directory exists
-    period = '{0:s}_{1:s}_{2:s}_{3:s}'.format(
+    period = '{0:s}_{1:s}'.format(
         input_dics['min_date'].split('T')[0],
-        input_dics['max_date'].split('T')[0],
-        str(input_dics['min_mag']),
-        str(input_dics['max_mag']))
+        input_dics['max_date'].split('T')[0])
     eventpath = os.path.join(input_dics['datapath'], period)
 
     write_cat_logger(input_dics, eventpath, period, events, catalog,

@@ -49,11 +49,9 @@ def FDSN_ARC_merge(input_dics, clients):
     else:
         clients_name = 'fdsn'
     if input_dics[clients_name + '_merge_auto'] == 'Y':
-        period = '{0:s}_{1:s}_{2:s}_{3:s}'.\
+        period = '{0:s}_{1:s}'.\
             format(input_dics['min_date'].split('T')[0],
-                   input_dics['max_date'].split('T')[0],
-                   str(input_dics['min_mag']),
-                   str(input_dics['max_mag']))
+                   input_dics['max_date'].split('T')[0])
         address = os.path.join(input_dics['datapath'], period)
 
     if input_dics[clients_name + '_merge'] != 'N':
