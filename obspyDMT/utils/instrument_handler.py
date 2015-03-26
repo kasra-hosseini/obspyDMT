@@ -19,7 +19,10 @@ import fnmatch
 import multiprocessing
 from obspy.core import read
 from obspy import read_inventory
-from obspy.xseed import Parser
+try:
+    from obspy.io.xseed import Parser
+except Exception, e:
+    from obspy.xseed import Parser
 import os
 import sys
 

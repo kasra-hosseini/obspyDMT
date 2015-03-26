@@ -22,8 +22,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from obspy.core.event import Catalog, readEvents
 from obspy.core import read, UTCDateTime
-from obspy.core.util import locations2degrees
-from obspy.fdsn import Client as Client_fdsn
+try:
+    from obspy.geodetics import locations2degrees
+except Exception, e:
+    from obspy.core.util import locations2degrees
+try:
+    from obspy.clients.fdsn import Client as Client_fdsn
+except Exception, e:
+    from obspy.fdsn import Client as Client_fdsn
 import os
 import pickle
 import re

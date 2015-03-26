@@ -21,7 +21,10 @@ from mpl_toolkits.basemap import Basemap
 import numpy as np
 from obspy import read_inventory
 from obspy.signal import pazToFreqResp
-from obspy.core.util import locations2degrees
+try:
+    from obspy.geodetics import locations2degrees
+except Exception, e:
+    from obspy.core.util import locations2degrees
 from obspy.core import read, UTCDateTime
 from obspy.imaging.beachball import Beach
 import os

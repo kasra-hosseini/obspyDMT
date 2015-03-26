@@ -16,7 +16,10 @@
 # Required Python and Obspy modules will be imported in this part.
 from datetime import datetime
 import multiprocessing
-from obspy.arclink import Client as Client_arclink
+try:
+    from obspy.clients.arclink import Client as Client_arclink
+except Exception, e:
+    from obspy.arclink import Client as Client_arclink
 from obspy.core import UTCDateTime
 import os
 import pickle

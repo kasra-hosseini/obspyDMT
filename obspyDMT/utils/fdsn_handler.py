@@ -18,7 +18,10 @@ from datetime import datetime
 import fileinput
 import glob
 import multiprocessing
-from obspy.fdsn import Client as Client_fdsn
+try:
+    from obspy.clients.fdsn import Client as Client_fdsn
+except Exception, e:
+    from obspy.fdsn import Client as Client_fdsn
 import os
 import pickle
 
