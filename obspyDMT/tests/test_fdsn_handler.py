@@ -50,7 +50,7 @@ def test_FDSN_network():
     FDSN_network(input_dics, events)
 
     st_raw = read(os.path.join(input_dics['datapath'],
-                               '2011-03-01_2011-03-20_8.9_9.9',
+                               '2011-03-01_2011-03-20',
                                '20110311_1',
                                'BH_RAW', '*'))
     assert len(st_raw) == 7
@@ -83,7 +83,7 @@ def test_FDSN_ARC_IC():
     FDSN_ARC_IC(input_dics, input_dics['fdsn_base_url'])
 
     st_cor = read(os.path.join(input_dics['datapath'],
-                               '2011-03-01_2011-03-20_8.9_9.9',
+                               '2011-03-01_2011-03-20',
                                '20110311_1',
                                'BH', '*'))
     assert len(st_cor) == 7
@@ -147,7 +147,7 @@ def test_FDSN_update():
     FDSN_ARC_IC(input_dics, input_dics['fdsn_base_url'])
 
     st_cor = read(os.path.join(input_dics['datapath'],
-                               '2011-03-01_2011-03-20_8.9_9.9',
+                               '2011-03-01_2011-03-20',
                                '20110311_1',
                                'BH', '*'))
     assert len(st_cor) == 8
