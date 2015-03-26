@@ -103,26 +103,25 @@ def obspyDMT(**kwargs):
 
 
 def main():
-    try:
-        from pycallgraph import PyCallGraph
-        from pycallgraph.output import GraphvizOutput
+    t1_pro = time.time()
+    # Run the main program
+    input_dics = obspyDMT()
+    goodbye_printer(input_dics, t1_pro)
+    # pass the return of main to the command line.
+    sys.exit()
 
-        t1_pro = time.time()
-        graphviz = GraphvizOutput()
-        graphviz.output_file = 'profile_%s.png' % int(t1_pro)
-        with PyCallGraph(output=graphviz):
-            # Run the main program
-            input_dics = obspyDMT()
-            goodbye_printer(input_dics, t1_pro)
-            # pass the return of main to the command line.
-            sys.exit()
-    except Exception, e:
-        t1_pro = time.time()
-        # Run the main program
-        input_dics = obspyDMT()
-        goodbye_printer(input_dics, t1_pro)
-        # pass the return of main to the command line.
-        sys.exit()
+    # For debugging purposes:
+    # from pycallgraph import PyCallGraph
+    # from pycallgraph.output import GraphvizOutput
+    # t1_pro = time.time()
+    # graphviz = GraphvizOutput()
+    # graphviz.output_file = 'profile_%s.png' % int(t1_pro)
+    # with PyCallGraph(output=graphviz):
+    #     # Run the main program
+    #     input_dics = obspyDMT()
+    #     goodbye_printer(input_dics, t1_pro)
+    #     # pass the return of main to the command line.
+    #     sys.exit()
 
 if __name__ == "__main__":
     main()
