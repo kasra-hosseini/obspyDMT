@@ -14,3 +14,13 @@ obspyDMT.py                    ----------> CHECKED
 2. plotxml and nightly based checks!
 3. events more than a magnitude, retrieve GSN and compare with synthetics + shakemovie, put it on the website
 4. movie out of real data
+
+
+
+
+========================================
+Upload to PyPI Live
+
+1. Change the version of the code
+2. python setup.py register -r pypi
+3. python setup.py sdist upload -r pypi
