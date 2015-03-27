@@ -2,7 +2,7 @@
 obspyDMT: A Python Toolbox for Retrieving and Processing of Large Seismological Datasets
 ========================================================================================
 
-Welcome to obspyDMT version 0.9.0 tutorial!
+Welcome to obspyDMT version 1.0.0 tutorial!
 
 obspyDMT_ (obspy Data Management Tool) is a command line tool for retrieving, processing and management of large seismological datasets in a fully automatic way which can be run in serial or in parallel.
 
@@ -12,7 +12,7 @@ This tool is developed mainly to address the following tasks automatically:
 2. Supports both event-based and continuous requests.
 3. Extracting the information of all the events via user-defined options (time span, magnitude, depth and event location) from IRIS, NEIC and GCMT. Therefore, moment tensor information can also be retrieved.
 4. Updating existing archives (waveforms, stationXML/response files and metadata).
-5. Processing the data in *serial* or in *parallel* (e.g. *removing the trend of the time series, tapering, filtering and Instrument correction*).
+5. Processing the data in *serial* or in *parallel* (e.g. *removing the trends and means of the time series, tapering, filtering and Instrument correction*).
 6. Management of large seismological datasets.
 7. Plotting tools (events and/or station locations, ray coverage (event-station pair), epicentral-distance plots for all archived waveforms and seismicity maps). In case that the moment tensor information is retrieved, it is also possible to plot the beachballs at the location of events.
 8. Exploring stationXML files by plotting the instrument response for all stages and/or for each stage.
@@ -60,19 +60,18 @@ We have also published a paper in SRL (Seismological Research Letters) for obspy
 Lets get started
 -----------------
 
-Once a working Python and ObsPy_ environment are installed, obspyDMT can be installed from the source-code:
+Once a working Python and ObsPy_ environment are installed,
+obspyDMT can be installed in different ways:
+
+**1. install obspyDMT package locally:** One simple way to install obspyDMT
+is via PyPi:
 
 ::
 
-    clone the obspyDMT git repository (or fork obspyDMT in GitHub and clone your fork):
+    pip install obspyDMT
 
-::
-    
-    $ git clone https://github.com/kasra-hosseini/obspyDMT.git /path/to/my/obspyDMT
-    $ cd /path/to/my/obspyDMT
-    $ python setup.py install
-
-Alternatively:
+**2. install obspyDMT from the source code**: the latest version of obspyDMT
+is available on GitHub. After installing git on your machine:
 
 ::
     
@@ -80,7 +79,17 @@ Alternatively:
     $ cd /path/to/my/obspyDMT
     $ pip install -v -e .
 
-In case that these do not work for you, the source code could be downloaded directly from GitHub_ website and you can either work with the source code or install it:
+Alternatively:
+
+::
+    
+    $ git clone https://github.com/kasra-hosseini/obspyDMT.git /path/to/my/obspyDMT
+    $ cd /path/to/my/obspyDMT
+    $ python setup.py install
+
+**3. running from the source code:** in case that none of the above methods
+worked for you, the source code could be downloaded directly from GitHub_
+website and you can either work with the source code or install it:
 
 ::
     
@@ -244,7 +253,7 @@ When the job starts, a folder will be created with the address specified by *--d
 
 ::
 
-    cd ./event_info_example/2013-05-01_2014-01-01_6.6_8.0/EVENTS-INFO
+    cd ./event_info_example/2013-05-01_2014-01-01/EVENTS-INFO
 
 and check the *catalog_table.txt* and *catalog.txt* text files or *catalog.ml* which is in QuakeML format (Please refer to `Folder structure`_ section for more information).
 
@@ -297,7 +306,7 @@ We can look at the event and station distributions for this request by:
 
 ::
 
-    $ obspyDMT --plot_dir obspyDMT-data/2011-03-01_2011-03-30_8.9_9.9/ --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev
+    $ obspyDMT --plot_dir obspyDMT-data/2011-03-01_2011-03-30 --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev
 
 
 .. image:: figures/event_based_ex1.png
@@ -511,7 +520,9 @@ To check all the retrieved stations:
 Instrument correction
 ---------------------
 
-When obspyDMT retrieves waveforms and their stationXML/response files, by default it removes the trends of time series, tapers the waveforms, filters and corrects them to the desired physical unit (displacement, velocity or acceleration). The default correction unit is Displacement and to change it into Velocity or Acceleration:
+When obspyDMT retrieves waveforms and their stationXML/response files, by
+default it removes the trends and means of time series, tapers the waveforms,
+filters and corrects them to the desired physical unit (displacement, velocity or acceleration). The default correction unit is Displacement and to change it into Velocity or Acceleration:
 
 ::
 
@@ -728,7 +739,7 @@ Moreover, it is possible to plot the stages of the stationXML file as well:
 
 ::
 
-    $ obspyDMT --plotxml_dir gsn_example/2014-01-01_2014-03-01_6.0_9.9/20140226_1/Resp --plotxml_paz
+    $ obspyDMT --plotxml_dir gsn_example/2014-01-01_2014-03-01/20140226_1/Resp --plotxml_paz
 
 All the results will be stored at *./stationxml_plots*. As an example:
 
@@ -743,7 +754,7 @@ Moreover, a text file will be created: *report_stationxml* in the same directory
     channel_id  %(Phase)  Max Diff(abs)  Lat  Lon  Datetime  decimation delay  decimation correction
 
 *channel_id* is the name of the channel with latitude (Lat) and longitude (Lon).
-*Datetime* is the creationg time for the StationXML file.
+*Datetime* is the creation time for the StationXML file.
 *decimation delay* is the delay time that has been caused by decimation stages.
 *decimation correction* is the time that has been already corrected in the
 instrument. The other parameters (*%(Phase)* and *Max Diff(abs)*) is
@@ -880,7 +891,7 @@ We can look at the event and station distributions for this request by:
 
 ::
 
-    $ obspyDMT --plot_dir neic_ex1/2011-03-01_2011-03-30_8.9_9.9/ --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
+    $ obspyDMT --plot_dir neic_ex1/2011-03-01_2011-03-30 --min_date 2011-01-01 --plot_ray --plot_sta --plot_ev --plot_focal
 
 .. image:: figures/neic_ex1.png
    :scale: 75%
@@ -920,7 +931,7 @@ Histogram of event depths:
 
 **GCMT**
 
-**This functionality is currently available only for developer version of obspy, and it does not work with version: 0.9.2**
+**This functionality is currently available only for the latest version of obspy, and it does not work with version: 0.9.2**
 
 **Example 3** obspyDMT can retrieve the event information (including moment tensor) from GCMT. Similar to *Example 1*, it is enough to:
 
