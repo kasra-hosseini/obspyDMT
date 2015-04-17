@@ -682,28 +682,31 @@ def plot_xml_response(input_dics):
                 plt.grid()
 
                 if plotstage12 or plotpaz:
-                    plt.subplot(2, 2, 2)
+                    ax_222 = plt.subplot(2, 2, 2)
                     if plotstage12:
                         plt.loglog(freq, abs(abs(cpx_response) - abs(cpx_12)),
                                    '--', color='black', lw=3,
                                    label='|full-resp - Stage1,2|')
+                    amp_ratio = 1
                     if plotpaz:
-                        plt.loglog(f, abs(abs(cpx_response) -
-                                          abs(h)*paz['sensitivity']),
+                        amp_ratio = abs(abs(cpx_response) /
+                                        (abs(h)*paz['sensitivity']))
+                        plt.loglog(f, amp_ratio,
                                    color='red', lw=3,
-                                   label='|full-resp - PAZ|')
+                                   label='|full-resp|/|PAZ|')
                     plt.axvline(nyquist, ls="--", color='blue', lw=3)
                     plt.axvline(percentage*nyquist, ls="--",
                                 color='blue', lw=3)
-                    plt.ylabel('Amplitude Difference', size=24, weight='bold')
+                    plt.ylabel('Amplitude ratio', size=24, weight='bold')
                     plt.xticks(size=18, weight='bold')
                     plt.yticks(size=18, weight='bold')
                     plt.xlim(xmin=min_freq, xmax=nyquist+5)
-                    plt.ylim(ymax=max(1.2*abs(cpx_response)))
+                    plt.ylim(ymax=1.2*max(amp_ratio[np.logical_not(
+                        np.isnan(amp_ratio))]))
                     plt.legend(loc=0, prop={'size': 18, 'weight': 'bold'})
                     plt.grid()
 
-                    plt.subplot(2, 2, 4)
+                    ax_224 = plt.subplot(2, 2, 4)
                     if plotstage12:
                         plt.semilogx(freq, abs(phase_resp - phase_12),
                                      color='black', ls='--', lw=3,
@@ -716,7 +719,7 @@ def plot_xml_response(input_dics):
                     plt.axvline(percentage*nyquist, ls="--",
                                 color='blue', lw=3)
                     plt.xlabel('Frequency [Hz]', size=24, weight='bold')
-                    plt.ylabel('Phase Difference [rad]',
+                    plt.ylabel('Phase difference [rad]',
                                size=24, weight='bold')
                     plt.xticks(size=18, weight='bold')
                     plt.yticks(size=18, weight='bold')

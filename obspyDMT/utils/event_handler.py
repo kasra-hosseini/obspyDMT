@@ -259,6 +259,9 @@ def events_info(input_dics, request):
                             events_QML.events[i].preferred_focal_mechanism()
                             ['moment_tensor']['source_time_function']
                             ['duration']]
+                        if not half_duration[1]:
+                            half_duration = mag_halfduration(
+                                mag=events_QML.events[i].preferred_magnitude().mag)
                     else:
                         half_duration = mag_halfduration(
                             mag=events_QML.events[i].preferred_magnitude().mag)
@@ -1542,4 +1545,4 @@ def mag_halfduration(mag, type_curve=1):
     else:
         sys.exit('%s Type for magnitude to half_duration conversion is not '
                  'implemented' % type_curve)
-    return half_duration
+    return ['triangle', half_duration]
