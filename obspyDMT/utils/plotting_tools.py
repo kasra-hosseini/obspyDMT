@@ -635,8 +635,6 @@ def plot_xml_response(input_dics):
             phase_12 = np.angle(cpx_12)
 
             if plot_response:
-                plt.close()
-                plt.ion()
                 plt.figure(figsize=(20, 10))
                 plt.suptitle(cha_name, size=24, weight='bold')
                 if plotpaz or plotstage12:
@@ -728,6 +726,7 @@ def plot_xml_response(input_dics):
                     plt.grid()
                 plt.savefig(os.path.join('stationxml_plots',
                                          cha_name + '.png'))
+                plt.close()
 
             # compare = abs(phase[:int(0.8*len(phase))] -
             #              np.angle(h[:int(0.8*len(phase))]))
@@ -892,8 +891,6 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
         print '[INFO] creating stationxml_plots directory...',
         os.mkdir('./stationxml_plots')
         print 'DONE'
-    plt.close()
-    plt.ion()
     plt.figure(figsize=(20, 10))
     plt.suptitle(cha_name, size=24, weight='bold')
     for i in range(start_stage, end_stage+1):
@@ -948,6 +945,7 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
         ax.grid()
     plt.savefig(os.path.join('stationxml_plots',
                              '%s_stages.png' % cha_name))
+    plt.close()
 
 # ##################### convert_xml_paz ######################################
 
