@@ -23,52 +23,27 @@ from utility_codes import read_station_event
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-# ##################### resample_all ####################################
+# ##################### resample_single ####################################
 
 
-def resample_all(i, address_events, des_sr, lancz_a=20):
+def resample_single(trace, des_sr, lancz_a=20):
     """
-    resample all the traces based on the selected sampling rate
+    resample a trace based on the selected sampling rate
     This method is based on lanczos
-    :param i:
-    :param address_events:
+    :param trace:
     :param des_sr:
     :param lancz_a:
     :return:
     """
-    sta_ev = read_station_event(address_events[i])
-    ls_saved_stas = []
-
-    for j in range(len(sta_ev[0])):
-        station_id = '%s.%s.%s.%s' % (sta_ev[0][j][0],
-                                      sta_ev[0][j][1],
-                                      sta_ev[0][j][2],
-                                      sta_ev[0][j][3])
-        ls_saved_stas.append(os.path.join(address_events[i],
-                                          'BH_RAW', station_id))
-    for j in range(len(sta_ev[0])):
-        try:
-            st = read(ls_saved_stas[j])
-            if len(st) > 1:
-                print "WARNING: %s\nprobably has some gaps" % ls_saved_stas[j]
-                print "\nIt will be merged (fill_value=0) before " \
-                      "writing the SAC file!"
-                st.merge(method=1, fill_value=0, interpolation_samples=0)
-
-            tr = st[0]
-            # resample
-            tr.data = lanczos.lanczos_resamp(tr.data,
-                                             1./tr.stats.sampling_rate,
-                                             1./des_sr,
-                                             lancz_a)
-            tr.stats.sampling_rate = des_sr
-
-            tr.write(ls_saved_stas[j], format='MSEED')
-
-        except Exception as e:
-            print '\nWARNING: %s' % e
-            print ls_saved_stas[j]
-            print '------------------'
+    try:
+        trace.data = lanczos.lanczos_resamp(trace.data,
+                                            1./trace.stats.sampling_rate,
+                                            1./des_sr,
+                                            lancz_a)
+        trace.stats.sampling_rate = des_sr
+    except Exception as e:
+        print '\nWARNING: %s' % e
+        print '------------------'
 
 # ##################### writesac_all ####################################
 
