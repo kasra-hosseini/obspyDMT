@@ -6,7 +6,7 @@
 #   Purpose:   Collection of helping scripts, utility codes
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
-#   License:   GPLv3
+#   License:   GNU Lesser General Public License, Version 3
 # -------------------------------------------------------------------
 
 # -----------------------------------------------------------------------

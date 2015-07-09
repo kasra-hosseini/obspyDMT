@@ -6,7 +6,7 @@
 #   Purpose:   simple code to create list_stas to be used by DMT
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
-#   License:   GPLv3
+#   License:   GNU Lesser General Public License, Version 3
 # -------------------------------------------------------------------
 
 # -----------------------------------------------------------------------

@@ -6,7 +6,7 @@
 #   Purpose:   handling ArcLink in obspyDMT
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
-#   License:   GPLv3
+#   License:   GNU Lesser General Public License, Version 3
 # -------------------------------------------------------------------
 
 # -----------------------------------------------------------------------
