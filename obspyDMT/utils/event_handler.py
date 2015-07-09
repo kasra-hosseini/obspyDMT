@@ -20,7 +20,11 @@ from datetime import datetime, timedelta
 import glob
 import matplotlib.pyplot as plt
 import numpy as np
-from obspy.core.event import Catalog, readEvents
+from obspy.core.event import Catalog
+try:
+    from obspy.core.event import readEvents
+except Exception, e:
+    from obspy import read_events as readEvents
 from obspy.core import read, UTCDateTime
 try:
     from obspy.geodetics import locations2degrees
@@ -207,6 +211,59 @@ def events_info(input_dics, request):
             # no matter if list was passed or requested, sort catalogue,
             # plot events and proceed
             events_QML = sort_catalogue(events_QML)
+
+            # file_fio = open('catalog.txt', 'w')
+            # for ss in range(len(events_QML)-1, -1, -1):
+            #     pref_orig = events_QML[ss].preferred_origin()
+            #     pref_magn = events_QML[ss].preferred_magnitude()
+            #     pref_focl = events_QML[ss].preferred_focal_mechanism()
+            #     ev_mom_max = max(abs(pref_focl.moment_tensor['tensor'].m_rr),
+            #                      abs(pref_focl.moment_tensor['tensor'].m_tt),
+            #                      abs(pref_focl.moment_tensor['tensor'].m_pp),
+            #                      abs(pref_focl.moment_tensor['tensor'].m_rp),
+            #                      abs(pref_focl.moment_tensor['tensor'].m_rt),
+            #                      abs(pref_focl.moment_tensor['tensor'].m_tp))
+            #     exp_mom = int(str(ev_mom_max).split('e')[1])
+            #     print exp_mom
+            #     try:
+            #         one_line = '%04i %02i %02i %02i:%02i:%02i.%02i %6.3f %6.3f PDE| ' \
+            #                    '%4.2f %2.1f XX  XX     |%s  %i %.2f %.2f %.2f ' \
+            #                    '%.2f %.2f %.2f | ' \
+            #                    '%i %i %i %i %i %i\n' \
+            #                    % (pref_orig.time.year, pref_orig.time.month,
+            #                       pref_orig.time.day, pref_orig.time.hour,
+            #                       pref_orig.time.minute, pref_orig.time.second,
+            #                       pref_orig.time.microsecond/1.e4,
+            #                       pref_orig.latitude, pref_orig.longitude,
+            #                       pref_orig.depth/1000.,
+            #                       pref_magn.mag,
+            #                       pref_orig['creation_info']['agency_id'],
+            #                       exp_mom,
+            #                       pref_focl.moment_tensor['tensor'].m_rr/float(
+            #                           np.power(10, exp_mom)),
+            #                       pref_focl.moment_tensor['tensor'].m_tt/float(
+            #                           np.power(10, exp_mom)),
+            #                       pref_focl.moment_tensor['tensor'].m_pp/float(
+            #                           np.power(10, exp_mom)),
+            #                       pref_focl.moment_tensor['tensor'].m_rp/float(
+            #                           np.power(10, exp_mom)),
+            #                       pref_focl.moment_tensor['tensor'].m_rt/float(
+            #                           np.power(10, exp_mom)),
+            #                       pref_focl.moment_tensor['tensor'].m_tp/float(
+            #                           np.power(10, exp_mom)),
+            #                       pref_focl.nodal_planes['nodal_plane_1']['strike'],
+            #                       pref_focl.nodal_planes['nodal_plane_1']['dip'],
+            #                       pref_focl.nodal_planes['nodal_plane_1']['rake'],
+            #                       pref_focl.nodal_planes['nodal_plane_2']['strike'],
+            #                       pref_focl.nodal_planes['nodal_plane_2']['dip'],
+            #                       pref_focl.nodal_planes['nodal_plane_2']['rake']
+            #                       )
+            #         file_fio.writelines(one_line)
+            #     except Exception, e:
+            #         continue
+            #     print one_line
+            # file_fio.close()
+            # import ipdb; ipdb.set_trace()
 
             if input_dics['plot_all_events']:
                 plt.ion()
