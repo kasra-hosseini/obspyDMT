@@ -26,7 +26,7 @@ import pickle
 import time
 
 from event_handler import quake_info, create_folders_files
-from format_converter import writesac_all
+from format_converter import writesac_all, resample_all
 from utility_codes import read_list_stas, calculate_time_phase, getFolderSize
 
 # ##################### Arclink_network #################################
@@ -160,6 +160,12 @@ def ARC_waveform(input_dics, events, Sta_req, i, req_type):
 
     ARC_serial_parallel(i, events, add_event, Sta_req, input_dics,
                         len_req_arc)
+
+    if input_dics['resample']:
+        print '\nResampling the traces to %s...' % input_dics['resample'],
+        resample_all(i=i, address_events=add_event,
+                     des_sr=input_dics['resample'])
+        print 'DONE'
     if input_dics['SAC'] == 'Y':
         print '\nConverting the MSEED files to SAC...',
         writesac_all(i=i, address_events=add_event)

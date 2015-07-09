@@ -320,8 +320,9 @@ def command_parse():
                          dest="station_circle", help=helpmsg)
     parser.add_option_group(group_sta)
 
-    # --------------- Time window and waveform format
-    group_tw = OptionGroup(parser, "7. Time window and waveform format")
+    # --------------- Time window and waveform format and sampling rate
+    group_tw = OptionGroup(parser, "7. Time window and waveform format and "
+                                   "sampling rate")
     helpmsg = "time parameter in seconds which determines " \
               "how close the time series data (waveform) will be cropped " \
               "before the origin time of the event. Default: 0.0 seconds."
@@ -354,6 +355,13 @@ def command_parse():
     helpmsg = "MSEED format for saving the waveforms."
     group_tw.add_option("--mseed", action="store_true",
                         dest="mseed", help=helpmsg)
+
+    helpmsg = "Desired sampling rate (in Hz) of the seismograms. " \
+              "Resampling is done using a Lanczos kernel. " \
+              "If not specified, the sampling rate of the waveforms " \
+              "will not be changed."
+    group_tw.add_option("--resample", action="store",
+                        dest="resample", help=helpmsg)
     parser.add_option_group(group_tw)
 
     # --------------- FDSN
@@ -763,6 +771,7 @@ def read_input_command(parser, **kwargs):
                   'arc_avai_timeout': 40,
                   'arc_wave_timeout': 2,
                   'SAC': 'Y',
+                  'resample': None,
                   'preset': 0.0, 'offset': 1800.0,
                   'net': '*', 'sta': '*', 'loc': '*', 'cha': '*',
                   'evlatmin': None, 'evlatmax': None,
@@ -848,7 +857,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '0.9.9b' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.9.9c' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -1083,6 +1092,10 @@ def read_input_command(parser, **kwargs):
         input_dics['mseed'] = 'Y'
     else:
         input_dics['mseed'] = 'N'
+    if options.resample:
+        input_dics['resample'] = float(options.resample)
+    else:
+        input_dics['resample'] = False
     input_dics['FDSN'] = options.FDSN
     input_dics['fdsn_base_url'] = options.fdsn_base_url
     input_dics['fdsn_user'] = options.fdsn_user
