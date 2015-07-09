@@ -113,7 +113,12 @@ way which can be run in serial or in parallel.
         "Operating System :: OS Independent",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Scientific/Engineering",
-        "Topic :: Scientific/Engineering :: Physics"]
+        "Topic :: Scientific/Engineering :: Physics"],
+    entry_points={
+        'console_scripts': [
+            'obspyDMT = obspyDMT.obspyDMT:main',
+        ],
+    }
 )
 
 if __name__ == "__main__":
