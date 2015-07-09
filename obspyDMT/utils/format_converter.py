@@ -17,33 +17,11 @@
 import os
 from obspy.core import read
 
-from . import lanczos
 from utility_codes import read_station_event
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-# ##################### resample_single ####################################
-
-
-def resample_single(trace, des_sr, lancz_a=20):
-    """
-    resample a trace based on the selected sampling rate
-    This method is based on lanczos
-    :param trace:
-    :param des_sr:
-    :param lancz_a:
-    :return:
-    """
-    try:
-        trace.data = lanczos.lanczos_resamp(trace.data,
-                                            1./trace.stats.sampling_rate,
-                                            1./des_sr,
-                                            lancz_a)
-        trace.stats.sampling_rate = des_sr
-    except Exception as e:
-        print '\nWARNING: %s' % e
-        print '------------------'
 
 # ##################### writesac_all ####################################
 

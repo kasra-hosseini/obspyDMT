@@ -26,7 +26,8 @@ import pickle
 import time
 
 from event_handler import quake_info, create_folders_files
-from format_converter import writesac_all, resample_all
+from format_converter import writesac_all
+from resample_handler import resample_all
 from utility_codes import read_list_stas, calculate_time_phase, getFolderSize
 
 # ##################### Arclink_network #################################
