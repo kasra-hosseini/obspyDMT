@@ -212,6 +212,7 @@ def events_info(input_dics, request):
             # plot events and proceed
             events_QML = sort_catalogue(events_QML)
 
+            # === Experimental (for creating EQ catalogues readable by source inversion)
             # file_fio = open('catalog.txt', 'w')
             # for ss in range(len(events_QML)-1, -1, -1):
             #     pref_orig = events_QML[ss].preferred_origin()
@@ -264,6 +265,7 @@ def events_info(input_dics, request):
             #     print one_line
             # file_fio.close()
             # import ipdb; ipdb.set_trace()
+            # === END experimental
 
             if input_dics['plot_all_events']:
                 plt.ion()

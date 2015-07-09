@@ -29,7 +29,7 @@ from .utility_codes import read_station_event
 lib = load_lib()
 
 """
-Following functions are copied from instaseis tool:
+Following functions are copied from instaseis:
 lanczos_resamp, lanczos_kern
 
 with the following header:
@@ -153,7 +153,6 @@ def decimate_trace(tr, dt):
 def resample_all(i, address_events, des_sr):
     """
     resample all the traces based on the selected sampling rate
-    This method is based on lanczos
     :param i:
     :param address_events:
     :param des_sr:

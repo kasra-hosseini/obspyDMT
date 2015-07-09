@@ -96,7 +96,7 @@ way which can be run in serial or in parallel.
     author_email="hosseini@geophysik.uni-muenchen.de",
     url="https://github.com/kasra-hosseini/obspyDMT",
     packages=find_packages(),
-    license="GPLv3",
+    license="GNU Lesser General Public License, Version 3",
     platforms="OS Independent",
     ext_package='obspyDMT.lib',
     ext_modules=[lib],

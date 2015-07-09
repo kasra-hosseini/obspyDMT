@@ -356,7 +356,7 @@ def command_parse():
     group_tw.add_option("--mseed", action="store_true",
                         dest="mseed", help=helpmsg)
 
-    helpmsg = "Desired sampling rate (in Hz) of the seismograms. " \
+    helpmsg = "Desired sampling rate (in Hz) for the seismograms. " \
               "Resampling is done using decimation with sharp low pass filter. " \
               "If not specified, the sampling rate of the waveforms " \
               "will not be changed."
