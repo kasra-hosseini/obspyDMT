@@ -20,7 +20,10 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 import numpy as np
 from obspy import read_inventory
-from obspy.signal import pazToFreqResp
+try:
+    from obspy.signal import pazToFreqResp
+except Exception, e:
+    from obspy.signal.invsim import paz_to_freq_resp as pazToFreqResp
 try:
     from obspy.geodetics import locations2degrees
 except Exception, e:
@@ -595,12 +598,15 @@ def plot_xml_response(input_dics):
                       'instead: %s' % cha_date
 
             xml_response = xml_inv.get_response(cha_name, cha_date + 0.1)
-            for stage in xml_response.response_stages[::-1]:
-                if (stage.decimation_input_sample_rate is not None
-                        and stage.decimation_factor is not None):
-                    sampling_rate = (stage.decimation_input_sample_rate /
-                                     stage.decimation_factor)
-                    break
+            if xml_inv[0][0][0].sample_rate:
+                sampling_rate = xml_inv[0][0][0].sample_rate
+            else:
+                for stage in xml_response.response_stages[::-1]:
+                    if (stage.decimation_input_sample_rate is not None
+                            and stage.decimation_factor is not None):
+                        sampling_rate = (stage.decimation_input_sample_rate /
+                                         stage.decimation_factor)
+                        break
 
             t_samp = 1.0 / sampling_rate
             nyquist = sampling_rate / 2.0
