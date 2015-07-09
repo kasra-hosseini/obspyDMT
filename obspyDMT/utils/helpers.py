@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Library loading helper. (Adapted to obspyDMT)
+Library loading helper. (Adapted to obspyDMT by Kasra Hosseini)
 
 :copyright:
     Lion Krischer (krischer@geophysik.uni-muenchen.de), 2014
