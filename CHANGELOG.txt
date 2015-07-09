@@ -1,3 +1,7 @@
+0.9.9d:
+  - obspyDMT:
+    * resample is added but not yet tested
+    * all the modules are tested
 0.7.6:
   - obspyDMT:
     * all the new changes introduced by FDSN are now included
