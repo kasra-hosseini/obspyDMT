@@ -22,7 +22,6 @@ from utility_codes import read_station_event
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-
 # ##################### writesac_all ####################################
 
 

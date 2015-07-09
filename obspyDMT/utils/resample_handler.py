@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # -------------------------------------------------------------------
-#   Filename:  fdsn_handler.py
-#   Purpose:   handling FDSN in obspyDMT
+#   Filename:  resample_handler.py
+#   Purpose:   handling resampling in obspyDMT
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GPLv3
@@ -150,7 +150,7 @@ def decimate_trace(tr, dt):
 # ##################### resample_all ####################################
 
 
-def resample_all(i, address_events, des_sr, lancz_a=20):
+def resample_all(i, address_events, des_sr):
     """
     resample all the traces based on the selected sampling rate
     This method is based on lanczos
@@ -181,12 +181,14 @@ def resample_all(i, address_events, des_sr, lancz_a=20):
 
             tr = st[0]
             # resample
+            tr = decimate_trace(tr, dt=1./des_sr)
+
+            # The following lines are still experimental
             # tr.data = resample_handler.lanczos_resamp(tr.data,
             #                                  1./tr.stats.sampling_rate,
             #                                  1./des_sr,
             #                                  lancz_a)
             # tr.stats.sampling_rate = des_sr
-            tr = decimate_trace(tr, dt=1./des_sr)
 
             tr.write(ls_saved_stas[j], format='MSEED')
 
@@ -194,25 +196,3 @@ def resample_all(i, address_events, des_sr, lancz_a=20):
             print('\nWARNING: %s' % e)
             print(ls_saved_stas[j])
             print('------------------')
-
-# ##################### resample_single ####################################
-
-
-def resample_single(trace, des_sr, lancz_a=20):
-    """
-    resample a trace based on the selected sampling rate
-    This method is based on lanczos
-    :param trace:
-    :param des_sr:
-    :param lancz_a:
-    :return:
-    """
-    try:
-        trace.data = lanczos_resamp(trace.data,
-                                    1./trace.stats.sampling_rate,
-                                    1./des_sr,
-                                    lancz_a)
-        trace.stats.sampling_rate = des_sr
-    except Exception as e:
-        print('\nWARNING: %s' % e)
-        print('------------------')

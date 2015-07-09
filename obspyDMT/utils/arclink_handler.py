@@ -163,7 +163,7 @@ def ARC_waveform(input_dics, events, Sta_req, i, req_type):
                         len_req_arc)
 
     if input_dics['resample']:
-        print '\nResampling the traces to %s...' % input_dics['resample'],
+        print '\nResampling the traces to %sHz...' % input_dics['resample'],
         resample_all(i=i, address_events=add_event,
                      des_sr=input_dics['resample'])
         print 'DONE'

@@ -320,8 +320,8 @@ def command_parse():
                          dest="station_circle", help=helpmsg)
     parser.add_option_group(group_sta)
 
-    # --------------- Time window and waveform format and sampling rate
-    group_tw = OptionGroup(parser, "7. Time window and waveform format and "
+    # --------------- Time window, waveform format and sampling rate
+    group_tw = OptionGroup(parser, "7. Time window, waveform format and "
                                    "sampling rate")
     helpmsg = "time parameter in seconds which determines " \
               "how close the time series data (waveform) will be cropped " \
@@ -357,7 +357,7 @@ def command_parse():
                         dest="mseed", help=helpmsg)
 
     helpmsg = "Desired sampling rate (in Hz) of the seismograms. " \
-              "Resampling is done using a Lanczos kernel. " \
+              "Resampling is done using decimation with sharp low pass filter. " \
               "If not specified, the sampling rate of the waveforms " \
               "will not be changed."
     group_tw.add_option("--resample", action="store",
