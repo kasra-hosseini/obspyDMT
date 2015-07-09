@@ -82,7 +82,7 @@ lib = MyExtension('obspyDMT',
 
 setup_config = dict(
     name="obspyDMT",
-    version="0.9.9c",
+    version="0.9.9d",
     keywords=["obspyDMT", "ObsPy", "Seismology"],
     requires=['matplotlib', 'numpy'],
     description="obspyDMT: A Python Toolbox for Retrieving and Processing of "
