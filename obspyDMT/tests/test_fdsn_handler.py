@@ -17,7 +17,10 @@
 import matplotlib.pyplot as plt
 import os
 from obspy.core import UTCDateTime, read
-from obspy.signal import seisSim
+try:
+    from obspy.signal import seisSim
+except Exception, e:
+    from obspy.signal.invsim import seisSim
 
 from obspyDMT.utils.event_handler import get_Events
 from obspyDMT.utils.fdsn_handler import FDSN_network

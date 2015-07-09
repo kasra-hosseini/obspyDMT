@@ -24,7 +24,7 @@ from scipy import signal
 import ctypes as C
 
 from .helpers import load_lib
-from utility_codes import read_station_event
+from .utility_codes import read_station_event
 
 lib = load_lib()
 
