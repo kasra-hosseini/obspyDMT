@@ -13,6 +13,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
+from scipy import signal
 import ctypes as C
 
 from .helpers import load_lib
@@ -68,3 +69,33 @@ def lanczos_kern(x, a):
         C.byref(kern))
 
     return kern.value
+
+
+def zerophase_chebychev_lowpass_filter(trace, freqmax):
+    """
+    Custom Chebychev type two zerophase lowpass filter useful for
+    decimation filtering.
+    This filter is stable up to a reduction in frequency with a factor of
+    10. If more reduction is desired, simply decimate in steps.
+    Partly based on a filter in ObsPy.
+    :param trace: The trace to be filtered.
+    :param freqmax: The desired lowpass frequency.
+    Will be replaced once ObsPy has a proper decimation filter.
+
+    This code is from LASIF repository (Lion Krischer).
+    """
+    # rp - maximum ripple of passband, rs - attenuation of stopband
+    rp, rs, order = 1, 96, 1e99
+    ws = freqmax / (trace.stats.sampling_rate * 0.5) # stop band frequency
+    wp = ws # pass band frequency
+
+    while True:
+        if order <= 12:
+            break
+        wp *= 0.99
+        order, wn = signal.cheb2ord(wp, ws, rp, rs, analog=0)
+
+    b, a = signal.cheby2(order, rs, wn, btype="low", analog=0, output="ba")
+
+    # Apply twice to get rid of the phase distortion.
+    trace.data = signal.filtfilt(b, a, trace.data)
