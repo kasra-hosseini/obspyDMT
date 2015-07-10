@@ -1010,7 +1010,7 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
     paz = {'poles': poles}
 
     input_units = xml_response.response_stages[0].input_units
-    if not input_units.lower() in ['m', 'm/s', 'm/s**2']:
+    if not input_units.lower() in ['m', 'm/s', 'm/s**2', 'pa']:
         print('ERROR: input unit is not defined: %s\nContact the developer'
               % input_units)
         error_fio = open(os.path.join('./stationxml_plots',

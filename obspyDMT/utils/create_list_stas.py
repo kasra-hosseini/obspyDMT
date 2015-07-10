@@ -51,10 +51,15 @@ net_inv = inv.networks[0]
 fio = open(file_name, 'w')
 for _i in range(len(chans)):
     net, sta, loc, cha = chans[_i].split('.')
-    coord_chan = get_coordinates(net_inv, chans[_i], None)
-    fio.writelines('%s  %s  %s  %s  %s  %s  %s  %s\n'
-                   % (sta, net, loc, cha, coord_chan['latitude'],
-                      coord_chan['longitude'], coord_chan['elevation'],
-                      coord_chan['local_depth']))
+    try:
+        coord_chan = get_coordinates(net_inv, chans[_i], None)
+        fio.writelines('%s  %s  %s  %s  %s  %s  %s  %s\n'
+                       % (sta, net, loc, cha, coord_chan['latitude'],
+                          coord_chan['longitude'], coord_chan['elevation'],
+                          coord_chan['local_depth']))
+    except Exception, e:
+        fio.writelines('%s  %s  %s  %s  %s  %s  %s  %s\n'
+                       % (sta, net, loc, cha, 'XXX', 'XXX', 'XXX', 'XXX'))
+
 
 fio.close()
