@@ -1,3 +1,6 @@
+0.9.9e:
+  - obspyDMT:
+    * PA (pressue) is now supported in plotxml 
 0.9.9d:
   - obspyDMT:
     * resample is added but not yet tested
