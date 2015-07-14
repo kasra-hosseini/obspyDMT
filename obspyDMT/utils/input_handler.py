@@ -67,6 +67,9 @@ def command_parse():
     """
     Parsing command-line options.
     :return:
+    options, args, parser
+    These three variables contain the information of the command line; i.e.
+    the values that have been passed by the user.
     """
     # create command line option parser
     parser = OptionParser("%prog [options]")
@@ -356,12 +359,25 @@ def command_parse():
     group_tw.add_option("--mseed", action="store_true",
                         dest="mseed", help=helpmsg)
 
-    helpmsg = "Desired sampling rate (in Hz) for the seismograms. " \
+    helpmsg = "Resampling method: decimate, lanczos. 'decimate' uses ObsPy " \
+              "tools with sharp low pass filter to do the decimation. " \
+              "'lanczos' uses 'lanczos resampling' method. [Default: decimate]"
+    group_tw.add_option("--resample_method", action="store",
+                        dest="resample_method", help=helpmsg)
+
+    helpmsg = "Desired sampling rate (in Hz) for RAW seismograms. " \
               "Resampling is done using decimation with sharp low pass filter. " \
               "If not specified, the sampling rate of the waveforms " \
               "will not be changed."
-    group_tw.add_option("--resample", action="store",
-                        dest="resample", help=helpmsg)
+    group_tw.add_option("--resample_raw", action="store",
+                        dest="resample_raw", help=helpmsg)
+
+    helpmsg = "Desired sampling rate (in Hz) for CORRECTED seismograms. " \
+              "Resampling is done using decimation with sharp low pass filter. " \
+              "If not specified, the sampling rate of the waveforms " \
+              "will not be changed."
+    group_tw.add_option("--resample_corr", action="store",
+                        dest="resample_corr", help=helpmsg)
     parser.add_option_group(group_tw)
 
     # --------------- FDSN
@@ -744,7 +760,9 @@ def read_input_command(parser, **kwargs):
     """
     Create input_dics object (dictionary) based on command-line options.
     The default values are as "input_dics" object (below)
-    :param parser:
+    :param parser: this object should be passed from another function (e.g
+    command_parser) which contains the values that have been passed by the
+    command line.
     :param kwargs:
     :return:
     """
@@ -771,7 +789,9 @@ def read_input_command(parser, **kwargs):
                   'arc_avai_timeout': 40,
                   'arc_wave_timeout': 2,
                   'SAC': 'Y',
-                  'resample': None,
+                  'resample_method': None,
+                  'resample_raw': None,
+                  'resample_corr': None,
                   'preset': 0.0, 'offset': 1800.0,
                   'net': '*', 'sta': '*', 'loc': '*', 'cha': '*',
                   'evlatmin': None, 'evlatmax': None,
@@ -1092,10 +1112,19 @@ def read_input_command(parser, **kwargs):
         input_dics['mseed'] = 'Y'
     else:
         input_dics['mseed'] = 'N'
-    if options.resample:
-        input_dics['resample'] = float(options.resample)
+
+    if options.resample_method:
+        input_dics['resample_method'] = options.resample_method
     else:
-        input_dics['resample'] = False
+        input_dics['resample_method'] = 'decimate'
+    if options.resample_raw:
+        input_dics['resample_raw'] = float(options.resample_raw)
+    else:
+        input_dics['resample_raw'] = False
+    if options.resample_corr:
+        input_dics['resample_corr'] = float(options.resample_corr)
+    else:
+        input_dics['resample_corr'] = False
     input_dics['FDSN'] = options.FDSN
     input_dics['fdsn_base_url'] = options.fdsn_base_url
     input_dics['fdsn_user'] = options.fdsn_user
