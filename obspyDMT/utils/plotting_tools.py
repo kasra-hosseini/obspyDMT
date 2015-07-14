@@ -528,7 +528,7 @@ def plot_xml_response(input_dics):
     plotting full response file
     plotting selected stages
     plotting only PAZ
-    :param input_dics:
+    :param input_dics: input dictionary.
     :return:
     """
 
@@ -573,8 +573,8 @@ def plot_xml_response(input_dics):
     sta_lat = []
     sta_lon = []
     latlon_color = []
-    report_fio = open(os.path.join('./stationxml_plots',
-                                   'report_stationxml'), 'w')
+    report_fio = open(os.path.join('./stationxml_plots', 'report_stationxml'),
+                      'w')
     report_fio.writelines('channel_id\t\t\t\t%(Phase)\t\t'
                           'Max Diff(abs) \tLat\t\t\tLon\t\t\tDatetime\t'
                           'decimation delay\tdecimation correction\n')
@@ -588,6 +588,7 @@ def plot_xml_response(input_dics):
         try:
             xml_inv = read_inventory(addxml, format='stationXML')
             print "[STATIONXML] %s" % addxml
+            # we only take into account the first channel...
             cha_name = xml_inv.get_contents()['channels'][0]
             if plotxml_datetime:
                 cha_date = plotxml_datetime
@@ -809,7 +810,7 @@ def plot_xml_response(input_dics):
 
 def get_coordinates(xml_network, seed_id, datetime=None):
     """
-    FROM OBSPY WEBPAGE!
+    FROM OBSPY REPOSITORY!
 
     Return coordinates for a given channel.
 
@@ -999,8 +1000,7 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
     if 'hertz' in pz_type.lower():
         poles = np.array(poles)*2*np.pi
         zeros = np.array(zeros)*2*np.pi
-        normalization_factor = \
-            normalization_factor*np.power(2*np.pi, len(poles) - len(zeros))
+        normalization_factor *= np.power(2*np.pi, len(poles) - len(zeros))
     elif 'radian' in pz_type.lower():
         poles = np.array(poles)
         zeros = np.array(zeros)
