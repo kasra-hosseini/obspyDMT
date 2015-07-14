@@ -1,3 +1,7 @@
+0.9.9f:
+  - obspyDMT:
+    * resampling functionality using decimate and lanczos
+    * BUGFIX for NEIC event request (NEIC requires km for radius in circle search)
 0.9.9e:
   - obspyDMT:
     * PA (pressue) is now supported in plotxml 
