@@ -31,14 +31,15 @@ This tutorial has been divided into the following sections:
 9.  `Geographical restriction`_: if you want to work with the events happened in a specific geographical coordinate and/or retrieving the data from the stations in a specific circular or rectangular bounding area.
 10. `Instrument correction`_: applying instrument correction to raw counts using stationXML/response files.
 11. `Parallel retrieving and processing`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
-12. `Plot`_: for an existing archive, you can plot all the events and/or all the stations, ray path for event-station pairs and epicentral-distance/time for the waveforms using GMT-5 or basemap tools.
-13. `Explore stationXML file`_: how to explore and analyze different stages available in a stationXML file.
-14. `Seismicity`_: plot the geographical and historical distribution of earthquake activities (seismicity).
-15. `NEIC and GCMT`_: retrieving event information including moment tensor from NEIC or GCMT.
-16. `Folder structure`_: the way that obspyDMT organizes your retrieved and processed data in the file-based mode.
-17. `Available options`_: all options currently available in obspyDMT.
-18. `Algorithm`_: flow chart of the main steps in each obspyDMT mode.
-19. `Example: RHUM-RUM stations`_: exclusively for RHUM-RUM users.
+12. `Resampling raw and corrected waveforms`_: how to automatically resample raw and/or corrected waveforms while creating a database.
+13. `Plot`_: for an existing archive, you can plot all the events and/or all the stations, ray path for event-station pairs and epicentral-distance/time for the waveforms using GMT-5 or basemap tools.
+14. `Explore stationXML file`_: how to explore and analyze different stages available in a stationXML file.
+15. `Seismicity`_: plot the geographical and historical distribution of earthquake activities (seismicity).
+16. `NEIC and GCMT`_: retrieving event information including moment tensor from NEIC or GCMT.
+17. `Folder structure`_: the way that obspyDMT organizes your retrieved and processed data in the file-based mode.
+18. `Available options`_: all options currently available in obspyDMT.
+19. `Algorithm`_: flow chart of the main steps in each obspyDMT mode.
+20. `Example: RHUM-RUM stations`_: exclusively for RHUM-RUM users.
 
 --------------------
 How to cite obspyDMT
@@ -629,6 +630,55 @@ obspyDMT can run the processing unit in parallel as well. In this mode, it divid
     $ obspyDMT --ic_parallel --ic_np 10 --option-1 'value' --option-2
 
 *--ic_parallel* means that the processing should be done in parallel and *ic_np 10* specifies the number of requested processes which is *10* here.
+
+--------------------------------------
+Resampling raw and corrected waveforms
+--------------------------------------
+
+For many applications, it is not required/necessary to store raw and/or corrected waveforms in their original sampling rate. This directly affects the storage and the performace of the data processing. For this reason, *obspyDMT* provides two methods for resampling the waveforms (raw and/or corrected):
+
+- decimation
+- lanczos resampling
+
+In both of these cases, resampling is done in several steps, if necessary. In other words, if the resampling factor *dt(new)/dt(original) > 5*, resampling will be done in several steps to avoid having large resampling factor at each step (not more than 5).
+
+Moreover, before any resampling stage, a sharp low pass filter (zero phase chebychev filter) is applied to avoid aliasing effects.
+
+**decimation:** this option uses *obspy decimate* method.
+
+*lanczos:* this option is based on Lanczos resampling scheme which has been adopted from *instaseis* resampling implementation.
+
+In the following example, we retrieve 2h of continuous data from *TA.058A..BHZ* station and store the waveform with its original sampling rate. In the next step, the same waveform will be retrieved and the raw waveform will be resampled using *lanczos* method. At the end, we compare the PSD (Power Spectral Density) of the waveforms to make sure that the frequency content was preserved during resampling.
+
+**Step 1:* retrieving 2h of continuous data from *TA.058A..BHZ*:
+
+::
+
+    $ obspyDMT --datapath resample_no --continuous --min_date 2013-01-01-01-00-00 --max_date 2013-01-01-03-00-00 --net TA --cha BHZ --sta 058A
+
+all the options have been discussed in `continuous request`_.
+
+*Step 2:* retrieve the same waveform as the previous step, but resample the waveform to 1hz with *lanczos* method:
+
+::
+
+    $ obspyDMT --datapath resample_1 --continuous --min_date 2013-01-01-01-00-00 --max_date 2013-01-01-03-00-00 --net TA --cha BHZ --sta 058A --resample_raw 1 --resample_method lanczos
+
+This command has two more options compared to *Step 1*: *--resample_raw 1* which forces the code to resample the *raw* waveforms to 1Hz and *--resample_method lanczos* which changes the default resampling method (*decimate*) to *lanczos*.
+
+We can redo this step for *--resample_raw 10* and *--resample 0.1* to resample the waveforms to 10Hz and 0.1Hz respectively. In the following figure, the frequency contents of the original and resampled waveforms are compared:
+
+.. image:: figures/resample_freq_content.png
+   :scale: 75%
+   :align: center
+
+**Resampling (instrument) corrected waveforms:** in the above examples, we only talked about resampling of raw waveforms. To resample the corrected waveforms, it is enough to:
+
+::
+
+    $ obspyDMT ...required options... --resample_corr 1 --resample_method lanczos
+
+which resample the (instrument) corrected waveforms to 1Hz using *lanczos* method.
 
 ----
 Plot
