@@ -563,6 +563,15 @@ In case that you want to apply instrument correction to an existing folder:
 here *address* is the path where your not-corrected waveforms are stored.
 as mentioned above, *unit* is the unit that you want to correct the waveforms to. It could be *DIS* (default), *VEL* or *ACC*.
 
+**ATTENTION:** if the waveforms are retrieved from different *FDSN* repositories, it is possible to apply (instrument) correction to all the raw waveforms:
+
+::
+
+    $ obspyDMT --ic_all 'address' --corr_unit unit --fdsn_base_url 'all_fdsn'
+
+this command is similar to the previous one with one additional option: *--fdsn_base_url 'all_fdsn'* which forces *obspyDMT* to correct all the waveforms archived in the dataset which have been retrieved from one/several *FDSN* repositories.
+
+
 To make it clearer, let's take a look at an example with following steps:
 
 **Step 1:** to retrieve all the waveforms, stationXML/response files and metadata of *BHZ* channels available in *TA* network with station names start with *Z* for the great Tohoku-oki earthquake of magnitude Mw 9.0: (please note that instrument correction will be applied to the retrieved waveforms by default)
