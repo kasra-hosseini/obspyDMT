@@ -153,7 +153,7 @@ def merge_stream(input_dics, ls_address, ls_sta, network_name):
                     try:
                         tr_tmp = read(os.path.join(ls_address[k], sta))
                         if len(tr_tmp) > 1:
-                            print "WARNING:"
+                            print "\nWARNING:"
                             print "%s" % os.path.join(ls_address[k], sta)
                             print "probably has some gaps!"
                             print "It will be merged (fill_value=0)."
@@ -163,7 +163,7 @@ def merge_stream(input_dics, ls_address, ls_sta, network_name):
                                                       'info',
                                                       'waveform_gap.txt')
                             print "which contains all the waveforms " \
-                                  "with gap.\n"
+                                  "with gap."
 
                             tr_tmp.merge(method=1, fill_value=0,
                                          interpolation_samples=0)

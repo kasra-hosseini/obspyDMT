@@ -242,14 +242,14 @@ def IC_core(input_dics, ls_saved_sta, clients, address, BH_file, inform):
         if input_dics['ic_obspy_full'] == 'Y':
             st = read(ls_saved_sta)
             if len(st) > 1:
-                print "WARNING:"
+                print "\nWARNING:"
                 print "%s" % ls_saved_sta
                 print "probably has some gaps!"
                 print "It will be merged (fill_value=0)."
                 print "\nFor more information refer to:"
                 print "%s" % os.path.join(address, 'info',
                                           'waveform_gap.txt')
-                print "which contains all the waveforms with gap.\n"
+                print "which contains all the waveforms with gap."
 
                 st.merge(method=1, fill_value=0, interpolation_samples=0)
                 gap_fio = open(os.path.join(address, 'info',
