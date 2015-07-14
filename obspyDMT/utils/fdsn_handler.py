@@ -107,17 +107,6 @@ def FDSN_available(input_dics, event, target_path, event_number):
     Sta_fdsn = []
     try:
         if input_dics['fdsn_base_url'].lower() in ['resif']:
-            msg = 'WARNING\n' \
-                  'You have selected RESIF as fdsn_base_url!\n\n' \
-                  'I have detected some problems in sending request to ' \
-                  'this data provider:\n' \
-                  'It seems that the start and end times in channel level ' \
-                  'are not set correctly.\n\n' \
-                  'It is better to use --list_stas options other ' \
-                  'than sending the availability\nrequest directly.'
-            print '\n\n' + 80*'='
-            print msg
-            print 80*'=' + '\n\n'
             # start_time = None
             # end_time = None
             start_time = event['t1']
@@ -277,10 +266,11 @@ def FDSN_waveform(input_dics, events, Sta_req, i, req_type):
     FDSN_serial_parallel(i, events, add_event, Sta_req, input_dics,
                          len_req_fdsn)
 
-    if input_dics['resample']:
-        print '\nResampling the traces to %sHz...' % input_dics['resample'],
+    if input_dics['resample_raw']:
+        print '\nResample RAW traces to %sHz...' % input_dics['resample_raw'],
         resample_all(i=i, address_events=add_event,
-                     des_sr=input_dics['resample'])
+                     des_sr=input_dics['resample_raw'],
+                     resample_method=input_dics['resample_method'])
         print 'DONE'
     if input_dics['SAC'] == 'Y':
         print '\nConverting the MSEED files to SAC...',

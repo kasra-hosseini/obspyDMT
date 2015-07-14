@@ -162,10 +162,11 @@ def ARC_waveform(input_dics, events, Sta_req, i, req_type):
     ARC_serial_parallel(i, events, add_event, Sta_req, input_dics,
                         len_req_arc)
 
-    if input_dics['resample']:
-        print '\nResampling the traces to %sHz...' % input_dics['resample'],
+    if input_dics['resample_raw']:
+        print '\nResample RAW traces to %sHz...' % input_dics['resample_raw'],
         resample_all(i=i, address_events=add_event,
-                     des_sr=input_dics['resample'])
+                     des_sr=input_dics['resample_raw'],
+                     resample_method=input_dics['resample_method'])
         print 'DONE'
     if input_dics['SAC'] == 'Y':
         print '\nConverting the MSEED files to SAC...',

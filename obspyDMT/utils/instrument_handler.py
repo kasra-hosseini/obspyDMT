@@ -27,6 +27,7 @@ import os
 import sys
 
 from event_handler import quake_info
+from resample_handler import resample_trace
 from utility_codes import read_station_event, check_par_jobs
 
 # ##################### FDSN_ARC_IC #####################################
@@ -182,8 +183,8 @@ def ic_serial_parallel(input_dics, ls_saved_stas, clients, address, BH_file):
 
         jobs = []
         for index in xrange(input_dics['ic_np']):
-            starti = start+index*step
-            endi = min(start+(index+1)*step, end)
+            starti = start + index * step
+            endi = min(start + (index + 1) * step, end)
             print starti, endi
             p = multiprocessing.Process(target=IC_core_iterate,
                                         args=(input_dics, ls_saved_stas,
@@ -292,6 +293,11 @@ def obspy_fullresp_STXML(input_dics, trace, stxml_file, Address, unit='DIS',
     :return:
     """
     try:
+        if input_dics['resample_corr']:
+            trace = resample_trace(trace,
+                                   des_sr=input_dics['resample_corr'],
+                                   resample_method=
+                                   input_dics['resample_method'])
         trace.detrend('linear')
         # To keep it consistant with obspy.remove_response method!
         if unit.lower() == 'dis':
@@ -358,6 +364,11 @@ def obspy_fullresp_RESP(input_dics, trace, resp_file, Address, unit='DIS',
     seedresp = {'filename': dataless_parser, 'units': unit}
 
     try:
+        if input_dics['resample_corr']:
+            trace = resample_trace(trace,
+                                   des_sr=input_dics['resample_corr'],
+                                   resample_method=
+                                   input_dics['resample_method'])
         trace.detrend('linear')
         trace.simulate(seedresp=seedresp, paz_remove=None, paz_simulate=None,
                        remove_sensitivity=True, simulate_sensitivity=False,
