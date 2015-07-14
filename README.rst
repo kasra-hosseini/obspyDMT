@@ -635,10 +635,10 @@ obspyDMT can run the processing unit in parallel as well. In this mode, it divid
 Resampling raw and corrected waveforms
 --------------------------------------
 
-For many applications, it is not required/necessary to store raw and/or corrected waveforms in their original sampling rate. This directly affects the storage and the performace of the data processing. For this reason, *obspyDMT* provides two methods for resampling the waveforms (raw and/or corrected):
+For many applications, it is not required/necessary to store raw and/or corrected waveforms in their original sampling rates. This directly affects the storage and the performace of the data processing. For this reason, *obspyDMT* provides two methods for resampling the waveforms (raw and/or corrected):
 
 - decimation
-- lanczos resampling
+- lanczos
 
 In both of these cases, resampling is done in several steps, if necessary. In other words, if the resampling factor *dt(new)/dt(original) > 5*, resampling will be done in several steps to avoid having large resampling factor at each step (not more than 5).
 
@@ -646,11 +646,11 @@ Moreover, before any resampling stage, a sharp low pass filter (zero phase cheby
 
 **decimation:** this option uses *obspy decimate* method.
 
-*lanczos:* this option is based on Lanczos resampling scheme which has been adopted from *instaseis* resampling implementation.
+**lanczos:** this option is based on Lanczos resampling scheme which has been adopted from *instaseis* resampling implementation.
 
 In the following example, we retrieve 2h of continuous data from *TA.058A..BHZ* station and store the waveform with its original sampling rate. In the next step, the same waveform will be retrieved and the raw waveform will be resampled using *lanczos* method. At the end, we compare the PSD (Power Spectral Density) of the waveforms to make sure that the frequency content was preserved during resampling.
 
-**Step 1:* retrieving 2h of continuous data from *TA.058A..BHZ*:
+**Step 1:** retrieving 2h of continuous data from *TA.058A..BHZ*:
 
 ::
 
@@ -658,7 +658,7 @@ In the following example, we retrieve 2h of continuous data from *TA.058A..BHZ* 
 
 all the options have been discussed in `continuous request`_.
 
-*Step 2:* retrieve the same waveform as the previous step, but resample the waveform to 1hz with *lanczos* method:
+**Step 2:** retrieve the same waveform as the previous step, but resample the *raw* waveform to 1hz with *lanczos* method:
 
 ::
 
@@ -666,7 +666,7 @@ all the options have been discussed in `continuous request`_.
 
 This command has two more options compared to *Step 1*: *--resample_raw 1* which forces the code to resample the *raw* waveforms to 1Hz and *--resample_method lanczos* which changes the default resampling method (*decimate*) to *lanczos*.
 
-We can redo this step for *--resample_raw 10* and *--resample 0.1* to resample the waveforms to 10Hz and 0.1Hz respectively. In the following figure, the frequency contents of the original and resampled waveforms are compared:
+We can redo this step for *--resample_raw 10* and *--resample 0.1* to resample the waveform to 10Hz and 0.1Hz respectively. In the following figure, the frequency contents of the original and resampled waveforms are compared:
 
 .. image:: figures/resample_freq_content.png
    :scale: 75%
