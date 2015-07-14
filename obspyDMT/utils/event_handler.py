@@ -54,14 +54,14 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def get_Events(input_dics, request):
     """
-    Generating list of events
-    :param input_dics:
-    :param request:
+    Generating list of requests for both event-based and continuous request.
+    :param input_dics: dictionary that contains the inputs
+    :param request: event-based or continuous based on user's inputs
     :return:
     """
     t_event_1 = time.time()
 
-    # request can be 'event-based' or continuous
+    # request can be 'event-based' or 'continuous'
     try:
         events, catalog, successful_read = events_info(input_dics, request)
     except Exception, e:
@@ -70,7 +70,7 @@ def get_Events(input_dics, request):
 
     if len(events) < 1:
         if not input_dics['plot_all_events']:
-            print "ERROR: no event available to proceed"
+            print "\nERROR: no event available to proceed\n"
         return 0
 
     events, catalog, events2, row_format, header, input_dics = \
@@ -97,8 +97,8 @@ def get_Events(input_dics, request):
 def events_info(input_dics, request):
     """
     Get event(s) info for event-based or continuous requests
-    :param input_dics:
-    :param request:
+    :param input_dics: dictionary that contains the inputs
+    :param request: event-based or continuous based on user's inputs
     :return:
     """
     successful_read = 0
@@ -146,8 +146,8 @@ def events_info(input_dics, request):
 
                 evlat = input_dics['evlat']
                 evlon = input_dics['evlon']
-                evradmax = input_dics['evradmax']
                 evradmin = input_dics['evradmin']
+                evradmax = input_dics['evradmax']
 
                 event_switch = 'fdsn'
                 if input_dics['event_catalog']:
@@ -211,61 +211,6 @@ def events_info(input_dics, request):
             # no matter if list was passed or requested, sort catalogue,
             # plot events and proceed
             events_QML = sort_catalogue(events_QML)
-
-            # === Experimental (for creating EQ catalogues readable by source inversion)
-            # file_fio = open('catalog.txt', 'w')
-            # for ss in range(len(events_QML)-1, -1, -1):
-            #     pref_orig = events_QML[ss].preferred_origin()
-            #     pref_magn = events_QML[ss].preferred_magnitude()
-            #     pref_focl = events_QML[ss].preferred_focal_mechanism()
-            #     ev_mom_max = max(abs(pref_focl.moment_tensor['tensor'].m_rr),
-            #                      abs(pref_focl.moment_tensor['tensor'].m_tt),
-            #                      abs(pref_focl.moment_tensor['tensor'].m_pp),
-            #                      abs(pref_focl.moment_tensor['tensor'].m_rp),
-            #                      abs(pref_focl.moment_tensor['tensor'].m_rt),
-            #                      abs(pref_focl.moment_tensor['tensor'].m_tp))
-            #     exp_mom = int(str(ev_mom_max).split('e')[1])
-            #     print exp_mom
-            #     try:
-            #         one_line = '%04i %02i %02i %02i:%02i:%02i.%02i %6.3f %6.3f PDE| ' \
-            #                    '%4.2f %2.1f XX  XX     |%s  %i %.2f %.2f %.2f ' \
-            #                    '%.2f %.2f %.2f | ' \
-            #                    '%i %i %i %i %i %i\n' \
-            #                    % (pref_orig.time.year, pref_orig.time.month,
-            #                       pref_orig.time.day, pref_orig.time.hour,
-            #                       pref_orig.time.minute, pref_orig.time.second,
-            #                       pref_orig.time.microsecond/1.e4,
-            #                       pref_orig.latitude, pref_orig.longitude,
-            #                       pref_orig.depth/1000.,
-            #                       pref_magn.mag,
-            #                       pref_orig['creation_info']['agency_id'],
-            #                       exp_mom,
-            #                       pref_focl.moment_tensor['tensor'].m_rr/float(
-            #                           np.power(10, exp_mom)),
-            #                       pref_focl.moment_tensor['tensor'].m_tt/float(
-            #                           np.power(10, exp_mom)),
-            #                       pref_focl.moment_tensor['tensor'].m_pp/float(
-            #                           np.power(10, exp_mom)),
-            #                       pref_focl.moment_tensor['tensor'].m_rp/float(
-            #                           np.power(10, exp_mom)),
-            #                       pref_focl.moment_tensor['tensor'].m_rt/float(
-            #                           np.power(10, exp_mom)),
-            #                       pref_focl.moment_tensor['tensor'].m_tp/float(
-            #                           np.power(10, exp_mom)),
-            #                       pref_focl.nodal_planes['nodal_plane_1']['strike'],
-            #                       pref_focl.nodal_planes['nodal_plane_1']['dip'],
-            #                       pref_focl.nodal_planes['nodal_plane_1']['rake'],
-            #                       pref_focl.nodal_planes['nodal_plane_2']['strike'],
-            #                       pref_focl.nodal_planes['nodal_plane_2']['dip'],
-            #                       pref_focl.nodal_planes['nodal_plane_2']['rake']
-            #                       )
-            #         file_fio.writelines(one_line)
-            #     except Exception, e:
-            #         continue
-            #     print one_line
-            # file_fio.close()
-            # import ipdb; ipdb.set_trace()
-            # === END experimental
 
             if input_dics['plot_all_events']:
                 plt.ion()
@@ -733,8 +678,8 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     else:
         br.form1['latitude'] = str(latitude)
         br.form1['longitude'] = str(longitude)
-        br.form1['minradiuskm'] = str(radius_min)
-        br.form1['maxradiuskm'] = str(radius_max)
+        br.form1['minradiuskm'] = str(float(radius_min)*111.32)
+        br.form1['maxradiuskm'] = str(float(radius_max)*111.32)
 
     # This function at this moment only provides these settings
     br.form1['format'] = ['quakeml']
