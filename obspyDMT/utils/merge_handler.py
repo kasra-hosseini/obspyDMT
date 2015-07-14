@@ -152,8 +152,34 @@ def merge_stream(input_dics, ls_address, ls_sta, network_name):
                 for k in range(j+1, len(ls_address)):
                     try:
                         tr_tmp = read(os.path.join(ls_address[k], sta))
-                        tr_tmp.merge(method=1, fill_value=0,
-                                     interpolation_samples=0)
+                        if len(tr_tmp) > 1:
+                            print "WARNING:"
+                            print "%s" % os.path.join(ls_address[k], sta)
+                            print "probably has some gaps!"
+                            print "It will be merged (fill_value=0)."
+                            print "\nFor more information refer to:"
+                            print "%s" % os.path.join(ls_address[k],
+                                                      os.path.pardir,
+                                                      'info',
+                                                      'waveform_gap.txt')
+                            print "which contains all the waveforms " \
+                                  "with gap.\n"
+
+                            tr_tmp.merge(method=1, fill_value=0,
+                                         interpolation_samples=0)
+                            gap_fio = open(os.path.join(ls_address[k],
+                                                        os.path.pardir,
+                                                        'info',
+                                                        'waveform_gap.txt'),
+                                           'a+')
+                            gap_msg = '%s.%s.%s.%s\t%s\n' \
+                                      % (tr_tmp[0].stats.network,
+                                         tr_tmp[0].stats.station,
+                                         tr_tmp[0].stats.location,
+                                         tr_tmp[0].stats.channel,
+                                         'pre-merge')
+                            gap_fio.writelines(gap_msg)
+                            gap_fio.close()
                         st.append(tr_tmp[0])
                     except Exception as e:
                         print "ERROR: can not append to the trace! \n%s" % e

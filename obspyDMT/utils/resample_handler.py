@@ -206,11 +206,25 @@ def resample_all(i, address_events, des_sr, resample_method='decimate'):
         try:
             st = read(ls_saved_stas[j])
             if len(st) > 1:
-                print("WARNING: %s\nprobably has some gaps" % ls_saved_stas[j])
-                print("\nIt will be merged (fill_value=0) before  writing "
-                      "the SAC file!")
-                st.merge(method=1, fill_value=0, interpolation_samples=0)
+                print("WARNING:")
+                print("%s" % ls_saved_stas[j])
+                print("probably has some gaps!")
+                print("It will be merged (fill_value=0).")
+                print("\nFor more information refer to:")
+                print("%s" % os.path.join(address_events[i], 'info',
+                                          'waveform_gap.txt'))
+                print("which contains all the waveforms with gap.\n")
 
+                st.merge(method=1, fill_value=0, interpolation_samples=0)
+                gap_fio = open(os.path.join(address_events[i], 'info',
+                                            'waveform_gap.txt'), 'a+')
+                gap_msg = '%s.%s.%s.%s\t%s\n' % (sta_ev[0][j][0],
+                                                 sta_ev[0][j][1],
+                                                 sta_ev[0][j][2],
+                                                 sta_ev[0][j][3],
+                                                 'resampling')
+                gap_fio.writelines(gap_msg)
+                gap_fio.close()
             tr = st[0]
             # resample
             if resample_method.lower() == 'decimate':

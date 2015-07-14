@@ -46,10 +46,25 @@ def writesac_all(i, address_events):
         try:
             st = read(ls_saved_stas[j])
             if len(st) > 1:
-                print "WARNING: %s\nprobably has some gaps" % ls_saved_stas[j]
-                print "\nIt will be merged (fill_value=0) before " \
-                      "writing the SAC file!"
+                print "WARNING:"
+                print "%s" % ls_saved_stas[j]
+                print "probably has some gaps!"
+                print "It will be merged (fill_value=0)."
+                print "\nFor more information refer to:"
+                print "%s" % os.path.join(address_events[i], 'info',
+                                          'waveform_gap.txt')
+                print "which contains all the waveforms with gap.\n"
+
                 st.merge(method=1, fill_value=0, interpolation_samples=0)
+                gap_fio = open(os.path.join(address_events[i], 'info',
+                                            'waveform_gap.txt'), 'a+')
+                gap_msg = '%s.%s.%s.%s\t%s\n' % (sta_ev[0][j][0],
+                                                 sta_ev[0][j][1],
+                                                 sta_ev[0][j][2],
+                                                 sta_ev[0][j][3],
+                                                 'writesac_all')
+                gap_fio.writelines(gap_msg)
+                gap_fio.close()
             st[0].write(ls_saved_stas[j], format='SAC')
             tr = read(ls_saved_stas[j])[0]
             if sta_ev[0][j][4]:

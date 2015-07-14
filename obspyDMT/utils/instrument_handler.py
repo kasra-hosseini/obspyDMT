@@ -242,10 +242,25 @@ def IC_core(input_dics, ls_saved_sta, clients, address, BH_file, inform):
         if input_dics['ic_obspy_full'] == 'Y':
             st = read(ls_saved_sta)
             if len(st) > 1:
-                print "WARNING: %s\nprobably has some gaps" % ls_saved_sta
-                print "\nIt will be merged (fill_value=0) before " \
-                      "applying the instrument correction"
+                print "WARNING:"
+                print "%s" % ls_saved_sta
+                print "probably has some gaps!"
+                print "It will be merged (fill_value=0)."
+                print "\nFor more information refer to:"
+                print "%s" % os.path.join(address, 'info',
+                                          'waveform_gap.txt')
+                print "which contains all the waveforms with gap.\n"
+
                 st.merge(method=1, fill_value=0, interpolation_samples=0)
+                gap_fio = open(os.path.join(address, 'info',
+                                            'waveform_gap.txt'), 'a+')
+                gap_msg = '%s.%s.%s.%s\t%s\n' % (st[0].stats.network,
+                                                 st[0].stats.station,
+                                                 st[0].stats.location,
+                                                 st[0].stats.channel,
+                                                 'instrument correction')
+                gap_fio.writelines(gap_msg)
+                gap_fio.close()
             tr = st[0]
             if clients.lower() != 'arc':
                 stxml_file = \
