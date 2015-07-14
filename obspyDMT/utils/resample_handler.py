@@ -137,20 +137,53 @@ def decimate_trace(tr, dt):
     while True:
         decimation_factor = int(dt / tr.stats.delta)
         # Decimate in steps for large sample rate reductions.
-        if decimation_factor > 8:
-            decimation_factor = 8
+        if decimation_factor > 5:
+            decimation_factor = 5
         if decimation_factor > 1:
-            new_nyquist = tr.stats.sampling_rate / 2.0 / float(
-                decimation_factor)
+            new_nyquist = tr.stats.sampling_rate / 2.0 / decimation_factor
             zerophase_chebychev_lowpass_filter(tr, new_nyquist)
             tr.decimate(factor=decimation_factor, no_filter=True)
         else:
             return tr
 
+# ###################### lanczos_trace #############
+
+
+def lanczos_trace(tr, dt, lancz_a=10):
+    """
+    Resample ObsPy Trace (tr) with dt as delta (1/sampling_rate) using
+    lanczos method.
+    :param tr:
+    :param dt:
+    :return:
+    """
+    while True:
+        decimation_factor = int(dt / tr.stats.delta)
+        # Decimate in steps for large sample rate reductions.
+        if decimation_factor > 5:
+            decimation_factor = 5
+        if decimation_factor > 1:
+            new_nyquist = tr.stats.sampling_rate / 2.0 / decimation_factor
+            zerophase_chebychev_lowpass_filter(tr, new_nyquist)
+            tr.data = lanczos_resamp(tr.data,
+                                     1./tr.stats.sampling_rate,
+                                     1./(new_nyquist*2.),
+                                     lancz_a)
+            tr.stats.delta = 1./(new_nyquist*2.)
+        else:
+            new_nyquist = (1. / dt) / 2.0
+            zerophase_chebychev_lowpass_filter(tr, new_nyquist)
+            tr.data = lanczos_resamp(tr.data,
+                                     1./tr.stats.sampling_rate,
+                                     dt,
+                                     lancz_a)
+            tr.stats.delta = 1./(new_nyquist*2.)
+            return tr
+
 # ##################### resample_all ####################################
 
 
-def resample_all(i, address_events, des_sr):
+def resample_all(i, address_events, des_sr, resample_method='decimate'):
     """
     resample all the traces based on the selected sampling rate
     :param i:
@@ -180,14 +213,10 @@ def resample_all(i, address_events, des_sr):
 
             tr = st[0]
             # resample
-            tr = decimate_trace(tr, dt=1./des_sr)
-
-            # The following lines are still experimental
-            # tr.data = resample_handler.lanczos_resamp(tr.data,
-            #                                  1./tr.stats.sampling_rate,
-            #                                  1./des_sr,
-            #                                  lancz_a)
-            # tr.stats.sampling_rate = des_sr
+            if resample_method.lower() == 'decimate':
+                tr = decimate_trace(tr, dt=1./des_sr)
+            elif resample_method.lower() == 'lanczos':
+                tr = lanczos_trace(tr, dt=1./des_sr)
 
             tr.write(ls_saved_stas[j], format='MSEED')
 
@@ -195,3 +224,25 @@ def resample_all(i, address_events, des_sr):
             print('\nWARNING: %s' % e)
             print(ls_saved_stas[j])
             print('------------------')
+
+# ##################### resample_trace ####################################
+
+
+def resample_trace(tr, des_sr, resample_method='lanczos'):
+    """
+    resample one trace based on the selected sampling rate
+    :param tr:
+    :param des_sr:
+    :param resample_method:
+    :return:
+    """
+    try:
+        # resample
+        if resample_method.lower() == 'decimate':
+            tr = decimate_trace(tr, dt=1./des_sr)
+        elif resample_method.lower() == 'lanczos':
+            tr = lanczos_trace(tr, dt=1./des_sr)
+        return tr
+    except Exception as e:
+        print('\nWARNING: %s' % e)
+        print('------------------')
