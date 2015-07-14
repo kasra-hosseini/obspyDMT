@@ -46,7 +46,7 @@ def writesac_all(i, address_events):
         try:
             st = read(ls_saved_stas[j])
             if len(st) > 1:
-                print "\nWARNING:"
+                print "\n=== WARNING:"
                 print "%s" % ls_saved_stas[j]
                 print "probably has some gaps!"
                 print "It will be merged (fill_value=0)."

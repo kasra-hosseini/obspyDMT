@@ -242,7 +242,7 @@ def IC_core(input_dics, ls_saved_sta, clients, address, BH_file, inform):
         if input_dics['ic_obspy_full'] == 'Y':
             st = read(ls_saved_sta)
             if len(st) > 1:
-                print "\nWARNING:"
+                print "\n=== WARNING:"
                 print "%s" % ls_saved_sta
                 print "probably has some gaps!"
                 print "It will be merged (fill_value=0)."
@@ -258,7 +258,7 @@ def IC_core(input_dics, ls_saved_sta, clients, address, BH_file, inform):
                                                  st[0].stats.station,
                                                  st[0].stats.location,
                                                  st[0].stats.channel,
-                                                 'instrument correction')
+                                                 'instrument_correction')
                 gap_fio.writelines(gap_msg)
                 gap_fio.close()
             tr = st[0]

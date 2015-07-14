@@ -153,7 +153,7 @@ def merge_stream(input_dics, ls_address, ls_sta, network_name):
                     try:
                         tr_tmp = read(os.path.join(ls_address[k], sta))
                         if len(tr_tmp) > 1:
-                            print "\nWARNING:"
+                            print "\n=== WARNING:"
                             print "%s" % os.path.join(ls_address[k], sta)
                             print "probably has some gaps!"
                             print "It will be merged (fill_value=0)."
