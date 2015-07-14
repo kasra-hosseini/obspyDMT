@@ -17,12 +17,17 @@
 from datetime import datetime, timedelta
 import fnmatch
 import glob
+import numpy as np
 try:
     from obspy.geodetics import locations2degrees
 except Exception, e:
     from obspy.core.util import locations2degrees
 from obspy.core import read
-from obspy.taup import taup
+from obspy.signal.util import nextpow2
+try:
+    from obspy.taup import getTravelTimes
+except Exception, e:
+    from obspy.taup.taup import getTravelTimes
 import os
 import pickle
 import smtplib
@@ -296,7 +301,7 @@ def calculate_time_phase(event, sta):
     sta_lat = float(sta[4])
     sta_lon = float(sta[5])
     delta = locations2degrees(ev_lat, ev_lon, sta_lat, sta_lon)
-    tt = taup.getTravelTimes(delta, ev_dp)
+    tt = getTravelTimes(delta, ev_dp)
     phase_list = ['P', 'Pdiff', 'PKIKP']
 
     time_ph = 0
@@ -381,3 +386,27 @@ def check_par_jobs(jobs, sleep_time=1):
                 pp_flag = False
     if not pp_flag:
         print '\n\nAll %s processes are finished...\n' % len(jobs)
+
+# ##################### spectrum_calc ##################################
+
+
+def spectrum_calc(tr):
+    """
+    Simple code to calculate the spectrum of a trace
+    :param tr: obspy Trace
+    :return:
+    freqs, spec_tr
+    which are frequencies and spectrum of the trace
+
+    To plot the spectrum:
+
+    import matplotlib.pyplot as plt
+    plt.loglog(freqs, spec_tr)
+    """
+
+    nfft = nextpow2(tr.stats.npts)
+    freqs = np.fft.rfftfreq(nfft) / tr.stats.delta
+
+    spec_tr = np.abs(np.fft.rfft(tr.data, n=nfft))
+
+    return freqs, spec_tr
