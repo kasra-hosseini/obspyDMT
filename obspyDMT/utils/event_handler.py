@@ -77,7 +77,7 @@ def get_Events(input_dics, request):
         output_shell_event(input_dics, events, catalog, successful_read,
                            request)
 
-    print 'Number of event(s): %s' % len(events)
+    print 'Number of events/intervals: %s' % len(events)
     print 'Time for retrieving and saving the event info: %s' \
           % str(timedelta(seconds=round(float(time.time() - t_event_1))))
 
