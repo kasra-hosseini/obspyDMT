@@ -64,14 +64,7 @@ Lets get started
 Once a working Python and ObsPy_ environment are installed,
 obspyDMT can be installed in different ways:
 
-**1. install obspyDMT package locally:** One simple way to install obspyDMT
-is via PyPi:
-
-::
-
-    pip install obspyDMT
-
-**2. install obspyDMT from the source code**: the latest version of obspyDMT
+**1. install obspyDMT from the source code**: the latest version of obspyDMT
 is available on GitHub. After installing git on your machine:
 
 ::
@@ -88,7 +81,7 @@ Alternatively:
     $ cd /path/to/my/obspyDMT
     $ python setup.py install
 
-**3. running from the source code:** in case that none of the above methods
+**2. running from the source code:** in case that none of the above methods
 worked for you, the source code could be downloaded directly from GitHub_
 website and you can either work with the source code or install it:
 
