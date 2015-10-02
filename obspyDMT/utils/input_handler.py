@@ -884,7 +884,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '1.0.0rc1' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '1.0.0' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
