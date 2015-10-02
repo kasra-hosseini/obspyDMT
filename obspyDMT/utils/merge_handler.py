@@ -184,12 +184,18 @@ def merge_stream(input_dics, ls_address, ls_sta, network_name):
                     except Exception as e:
                         print "ERROR: can not append to the trace! \n%s" % e
 
-                st.merge(method=1, fill_value=0, interpolation_samples=0)
-                trace = st[0]
-                trace_identity = '%s.%s.%s.%s' % (trace.stats['network'],
-                                                  trace.stats['station'],
-                                                  trace.stats['location'],
-                                                  trace.stats['channel'])
+                try:
+                    st.merge(method=1, fill_value=0, interpolation_samples=0)
+                    trace = st[0]
+                    trace_identity = '%s.%s.%s.%s' % (trace.stats['network'],
+                                                      trace.stats['station'],
+                                                      trace.stats['location'],
+                                                      trace.stats['channel'])
+                except Exception as e:
+                    print "ERROR in merging: %s" % sta 
+                    print e
+                    continue
+
                 if input_dics['mseed'] == 'N':
                     st.write(os.path.join(address, 'MERGED-%s'
                                           % network_name, trace_identity),

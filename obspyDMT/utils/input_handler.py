@@ -359,8 +359,9 @@ def command_parse():
     group_tw.add_option("--mseed", action="store_true",
                         dest="mseed", help=helpmsg)
 
-    helpmsg = "Resampling method: decimate, lanczos. 'decimate' uses ObsPy " \
-              "tools with sharp low pass filter to do the decimation. " \
+    helpmsg = "Resampling method: decimate, lanczos (not working). " \
+              "'decimate' uses ObsPy tools with sharp low pass filter " \
+              "to do the decimation. " \
               "'lanczos' uses 'lanczos resampling' method. [Default: decimate]"
     group_tw.add_option("--resample_method", action="store",
                         dest="resample_method", help=helpmsg)
@@ -657,6 +658,11 @@ def command_parse():
     helpmsg = "format of the plots saved on the local machine [Default: 'png']"
     group_plt.add_option("--plot_format", action="store",
                          dest="plot_format", help=helpmsg)
+
+    helpmsg = "central meridian (x-axis origin) for projection " \
+              "[Default: 180]"
+    group_plt.add_option("--plot_lon0", action="store",
+                         dest="plot_lon0", help=helpmsg)
     parser.add_option_group(group_plt)
 
     # --------------- Plotting SationXML
@@ -823,6 +829,7 @@ def read_input_command(parser, **kwargs):
                   'plot_all': 'Y',
                   'plot_type': 'raw',
                   'plot_save': '.', 'plot_format': 'png',
+                  'plot_lon0': 180,
                   'min_epi': 0.0, 'max_epi': 180.0,
                   'plotxml_dir': False,
                   'plotxml_date': False,
@@ -877,7 +884,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '0.9.9fb' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '0.9.9g' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -1244,6 +1251,7 @@ def read_input_command(parser, **kwargs):
     input_dics['max_epi'] = float(options.max_epi)
     input_dics['plot_save'] = options.plot_save
     input_dics['plot_format'] = options.plot_format
+    input_dics['plot_lon0'] = float(options.plot_lon0)
     input_dics['email'] = options.email
     if input_dics['email'] != 'N':
         try:
@@ -1259,6 +1267,7 @@ def read_input_command(parser, **kwargs):
     if input_dics['get_continuous'] == 'N':
         input_dics['fdsn_merge_auto'] = 'N'
         input_dics['arc_merge_auto'] = 'N'
+        input_dics['merge_type'] = options.merge_type
     else:
         input_dics['fdsn_merge_auto'] = options.fdsn_merge_auto
         input_dics['arc_merge_auto'] = options.arc_merge_auto
