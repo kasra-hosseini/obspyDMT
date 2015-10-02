@@ -2,7 +2,7 @@
 obspyDMT: A Python Toolbox for Retrieving and Processing of Large Seismological Datasets
 ========================================================================================
 
-Welcome to obspyDMT version 0.9.9g tutorial!
+Welcome to obspyDMT version 1.0.0rc1 tutorial!
 
 obspyDMT_ (obspy Data Management Tool) is a command line tool for retrieving, processing and management of large seismological datasets in a fully automatic way which can be run in serial or in parallel.
 

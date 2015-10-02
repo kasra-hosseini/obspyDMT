@@ -1,3 +1,5 @@
+1.0.0rc1:
+  - version 1.0.0rc1
 0.9.9g:
   - obspyDMT:
     * resampling functionality using only decimate
