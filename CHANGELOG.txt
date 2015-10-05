@@ -1,3 +1,7 @@
+1.0.1b1:
+  - --seismicity option is replaced by --plot_seismicity
+  - --event_url does not exist anymore to make the code more user-friendly. Instead, the user should only selects --event_catalog and the rest is done internally
+  - in case that no waveforms are requested, the SAC option is diabled to avoid unnecessary warnings
 1.0.0:
   - version 1.0.0
 1.0.0rc1:

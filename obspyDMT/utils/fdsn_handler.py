@@ -20,10 +20,13 @@ import glob
 import multiprocessing
 try:
     from obspy.clients.fdsn import Client as Client_fdsn
+    from obspy.clients.fdsn import URL_MAPPINGS
 except Exception, e:
     from obspy.fdsn import Client as Client_fdsn
+    from obspy.fdsn.header import URL_MAPPINGS
 import os
 import pickle
+import sys
 
 from event_handler import quake_info, create_folders_files
 from format_converter import writesac_all
@@ -585,6 +588,24 @@ def FDSN_reporter(i, add_event, events, input_dics, Sta_req, len_sta_ev,
     print 'FDSN for event-%s is Done' % (i+1)
     print 'Total Time: %s' % t_wave
     print "------------------------"
+
+# ##################### FDSN_urls ##################################
+
+
+def FDSN_urls():
+    """
+    Function to print available web service providers
+    """
+    print "\nList of all shortcut names"
+    print "--------------------------\n"
+    for key in sorted(URL_MAPPINGS.keys()):
+        print("{0:<7} {1}".format(key,  URL_MAPPINGS[key]))
+    print "\n============================================================"
+    print "This is the list of all shortcut names which can be used for"
+    print "--fdsn_base_url option."
+    print "However, the base URL can be entered directly as well."
+    print "============================================================"
+    sys.exit()
 
 
 # -------------------------------- TRASH
