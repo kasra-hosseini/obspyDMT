@@ -385,6 +385,11 @@ def command_parse():
                           dest="fdsn_urls", help=helpmsg)
 
     helpmsg = "base_url for FDSN requests (waveform/response). " \
+              "This option can be defined: --fdsn_base_url IRIS or " \
+              "--fdsn_base_url 'IRIS,ORFEUS' for which all the stations of " \
+              "IRIS will be downloaded and the directory will be updated for " \
+              "ORFEUS. It is also possible to --fdsn_base_url all which will " \
+              "download waveforms for all available FDSN urls. " \
               "[Default: 'IRIS']"
     group_fdsn.add_option("--fdsn_base_url", action="store",
                           dest="fdsn_base_url", help=helpmsg)
@@ -1133,6 +1138,23 @@ def read_input_command(parser, **kwargs):
         input_dics['resample_corr'] = False
     input_dics['FDSN'] = options.FDSN
     input_dics['fdsn_base_url'] = options.fdsn_base_url
+    if input_dics['fdsn_base_url'].lower() == 'all':
+        input_dics['fdsn_base_url'] = "IRIS,BGR,ETH,GEONET,GFZ,INGV," \
+                                      "IPGP,KOERI,LMU,NCEDC,NERIES," \
+                                      "NIEP,ODC,ORFEUS,RESIF,SCEDC,USP"
+        print "\n---------------------------------"
+        print "Waveforms will be retrieved from:"
+        print input_dics['fdsn_base_url']
+        print "---------------------------------\n\n"
+
+    input_dics['fdsn_base_url'] = \
+        [x.strip() for x in input_dics['fdsn_base_url'].split(',')]
+    if len(input_dics['fdsn_base_url']) > 1:
+        input_dics['fdsn_base_url_rest'] = input_dics['fdsn_base_url'][1:]
+        input_dics['fdsn_base_url'] = input_dics['fdsn_base_url'][0]
+    else:
+        input_dics['fdsn_base_url_rest'] = []
+        input_dics['fdsn_base_url'] = input_dics['fdsn_base_url'][0]
     input_dics['fdsn_user'] = options.fdsn_user
     input_dics['fdsn_pass'] = options.fdsn_pass
     input_dics['ArcLink'] = options.ArcLink

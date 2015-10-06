@@ -1,4 +1,5 @@
 1.0.1b1:
+  - --fdsn_base_url can now be set for several urls, e.g. --fdsn_base_url "IRIS,ORFEUS" or it can be set to --fdsn_base_url all for which all the urls will be used.
   - --seismicity option is replaced by --plot_seismicity
   - --event_url does not exist anymore to make the code more user-friendly. Instead, the user should only selects --event_catalog and the rest is done internally
   - in case that no waveforms are requested, the SAC option is diabled to avoid unnecessary warnings

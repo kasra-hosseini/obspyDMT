@@ -85,6 +85,18 @@ def FDSN_network(input_dics, events):
 
         if Stas_fdsn != [[]]:
             FDSN_waveform(input_dics, events, Stas_fdsn, i, req_type='save')
+            for cli_rest in input_dics['fdsn_base_url_rest']:
+                try:
+                    from update_handler import FDSN_update
+                    input_dics['fdsn_base_url'] = cli_rest
+                    input_dics['fdsn_update'] = input_dics['datapath']
+                    FDSN_update(input_dics, address=target_path)
+                except Exception, e:
+                    print e
+                    continue
+            if len(input_dics['fdsn_base_url_rest']) > 1:
+                input_dics['fdsn_base_url'] = 'all_fdsn'
+                input_dics['fdsn_update'] = 'N'
         else:
             print 'No available station in %s for your request and ' \
                   'for event %s!' % (input_dics['fdsn_base_url'], str(i+1))
