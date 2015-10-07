@@ -1139,9 +1139,11 @@ def read_input_command(parser, **kwargs):
     input_dics['FDSN'] = options.FDSN
     input_dics['fdsn_base_url'] = options.fdsn_base_url
     if input_dics['fdsn_base_url'].lower() == 'all':
-        input_dics['fdsn_base_url'] = "IRIS,BGR,ETH,GEONET,GFZ,INGV," \
-                                      "IPGP,KOERI,LMU,NCEDC,NERIES," \
-                                      "NIEP,ODC,ORFEUS,RESIF,SCEDC,USP"
+        input_dics['fdsn_base_url'] = \
+            "LMU,GFZ,ETH,INGV,NIEP,IPGP,RESIF,ORFEUS,ODC,NERIES,BGR,KOERI," \
+            "GEONET," \
+            "USP," \
+            "NCEDC,SCEDC,IRIS"
         print "\n---------------------------------"
         print "Waveforms will be retrieved from:"
         print input_dics['fdsn_base_url']
