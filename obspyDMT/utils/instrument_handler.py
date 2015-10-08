@@ -43,6 +43,8 @@ def FDSN_ARC_IC(input_dics, clients):
     :param clients:
     :return:
     """
+    if len(input_dics['fdsn_base_url_rest']) > 0:
+        clients = 'all_fdsn'
     print '\n*****************************'
     print '%s -- Instrument Correction' % clients
     print '*****************************'
