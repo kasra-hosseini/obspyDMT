@@ -19,6 +19,10 @@ import fnmatch
 import glob
 import numpy as np
 try:
+    from obspy.clients.fdsn import URL_MAPPINGS
+except Exception, e:
+    from obspy.fdsn.header import URL_MAPPINGS
+try:
     from obspy.geodetics import locations2degrees
 except Exception, e:
     from obspy.core.util import locations2degrees
@@ -59,6 +63,42 @@ def header_printer():
     print '(http://www.gnu.org/licenses/gpl-3.0-standalone.html)'
     print 80*'-' + '\n'
 
+# ##################### print_data_sources ##################################
+
+
+def print_data_sources():
+    """
+    Function to print available data providers
+    :return:
+    """
+    print "\nList of all shortcut names"
+    print "--------------------------\n"
+    for key in sorted(URL_MAPPINGS.keys()):
+        print("{0:<7} {1}".format(key,  URL_MAPPINGS[key]))
+    print "ARCLINK"
+    print "\n============================================================"
+    print "This is the list of all shortcut names which can be used for"
+    print "--data_source option."
+    print "However, FDSN base URLs can be entered directly as well."
+    print "============================================================"
+    sys.exit()
+
+# ##################### print_event_catalogs ##################################
+
+
+def print_event_catalogs():
+    """
+    Function to print available event catalogs
+    :return:
+    """
+    print "\nSupported event catalogs:"
+    print "-------------------------\n"
+    for ev_cat in ['LOCAL', 'NEIC_USGS', 'GCMT_COMBO', 'IRIS', 'NCEDC',
+                   'USGS', 'INGV', 'ISC', 'NERIES']:
+        print ev_cat
+    print '\n'
+    sys.exit()
+
 # ##################### goodbye_printer ##################################
 
 
@@ -78,6 +118,46 @@ def goodbye_printer(input_dics, t1_pro):
     except Exception as e:
         print 'ERROR: %s' % e
         pass
+
+# ##################### create_folders_files ############################
+
+
+def create_folders_files(events, eventpath, input_dics):
+    """
+    Create required folders and files in the event folder(s)
+    :param events:
+    :param eventpath:
+    :param input_dics:
+    :return:
+    """
+    for i in range(len(events)):
+        try:
+            os.makedirs(os.path.join(eventpath, events[i]['event_id'],
+                                     'BH_RAW'))
+            os.makedirs(os.path.join(eventpath, events[i]['event_id'],
+                                     'Resp'))
+            os.makedirs(os.path.join(eventpath, events[i]['event_id'],
+                                     'info'))
+
+            inp_file = open(os.path.join(eventpath, events[i]['event_id'],
+                                         'info', 'input_dics.pkl'), 'w')
+            pickle.dump(input_dics, inp_file)
+            inp_file.close()
+            report = open(os.path.join(eventpath, events[i]['event_id'],
+                                       'info', 'report_st'), 'a+')
+            report.close()
+            exception_file = open(os.path.join(eventpath,
+                                               events[i]['event_id'],
+                                               'info', 'exception'), 'a+')
+            exception_file.writelines('\n' + events[i]['event_id'] + '\n')
+            exception_file.close()
+            syn_file = open(os.path.join(eventpath, events[i]['event_id'],
+                                         'info', 'station_event'), 'a+')
+            syn_file.close()
+        except Exception as e:
+            print 'ERROR: %s' % e
+            pass
+
 # ##################### read_list_stas ##################################
 
 
@@ -338,6 +418,57 @@ def getFolderSize(folder):
         elif os.path.isdir(itempath):
             total_size += getFolderSize(itempath)
     return total_size
+
+# ##################### create_tar_file #######################################
+
+
+def create_tar_file(input_dics, address):
+    """
+    create a tar file out of a given directory
+    :param input_dics:
+    :param address:
+    :return:
+    """
+    print '\n**************************'
+    print 'Start creating tar file(s)'
+    print '**************************'
+    events, address_events = quake_info(address, 'info')
+    for i in range(len(events)):
+        # ---------Creating Tar files (Waveform files)
+        if input_dics['zip_w'] == 'Y':
+            print 'Compressing Raw files...'
+            path = os.path.join(address_events[i], 'BH_RAW')
+            tar_file = os.path.join(path, 'BH_RAW.tar')
+            files = '*.*.*.*'
+            compress_gzip(path=path, tar_file=tar_file, files=files)
+
+        # ---------Creating Tar files (Response files)
+        if input_dics['zip_r'] == 'Y':
+            print 'Compressing Resp files...'
+            path = os.path.join(address_events[i], 'Resp')
+            tar_file = os.path.join(path, 'Resp.tar')
+            files = '*.*.*.*'
+            compress_gzip(path=path, tar_file=tar_file, files=files)
+
+# ##################### compress_gzip ###################################
+
+
+def compress_gzip(path, tar_file, files):
+    """
+    Compressing files and creating a tar file
+    :param path:
+    :param tar_file:
+    :param files:
+    :return:
+    """
+    tar = tarfile.open(tar_file, "w:gz")
+    os.chdir(path)
+
+    for infile in glob.glob(os.path.join(path, files)):
+        print '.',
+        tar.add(os.path.basename(infile))
+        os.remove(infile)
+    tar.close()
 
 # ##################### send_email ######################################
 

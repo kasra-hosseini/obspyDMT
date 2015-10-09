@@ -3,7 +3,8 @@
 
 # -------------------------------------------------------------------
 #   Filename:  input_handler.py
-#   Purpose:   reading and generating input_dics
+#   Purpose:   reading and generating input_dics which contains all
+#              the inputs (python dictionary object)
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GNU Lesser General Public License, Version 3
@@ -20,45 +21,6 @@ import os
 import shutil
 import sys
 import time
-
-#  ##################### descrip_generator ###################################
-
-
-def descrip_generator():
-    print "*********************************"
-    print "Check all the BASIC dependencies:"
-    try:
-        from obspy import __version__ as obs_ver
-    except Exception as error:
-        print '---------------------------------------------------'
-        print 'Have you properly installed ObsPy on your computer?'
-        print 'Error: %s' % error
-        print '---------------------------------------------------'
-        sys.exit(2)
-
-    descrip = ['obspy ver: ' + obs_ver]
-
-    import numpy as np
-    descrip.append('numpy ver: ' + np.__version__)
-    import scipy
-    descrip.append('scipy ver: ' + scipy.__version__)
-
-    # Import plotting modules:
-    try:
-        from matplotlib import __version__ as mat_ver
-        import matplotlib.pyplot as plt
-        descrip.append('matplotlib ver: ' + mat_ver)
-    except Exception as error:
-        descrip.append('matplotlib: not installed\n\nerror:\n%s\n' % error)
-
-    try:
-        from mpl_toolkits.basemap import __version__ as base_ver
-        from mpl_toolkits.basemap import Basemap
-        descrip.append('Basemap ver: ' + base_ver)
-    except Exception as error:
-        descrip.append('Basemap: not installed\n\nerror:\n%s\n'
-                       'You could not use all the plot options' % error)
-    return descrip
 
 #  ##################### command_parse ###################################
 
@@ -97,7 +59,8 @@ def command_parse():
     group_check.add_option("--tour", action="store_true",
                            dest="tour", help=helpmsg)
 
-    helpmsg = "check all the dependencies and their installed versions on " \
+    helpmsg = "check all the basic dependencies and " \
+              "their installed versions on " \
               "the local machine and exit!"
     group_check.add_option("--check", action="store_true",
                            dest="check", help=helpmsg)
@@ -109,8 +72,8 @@ def command_parse():
 
     # --------------- Path specification
     group_path = OptionGroup(parser, "2. Path specification")
-    helpmsg = "the path where obspyDMT will store the data " \
-              "[Default: './obspyDMT-data']"
+    helpmsg = "the path where obspyDMT will store/process/plot data " \
+              "[Default: './obspydmt-data']"
     group_path.add_option("--datapath", action="store",
                           dest="datapath", help=helpmsg)
 
@@ -121,15 +84,30 @@ def command_parse():
     parser.add_option_group(group_path)
 
     # --------------- General options for requests
-    group_req = OptionGroup(parser, "3. General options for requests")
-    helpmsg = "continuous request (please refer to the tutorial)."
-    group_req.add_option("--continuous", action="store_true",
-                         dest="get_continuous", help=helpmsg)
+    group_req = OptionGroup(parser, "3. obspyDMT modes")
+    helpmsg = "event-based request mode. [Default]"
+    group_req.add_option("--event_based", action="store_true",
+                         dest="event_based", help=helpmsg)
 
-    helpmsg = "event-based request " \
-              "(please refer to the tutorial). [Default: 'Y']"
-    group_req.add_option("--get_events", action="store",
-                         dest="get_events", help=helpmsg)
+    helpmsg = "continuous request mode."
+    group_req.add_option("--continuous", action="store_true",
+                         dest="continuous", help=helpmsg)
+
+    helpmsg = "meta_data request mode."
+    group_req.add_option("--meta_data", action="store_true",
+                         dest="meta_data", help=helpmsg)
+
+    helpmsg = "local mode."
+    group_req.add_option("--local", action="store_true",
+                         dest="local", help=helpmsg)
+
+    helpmsg = "Print available data sources."
+    group_req.add_option("--print_data_sources", action="store_true",
+                         dest="print_data_sources", help=helpmsg)
+
+    helpmsg = "Print available event catalogs."
+    group_req.add_option("--print_event_catalogs", action="store_true",
+                         dest="print_event_catalogs", help=helpmsg)
 
     helpmsg = "retrieve waveform(s). [Default: 'Y']"
     group_req.add_option("--waveform", action="store",
@@ -201,21 +179,16 @@ def command_parse():
 
     # --------------- Events
     group_ev = OptionGroup(parser, "5. Events")
-    helpmsg = "just retrieve the event information and " \
-              "create an event archive."
-    group_ev.add_option("--event_info", action="store_true",
-                        dest="event_info", help=helpmsg)
+    helpmsg = "event catalog (LOCAL, NEIC_USGS, GCMT_COMBO, IRIS, NCEDC, " \
+              "USGS, INGV, ISC, NERIES). [Default: LOCAL]"
+    group_ev.add_option("--event_catalog", action="store",
+                        dest="event_catalog", help=helpmsg)
 
     helpmsg = "read in an existing event catalog and proceed. " \
               "Currently supported data formats: " \
               "'QUAKEML', 'MCHEDR' e.g.: --read_catalog 'path/to/file'"
     group_ev.add_option("--read_catalog", action="store",
                         dest="read_catalog", help=helpmsg)
-
-    helpmsg = "user can interactively select events of retrieved event " \
-              "catalog"
-    group_ev.add_option("--user_select_event", action="store_true",
-                        dest="user_select_event", help=helpmsg)
 
     helpmsg = "start time, syntax: Y-M-D-H-M-S " \
               "(eg: '2010-01-01-00-00-00') or just " \
@@ -268,14 +241,20 @@ def command_parse():
     group_ev.add_option("--event_circle", action="store",
                         dest="event_circle", help=helpmsg)
 
-    helpmsg = "event catalog (NEIC_USGS, GCMT_COMBO, IRIS, NCEDC, " \
-              "USGS, INGV, ISC, NERIES). [Default: IRIS]"
-    group_ev.add_option("--event_catalog", action="store",
-                        dest="event_catalog", help=helpmsg)
-
     helpmsg = "maximum number of events to be requested. [Default: 2500]"
     group_ev.add_option("--max_result", action="store",
                         dest="max_result", help=helpmsg)
+
+    helpmsg = "just retrieve the event information and " \
+              "create an event archive."
+    group_ev.add_option("--event_info", action="store_true",
+                        dest="event_info", help=helpmsg)
+
+    helpmsg = "user can interactively select events of retrieved event " \
+              "catalog"
+    group_ev.add_option("--user_select_event", action="store_true",
+                        dest="user_select_event", help=helpmsg)
+
     parser.add_option_group(group_ev)
 
     # --------------- Stations
@@ -379,10 +358,6 @@ def command_parse():
 
     # --------------- FDSN
     group_fdsn = OptionGroup(parser, "8. FDSN")
-
-    helpmsg = "Print available FDSN web service providers."
-    group_fdsn.add_option("--fdsn_urls", action="store_true",
-                          dest="fdsn_urls", help=helpmsg)
 
     helpmsg = "base_url for FDSN requests (waveform/response). " \
               "This option can be defined: --fdsn_base_url IRIS or " \
@@ -779,15 +754,23 @@ def read_input_command(parser, **kwargs):
     :return:
     """
     # Defining the default values.
-    input_dics = {'datapath': 'obspyDMT-data',
+    input_dics = {'datapath': 'obspydmt-data',
                   'min_date': str(UTCDateTime() - 60 * 60 * 24 * 10 * 1),
                   'max_date': str(UTCDateTime() - 60 * 60 * 24 * 5 * 1),
-                  'event_catalog': 'IRIS',
+
+                  'event_based': True,
+
+                  'event_catalog': 'LOCAL',
                   'mag_type': None,
                   'min_mag': 5.5, 'max_mag': 9.9,
                   'min_depth': -10.0, 'max_depth': +6000.0,
-                  'get_events': 'Y',
+                  'evlatmin': None, 'evlatmax': None,
+                  'evlonmin': None, 'evlonmax': None,
+                  'evlat': None, 'evlon': None,
+                  'evradmin': None, 'evradmax': None,
+                  'max_result': 2500,
                   'interval': 3600*24,
+
                   'preset_cont': 0,
                   'offset_cont': 0,
                   'req_np': 4,
@@ -805,11 +788,7 @@ def read_input_command(parser, **kwargs):
                   'resample_corr': None,
                   'preset': 0.0, 'offset': 1800.0,
                   'net': '*', 'sta': '*', 'loc': '*', 'cha': '*',
-                  'evlatmin': None, 'evlatmax': None,
-                  'evlonmin': None, 'evlonmax': None,
-                  'evlat': None, 'evlon': None,
-                  'evradmin': None, 'evradmax': None,
-                  'max_result': 2500,
+
                   'depth_bins_seismicity': 10,
                   'lat_cba': None, 'lon_cba': None,
                   'mr_cba': None, 'Mr_cba': None,
@@ -899,7 +878,6 @@ def read_input_command(parser, **kwargs):
         descrip = descrip_generator()
         for i in range(len(descrip)):
             print descrip[i]
-        print "*********************************\n"
         sys.exit(2)
 
     if options.tour:
@@ -917,16 +895,58 @@ def read_input_command(parser, **kwargs):
         options.ArcLink = 'N'
 
     # ############Parse paths and make sure that they are all absolute path
-    for paths in ['datapath', 'fdsn_update', 'arc_update', 'update_all',
-                  'fdsn_ic', 'arc_ic', 'ic_all', 'fdsn_merge', 'arc_merge',
-                  'merge_all', 'plot_dir', 'plot_save', 'plotxml_dir']:
+    for paths in ['datapath']:
         optatr_path = getattr(options, paths)
         if optatr_path:
             if optatr_path != 'N' and not os.path.isabs(optatr_path):
-                setattr(options, paths, os.path.join(os.getcwd(),
-                                                     getattr(options, paths)))
+                setattr(options, paths,
+                        os.path.join(os.getcwd(), getattr(options, paths)))
     # ############END Parse paths
 
+    # =================== obspyDMT mode
+    input_dics['event_based'] = options.event_based
+    input_dics['primary_mode'] = 'event_based'
+    if options.continuous:
+        input_dics['event_based'] = False
+        input_dics['continuous'] = options.continuous
+        input_dics['meta_data'] = False
+        input_dics['local'] = False
+        input_dics['primary_mode'] = 'continuous'
+    else:
+        input_dics['continuous'] = False
+    if options.meta_data:
+        input_dics['event_based'] = False
+        input_dics['continuous'] = False
+        input_dics['meta_data'] = options.meta_data
+        input_dics['local'] = False
+        input_dics['primary_mode'] = 'meta_data'
+    else:
+        input_dics['meta_data'] = False
+    if options.local:
+        input_dics['event_based'] = False
+        input_dics['continuous'] = False
+        input_dics['meta_data'] = False
+        input_dics['local'] = options.local
+        input_dics['primary_mode'] = 'local'
+    else:
+        input_dics['local'] = False
+
+    print "\nobspyDMT primary mode: %s\n" % input_dics['primary_mode']
+    # =================== END obspyDMT mode
+
+    # =================== Print Data sources and Event catalogs
+    if options.print_data_sources:
+        input_dics['print_data_sources'] = True
+    else:
+        input_dics['print_data_sources'] = False
+
+    if options.print_event_catalogs:
+        input_dics['print_event_catalogs'] = True
+    else:
+        input_dics['print_event_catalogs'] = False
+    # =================== END Print Data sources and Event catalogs
+
+    # =================== EVENTS
     # extract min. and max. longitude and latitude for event
     # if the user has given the coordinates with -r (GMT syntax)
     if options.event_rect:
@@ -957,6 +977,23 @@ def read_input_command(parser, **kwargs):
         except Exception, e:
             print "Erroneous circle given: %s" % e
             sys.exit(2)
+
+    input_dics['evlonmin'] = options.evlonmin
+    input_dics['evlonmax'] = options.evlonmax
+    input_dics['evlatmin'] = options.evlatmin
+    input_dics['evlatmax'] = options.evlatmax
+    input_dics['evlat'] = options.evlat
+    input_dics['evlon'] = options.evlon
+    input_dics['evradmax'] = options.evradmax
+    input_dics['evradmin'] = options.evradmin
+    input_dics['mag_type'] = options.mag_type
+    input_dics['min_mag'] = float(options.min_mag)
+    input_dics['max_mag'] = float(options.max_mag)
+    input_dics['min_depth'] = float(options.min_depth)
+    input_dics['max_depth'] = float(options.max_depth)
+    input_dics['min_date'] = str(UTCDateTime(options.min_date))
+    input_dics['max_date'] = str(UTCDateTime(options.max_date))
+    # =================== END EVENTS
 
     # extract min. and max. longitude and latitude for station
     # if the user has given the coordinates with -g (GMT syntax)
@@ -1050,8 +1087,6 @@ def read_input_command(parser, **kwargs):
         input_dics['cut_time_phase'] = True
     else:
         input_dics['cut_time_phase'] = False
-    input_dics['min_date'] = str(UTCDateTime(options.min_date))
-    input_dics['max_date'] = str(UTCDateTime(options.max_date))
 
     if options.event_catalog:
         input_dics['event_catalog'] = options.event_catalog.upper()
@@ -1060,19 +1095,7 @@ def read_input_command(parser, **kwargs):
         input_dics['read_catalog'] = options.read_catalog
     else:
         input_dics['read_catalog'] = 'N'
-    input_dics['mag_type'] = options.mag_type
-    input_dics['min_mag'] = float(options.min_mag)
-    input_dics['max_mag'] = float(options.max_mag)
-    input_dics['min_depth'] = float(options.min_depth)
-    input_dics['max_depth'] = float(options.max_depth)
-    input_dics['evlonmin'] = options.evlonmin
-    input_dics['evlonmax'] = options.evlonmax
-    input_dics['evlatmin'] = options.evlatmin
-    input_dics['evlatmax'] = options.evlatmax
-    input_dics['evlat'] = options.evlat
-    input_dics['evlon'] = options.evlon
-    input_dics['evradmax'] = options.evradmax
-    input_dics['evradmin'] = options.evradmin
+
     input_dics['preset'] = float(options.preset)
     input_dics['offset'] = float(options.offset)
     input_dics['max_result'] = int(options.max_result)
@@ -1085,13 +1108,7 @@ def read_input_command(parser, **kwargs):
         input_dics['seismicity'] = 'Y'
     else:
         input_dics['seismicity'] = 'N'
-    input_dics['get_events'] = options.get_events
-    if options.get_continuous:
-        input_dics['plot_all_events'] = None
-        input_dics['get_events'] = 'N'
-        input_dics['get_continuous'] = 'Y'
-    else:
-        input_dics['get_continuous'] = 'N'
+
     input_dics['interval'] = float(options.interval)
     input_dics['preset_cont'] = float(options.preset_cont)
     input_dics['offset_cont'] = float(options.offset_cont)
@@ -1100,9 +1117,7 @@ def read_input_command(parser, **kwargs):
     input_dics['req_parallel'] = options.req_parallel
     input_dics['req_np'] = int(options.req_np)
     input_dics['list_stas'] = options.list_stas
-    if options.fdsn_urls:
-        options.fdsn_urls = 'Y'
-    input_dics['fdsn_urls'] = options.fdsn_urls
+
     if options.fdsn_bulk:
         options.fdsn_bulk = 'Y'
     input_dics['fdsn_bulk'] = options.fdsn_bulk
@@ -1287,7 +1302,7 @@ def read_input_command(parser, **kwargs):
             sys.exit()
 
     # --------------Changing relevant options for some specific options
-    if input_dics['get_continuous'] == 'N':
+    if not input_dics['continuous']:
         input_dics['fdsn_merge_auto'] = 'N'
         input_dics['arc_merge_auto'] = 'N'
         input_dics['merge_type'] = options.merge_type
@@ -1299,8 +1314,8 @@ def read_input_command(parser, **kwargs):
     for opts in ['fdsn_ic', 'arc_ic', 'fdsn_merge', 'arc_merge', 'plot_dir']:
         if input_dics[opts] != 'N':
             input_dics['datapath'] = input_dics[opts]
-            input_dics['get_events'] = 'N'
-            input_dics['get_continuous'] = 'N'
+            input_dics['event_based'] = False
+            input_dics['continuous'] = False
             input_dics['FDSN'] = 'N'
             input_dics['ArcLink'] = 'N'
             input_dics['fdsn_ic_auto'] = 'N'
@@ -1311,8 +1326,8 @@ def read_input_command(parser, **kwargs):
     for opts in ['fdsn_update', 'arc_update']:
         if input_dics[opts] != 'N':
             input_dics['datapath'] = input_dics[opts]
-            input_dics['get_events'] = 'N'
-            input_dics['get_continuous'] = 'N'
+            input_dics['event_based'] = False
+            input_dics['continuous'] = False
             input_dics['FDSN'] = 'N'
             input_dics['ArcLink'] = 'N'
 
@@ -1324,12 +1339,12 @@ def read_input_command(parser, **kwargs):
         input_dics['fdsn_merge_auto'] = 'N'
         input_dics['arc_merge_auto'] = 'N'
         input_dics['plot_all_events'] = True
-        if options.identity or options.get_continuous:
+        if options.identity or options.continuous:
             input_dics['waveform'] = 'N'
     else:
         input_dics['plot_all_events'] = False
 
-    if options.event_info and options.get_continuous:
+    if options.event_info and options.continuous:
         input_dics['plot_all_events'] = False
 
     if options.seismicity:
@@ -1372,6 +1387,57 @@ def read_input_command(parser, **kwargs):
             input_dics['priority_clients'].append(cli)
 
     return input_dics
+
+#  ##################### descrip_generator ###################################
+
+
+def descrip_generator():
+    """
+    checking the basic dependencies!
+    :return:
+    """
+    print "*********************************"
+    print "Check all the BASIC dependencies:"
+    try:
+        from obspy import __version__ as obs_ver
+    except Exception as error:
+        print '---------------------------------------------------'
+        print 'Have you properly installed ObsPy on your computer?'
+        print 'Error: %s' % error
+        print "\n\nrefer to: https://github.com/obspy/obspy/wiki"
+        print '---------------------------------------------------'
+        sys.exit(2)
+
+    descrip = ['obspy ver: ' + obs_ver]
+
+    try:
+        import numpy as np
+        descrip.append('numpy ver: ' + np.__version__)
+    except Exception, error:
+        descrip.append('numpy: not installed\n\nerror:\n%s\n' % error)
+
+    try:
+        import scipy
+        descrip.append('scipy ver: ' + scipy.__version__)
+    except Exception, error:
+        descrip.append('scipy: not installed\n\nerror:\n%s\n' % error)
+
+    try:
+        from matplotlib import __version__ as mat_ver
+        import matplotlib.pyplot as plt
+        descrip.append('matplotlib ver: ' + mat_ver)
+    except Exception as error:
+        descrip.append('matplotlib: not installed\n\nerror:\n%s\n' % error)
+
+    try:
+        from mpl_toolkits.basemap import __version__ as base_ver
+        from mpl_toolkits.basemap import Basemap
+        descrip.append('Basemap ver: ' + base_ver)
+    except Exception as error:
+        descrip.append('Basemap: not installed\n\nerror:\n%s\n'
+                       'You can not use all the plot options' % error)
+    print "*********************************\n"
+    return descrip
 
 # ##################### input_logger ###################################
 
