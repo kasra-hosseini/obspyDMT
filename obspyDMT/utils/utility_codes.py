@@ -3,7 +3,7 @@
 
 # -------------------------------------------------------------------
 #   Filename:  utility_codes.py
-#   Purpose:   Collection of helping scripts, utility codes
+#   Purpose:   Collection of helping scripts and utility codes
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GNU Lesser General Public License, Version 3
@@ -47,7 +47,7 @@ def header_printer():
     """
     os.system('clear')
     print 80*'-'
-    print '\t\tobspyDMT (ObsPy Data Management Tool)\n'
+    print '\t\tobspyDMT (obspy Data Management Tool)\n'
     print '\tAutomatic tool for Downloading, Processing and Management'
     print '\t\t\tof Large Seismological Datasets\n'
     print ':copyright:'
