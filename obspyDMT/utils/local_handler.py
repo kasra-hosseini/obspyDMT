@@ -38,9 +38,10 @@ from .utility_codes import read_station_event
 
 
 def process_data(input_dics, event):
+    import ipdb; ipdb.set_trace()
     period = '{0:s}_{1:s}'.format(
-    input_dics['min_date'].split('T')[0],
-    input_dics['max_date'].split('T')[0])
+        input_dics['min_date'].split('T')[0],
+        input_dics['max_date'].split('T')[0])
     eventpath = os.path.join(input_dics['datapath'], period)
     target_path = os.path.join(eventpath, event['event_id'])
     print(target_path)

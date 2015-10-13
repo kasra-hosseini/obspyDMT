@@ -64,13 +64,36 @@ def get_time_window(input_dics, request):
     events = []
     events_qml = []
     try:
+        events_local, events_qml_local = read_info(input_dics)
         if input_dics['event_catalog'].lower() == 'local':
-            events, events_qml, input_dics = read_info(input_dics)
+            if events_local == 'no_local':
+                input_dics['event_catalog'] = 'IRIS'
+            else:
+                events = copy.deepcopy(events_local)
+                events_qml = copy.deepcopy(events_qml_local)
         if events == 'no_local' or events == []:
             if request.lower() == 'event_based':
                 events, events_qml = event_info(input_dics)
             elif request.lower() == 'continuous':
                 events, events_qml = continuous_info(input_dics)
+        remove_indx = []
+        if input_dics['event_catalog'].lower() != 'local':
+            if events_local != 'no_local':
+                for nei in range(len(events)):
+                    for oei in range(len(events_local)):
+                        if (events[nei]['event_id'] ==
+                                events_local[oei]['event_id']):
+                            remove_indx.append(nei)
+                            break
+                if len(remove_indx) > 0:
+                    remove_indx.sort(reverse=True)
+                    for ri in remove_indx:
+                        del events[ri]
+                        del events_qml[ri]
+                for oei in range(len(events_local)):
+                    events.append(events_local[oei])
+                    events_qml.append(events_qml_local[oei])
+
     except Exception, error:
         print 'WARNING: %s' % error
         return 0
@@ -105,8 +128,7 @@ def read_info(input_dics):
     """
     evs_info = locate(input_dics['datapath'], 'EVENTS-INFO')
     if len(evs_info) < 1:
-        input_dics['event_catalog'] = 'IRIS'
-        return "no_local", "no_local", input_dics
+        return "no_local", "no_local"
     if len(evs_info) > 1:
         print "WARNING: Found two directories that have EVENTS-INFO. " \
               "Continue with:"
@@ -116,21 +138,20 @@ def read_info(input_dics):
     ev_info = evs_info[0]
 
     if not os.path.isfile(os.path.join(ev_info, 'event_list_pickle')):
-        input_dics['event_catalog'] = 'IRIS'
-        return "no_local", "no_local", input_dics
+        return "no_local", "no_local"
     if not os.path.isfile(os.path.join(ev_info, 'catalog.ml')):
-        input_dics['event_catalog'] = 'IRIS'
-        return "no_local", "no_local", input_dics
+        return "no_local", "no_local"
 
     fio = open(os.path.join(ev_info, 'event_list_pickle'), 'r')
     events = pickle.load(fio)
     events_QML = readEvents(os.path.join(ev_info, 'catalog.ml'),
                             format='QuakeML')
-    print "Use local files:"
-    print "(all relevant options will be omitted!)"
-    print os.path.join(ev_info, 'event_list_pickle')
-    print os.path.join(ev_info, 'catalog.ml')
-    return events, events_QML, input_dics
+    if input_dics['event_catalog'].lower() == 'local':
+        print "Use local files:"
+        print "(all relevant options will be omitted!)"
+        print os.path.join(ev_info, 'event_list_pickle')
+        print os.path.join(ev_info, 'catalog.ml')
+    return events, events_QML
 
 # ##################### event_info #####################################
 
