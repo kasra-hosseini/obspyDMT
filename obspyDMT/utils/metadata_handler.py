@@ -87,8 +87,9 @@ def get_metadata(input_dics, event, info_avail):
                                   stas_all, event)
     stas_arr = np.array(stas_all)
     np.save(os.path.join(target_path, 'info', 'availability'), stas_arr)
-    np.savetxt(os.path.join(target_path, 'info', 'availability.txt'),
-               stas_arr, delimiter=',', fmt='%s')
+    avail_fi = \
+        open(os.path.join(target_path, 'info', 'availability.txt'), 'ab')
+    np.savetxt(avail_fi, stas_arr, delimiter=',', fmt='%s')
     stas_update = rm_duplicate(stas_all, target_path)
     stas_arr_update = np.array(stas_update)
 

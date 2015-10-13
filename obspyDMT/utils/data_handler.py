@@ -189,26 +189,7 @@ def fdsn_serial_parallel(stas_avail, event, input_dics, target_path, req_cli):
             fdsn_download_core(st_avail, event, input_dics, target_path,
                                client_fdsn, req_cli)
 
-    if os.path.isfile(os.path.join(target_path, 'info', 'station_event')):
-        sta_ev_fi = np.loadtxt(
-            os.path.join(target_path, 'info', 'station_event'),
-            delimiter=',', dtype='object')
-        if len(sta_ev_fi) > 0:
-            sta_ev_names = sta_ev_fi[:, 0] + '.' + sta_ev_fi[:, 1] + '.' + \
-                           sta_ev_fi[:, 2] + '.' + sta_ev_fi[:, 3]
-            sta_saved_path = glob.glob(
-                os.path.join(target_path, 'BH_RAW', '*.*.*.*'))
-            sta_saved_path.sort()
-            sta_sorted = []
-            for sta_sav_abs in sta_saved_path:
-                try:
-                    sta_sav = os.path.basename(sta_sav_abs)
-                    sta_indx = np.where(sta_ev_names == sta_sav)[0][-1]
-                    sta_sorted.append(sta_ev_fi[sta_indx])
-                except Exception, e:
-                    continue
-            np.savetxt(os.path.join(target_path, 'info', 'station_event'),
-                       sta_sorted, delimiter=',', fmt='%s')
+    update_sta_ev_file(target_path)
 
     if input_dics['bulk']:
         input_dics['waveform'] = True
@@ -580,6 +561,51 @@ def arc_download_core(st_avail, event, input_dics, target_path,
                                            'info', 'exception'), 'a')
         Exception_file.writelines(ee)
         Exception_file.close()
+
+# ##################### update_sta_ev_file ##################################
+
+
+def update_sta_ev_file(target_path):
+    """
+    Update the station event file based on already stored waveforms
+    """
+    sta_ev_add = os.path.join(target_path, 'info', 'station_event')
+    if os.path.isfile(sta_ev_add):
+        sta_ev_fi = np.loadtxt(sta_ev_add, delimiter=',', dtype='object')
+        if len(sta_ev_fi) > 0:
+            sta_ev_names = sta_ev_fi[:, 0] + '.' + sta_ev_fi[:, 1] + '.' + \
+                           sta_ev_fi[:, 2] + '.' + sta_ev_fi[:, 3]
+            sta_saved_path = glob.glob(
+                os.path.join(target_path, 'BH_RAW', '*.*.*.*'))
+            sta_saved_path.sort()
+            sta_sorted = []
+            for sta_sav_abs in sta_saved_path:
+                try:
+                    sta_sav = os.path.basename(sta_sav_abs)
+                    sta_indx = np.where(sta_ev_names == sta_sav)[0][-1]
+                    sta_sorted.append(sta_ev_fi[sta_indx])
+                except Exception, e:
+                    continue
+            np.savetxt(sta_ev_add, sta_sorted, delimiter=',', fmt='%s')
+    else:
+        print "[DATA] Can not find: %s" % sta_ev_add
+        avail_arr = np.loadtxt(os.path.join(target_path, 'info',
+                                            'availability.txt'),
+                               delimiter=',', dtype='object')
+        sta_ev_names = avail_arr[:, 0] + '.' + avail_arr[:, 1] + '.' + \
+                       avail_arr[:, 2] + '.' + avail_arr[:, 3]
+        sta_saved_path = glob.glob(
+            os.path.join(target_path, 'BH_RAW', '*.*.*.*'))
+        sta_saved_path.sort()
+        sta_sorted = []
+        for sta_sav_abs in sta_saved_path:
+            try:
+                sta_sav = os.path.basename(sta_sav_abs)
+                sta_indx = np.where(sta_ev_names == sta_sav)[0][-1]
+                sta_sorted.append(avail_arr[sta_indx])
+            except Exception, e:
+                continue
+        np.savetxt(sta_ev_add, sta_sorted, delimiter=',', fmt='%s')
 
 # -------------------------------- TRASH
 

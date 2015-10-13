@@ -420,61 +420,14 @@ def command_parse():
     group_ic.add_option("--water_level", action="store",
                         dest="water_level", help=helpmsg)
 
-    helpmsg = "parallel Instrument Correction. "
-    group_ic.add_option("--ic_parallel", action="store_true",
-                        dest="ic_parallel", help=helpmsg)
+    helpmsg = "parallel processing"
+    group_ic.add_option("--parallel_process", action="store_true",
+                        dest="parallel_process", help=helpmsg)
 
-    helpmsg = "number of processors to be used in --ic_parallel. [Default: 20]"
-    group_ic.add_option("--ic_np", action="store",
-                        dest="ic_np", help=helpmsg)
-
-    helpmsg = "apply instrument correction to the specified folder for " \
-              "all the waveforms (FDSN and ArcLink), " \
-              "syntax: --ic_all address_of_the_target_folder. [Default: 'N']"
-    group_ic.add_option("--ic_all", action="store",
-                        dest="ic_all", help=helpmsg)
-
-    helpmsg = "apply instrument correction to the specified folder for " \
-              "downloaded waveforms from FDSN, " \
-              "syntax: --fdsn_ic address_of_the_target_folder. [Default: 'N']"
-    group_ic.add_option("--fdsn_ic", action="store",
-                        dest="fdsn_ic", help=helpmsg)
-
-    helpmsg = "apply instrument correction to the specified folder for " \
-              "downloaded waveforms from ArcLink, " \
-              "syntax: --arc_ic address_of_the_target_folder. [Default: 'N']"
-    group_ic.add_option("--arc_ic", action="store",
-                        dest="arc_ic", help=helpmsg)
-
-    helpmsg = "apply instrument correction automatically " \
-              "after downloading the waveforms from FDSN. [Default: 'Y']"
-    group_ic.add_option("--fdsn_ic_auto", action="store",
-                        dest="fdsn_ic_auto", help=helpmsg)
-
-    helpmsg = "apply instrument correction automatically " \
-              "after downloading the waveforms from ArcLink. [Default: 'Y']"
-    group_ic.add_option("--arc_ic_auto", action="store",
-                        dest="arc_ic_auto", help=helpmsg)
-
-    helpmsg = "do not apply instrument correction automatically. " \
-              "This is equivalent to: \"--fdsn_ic_auto N --arc_ic_auto N\""
-    group_ic.add_option("--ic_no", action="store_true",
-                        dest="ic_no", help=helpmsg)
-
-    helpmsg = "instrument Correction (full response), using obspy modules. " \
-              "[Default: 'Y']"
-    group_ic.add_option("--ic_obspy_full", action="store",
-                        dest="ic_obspy_full", help=helpmsg)
-
-    helpmsg = "instrument Correction (full response), using SAC"
-    group_ic.add_option("--ic_sac_full", action="store_true",
-                        dest="ic_sac_full", help=helpmsg)
-
-    helpmsg = "instrument Correction (Poles And Zeros), " \
-              "using SAC (for FDSN) and obspy (for ArcLink)"
-    group_ic.add_option("--ic_paz", action="store_true",
-                        dest="ic_paz", help=helpmsg)
-    parser.add_option_group(group_ic)
+    helpmsg = "number of processors to be used in --process_parallel. " \
+              "[Default: 4]"
+    group_ic.add_option("--process_np", action="store",
+                        dest="process_np", help=helpmsg)
 
     # --------------- Updating
     group_up = OptionGroup(parser, "11. Updating")
@@ -787,7 +740,7 @@ def read_input_command(parser, **kwargs):
                   'ic_all': 'N',
                   'fdsn_ic': 'N', 'fdsn_ic_auto': 'Y',
                   'arc_ic': 'N', 'arc_ic_auto': 'Y',
-                  'ic_np': 4,
+                  'process_np': 4,
                   'ic_obspy_full': 'Y',
                   'pre_filt': '(0.008, 0.012, 3.0, 4.0)',
                   'water_level': 600.0,
@@ -1204,20 +1157,8 @@ def read_input_command(parser, **kwargs):
     if input_dics['ic_all'] != 'N':
         input_dics['fdsn_ic'] = input_dics['ic_all']
         input_dics['arc_ic'] = input_dics['ic_all']
-    if options.ic_parallel:
-        options.ic_parallel = 'Y'
-    input_dics['ic_parallel'] = options.ic_parallel
-    input_dics['ic_np'] = int(options.ic_np)
-    input_dics['ic_obspy_full'] = options.ic_obspy_full
-    if options.ic_sac_full:
-        options.ic_sac_full = 'Y'
-    input_dics['ic_sac_full'] = options.ic_sac_full
-    if options.ic_paz:
-        options.ic_paz = 'Y'
-    input_dics['ic_paz'] = options.ic_paz
-    if input_dics['ic_sac_full'] == 'Y' or input_dics['ic_paz'] == 'Y':
-        input_dics['SAC'] = 'Y'
-        input_dics['ic_obspy_full'] = 'N'
+    input_dics['parallel_process'] = options.parallel_process
+    input_dics['process_np'] = int(options.process_np)
     input_dics['corr_unit'] = options.corr_unit
     input_dics['pre_filt'] = options.pre_filt
     input_dics['water_level'] = float(options.water_level)
@@ -1335,10 +1276,6 @@ def read_input_command(parser, **kwargs):
 
     if not input_dics['waveform'] == 'N':
         input_dics['SAC'] = 'N'
-
-    if options.ic_no:
-        input_dics['fdsn_ic_auto'] = 'N'
-        input_dics['arc_ic_auto'] = 'N'
 
     if options.merge_no:
         input_dics['fdsn_merge_auto'] = 'N'

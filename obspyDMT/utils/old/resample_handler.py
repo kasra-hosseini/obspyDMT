@@ -20,7 +20,6 @@ import os
 from obspy.core import read
 from scipy import signal
 
-from .utility_codes import read_station_event
 
 # ###################### zerophase_chebychev_lowpass_filter #############
 

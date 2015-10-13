@@ -49,7 +49,7 @@ def obspyDMT(**kwargs):
     if input_dics['print_event_catalogs']:
         print_event_catalogs()
     # ------------------Getting List of Events/Continuous requests-------------
-    if input_dics['primary_mode'] in ['event_based', 'continuous']:
+    if input_dics['primary_mode'] in ['event_based', 'continuous', 'local']:
         # events contains all the information for requested time-window
         # Although we do not have any events in continuous requests,
         # it is still called as events.
@@ -70,8 +70,9 @@ def obspyDMT(**kwargs):
     # LOCAL:
     # custom functions to be applied to all the data ---> SAC, ...
     # choose one station at each grid point or distance
-    for ev in range(len(events)):
-        process_data(input_dics, events[ev])
+    if input_dics['local']:
+        for ev in range(len(events)):
+            process_data(input_dics, events[ev])
 
     import ipdb; ipdb.set_trace()
     # # ------------------plot stationxml files--------------------

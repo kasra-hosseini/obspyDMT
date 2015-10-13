@@ -107,14 +107,15 @@ def get_time_window(input_dics, request):
     print 'Time for retrieving and saving the event info: %s' \
           % str(timedelta(seconds=round(float(time.time() - t_event_1))))
 
-    # formatting output / check if directory exists
-    period = '{0:s}_{1:s}'.format(
-        input_dics['min_date'].split('T')[0],
-        input_dics['max_date'].split('T')[0])
-    eventpath = os.path.join(input_dics['datapath'], period)
+    if input_dics['primary_mode'] in ['event_based', 'continuous']:
+        # formatting output / check if directory exists
+        period = '{0:s}_{1:s}'.format(
+            input_dics['min_date'].split('T')[0],
+            input_dics['max_date'].split('T')[0])
+        eventpath = os.path.join(input_dics['datapath'], period)
 
-    write_cat_logger(input_dics, eventpath, period, events, events_qml,
-                     events2, row_format, header)
+        write_cat_logger(input_dics, eventpath, period, events, events_qml,
+                         events2, row_format, header)
     return events
 
 # ##################### read_info #####################################

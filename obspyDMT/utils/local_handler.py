@@ -16,11 +16,14 @@
 # Required Python and Obspy modules will be imported in this part.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+import multiprocessing
+import numpy as np
 import os
 from obspy.core import read
 from scipy import signal
 
-from .utility_codes import read_station_event
+from .utility_codes import read_station_event, locate, check_par_jobs
+from .data_handler import update_sta_ev_file
 
 # ############### POTENTIAL
 # if input_dics['resample_raw']:
@@ -38,13 +41,74 @@ from .utility_codes import read_station_event
 
 
 def process_data(input_dics, event):
+    target_path = locate(input_dics['datapath'], event['event_id'])
+    if len(target_path) > 1:
+        print("[LOCAL] more than one path was found for one event:")
+        print(target_path)
+        print("use the first one:")
+        target_path = target_path[0]
+        print(target_path)
+    else:
+        print("[LOCAL] Path:")
+        target_path = target_path[0]
+        print(target_path)
+    update_sta_ev_file(target_path)
+    sta_ev_arr = np.loadtxt(os.path.join(target_path, 'info', 'station_event'),
+                            delimiter=',', dtype='object')
+    if len(sta_ev_arr) > 0:
+        process_serial_parallel(sta_ev_arr, input_dics, target_path)
+    else:
+        print("[LOCAL] No station to process!")
     import ipdb; ipdb.set_trace()
-    period = '{0:s}_{1:s}'.format(
-        input_dics['min_date'].split('T')[0],
-        input_dics['max_date'].split('T')[0])
-    eventpath = os.path.join(input_dics['datapath'], period)
-    target_path = os.path.join(eventpath, event['event_id'])
-    print(target_path)
+
+# ###################### process_serial_parallel #############
+
+
+def process_serial_parallel(sta_ev_arr, input_dics, target_path):
+    """
+    Unit for running the process core in parallel or in serial
+    :param sta_ev_arr:
+    :param input_dics:
+    :return:
+    """
+
+    if input_dics['parallel_process']:
+        start = 0
+        end = len(sta_ev_arr)
+        step = (end - start) / input_dics['process_np'] + 1
+
+        jobs = []
+        for index in xrange(input_dics['process_np']):
+            starti = start + index * step
+            endi = min(start + (index + 1) * step, end)
+            p = multiprocessing.Process(target=process_core_iterate,
+                                        args=(sta_ev_arr, input_dics,
+                                              target_path,
+                                              starti, endi))
+            jobs.append(p)
+        for i in range(len(jobs)):
+            jobs[i].start()
+        check_par_jobs(jobs)
+
+    else:
+        process_core_iterate(sta_ev_arr, input_dics, target_path,
+                             0, len(sta_ev_arr))
+
+# ###################### process_core_iterate #############
+
+
+def process_core_iterate(sta_ev_arr, input_dics, target_path, starti, endi):
+    for i in range(starti, endi):
+        staev_ar = sta_ev_arr[i]
+        station_id = '%s.%s.%s.%s' % (staev_ar[0], staev_ar[1],
+                                      staev_ar[2], staev_ar[3])
+        tr_add = os.path.join(target_path, 'BH_RAW', station_id)
+        if len(staev_ar) > 10:
+            data_source = staev_ar[13]
+        else:
+            data_source = staev_ar[9]
+        from utils.process_func.process_unit import process_unit
+        process_unit(tr_add, target_path, staev_ar, data_source, input_dics)
 
 # ###################### zerophase_chebychev_lowpass_filter #############
 
