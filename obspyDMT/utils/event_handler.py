@@ -150,22 +150,23 @@ def events_info(input_dics, request):
                 evradmax = input_dics['evradmax']
 
                 event_switch = 'fdsn'
+                event_url = input_dics['event_catalog']
+                event_fdsn_cat = None
+
                 if input_dics['event_catalog']:
                     if input_dics['event_catalog'].lower() == 'gcmt_combo':
                         event_switch = 'gcmt_combo'
                     if input_dics['event_catalog'].lower() == 'neic_usgs':
                         event_switch = 'neic_usgs'
-                    else:
-                        print 'Event(s) are based on:\t',
-                        print input_dics['event_url']
-                else:
-                    print 'Event(s) are based on:\t',
-                    print input_dics['event_url']
+                    if input_dics['event_catalog'].lower() == 'isc':
+                        event_url = 'IRIS'
+                        event_fdsn_cat = 'ISC'
 
-                print 'Specified catalog: \t%s\n' % input_dics['event_catalog']
+                print 'Event(s) are based on:\t',
+                print input_dics['event_catalog']
 
                 if event_switch == 'fdsn':
-                    client_fdsn = Client_fdsn(base_url=input_dics['event_url'])
+                    client_fdsn = Client_fdsn(base_url=event_url)
                     events_QML = client_fdsn.get_events(
                         minlatitude=evlatmin,
                         maxlatitude=evlatmax,
@@ -182,7 +183,7 @@ def events_info(input_dics, request):
                         minmagnitude=input_dics['min_mag'],
                         maxmagnitude=input_dics['max_mag'],
                         orderby='time',
-                        catalog=input_dics['event_catalog'],
+                        catalog=event_fdsn_cat,
                         magnitudetype=input_dics['mag_type'])
                 elif event_switch == 'gcmt_combo':
                     events_QML = \

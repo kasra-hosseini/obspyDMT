@@ -268,12 +268,8 @@ def command_parse():
     group_ev.add_option("--event_circle", action="store",
                         dest="event_circle", help=helpmsg)
 
-    helpmsg = "event webservice (IRIS or NERIES). [Default: 'IRIS']"
-    group_ev.add_option("--event_url", action="store",
-                        dest="event_url", help=helpmsg)
-
-    helpmsg = "event catalog (GCMT_COMBO, IRIS, ISC, EMSC, GCMT, NEIC PDE). " \
-              "[Default: IRIS]"
+    helpmsg = "event catalog (NEIC_USGS, GCMT_COMBO, IRIS, NCEDC, " \
+              "USGS, INGV, ISC, NERIES). [Default: IRIS]"
     group_ev.add_option("--event_catalog", action="store",
                         dest="event_catalog", help=helpmsg)
 
@@ -383,7 +379,17 @@ def command_parse():
 
     # --------------- FDSN
     group_fdsn = OptionGroup(parser, "8. FDSN")
+
+    helpmsg = "Print available FDSN web service providers."
+    group_fdsn.add_option("--fdsn_urls", action="store_true",
+                          dest="fdsn_urls", help=helpmsg)
+
     helpmsg = "base_url for FDSN requests (waveform/response). " \
+              "This option can be defined: --fdsn_base_url IRIS or " \
+              "--fdsn_base_url 'IRIS,ORFEUS' for which all the stations of " \
+              "IRIS will be downloaded and the directory will be updated for " \
+              "ORFEUS. It is also possible to --fdsn_base_url all which will " \
+              "download waveforms for all available FDSN urls. " \
               "[Default: 'IRIS']"
     group_fdsn.add_option("--fdsn_base_url", action="store",
                           dest="fdsn_base_url", help=helpmsg)
@@ -573,7 +579,7 @@ def command_parse():
     group_plt = OptionGroup(parser, "13. Plotting")
     helpmsg = "create a seismicity map according to " \
               "the event and location specifications."
-    group_plt.add_option("--seismicity", action="store_true",
+    group_plt.add_option("--plot_seismicity", action="store_true",
                          dest="seismicity", help=helpmsg)
 
     helpmsg = "depth bins for plotting the seismicity histrogram. " \
@@ -776,7 +782,6 @@ def read_input_command(parser, **kwargs):
     input_dics = {'datapath': 'obspyDMT-data',
                   'min_date': str(UTCDateTime() - 60 * 60 * 24 * 10 * 1),
                   'max_date': str(UTCDateTime() - 60 * 60 * 24 * 5 * 1),
-                  'event_url': 'IRIS',
                   'event_catalog': 'IRIS',
                   'mag_type': None,
                   'min_mag': 5.5, 'max_mag': 9.9,
@@ -884,7 +889,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*' + '\t\t' + '1.0.0' + '\t\t' + '*'
+        print '\t\t' + '*' + '\t\t' + '1.0.1b1' + '\t\t' + '*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -907,7 +912,6 @@ def read_input_command(parser, **kwargs):
         options.max_date = '2011-03-12'
         options.min_mag = '8.9'
         options.identity = 'TA.1*.*.BHZ'
-        options.event_url = 'IRIS'
         options.event_catalog = 'IRIS'
         options.req_parallel = True
         options.ArcLink = 'N'
@@ -1048,12 +1052,9 @@ def read_input_command(parser, **kwargs):
         input_dics['cut_time_phase'] = False
     input_dics['min_date'] = str(UTCDateTime(options.min_date))
     input_dics['max_date'] = str(UTCDateTime(options.max_date))
-    input_dics['event_url'] = options.event_url.upper()
 
     if options.event_catalog:
         input_dics['event_catalog'] = options.event_catalog.upper()
-    if input_dics['event_catalog'].upper() == 'IRIS':
-        input_dics['event_catalog'] = None
 
     if options.read_catalog:
         input_dics['read_catalog'] = options.read_catalog
@@ -1099,6 +1100,9 @@ def read_input_command(parser, **kwargs):
     input_dics['req_parallel'] = options.req_parallel
     input_dics['req_np'] = int(options.req_np)
     input_dics['list_stas'] = options.list_stas
+    if options.fdsn_urls:
+        options.fdsn_urls = 'Y'
+    input_dics['fdsn_urls'] = options.fdsn_urls
     if options.fdsn_bulk:
         options.fdsn_bulk = 'Y'
     input_dics['fdsn_bulk'] = options.fdsn_bulk
@@ -1134,6 +1138,25 @@ def read_input_command(parser, **kwargs):
         input_dics['resample_corr'] = False
     input_dics['FDSN'] = options.FDSN
     input_dics['fdsn_base_url'] = options.fdsn_base_url
+    if input_dics['fdsn_base_url'].lower() == 'all':
+        input_dics['fdsn_base_url'] = \
+            "LMU,GFZ,ETH,INGV,NIEP,IPGP,RESIF,ORFEUS,ODC,NERIES,BGR,KOERI," \
+            "GEONET," \
+            "USP," \
+            "NCEDC,SCEDC,IRIS"
+        print "\n---------------------------------"
+        print "Waveforms will be retrieved from:"
+        print input_dics['fdsn_base_url']
+        print "---------------------------------\n\n"
+
+    input_dics['fdsn_base_url'] = \
+        [x.strip() for x in input_dics['fdsn_base_url'].split(',')]
+    if len(input_dics['fdsn_base_url']) > 1:
+        input_dics['fdsn_base_url_rest'] = input_dics['fdsn_base_url'][1:]
+        input_dics['fdsn_base_url'] = input_dics['fdsn_base_url'][0]
+    else:
+        input_dics['fdsn_base_url_rest'] = []
+        input_dics['fdsn_base_url'] = input_dics['fdsn_base_url'][0]
     input_dics['fdsn_user'] = options.fdsn_user
     input_dics['fdsn_pass'] = options.fdsn_pass
     input_dics['ArcLink'] = options.ArcLink
@@ -1317,6 +1340,9 @@ def read_input_command(parser, **kwargs):
         input_dics['fdsn_merge_auto'] = 'N'
         input_dics['arc_merge_auto'] = 'N'
         input_dics['max_result'] = 1000000
+
+    if input_dics['waveform'] == 'N':
+        input_dics['SAC'] = 'N'
 
     if options.FDSN == 'N':
         input_dics['fdsn_ic_auto'] = 'N'

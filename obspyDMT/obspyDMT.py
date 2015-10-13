@@ -17,7 +17,7 @@ import time
 
 from utils.arclink_handler import ARC_network
 from utils.event_handler import get_Events, create_tar_file
-from utils.fdsn_handler import FDSN_network
+from utils.fdsn_handler import FDSN_network, FDSN_urls
 from utils.input_handler import command_parse, read_input_command
 from utils.instrument_handler import FDSN_ARC_IC
 from utils.merge_handler import FDSN_ARC_merge
@@ -44,6 +44,9 @@ def obspyDMT(**kwargs):
     (options, args, parser) = command_parse()
     # ------------------Read INPUT file (Parameters)--------------------
     input_dics = read_input_command(parser, **kwargs)
+    # ------------------FDSN URLs--------------------
+    if input_dics['fdsn_urls']:
+        FDSN_urls()
     # ------------------plot stationxml files--------------------
     if input_dics['plotxml_dir']:
         plot_xml_response(input_dics)

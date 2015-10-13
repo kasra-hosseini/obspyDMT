@@ -10,7 +10,7 @@ This tool is developed mainly to address the following tasks automatically:
 
 1. Retrieval of waveforms (MSEED or SAC), stationXML/response files and metadata from FDSN and ArcLink archives. This could be done in *serial* or in *parallel* for single or large requests.
 2. Supports both event-based and continuous requests.
-3. Extracting the information of all the events via user-defined options (time span, magnitude, depth and event location) from IRIS, NEIC and GCMT. Therefore, moment tensor information can also be retrieved.
+3. Extracting the information of all the events via user-defined options (time span, magnitude, depth and event location) from NEIC, Global CMT, IRIS DMC, NCEDC, USGS, INGV and ISC. Therefore, moment tensor information can also be retrieved.
 4. Updating existing archives (waveforms, stationXML/response files and metadata).
 5. Processing the data in *serial* or in *parallel* (e.g. *removing the trends and means of the time series, tapering, filtering and Instrument correction*).
 6. Management of large seismological datasets.
@@ -862,16 +862,16 @@ The fourth figure is similar to the third one, but the time shifts of "bad stati
 Seismicity
 ----------
 
-Geographical and historical distribution of earthquake activities (seismicity) can be plotted using *--seismicity* option in obspyDMT. In this mode, the software finds the events according to the input parameters and generates an image in which the events are categorized based on depth and magnitude.
+Geographical and historical distribution of earthquake activities (seismicity) can be plotted using *--plot_seismicity* option in obspyDMT. In this mode, the software finds the events according to the input parameters and generates an image in which the events are categorized based on depth and magnitude.
 
 **Example 1:** the command line to create *Japan* seismicity map from all the
 events available in IRIS with magnitude more than 5.0 since 2000 is as follow:
 
 ::
 
-    $ obspyDMT --datapath 'seismicity_japan' --seismicity --min_mag 5.0 --min_date 2000-01-01 --max_date 2014-12-31 --event_rect 120.0/155.0/25.0/55.0
+    $ obspyDMT --datapath 'seismicity_japan' --plot_seismicity --min_mag 5.0 --min_date 2000-01-01 --max_date 2014-12-31 --event_rect 120.0/155.0/25.0/55.0
 
-*--datapath* is the address where the event catalog will be created, *--seismicity* enables the seismicity mode and *--min_mag*, *--min_date*, *--max_date* and *--event_rect* are event search parameters.
+*--datapath* is the address where the event catalog will be created, *--plot_seismicity* enables the seismicity mode and *--min_mag*, *--min_date*, *--max_date* and *--event_rect* are event search parameters.
 
 .. image:: figures/seismicity_japan.png
    :scale: 50%
@@ -883,7 +883,7 @@ follow: (27057 events)
 
 ::
 
-    $ obspyDMT --datapath 'seismicity_glob' --seismicity --min_mag 5.0 --min_date 2000-01-01 --max_date 2014-12-31
+    $ obspyDMT --datapath 'seismicity_glob' --plot_seismicity --min_mag 5.0 --min_date 2000-01-01 --max_date 2014-12-31
 
 .. image:: figures/seismicity_glob.png
    :scale: 50%
@@ -956,7 +956,7 @@ is as follow:
 
 ::
 
-    $ obspyDMT --datapath seismicity_glob_neic --seismicity --min_mag 5.0 --min_date 1976-01-01 --max_date 2014-12-31 --event_catalog NEIC_USGS
+    $ obspyDMT --datapath seismicity_glob_neic --plot_seismicity --min_mag 5.0 --min_date 1976-01-01 --max_date 2014-12-31 --event_catalog NEIC_USGS
 
 
 .. image:: figures/seismicity_glob_neic_nonfocal.png
@@ -995,7 +995,7 @@ Histogram of event depths:
 
 ::
 
-    $ obspyDMT --datapath 'seismicity_japan_gcmt' --seismicity --min_mag 5.0 --min_date 1976-01-01 --max_date 2013-12-31 --event_rect 120.0/155.0/25.0/55.0 --event_catalog GCMT_COMBO
+    $ obspyDMT --datapath 'seismicity_japan_gcmt' --plot_seismicity --min_mag 5.0 --min_date 1976-01-01 --max_date 2013-12-31 --event_rect 120.0/155.0/25.0/55.0 --event_catalog GCMT_COMBO
 
 .. image:: figures/seismicity_japan_gcmt.png
    :scale: 80%

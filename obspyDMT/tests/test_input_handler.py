@@ -35,10 +35,10 @@ def test_read_input_command():
     assert len(parser.option_groups[1].option_list) == 2
     assert len(parser.option_groups[2].option_list) == 13
     assert len(parser.option_groups[3].option_list) == 3
-    assert len(parser.option_groups[4].option_list) == 15
+    assert len(parser.option_groups[4].option_list) == 14
     assert len(parser.option_groups[5].option_list) == 7
     assert len(parser.option_groups[6].option_list) == 8
-    assert len(parser.option_groups[7].option_list) == 5
+    assert len(parser.option_groups[7].option_list) == 6
     assert len(parser.option_groups[8].option_list) == 3
     assert len(parser.option_groups[9].option_list) == 14
     assert len(parser.option_groups[10].option_list) == 3
@@ -62,8 +62,7 @@ def test_default_inputs():
             UTCDateTime(input_dics['min_date']) < (60 * 60 * 24 * 5 + 1))
     assert (UTCDateTime(input_dics['max_date']) -
             UTCDateTime(input_dics['min_date']) > (60 * 60 * 24 * 5 - 1))
-    assert input_dics['event_url'] == 'IRIS'
-    assert input_dics['event_catalog'] is None
+    assert input_dics['event_catalog'] == 'IRIS'
     assert input_dics['mag_type'] is None
     assert input_dics['min_mag'] == 5.5
     assert input_dics['max_mag'] == 9.9

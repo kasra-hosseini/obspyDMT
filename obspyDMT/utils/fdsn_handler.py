@@ -20,10 +20,13 @@ import glob
 import multiprocessing
 try:
     from obspy.clients.fdsn import Client as Client_fdsn
+    from obspy.clients.fdsn import URL_MAPPINGS
 except Exception, e:
     from obspy.fdsn import Client as Client_fdsn
+    from obspy.fdsn.header import URL_MAPPINGS
 import os
 import pickle
+import sys
 
 from event_handler import quake_info, create_folders_files
 from format_converter import writesac_all
@@ -82,6 +85,19 @@ def FDSN_network(input_dics, events):
 
         if Stas_fdsn != [[]]:
             FDSN_waveform(input_dics, events, Stas_fdsn, i, req_type='save')
+            fdsn_url_orig = input_dics['fdsn_base_url']
+            for cli_rest in input_dics['fdsn_base_url_rest']:
+                try:
+                    from update_handler import FDSN_update
+                    input_dics['fdsn_base_url'] = cli_rest
+                    input_dics['fdsn_update'] = target_path
+                    FDSN_update(input_dics, address=target_path)
+                except Exception, e:
+                    print e
+                    continue
+            if len(input_dics['fdsn_base_url_rest']) > 0:
+                input_dics['fdsn_base_url'] = fdsn_url_orig
+                input_dics['fdsn_update'] = 'N'
         else:
             print 'No available station in %s for your request and ' \
                   'for event %s!' % (input_dics['fdsn_base_url'], str(i+1))
@@ -406,19 +422,28 @@ def FDSN_download_core(i, j, dic, len_events, events, add_event,
 
         if input_dics['response'] == 'Y':
             dummy = 'Response'
-            client_fdsn.get_stations(network=Sta_req[j][0],
-                                     station=Sta_req[j][1],
-                                     location=Sta_req[j][2],
-                                     channel=Sta_req[j][3],
-                                     # starttime=t_start, endtime=t_end,
-                                     filename=os.path.join(add_event[i],
-                                                           'Resp',
-                                                           'STXML.%s.%s.%s.%s'
-                                                           % (Sta_req[j][0],
-                                                              Sta_req[j][1],
-                                                              Sta_req[j][2],
-                                                              Sta_req[j][3])),
-                                     level='response')
+            if os.path.isfile(
+                    os.path.join(add_event[i],
+                                 'BH_RAW',
+                                 '%s.%s.%s.%s' % (Sta_req[j][0],
+                                                  Sta_req[j][1],
+                                                  Sta_req[j][2],
+                                                  Sta_req[j][3]))):
+                client_fdsn.get_stations(network=Sta_req[j][0],
+                                         station=Sta_req[j][1],
+                                         location=Sta_req[j][2],
+                                         channel=Sta_req[j][3],
+                                         starttime=t_start, endtime=t_end,
+                                         filename=os.path.join(
+                                             add_event[i], 'Resp',
+                                             'STXML.%s.%s.%s.%s'
+                                             % (Sta_req[j][0],
+                                                Sta_req[j][1],
+                                                Sta_req[j][2],
+                                                Sta_req[j][3])),
+                                         level='response')
+            else:
+                raise Exception("Waveform does not exist! (666)")
 
             print "%ssaving Response for: %s.%s.%s.%s  ---> DONE" \
                   % (info_req, Sta_req[j][0], Sta_req[j][1],
@@ -486,22 +511,24 @@ def FDSN_download_core(i, j, dic, len_events, events, add_event,
             time_file.close()
 
         if len(Sta_req[j]) != 0:
-            print '%s%s---%s.%s.%s.%s' % (info_req, dummy,
-                                          Sta_req[j][0],
-                                          Sta_req[j][1],
-                                          Sta_req[j][2],
-                                          Sta_req[j][3])
             ee = 'fdsn -- %s---%s-%s---%s.%s.%s.%s---%s\n' \
                  % (dummy, i+1, j+1,
-                    Sta_req[j][0], Sta_req[j][1], Sta_req[j][2],
-                    Sta_req[j][3], e)
+                    Sta_req[j][0], Sta_req[j][1],
+                    Sta_req[j][2], Sta_req[j][3], e)
+            if not '666' in ee:
+                print '%s%s---%s.%s.%s.%s' % (info_req, dummy,
+                                              Sta_req[j][0],
+                                              Sta_req[j][1],
+                                              Sta_req[j][2],
+                                              Sta_req[j][3])
         else:
             ee = 'There is no available station for this event.'
         Exception_file = open(os.path.join(add_event[i],
                                            'info', 'exception'), 'a')
         Exception_file.writelines(ee)
         Exception_file.close()
-        print 'ERROR: %s' % ee
+        if not '666' in ee:
+            print 'ERROR: %s' % ee
 
 # ##################### FDSN_bulk_request ##################################
 
@@ -585,6 +612,24 @@ def FDSN_reporter(i, add_event, events, input_dics, Sta_req, len_sta_ev,
     print 'FDSN for event-%s is Done' % (i+1)
     print 'Total Time: %s' % t_wave
     print "------------------------"
+
+# ##################### FDSN_urls ##################################
+
+
+def FDSN_urls():
+    """
+    Function to print available web service providers
+    """
+    print "\nList of all shortcut names"
+    print "--------------------------\n"
+    for key in sorted(URL_MAPPINGS.keys()):
+        print("{0:<7} {1}".format(key,  URL_MAPPINGS[key]))
+    print "\n============================================================"
+    print "This is the list of all shortcut names which can be used for"
+    print "--fdsn_base_url option."
+    print "However, the base URL can be entered directly as well."
+    print "============================================================"
+    sys.exit()
 
 
 # -------------------------------- TRASH

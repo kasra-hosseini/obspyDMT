@@ -41,7 +41,7 @@ def test_gmt_catalog():
     evradmax = input_dics['evradmax']
     evradmin = input_dics['evradmin']
 
-    client_fdsn = Client_fdsn(base_url=input_dics['event_url'])
+    client_fdsn = Client_fdsn(base_url=input_dics['event_catalog'])
     events_QML = client_fdsn.get_events(
         minlatitude=evlatmin,
         maxlatitude=evlatmax,
@@ -58,7 +58,7 @@ def test_gmt_catalog():
         minmagnitude=input_dics['min_mag'],
         maxmagnitude=input_dics['max_mag'],
         orderby='time',
-        catalog=input_dics['event_catalog'],
+        catalog=None,
         magnitudetype=input_dics['mag_type'])
 
     assert events_QML[0].preferred_origin().latitude == 38.2963
