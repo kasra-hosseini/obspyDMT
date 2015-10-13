@@ -3,8 +3,7 @@
 
 # -------------------------------------------------------------------
 #   Filename:  input_handler.py
-#   Purpose:   reading and generating input_dics which contains all
-#              the inputs (python dictionary object)
+#   Purpose:   reading option flags and generate input_dics
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GNU Lesser General Public License, Version 3
@@ -42,12 +41,12 @@ def command_parse():
     # given with dest="var"
     # * you need to provide every possible option here.
 
-    helpmsg = "Show the description of all option groups"
+    helpmsg = "show the description of all option groups"
     parser.add_option("--options", action="store_true", default=False,
                       dest="options", help=helpmsg)
 
-    helpmsg = "Show the options inside specified option group. " \
-              "Syntax: --option 1, " \
+    helpmsg = "show the options inside specified option group. " \
+              "Syntax: --list_option 1, " \
               "the numbers can be seen from --options flag."
     parser.add_option("--list_option", action="store", default=False,
                       dest="list_option", help=helpmsg)
@@ -109,20 +108,12 @@ def command_parse():
     group_req.add_option("--print_event_catalogs", action="store_true",
                          dest="print_event_catalogs", help=helpmsg)
 
-    helpmsg = "retrieve waveform(s). [Default: 'Y']"
-    group_req.add_option("--waveform", action="store",
+    helpmsg = "retrieve waveform(s)."
+    group_req.add_option("--waveform", action="store_true",
                          dest="waveform", help=helpmsg)
 
-    helpmsg = "send request (waveform/response) to FDSN. [Default: 'Y']"
-    group_req.add_option("--FDSN", action="store",
-                         dest="FDSN", help=helpmsg)
-
-    helpmsg = "send request (waveform/response) to ArcLink. [Default: 'N']"
-    group_req.add_option("--arc", action="store",
-                         dest="ArcLink", help=helpmsg)
-
-    helpmsg = "retrieve the response file. [Default: 'Y']"
-    group_req.add_option("--response", action="store",
+    helpmsg = "retrieve the response file."
+    group_req.add_option("--response", action="store_true",
                          dest="response", help=helpmsg)
 
     helpmsg = "retrieve the PAZ."
@@ -153,7 +144,7 @@ def command_parse():
 
     helpmsg = "test the program for the desired number of requests, " \
               "eg: '--test 10' will test the program for 10 " \
-              "requests. [Default: 'N']"
+              "requests. [Default: False]"
     group_req.add_option("--test", action="store",
                          dest="test", help=helpmsg)
     parser.add_option_group(group_req)
@@ -359,37 +350,40 @@ def command_parse():
     # --------------- FDSN
     group_fdsn = OptionGroup(parser, "8. FDSN")
 
-    helpmsg = "base_url for FDSN requests (waveform/response). " \
-              "This option can be defined: --fdsn_base_url IRIS or " \
-              "--fdsn_base_url 'IRIS,ORFEUS' for which all the stations of " \
-              "IRIS will be downloaded and the directory will be updated for " \
-              "ORFEUS. It is also possible to --fdsn_base_url all which will " \
-              "download waveforms for all available FDSN urls. " \
+    helpmsg = "Data source(s) to be used for retrieving " \
+              "waveform/response/metadata. To know about all the available " \
+              "data sources: --print_data_sources. " \
+              "Format: --data_source 'IRIS' or --data_source 'IRIS,LMU' for " \
+              "which all the stations of IRIS and LMU will be downloaded. " \
+              "It is also possible to '--data_source all' which will " \
+              "download waveforms from all available data sources. " \
               "[Default: 'IRIS']"
-    group_fdsn.add_option("--fdsn_base_url", action="store",
-                          dest="fdsn_base_url", help=helpmsg)
+    group_fdsn.add_option("--data_source", action="store",
+                          dest="data_source", help=helpmsg)
 
-    helpmsg = "using the FDSN bulkdataselect Web service. " \
+    helpmsg = "using the bulkdataselect web service. " \
               "Since this method returns multiple channels of " \
               "time series data for specified time ranges in one request, " \
               "it speeds up the waveform retrieving approximately by " \
               "a factor of two. [RECOMMENDED]"
-    group_fdsn.add_option("--fdsn_bulk", action="store_true",
-                          dest="fdsn_bulk", help=helpmsg)
+    group_fdsn.add_option("--bulk", action="store_true",
+                          dest="bulk", help=helpmsg)
 
-    helpmsg = "username for FDSN requests (waveform/response). [Default: None]"
-    group_fdsn.add_option("--fdsn_user", action="store",
-                          dest="fdsn_user", help=helpmsg)
+    helpmsg = "username for restricted requests (waveform/response). " \
+              "[Default: None]"
+    group_fdsn.add_option("--user", action="store",
+                          dest="username", help=helpmsg)
 
-    helpmsg = "password for FDSN requests (waveform/response). [Default: None]"
-    group_fdsn.add_option("--fdsn_pass", action="store",
-                          dest="fdsn_pass", help=helpmsg)
+    helpmsg = "password for restricted requests (waveform/response). " \
+              "[Default: None]"
+    group_fdsn.add_option("--pass", action="store",
+                          dest="password", help=helpmsg)
 
-    helpmsg = "generate a data-time file for a FDSN request. " \
+    helpmsg = "generate a data-time file for the requests. " \
               "This file shows the required time for each request and " \
               "the stored data in the folder."
-    group_fdsn.add_option("--time_fdsn", action="store_true",
-                          dest="time_fdsn", help=helpmsg)
+    group_fdsn.add_option("--time_get_data", action="store_true",
+                          dest="time_get_data", help=helpmsg)
     parser.add_option_group(group_fdsn)
 
     # --------------- ArcLink
@@ -403,12 +397,6 @@ def command_parse():
               "[Default: 2]"
     group_arc.add_option("--arc_wave_timeout", action="store",
                          dest="arc_wave_timeout", help=helpmsg)
-
-    helpmsg = "generate a data-time file for an ArcLink request. " \
-              "This file shows the required time for each request " \
-              "and the stored data in the folder."
-    group_arc.add_option("--time_arc", action="store_true",
-                         dest="time_arc", help=helpmsg)
     parser.add_option_group(group_arc)
 
     # --------------- Instrument correction
@@ -625,9 +613,9 @@ def command_parse():
 
     helpmsg = "plot \"Data(MB)-Time(Sec)\" for the " \
               "specified directory (--plot_dir) " \
-              "-- ATTENTION: \"time_fdsn\" and/or \"time_arc\" should " \
-              "exist in the \"info\" folder [refer to \"time_fdsn\" and " \
-              "\"time_arc\" options]"
+              "-- ATTENTION: \"time_get_data\" should " \
+              "exist in the \"info\" folder " \
+              "[refer to \"time_get_data\" option]"
     group_plt.add_option("--plot_dt", action="store_true",
                          dest="plot_dt", help=helpmsg)
 
@@ -759,7 +747,6 @@ def read_input_command(parser, **kwargs):
                   'max_date': str(UTCDateTime() - 60 * 60 * 24 * 5 * 1),
 
                   'event_based': True,
-
                   'event_catalog': 'LOCAL',
                   'mag_type': None,
                   'min_mag': 5.5, 'max_mag': 9.9,
@@ -771,30 +758,30 @@ def read_input_command(parser, **kwargs):
                   'max_result': 2500,
                   'interval': 3600*24,
 
+                  'data_source': 'IRIS',
+                  'net': '*', 'sta': '*', 'loc': '*', 'cha': '*',
+                  'preset': 0.0, 'offset': 1800.0,
+
                   'preset_cont': 0,
                   'offset_cont': 0,
                   'req_np': 4,
                   'list_stas': False,
-                  'waveform': 'Y', 'response': 'Y',
-                  'FDSN': 'Y', 'ArcLink': 'N',
-                  'fdsn_base_url': 'IRIS',
-                  'fdsn_user': None,
-                  'fdsn_pass': None,
+                  'waveform': True, 'response': True,
+                  'username': None,
+                  'password': None,
                   'arc_avai_timeout': 40,
                   'arc_wave_timeout': 2,
                   'SAC': 'Y',
                   'resample_method': None,
                   'resample_raw': None,
                   'resample_corr': None,
-                  'preset': 0.0, 'offset': 1800.0,
-                  'net': '*', 'sta': '*', 'loc': '*', 'cha': '*',
 
                   'depth_bins_seismicity': 10,
                   'lat_cba': None, 'lon_cba': None,
                   'mr_cba': None, 'Mr_cba': None,
                   'mlat_rbb': None, 'Mlat_rbb': None,
                   'mlon_rbb': None, 'Mlon_rbb': None,
-                  'test': 'N',
+                  'test': False,
                   'fdsn_update': 'N', 'arc_update': 'N', 'update_all': 'N',
                   'email': 'N',
                   'ic_all': 'N',
@@ -839,20 +826,20 @@ def read_input_command(parser, **kwargs):
         for arg in kwargs:
             exec "options.%s = kwargs[arg]" % arg
 
-    # printing the description of all option groups
+    # ===================== printing the description of all option groups
     if options.options:
-        print "=============="
-        print "option groups:"
-        print "=============="
+        print "============="
+        print "option groups"
+        print "=============\n"
         for grp in parser.option_groups:
             print grp.title
         print "\n\n==============================================="
         print "To check the available options in each group:"
-        print "python obspyDMT.py --list_option <group_number>"
+        print "obspyDMT --list_option <group_number>"
         print "==============================================="
         sys.exit()
 
-    # printing the available options in each option group
+    # ==================== printing the available options in each option group
     if options.list_option:
         if int(options.list_option) > len(parser.option_groups):
             sys.exit('Specified option group: %s does not exist'
@@ -865,6 +852,7 @@ def read_input_command(parser, **kwargs):
                        opt_grp.type, opt_grp.help)
         sys.exit()
 
+    # ==================== obspyDMT version
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
@@ -873,13 +861,16 @@ def read_input_command(parser, **kwargs):
         print '\n'
         sys.exit(2)
 
-    # Check whether it is possible to import all required modules
+    # =================== Check importing the required modules
     if options.check:
         descrip = descrip_generator()
+        print "================================="
         for i in range(len(descrip)):
             print descrip[i]
+        print "=================================\n"
         sys.exit(2)
 
+    # =================== obspyDMT quick tour
     if options.tour:
         print '\n########################################'
         print 'obspyDMT Quick Tour will start in 2 sec!'
@@ -892,16 +883,14 @@ def read_input_command(parser, **kwargs):
         options.identity = 'TA.1*.*.BHZ'
         options.event_catalog = 'IRIS'
         options.req_parallel = True
-        options.ArcLink = 'N'
 
-    # ############Parse paths and make sure that they are all absolute path
+    # =================== Absolute path generator
     for paths in ['datapath']:
         optatr_path = getattr(options, paths)
         if optatr_path:
             if optatr_path != 'N' and not os.path.isabs(optatr_path):
                 setattr(options, paths,
                         os.path.join(os.getcwd(), getattr(options, paths)))
-    # ############END Parse paths
 
     # =================== obspyDMT mode
     input_dics['event_based'] = options.event_based
@@ -932,7 +921,9 @@ def read_input_command(parser, **kwargs):
         input_dics['local'] = False
 
     print "\nobspyDMT primary mode: %s\n" % input_dics['primary_mode']
-    # =================== END obspyDMT mode
+
+    if input_dics['primary_mode'] in ['event_based', 'continuous']:
+        input_dics['meta_data'] = True
 
     # =================== Print Data sources and Event catalogs
     if options.print_data_sources:
@@ -982,10 +973,12 @@ def read_input_command(parser, **kwargs):
     input_dics['evlonmax'] = options.evlonmax
     input_dics['evlatmin'] = options.evlatmin
     input_dics['evlatmax'] = options.evlatmax
+
     input_dics['evlat'] = options.evlat
     input_dics['evlon'] = options.evlon
     input_dics['evradmax'] = options.evradmax
     input_dics['evradmin'] = options.evradmin
+
     input_dics['mag_type'] = options.mag_type
     input_dics['min_mag'] = float(options.min_mag)
     input_dics['max_mag'] = float(options.max_mag)
@@ -993,7 +986,33 @@ def read_input_command(parser, **kwargs):
     input_dics['max_depth'] = float(options.max_depth)
     input_dics['min_date'] = str(UTCDateTime(options.min_date))
     input_dics['max_date'] = str(UTCDateTime(options.max_date))
-    # =================== END EVENTS
+
+    # =================== Data sources
+    input_dics['data_source'] = options.data_source
+    if input_dics['data_source'].lower() == 'all':
+        input_dics['data_source'] = \
+            "LMU,GFZ,ETH,INGV,NIEP,IPGP,RESIF,ORFEUS,ODC,BGR,KOERI," \
+            "GEONET,USP,NCEDC,SCEDC,IRIS,ARCLINK"
+        print "\n================================="
+        print "Waveforms will be retrieved from:"
+        print input_dics['data_source']
+        print "=================================\n\n"
+    input_dics['data_source'] = \
+        [x.strip() for x in input_dics['data_source'].split(',')]
+    for cli in range(len(input_dics['data_source'])):
+        input_dics['data_source'][cli] = input_dics['data_source'][cli].upper()
+    input_dics['username'] = options.username
+    input_dics['password'] = options.password
+    if options.bulk:
+        options.bulk = True
+    input_dics['bulk'] = options.bulk
+    if options.specfem3D:
+        options.specfem3D = True
+    input_dics['specfem3D'] = options.specfem3D
+    if options.normal_mode_syn:
+        options.normal_mode_syn = True
+    input_dics['normal_mode_syn'] = options.normal_mode_syn
+    input_dics['list_stas'] = options.list_stas
 
     # extract min. and max. longitude and latitude for station
     # if the user has given the coordinates with -g (GMT syntax)
@@ -1031,11 +1050,11 @@ def read_input_command(parser, **kwargs):
         # try-except so we don't get an exception if path doesnt exist
         try:
             shutil.rmtree(options.datapath)
-            print '\n-------------------------------'
-            print 'Delete the following directory:'
+            print '\n================================'
+            print 'Remove the following directory:'
             print str(options.datapath)
             print 'obspyDMT is going to re-create it...'
-            print '-------------------------------\n\n'
+            print '================================\n'
         except Exception, e:
             print "Warning: can not remove the following directory: %s" % e
             pass
@@ -1112,21 +1131,9 @@ def read_input_command(parser, **kwargs):
     input_dics['interval'] = float(options.interval)
     input_dics['preset_cont'] = float(options.preset_cont)
     input_dics['offset_cont'] = float(options.offset_cont)
-    if options.req_parallel:
-        options.req_parallel = 'Y'
     input_dics['req_parallel'] = options.req_parallel
     input_dics['req_np'] = int(options.req_np)
-    input_dics['list_stas'] = options.list_stas
 
-    if options.fdsn_bulk:
-        options.fdsn_bulk = 'Y'
-    input_dics['fdsn_bulk'] = options.fdsn_bulk
-    if options.specfem3D:
-        options.specfem3D = 'Y'
-    input_dics['specfem3D'] = options.specfem3D
-    if options.normal_mode_syn:
-        options.normal_mode_syn = 'Y'
-    input_dics['normal_mode_syn'] = options.normal_mode_syn
     input_dics['waveform'] = options.waveform
     input_dics['response'] = options.response
     if options.paz:
@@ -1151,40 +1158,18 @@ def read_input_command(parser, **kwargs):
         input_dics['resample_corr'] = float(options.resample_corr)
     else:
         input_dics['resample_corr'] = False
-    input_dics['FDSN'] = options.FDSN
-    input_dics['fdsn_base_url'] = options.fdsn_base_url
-    if input_dics['fdsn_base_url'].lower() == 'all':
-        input_dics['fdsn_base_url'] = \
-            "LMU,GFZ,ETH,INGV,NIEP,IPGP,RESIF,ORFEUS,ODC,NERIES,BGR,KOERI," \
-            "GEONET," \
-            "USP," \
-            "NCEDC,SCEDC,IRIS"
-        print "\n---------------------------------"
-        print "Waveforms will be retrieved from:"
-        print input_dics['fdsn_base_url']
-        print "---------------------------------\n\n"
 
-    input_dics['fdsn_base_url'] = \
-        [x.strip() for x in input_dics['fdsn_base_url'].split(',')]
-    if len(input_dics['fdsn_base_url']) > 1:
-        input_dics['fdsn_base_url_rest'] = input_dics['fdsn_base_url'][1:]
-        input_dics['fdsn_base_url'] = input_dics['fdsn_base_url'][0]
-    else:
-        input_dics['fdsn_base_url_rest'] = []
-        input_dics['fdsn_base_url'] = input_dics['fdsn_base_url'][0]
-    input_dics['fdsn_user'] = options.fdsn_user
-    input_dics['fdsn_pass'] = options.fdsn_pass
-    input_dics['ArcLink'] = options.ArcLink
+    # if len(input_dics['data_source']) > 1:
+    #     input_dics['data_source_rest'] = input_dics['data_source'][1:]
+    #     input_dics['data_source'] = input_dics['data_source'][0]
+    # else:
+    #     input_dics['data_source_rest'] = []
+    #     input_dics['data_source'] = input_dics['data_source'][0]
 
     input_dics['arc_avai_timeout'] = float(options.arc_avai_timeout)
     input_dics['arc_wave_timeout'] = float(options.arc_wave_timeout)
 
-    if options.time_fdsn:
-        options.time_fdsn = 'Y'
-    input_dics['time_fdsn'] = options.time_fdsn
-    if options.time_arc:
-        options.time_arc = 'Y'
-    input_dics['time_arc'] = options.time_arc
+    input_dics['time_get_data'] = options.time_get_data
     input_dics['net'] = options.net
     input_dics['sta'] = options.sta
     if options.loc == "''":
@@ -1202,8 +1187,8 @@ def read_input_command(parser, **kwargs):
     input_dics['Mlon_rbb'] = options.Mlon_rbb
     input_dics['mlat_rbb'] = options.mlat_rbb
     input_dics['Mlat_rbb'] = options.Mlat_rbb
-    if options.test != 'N':
-        input_dics['test'] = 'Y'
+    if options.test:
+        input_dics['test'] = True
         input_dics['test_num'] = int(options.test)
     input_dics['fdsn_update'] = options.fdsn_update
     input_dics['arc_update'] = options.arc_update
@@ -1316,8 +1301,6 @@ def read_input_command(parser, **kwargs):
             input_dics['datapath'] = input_dics[opts]
             input_dics['event_based'] = False
             input_dics['continuous'] = False
-            input_dics['FDSN'] = 'N'
-            input_dics['ArcLink'] = 'N'
             input_dics['fdsn_ic_auto'] = 'N'
             input_dics['arc_ic_auto'] = 'N'
             input_dics['fdsn_merge_auto'] = 'N'
@@ -1328,19 +1311,15 @@ def read_input_command(parser, **kwargs):
             input_dics['datapath'] = input_dics[opts]
             input_dics['event_based'] = False
             input_dics['continuous'] = False
-            input_dics['FDSN'] = 'N'
-            input_dics['ArcLink'] = 'N'
 
     if options.event_info:
-        input_dics['FDSN'] = 'N'
-        input_dics['ArcLink'] = 'N'
         input_dics['fdsn_ic_auto'] = 'N'
         input_dics['arc_ic_auto'] = 'N'
         input_dics['fdsn_merge_auto'] = 'N'
         input_dics['arc_merge_auto'] = 'N'
         input_dics['plot_all_events'] = True
         if options.identity or options.continuous:
-            input_dics['waveform'] = 'N'
+            input_dics['waveform'] = False
     else:
         input_dics['plot_all_events'] = False
 
@@ -1348,24 +1327,14 @@ def read_input_command(parser, **kwargs):
         input_dics['plot_all_events'] = False
 
     if options.seismicity:
-        input_dics['FDSN'] = 'N'
-        input_dics['ArcLink'] = 'N'
         input_dics['fdsn_ic_auto'] = 'N'
         input_dics['arc_ic_auto'] = 'N'
         input_dics['fdsn_merge_auto'] = 'N'
         input_dics['arc_merge_auto'] = 'N'
         input_dics['max_result'] = 1000000
 
-    if input_dics['waveform'] == 'N':
+    if not input_dics['waveform'] == 'N':
         input_dics['SAC'] = 'N'
-
-    if options.FDSN == 'N':
-        input_dics['fdsn_ic_auto'] = 'N'
-        input_dics['fdsn_merge_auto'] = 'N'
-
-    if options.ArcLink == 'N':
-        input_dics['arc_ic_auto'] = 'N'
-        input_dics['arc_merge_auto'] = 'N'
 
     if options.ic_no:
         input_dics['fdsn_ic_auto'] = 'N'
@@ -1377,14 +1346,6 @@ def read_input_command(parser, **kwargs):
 
     if input_dics['plot_fdsn'] == 'Y' or input_dics['plot_arc'] == 'Y':
         input_dics['plot_all'] = 'N'
-
-    # Create a priority list (for all requested clients)
-    # For the moment, we just support: FDSN and ArcLink, but it should be
-    # easily extendable!
-    input_dics['priority_clients'] = []
-    for cli in ['FDSN', 'ArcLink']:
-        if input_dics[cli] == 'Y':
-            input_dics['priority_clients'].append(cli)
 
     return input_dics
 
@@ -1398,43 +1359,38 @@ def descrip_generator():
     """
     print "*********************************"
     print "Check all the BASIC dependencies:"
+
     try:
         from obspy import __version__ as obs_ver
+        descrip = ['obspy ver: ' + obs_ver]
     except Exception as error:
-        print '---------------------------------------------------'
-        print 'Have you properly installed ObsPy on your computer?'
-        print 'Error: %s' % error
-        print "\n\nrefer to: https://github.com/obspy/obspy/wiki"
-        print '---------------------------------------------------'
-        sys.exit(2)
-
-    descrip = ['obspy ver: ' + obs_ver]
+        descrip = ['obspy: not installed\nerror:\n%s\n' % error]
 
     try:
         import numpy as np
         descrip.append('numpy ver: ' + np.__version__)
     except Exception, error:
-        descrip.append('numpy: not installed\n\nerror:\n%s\n' % error)
+        descrip.append('numpy: not installed\nerror:\n%s\n' % error)
 
     try:
         import scipy
         descrip.append('scipy ver: ' + scipy.__version__)
     except Exception, error:
-        descrip.append('scipy: not installed\n\nerror:\n%s\n' % error)
+        descrip.append('scipy: not installed\nerror:\n%s\n' % error)
 
     try:
         from matplotlib import __version__ as mat_ver
         import matplotlib.pyplot as plt
         descrip.append('matplotlib ver: ' + mat_ver)
     except Exception as error:
-        descrip.append('matplotlib: not installed\n\nerror:\n%s\n' % error)
+        descrip.append('matplotlib: not installed\nerror:\n%s\n' % error)
 
     try:
         from mpl_toolkits.basemap import __version__ as base_ver
         from mpl_toolkits.basemap import Basemap
         descrip.append('Basemap ver: ' + base_ver)
     except Exception as error:
-        descrip.append('Basemap: not installed\n\nerror:\n%s\n'
+        descrip.append('Basemap: not installed\nerror:\n%s\n'
                        'You can not use all the plot options' % error)
     print "*********************************\n"
     return descrip

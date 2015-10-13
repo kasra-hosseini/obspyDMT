@@ -78,54 +78,6 @@ def ARC_network(input_dics, events):
                   'for event %s!' % str(i+1)
             continue
 
-# ##################### ARC_available ###################################
-
-
-def ARC_available(input_dics, event, target_path, event_number):
-    """
-    Check the availability of ArcLink stations
-    """
-    print "Check the availability of ArcLink stations"
-    client_arclink = Client_arclink(user='test@obspy.org',
-                                    timeout=input_dics['arc_avai_timeout'])
-    Sta_arc = []
-    try:
-        inventories = client_arclink.getInventory(
-            network=input_dics['net'],
-            station=input_dics['sta'],
-            location=input_dics['loc'],
-            channel=input_dics['cha'],
-            starttime=UTCDateTime(event['t1']),
-            endtime=UTCDateTime(event['t2']),
-            min_latitude=input_dics['mlat_rbb'],
-            max_latitude=input_dics['Mlat_rbb'],
-            min_longitude=input_dics['mlon_rbb'],
-            max_longitude=input_dics['Mlon_rbb'])
-
-        for inv_key in inventories.keys():
-            netsta = inv_key.split('.')
-            if len(netsta) == 4:
-                sta = '%s.%s' % (netsta[0], netsta[1])
-                if not inventories[sta]['depth']:
-                    inventories[sta]['depth'] = 0.0
-                Sta_arc.append([netsta[0], netsta[1], netsta[2], netsta[3],
-                                inventories[sta]['latitude'],
-                                inventories[sta]['longitude'],
-                                inventories[sta]['elevation'],
-                                inventories[sta]['depth']])
-
-    except Exception as e:
-        exc_file = open(os.path.join(target_path, 'info', 'exception'), 'a+')
-        ee = 'arclink -- Event: %s --- %s\n' % (str(event_number+1), e)
-        exc_file.writelines(ee)
-        exc_file.close()
-        print 'ERROR: %s' % ee
-
-    if len(Sta_arc) == 0:
-        Sta_arc.append([])
-    Sta_arc.sort()
-    return Sta_arc
-
 # ##################### Arclink_waveform ############################
 
 

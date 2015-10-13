@@ -50,7 +50,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def get_time_window(input_dics, request):
     """
-    Generating list of requests for both event_based and continuous request.
+    Generating a list of requests for both event_based and continuous requests.
     :param input_dics:
     :param request:
     :return:
@@ -71,8 +71,8 @@ def get_time_window(input_dics, request):
                 events, events_qml = event_info(input_dics)
             elif request.lower() == 'continuous':
                 events, events_qml = continuous_info(input_dics)
-    except Exception, e:
-        print 'WARNING: %s' % e
+    except Exception, error:
+        print 'WARNING: %s' % error
         return 0
 
     if len(events) < 1:
@@ -108,9 +108,10 @@ def read_info(input_dics):
         input_dics['event_catalog'] = 'IRIS'
         return "no_local", "no_local", input_dics
     if len(evs_info) > 1:
-        print "WARNING: Found two directories that have EVENTS-INFO."
-        print "Continue with:"
+        print "WARNING: Found two directories that have EVENTS-INFO. " \
+              "Continue with:"
         print evs_info[0]
+        print '\n'
 
     ev_info = evs_info[0]
 
@@ -126,7 +127,7 @@ def read_info(input_dics):
     events_QML = readEvents(os.path.join(ev_info, 'catalog.ml'),
                             format='QuakeML')
     print "Use local files:"
-    print "(all relevant options will be omiited!)"
+    print "(all relevant options will be omitted!)"
     print os.path.join(ev_info, 'event_list_pickle')
     print os.path.join(ev_info, 'catalog.ml')
     return events, events_QML, input_dics
@@ -194,6 +195,7 @@ def event_info(input_dics):
                 offset=None,
                 contributor=None,
                 updatedafter=None)
+
         elif event_switch == 'gcmt_combo':
             events_QML = \
                 gcmt_catalog(input_dics['min_date'],
@@ -204,6 +206,7 @@ def event_info(input_dics):
                              input_dics['max_depth'],
                              input_dics['min_mag'],
                              input_dics['max_mag'])
+
         elif event_switch == 'neic_usgs':
             events_QML = \
                 neic_catalog(input_dics['min_date'],
@@ -214,6 +217,7 @@ def event_info(input_dics):
                              input_dics['max_depth'],
                              input_dics['min_mag'],
                              input_dics['max_mag'])
+
         else:
             sys.exit('%s is not supported'
                      % input_dics['event_catalog'])
@@ -223,9 +227,9 @@ def event_info(input_dics):
         events_QML = sort_catalogue(events_QML)
         events = qml_to_event_list(events_QML)
 
-    except Exception as e:
+    except Exception as error:
         print 60*'-'
-        print 'ERROR: %s' % e
+        print 'ERROR: %s' % error
         print 60*'-'
         events = []
         events_QML = []
@@ -256,8 +260,8 @@ def qml_to_event_list(events_QML):
             event_time_hour = '%02i' % int(event_time.hour)
             event_time_minute = '%02i' % int(event_time.minute)
             event_time_second = '%02i' % int(event_time.second)
-        except Exception, e:
-            print e
+        except Exception, error:
+            print error
             continue
 
         try:
@@ -283,8 +287,8 @@ def qml_to_event_list(events_QML):
             focal_mechanism = False
         except TypeError:
             focal_mechanism = False
-        except Exception, e:
-            print e
+        except Exception, error:
+            print error
             focal_mechanism = False
 
         try:
@@ -307,8 +311,8 @@ def qml_to_event_list(events_QML):
             half_duration = False
         except TypeError:
             half_duration = False
-        except Exception, e:
-            print e
+        except Exception, error:
+            print error
             half_duration = False
 
         try:
@@ -344,8 +348,8 @@ def qml_to_event_list(events_QML):
                  ('half_duration', half_duration),
                  ('flynn_region', 'NAN'),
                  ]))
-        except Exception, e:
-            print e
+        except Exception, error:
+            print error
             continue
     return events
 
@@ -465,9 +469,9 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     """
     try:
         import mechanize
-    except Exception, e:
+    except Exception, error:
         sys.exit('ERROR:\nFor NEIC_USGS, "mechanize" should be installed: %s\n'
-                 '\npip install mechanize\n' % e)
+                 '\npip install mechanize\n' % error)
 
     tic = time.clock()
 
@@ -580,8 +584,8 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
         try:
             cat.extend(readEvents(x_add, format='QuakeML'))
             os.remove(x_add)
-        except Exception, e:
-            print 'WARNING: %s' % e
+        except Exception, error:
+            print 'WARNING: %s' % error
             os.remove(x_add)
 
     os.rmdir(dir_name)
@@ -677,8 +681,8 @@ def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
             yy_ret.append(yy)
             mm_ret.append(mm)
         print 'Done reading the data from GCMT webpage.'
-    except Exception, e:
-        print "ERROR: %s" % e
+    except Exception, error:
+        print "ERROR: %s" % error
 
     toc = datetime.now()
     print 'It took %s to retrieve the earthquakes form GCMT.' % (toc-tic)
@@ -734,7 +738,7 @@ def output_shell_event(events, request):
     """
     # output shell
     spaces, events2, header = event_spaces(events=events, request=request)
-    header_template = ['{:<'+str(e+2)+'}' for e in spaces]
+    header_template = ['{:<'+str(he+2)+'}' for he in spaces]
     row_format = '{}'.format(''.join(header_template))
 
     if len(events) == 0:
@@ -777,14 +781,14 @@ def event_spaces(events, request):
                         'focal_mechanism', 'half_duration']:
             try:
                 del events2[i][item_ev]
-            except Exception, e:
-                print 'WARNING: %s' % e
+            except Exception, error:
+                print 'WARNING: %s' % error
                 pass
 
         try:
             events2[i]['datetime'] = str(events2[i]['datetime'])[:-8]
-        except Exception, e:
-            print 'WARNING: %s' % e
+        except Exception, error:
+            print 'WARNING: %s' % error
             pass
 
         try:
@@ -807,8 +811,8 @@ def event_spaces(events, request):
                     "{:>8.3f}".format(float(events2[i]['longitude']))
                 events2[i]['depth'] = \
                     int(round(float(events2[i]['depth'])))
-        except Exception, e:
-            print 'WARNING: %s' % e
+        except Exception, error:
+            print 'WARNING: %s' % error
             pass
 
     try:
@@ -820,8 +824,8 @@ def event_spaces(events, request):
             spaces.append(max([len(str(k[i][j])) for i in range(len(k))]))
 
         return spaces, events2, header
-    except Exception, e:
-        print 'WARNING: %s' % e
+    except Exception, error:
+        print 'WARNING: %s' % error
         pass
 
 # ##################### write_cat_logger ############################

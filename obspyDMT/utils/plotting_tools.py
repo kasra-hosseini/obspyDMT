@@ -33,7 +33,7 @@ from obspy.imaging.beachball import Beach
 import os
 import sys
 
-from event_handler import quake_info
+#from event_handler import quake_info
 from utility_codes import read_station_event, read_event_dic
 
 import warnings

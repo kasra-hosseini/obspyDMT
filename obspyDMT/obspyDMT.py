@@ -15,11 +15,13 @@
 import sys
 import time
 
-from utils.input_handler import command_parse, read_input_command
-from utils.utility_codes import header_printer, print_data_sources
-from utils.utility_codes import print_event_catalogs
-from utils.utility_codes import goodbye_printer
 from utils.event_handler import get_time_window
+from utils.input_handler import command_parse, read_input_command
+from utils.metadata_handler import get_metadata
+from utils.local_handler import process_data
+from utils.utility_codes import header_printer, goodbye_printer
+from utils.utility_codes import print_event_catalogs, print_data_sources
+from utils.data_handler import get_data
 
 # ##################### obspyDMT ##################################
 
@@ -36,49 +38,48 @@ def obspyDMT(**kwargs):
     # initializing variables:
     events = None
     create_tar_file_address = None
-    # ------------------Parsing command-line options--------------------
+    # ------------------Parsing command-line options---------------------------
     (options, args, parser) = command_parse()
-    # ------------------Read INPUT file (Parameters)--------------------
+    # ------------------Read INPUT file (Parameters)---------------------------
     input_dics = read_input_command(parser, **kwargs)
-    # ------------------Print data sources--------------------
+    # ------------------Print data sources-------------------------------------
     if input_dics['print_data_sources']:
         print_data_sources()
-    # ------------------Print event catalogs--------------------
+    # ------------------Print event catalogs-----------------------------------
     if input_dics['print_event_catalogs']:
         print_event_catalogs()
-    # ------------------event_based mode --------------------
+    # ------------------Getting List of Events/Continuous requests-------------
     if input_dics['primary_mode'] in ['event_based', 'continuous']:
         # events contains all the information for requested time-window
         # Although we do not have any events in continuous requests,
-        # it is still call as events.
-        events = get_time_window(input_dics,
-                                 request=input_dics['primary_mode'])
+        # it is still called as events.
+        events = get_time_window(
+            input_dics, request=input_dics['primary_mode'])
+        if events == 0:
+            return input_dics
+    # ------------------Checking the availability------------------------------
+    for ev in range(len(events)):
+        if input_dics['meta_data']:
+            stas_avail = get_metadata(input_dics, events[ev],
+                                      info_avail='%s/%s' % (ev+1, len(events)))
+            if not len(stas_avail) > 0:
+                continue
+        if input_dics['primary_mode'] in ['event_based', 'continuous']:
+            get_data(stas_avail, events[ev], input_dics)
+    # ------------------instrument---------------------------------------------
+    # LOCAL:
+    # custom functions to be applied to all the data ---> SAC, ...
+    # choose one station at each grid point or distance
+    for ev in range(len(events)):
+        process_data(input_dics, events[ev])
 
     import ipdb; ipdb.set_trace()
     # # ------------------plot stationxml files--------------------
     # if input_dics['plotxml_dir']:
     #     plot_xml_response(input_dics)
-    # # ------------------Getting List of Events/Continuous requests------
-    # if input_dics['event_based']:
-    #     events = get_Events(input_dics, request='event-based')
-    #     if events == 0:
-    #         return input_dics
-    # if input_dics['continuous']:
-    #     events = get_Events(input_dics, request='continuous')
     # # ------------------Seismicity--------------------------------------
     # if input_dics['seismicity'] == 'Y':
     #     seismicity(input_dics, events)
-    # # ------------------FDSN--------------------------------------------
-    # if input_dics['FDSN'] == 'Y':
-    #     FDSN_network(input_dics, events)
-    # # ------------------Arclink-----------------------------------------
-    # if input_dics['ArcLink'] == 'Y':
-    #     ARC_network(input_dics, events)
-    # # ------------------Update-----------------------------------
-    # if input_dics['fdsn_update'] != 'N':
-    #     FDSN_update(input_dics, address=input_dics['fdsn_update'])
-    # if input_dics['arc_update'] != 'N':
-    #     ARC_update(input_dics, address=input_dics['arc_update'])
     # # ------------------instrument---------------------------------
     # if input_dics['fdsn_ic'] != 'N' or input_dics['fdsn_ic_auto'] == 'Y':
     #     create_tar_file_address = FDSN_ARC_IC(

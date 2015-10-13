@@ -63,6 +63,26 @@ def header_printer():
     print '(http://www.gnu.org/licenses/gpl-3.0-standalone.html)'
     print 80*'-' + '\n'
 
+# ##################### goodbye_printer ##################################
+
+
+def goodbye_printer(input_dics, t1_pro):
+    print "\n\n=================================================="
+    print "obspyDMT main program has finished !\n"
+    try:
+        size = getFolderSize(input_dics['datapath'])
+        size /= (1024.**2)
+        print "Info:"
+        print "* The storing directory contains %s MB of data." \
+              % "{:.3f}".format(float(size))
+        print input_dics['datapath']
+        print "* Total time of execution: %s (h:m:s)" \
+              % str(timedelta(seconds=round(float(time.time() - t1_pro))))
+        print "==================================================\n\n"
+    except Exception as e:
+        print 'ERROR: %s' % e
+        pass
+
 # ##################### print_data_sources ##################################
 
 
@@ -99,64 +119,44 @@ def print_event_catalogs():
     print '\n'
     sys.exit()
 
-# ##################### goodbye_printer ##################################
-
-
-def goodbye_printer(input_dics, t1_pro):
-    print "\n\n=================================================="
-    print "obspyDMT main program has finished !\n"
-    try:
-        size = getFolderSize(input_dics['datapath'])
-        size /= (1024.**2)
-        print "Info:"
-        print "* The storing directory contains %s MB of data." \
-            % "{:.3f}".format(float(size))
-        print input_dics['datapath']
-        print "* Total time of execution: %s (h:m:s)" \
-              % str(timedelta(seconds=round(float(time.time() - t1_pro))))
-        print "==================================================\n\n"
-    except Exception as e:
-        print 'ERROR: %s' % e
-        pass
-
 # ##################### create_folders_files ############################
 
 
-def create_folders_files(events, eventpath, input_dics):
+def create_folders_files(event, eventpath, input_dics):
     """
-    Create required folders and files in the event folder(s)
-    :param events:
+    Create required directories and files for one event
+    :param event:
     :param eventpath:
     :param input_dics:
     :return:
     """
-    for i in range(len(events)):
-        try:
-            os.makedirs(os.path.join(eventpath, events[i]['event_id'],
-                                     'BH_RAW'))
-            os.makedirs(os.path.join(eventpath, events[i]['event_id'],
-                                     'Resp'))
-            os.makedirs(os.path.join(eventpath, events[i]['event_id'],
-                                     'info'))
+    try:
+        for t_dir in ['BH_RAW', 'Resp', 'info']:
+            tar_dir = os.path.join(eventpath, event['event_id'], t_dir)
+            if not os.path.isdir(tar_dir):
+                os.makedirs(tar_dir)
 
-            inp_file = open(os.path.join(eventpath, events[i]['event_id'],
-                                         'info', 'input_dics.pkl'), 'w')
-            pickle.dump(input_dics, inp_file)
-            inp_file.close()
-            report = open(os.path.join(eventpath, events[i]['event_id'],
-                                       'info', 'report_st'), 'a+')
-            report.close()
-            exception_file = open(os.path.join(eventpath,
-                                               events[i]['event_id'],
-                                               'info', 'exception'), 'a+')
-            exception_file.writelines('\n' + events[i]['event_id'] + '\n')
-            exception_file.close()
-            syn_file = open(os.path.join(eventpath, events[i]['event_id'],
-                                         'info', 'station_event'), 'a+')
-            syn_file.close()
-        except Exception as e:
-            print 'ERROR: %s' % e
-            pass
+        inp_file = open(os.path.join(eventpath, event['event_id'],
+                                     'info', 'input_dics.pkl'), 'w')
+        pickle.dump(input_dics, inp_file)
+        inp_file.close()
+
+        report = open(os.path.join(eventpath, event['event_id'],
+                                   'info', 'report_st'), 'a+')
+        report.close()
+
+        exception_file = open(os.path.join(eventpath, event['event_id'],
+                                           'info', 'exception'), 'a+')
+        exception_file.writelines('\n' + event['event_id'] + '\n')
+        exception_file.close()
+
+        syn_file = open(os.path.join(eventpath, event['event_id'],
+                                     'info', 'station_event'), 'a+')
+        syn_file.close()
+
+    except Exception as error:
+        print 'ERROR: %s' % error
+        pass
 
 # ##################### read_list_stas ##################################
 
@@ -170,42 +170,54 @@ def read_list_stas(add_list, normal_mode_syn, specfem3D):
     :return:
     """
 
-    print '\n----------------------------------------'
+    print '\n---------------------------------------------'
     print 'INFO:'
     print 'Format of the station list:'
-    print 'sta  net  loc  cha  lat  lon  ele  depth'
-    print '----------------------------------------\n\n'
+    print 'net,sta,loc,cha,lat,lon,ele,depth,data_source'
+    print '---------------------------------------------\n\n'
 
     list_stas_fio = open(add_list)
     list_stas = list_stas_fio.readlines()
     for sta in range(len(list_stas)):
         if not list_stas[sta].startswith('\n'):
-            list_stas[sta] = list_stas[sta].split()
+            list_stas[sta] = list_stas[sta].split(',')
 
     final_list = []
-    if specfem3D == 'Y':
+    if specfem3D:
         for sta in range(len(list_stas)):
             for chan in ['MXE', 'MXN', 'MXZ']:
-                final_list.append(['SY', list_stas[sta][0],
+                st_id = 'SY_%s_S3_%s' % (list_stas[sta][1], chan)
+                final_list.append(['SY', list_stas[sta][1],
                                    'S3', chan,
                                    list_stas[sta][4],
                                    list_stas[sta][5],
-                                   list_stas[sta][6]])
-    elif normal_mode_syn == 'Y':
+                                   list_stas[sta][6],
+                                   list_stas[sta][7],
+                                   st_id,
+                                   'IRIS'])
+    elif normal_mode_syn:
         for sta in range(len(list_stas)):
             for chan in ['LXE', 'LXN', 'LXZ']:
-                final_list.append(['SY', list_stas[sta][0],
+                st_id = 'SY_%s_S1_%s' % (list_stas[sta][1], chan)
+                final_list.append(['SY', list_stas[sta][1],
                                    'S1', chan,
                                    list_stas[sta][4],
                                    list_stas[sta][5],
-                                   list_stas[sta][6]])
+                                   list_stas[sta][6],
+                                   list_stas[sta][7],
+                                   st_id,
+                                   'IRIS'])
     else:
         for sta in range(len(list_stas)):
-            # for chan in ['BH1', 'BH2', 'BHE', 'BHN', 'BHZ']:
-            final_list.append([list_stas[sta][1], list_stas[sta][0],
+            st_id = '%s_%s_%s_%s' % (list_stas[sta][0],
+                                     list_stas[sta][1],
+                                     list_stas[sta][2],
+                                     list_stas[sta][3])
+            final_list.append([list_stas[sta][0], list_stas[sta][1],
                                list_stas[sta][2], list_stas[sta][3],
                                list_stas[sta][4], list_stas[sta][5],
-                               list_stas[sta][6], list_stas[sta][7]])
+                               list_stas[sta][6], list_stas[sta][7],
+                               st_id, list_stas[sta][8]])
     return final_list
 
 # ##################### read_event_dic ##############################
@@ -366,37 +378,63 @@ def locate(root='.', target='info'):
 # ##################### calculate_time_phase ##################################
 
 
-def calculate_time_phase(event, sta):
+def calculate_time_phase(event, sta, bg_model='iasp91'):
     """
-    calculate arrival time of the requested phase to use in retrieving
-    waveforms.
+    calculate arrival time of the requested phase to adjust the time in
+    retrieving the waveforms
     :param event:
     :param sta:
+    :param bg_model:
     :return:
     """
 
+    phase_list = ['P', 'Pdiff', 'PKIKP']
+    time_ph = 0
     ev_lat = event['latitude']
     ev_lon = event['longitude']
-    ev_dp = abs(float(event['depth']))
+    evdp = abs(float(event['depth']))
     sta_lat = float(sta[4])
     sta_lon = float(sta[5])
-    delta = locations2degrees(ev_lat, ev_lon, sta_lat, sta_lon)
-    tt = getTravelTimes(delta, ev_dp)
-    phase_list = ['P', 'Pdiff', 'PKIKP']
+    dist = locations2degrees(ev_lat, ev_lon, sta_lat, sta_lon)
 
-    time_ph = 0
-    flag = False
-    for ph in phase_list:
-        for i in range(len(tt)):
-            if tt[i]['phase_name'] == ph:
-                flag = True
-                time_ph = tt[i]['time']
-                break
+    try:
+        from obspy.taup import tau
+        tau_bg = tau.TauPyModel(model=bg_model)
+    except Exception, error:
+        tau_bg = False
+
+    if not tau_bg:
+        try:
+            tt = getTravelTimes(dist, evdp)
+            flag = False
+            for ph in phase_list:
+                for i in range(len(tt)):
+                    if tt[i]['phase_name'] == ph:
+                        flag = True
+                        time_ph = tt[i]['time']
+                        break
+                    else:
+                        continue
+            if flag:
+                print 'Phase: %s' % ph
             else:
-                continue
-        if flag:
-            print 'Phase: %s' % ph
-            break
+                time_ph = 0
+        except Exception, error:
+            time_ph = 0
+    else:
+        try:
+            for ph in phase_list:
+                tt = tau_bg.get_travel_times(evdp, dist,
+                                             phase_list=[ph])[0].time
+                if not tt:
+                    time_ph = 0
+                    continue
+                else:
+                    time_ph = tt
+                    break
+        except Exception, e:
+            time_ph = 0
+
     t_start = event['t1'] + time_ph
     t_end = event['t2'] + time_ph
     return t_start, t_end
