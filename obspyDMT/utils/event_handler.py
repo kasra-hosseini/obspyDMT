@@ -141,17 +141,29 @@ def read_info(input_dics):
     if not os.path.isfile(os.path.join(ev_info, 'event_list_pickle')):
         return "no_local", "no_local"
     if not os.path.isfile(os.path.join(ev_info, 'catalog.ml')):
-        return "no_local", "no_local"
+        if not os.path.isfile(os.path.join(ev_info, 'catalog.zmap')):
+            return "no_local", "no_local"
+        else:
+            events_QML = readEvents(os.path.join(ev_info, 'catalog.zmap'),
+                                    format='ZMAP')
+    else:
+        events_QML = readEvents(os.path.join(ev_info, 'catalog.ml'),
+                                format='QuakeML')
 
     fio = open(os.path.join(ev_info, 'event_list_pickle'), 'r')
     events = pickle.load(fio)
-    events_QML = readEvents(os.path.join(ev_info, 'catalog.ml'),
-                            format='QuakeML')
+    remove_index = []
+    if input_dics['event_name']:
+        for ei in range(len(events)):
+            if events[ei]['event_id'] not in input_dics['event_name']:
+                remove_index.append(ei)
+        remove_index.sort(reverse=True)
+        for ri in remove_index:
+            del events[ri]
     if input_dics['event_catalog'].lower() == 'local':
         print "Use local files:"
         print "(all relevant options will be omitted!)"
         print os.path.join(ev_info, 'event_list_pickle')
-        print os.path.join(ev_info, 'catalog.ml')
     return events, events_QML
 
 # ##################### event_info #####################################
@@ -952,8 +964,8 @@ def write_cat_logger(input_dics, eventpath, period, events, catalog,
         print '\nCouldn\'t write catalog object to QuakeML as:\n>>:\t %s\n' \
               'Proceed without ..\n' % err
     try:
-        catalog.write(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.json'),
-                      format="JSON")
+        catalog.write(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.zmap'),
+                      format="ZMAP")
     except Exception as err:
         print '\nCouldn\'t write catalog object to JSON as:\n>>:\t %s\n' \
               'Proceed without ..\n' % err

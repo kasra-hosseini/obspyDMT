@@ -87,6 +87,9 @@ def command_parse():
     helpmsg = "event-based request mode. [Default]"
     group_req.add_option("--event_based", action="store_true",
                          dest="event_based", help=helpmsg)
+    helpmsg = "event names. to work with a set of selected events."
+    group_req.add_option("--event_name", action="store",
+                         dest="event_name", help=helpmsg)
 
     helpmsg = "continuous request mode."
     group_req.add_option("--continuous", action="store_true",
@@ -420,6 +423,14 @@ def command_parse():
     group_ic.add_option("--water_level", action="store",
                         dest="water_level", help=helpmsg)
 
+    helpmsg = "To preprocess the data."
+    group_ic.add_option("--pre_process", action="store",
+                        dest="pre_process", help=helpmsg)
+
+    helpmsg = "Apply instrument correction."
+    group_ic.add_option("--instrument_correction", action="store",
+                        dest="instrument_correction", help=helpmsg)
+
     helpmsg = "parallel processing"
     group_ic.add_option("--parallel_process", action="store_true",
                         dest="parallel_process", help=helpmsg)
@@ -493,10 +504,21 @@ def command_parse():
 
     # --------------- Plotting
     group_plt = OptionGroup(parser, "13. Plotting")
+    helpmsg = "Plot on local dataset."
+    group_plt.add_option("--plot", action="store_true",
+                         dest="plot", help=helpmsg)
     helpmsg = "create a seismicity map according to " \
               "the event and location specifications."
     group_plt.add_option("--plot_seismicity", action="store_true",
-                         dest="seismicity", help=helpmsg)
+                         dest="plot_seismicity", help=helpmsg)
+
+    helpmsg = "plot waveforms"
+    group_plt.add_option("--plot_waveform", action="store_true",
+                         dest="plot_waveform", help=helpmsg)
+
+    helpmsg = "plot waveform directory"
+    group_plt.add_option("--plot_dir_name", action="store",
+                         dest="plot_dir_name", help=helpmsg)
 
     helpmsg = "depth bins for plotting the seismicity histrogram. " \
               "[Default: 10]"
@@ -700,6 +722,7 @@ def read_input_command(parser, **kwargs):
                   'max_date': str(UTCDateTime() - 60 * 60 * 24 * 5 * 1),
 
                   'event_based': True,
+                  'event_name': False,
                   'event_catalog': 'LOCAL',
                   'mag_type': None,
                   'min_mag': 5.5, 'max_mag': 9.9,
@@ -740,6 +763,8 @@ def read_input_command(parser, **kwargs):
                   'ic_all': 'N',
                   'fdsn_ic': 'N', 'fdsn_ic_auto': 'Y',
                   'arc_ic': 'N', 'arc_ic_auto': 'Y',
+                  'pre_process': 'True',
+                  'instrument_correction': 'True',
                   'process_np': 4,
                   'ic_obspy_full': 'Y',
                   'pre_filt': '(0.008, 0.012, 3.0, 4.0)',
@@ -750,6 +775,7 @@ def read_input_command(parser, **kwargs):
                   'merge_type': 'raw',
                   'arc_merge': 'N', 'arc_merge_auto': 'Y',
                   'plot_dir': 'N',
+                  'plot_dir_name': 'BH_RAW',
                   'plot_all': 'Y',
                   'plot_type': 'raw',
                   'plot_save': '.', 'plot_format': 'png',
@@ -846,7 +872,15 @@ def read_input_command(parser, **kwargs):
                         os.path.join(os.getcwd(), getattr(options, paths)))
 
     # =================== obspyDMT mode
+    input_dics['pre_process'] = eval(options.pre_process)
+    input_dics['instrument_correction'] = eval(options.instrument_correction)
+    input_dics['parallel_process'] = options.parallel_process
+    input_dics['process_np'] = int(options.process_np)
     input_dics['event_based'] = options.event_based
+    input_dics['event_name'] = options.event_name
+    if input_dics['event_name']:
+        input_dics['event_name'] = \
+            [x.strip() for x in input_dics['event_name'].split(',')]
     input_dics['primary_mode'] = 'event_based'
     if options.continuous:
         input_dics['event_based'] = False
@@ -1076,10 +1110,12 @@ def read_input_command(parser, **kwargs):
         input_dics['user_select_event'] = 'Y'
     else:
         input_dics['user_select_event'] = 'N'
-    if options.seismicity:
-        input_dics['seismicity'] = 'Y'
-    else:
-        input_dics['seismicity'] = 'N'
+    input_dics['plot_seismicity'] = options.plot_seismicity
+    input_dics['plot_waveform'] = options.plot_waveform
+    input_dics['plot_dir_name'] = options.plot_dir_name
+    input_dics['plot'] = options.plot
+    if input_dics['plot']:
+        input_dics['pre_process'] = False
 
     input_dics['interval'] = float(options.interval)
     input_dics['preset_cont'] = float(options.preset_cont)
@@ -1157,8 +1193,6 @@ def read_input_command(parser, **kwargs):
     if input_dics['ic_all'] != 'N':
         input_dics['fdsn_ic'] = input_dics['ic_all']
         input_dics['arc_ic'] = input_dics['ic_all']
-    input_dics['parallel_process'] = options.parallel_process
-    input_dics['process_np'] = int(options.process_np)
     input_dics['corr_unit'] = options.corr_unit
     input_dics['pre_filt'] = options.pre_filt
     input_dics['water_level'] = float(options.water_level)
@@ -1266,13 +1300,6 @@ def read_input_command(parser, **kwargs):
 
     if options.event_info and options.continuous:
         input_dics['plot_all_events'] = False
-
-    if options.seismicity:
-        input_dics['fdsn_ic_auto'] = 'N'
-        input_dics['arc_ic_auto'] = 'N'
-        input_dics['fdsn_merge_auto'] = 'N'
-        input_dics['arc_merge_auto'] = 'N'
-        input_dics['max_result'] = 1000000
 
     if not input_dics['waveform'] == 'N':
         input_dics['SAC'] = 'N'

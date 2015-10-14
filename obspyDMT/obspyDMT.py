@@ -18,7 +18,7 @@ import time
 from utils.event_handler import get_time_window
 from utils.input_handler import command_parse, read_input_command
 from utils.metadata_handler import get_metadata
-from utils.local_handler import process_data
+from utils.local_handler import process_data, plot_unit
 from utils.utility_codes import header_printer, goodbye_printer
 from utils.utility_codes import print_event_catalogs, print_data_sources
 from utils.data_handler import get_data
@@ -70,11 +70,13 @@ def obspyDMT(**kwargs):
     # LOCAL:
     # custom functions to be applied to all the data ---> SAC, ...
     # choose one station at each grid point or distance
-    if input_dics['local']:
+    if input_dics['pre_process']:
         for ev in range(len(events)):
             process_data(input_dics, events[ev])
 
-    import ipdb; ipdb.set_trace()
+    if input_dics['plot']:
+        plot_unit(input_dics, events)
+
     # # ------------------plot stationxml files--------------------
     # if input_dics['plotxml_dir']:
     #     plot_xml_response(input_dics)
