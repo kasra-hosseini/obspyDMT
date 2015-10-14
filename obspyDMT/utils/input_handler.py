@@ -321,16 +321,9 @@ def command_parse():
     group_tw.add_option("--max_azi", action="store",
                         dest="max_azi", help=helpmsg)
 
-    helpmsg = "SAC format for saving the waveforms. " \
-              "Station location (stla and stlo), " \
-              "station elevation (stel), " \
-              "station depth (stdp), " \
-              "event location (evla and evlo), " \
-              "event depth (evdp) and " \
-              "event magnitude (mag) " \
-              "will be stored in the SAC headers. [Default: 'Y'] "
-    group_tw.add_option("--SAC", action="store",
-                        dest="SAC", help=helpmsg)
+    helpmsg = "format of the waveform: sac"
+    group_tw.add_option("--waveform_format", action="store",
+                        dest="waveform_format", help=helpmsg)
 
     helpmsg = "MSEED format for saving the waveforms."
     group_tw.add_option("--mseed", action="store_true",
@@ -619,10 +612,10 @@ def command_parse():
 
     # --------------- Plotting SationXML
     group_pltxml = OptionGroup(parser, "14. Plotting StationXML")
-    helpmsg = "address of a file/directory that contains StationXML files. " \
-              "[Default: False]"
-    group_pltxml.add_option("--plotxml_dir", action="store",
-                            dest="plotxml_dir", help=helpmsg)
+
+    helpmsg = "plot stationXML"
+    group_pltxml.add_option("--plot_stationxml", action="store_true",
+                            dest="plot_stationxml", help=helpmsg)
 
     helpmsg = "plot all the stages available in the response file."
     group_pltxml.add_option("--plotxml_allstages", action="store_true",
@@ -755,7 +748,7 @@ def read_input_command(parser, **kwargs):
                   'password': None,
                   'arc_avai_timeout': 40,
                   'arc_wave_timeout': 2,
-                  'SAC': 'Y',
+                  'waveform_format': False,
                   'resample_method': None,
                   'resample_raw': None,
                   'resample_corr': None,
@@ -887,6 +880,12 @@ def read_input_command(parser, **kwargs):
     input_dics['process_np'] = int(options.process_np)
     input_dics['event_based'] = options.event_based
     input_dics['event_name'] = options.event_name
+    input_dics['plot_stationxml'] = options.plot_stationxml
+    if input_dics['plot_stationxml']:
+        options.event_based = False
+        options.continuous = False
+        options.meta_data = False
+        options.local = True
     if input_dics['event_name']:
         input_dics['event_name'] = \
             [x.strip() for x in input_dics['event_name'].split(',')]
@@ -1065,7 +1064,6 @@ def read_input_command(parser, **kwargs):
             print "Erroneous identity code given: %s" % e
             sys.exit(2)
 
-    input_dics['plotxml_dir'] = options.plotxml_dir
     if options.plotxml_date:
         input_dics['plotxml_date'] = UTCDateTime(options.plotxml_date)
     else:
@@ -1159,12 +1157,7 @@ def read_input_command(parser, **kwargs):
     if options.paz:
         options.paz = 'Y'
     input_dics['paz'] = options.paz
-    input_dics['SAC'] = options.SAC
-    if options.mseed:
-        input_dics['SAC'] = 'N'
-        input_dics['mseed'] = 'Y'
-    else:
-        input_dics['mseed'] = 'N'
+    input_dics['waveform_format'] = options.waveform_format
 
     if options.resample_method:
         input_dics['resample_method'] = options.resample_method
@@ -1331,9 +1324,6 @@ def read_input_command(parser, **kwargs):
 
     if options.event_info and options.continuous:
         input_dics['plot_all_events'] = False
-
-    if not input_dics['waveform'] == 'N':
-        input_dics['SAC'] = 'N'
 
     if options.merge_no:
         input_dics['fdsn_merge_auto'] = 'N'

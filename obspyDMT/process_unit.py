@@ -21,7 +21,7 @@ import os
 # automatically applied to all traces in your database.
 
 
-def process_unit(tr_add, target_path, input_dics):
+def process_unit(tr_add, target_path, input_dics, staev_ar):
     """
     processing unit, adjustable by the user
     :param tr_add: address of one trace in your directory.
@@ -67,6 +67,9 @@ def process_unit(tr_add, target_path, input_dics):
         instrument_correction(tr, target_path, save_path,
                               input_dics['corr_unit'], input_dics['pre_filt'],
                               input_dics['water_level'])
+
+    if input_dics['waveform_format']:
+        waveform_format(save_path, target_path, staev_ar)
 
 # ##################### instrument_correction #################################
 
@@ -205,3 +208,59 @@ def obspy_fullresp_resp(trace, resp_file, save_path, unit,
 
     except Exception as error:
         print '[EXCEPTION] %s -- %s' % (trace.id, error)
+
+def waveform_format(tr_add, target_path, sta_ev_arr):
+    # read the waveform and create an ObsPy Stream object
+    st = read(tr_add)
+
+    # in case that there are more than one waveform in the Stream,
+    # merge them and create a 'waveform_gap.txt'
+    if len(st) > 1:
+        st.merge(method=1, fill_value=0, interpolation_samples=0)
+        gap_fio = open(os.path.join(target_path, 'info',
+                                    'waveform_gap.txt'), 'a+')
+        gap_msg = '%s.%s.%s.%s\t%s\n' % (st[0].stats.network,
+                                         st[0].stats.station,
+                                         st[0].stats.location,
+                                         st[0].stats.channel,
+                                         'format_converter')
+        gap_fio.writelines(gap_msg)
+        gap_fio.close()
+
+    # Now, there is only one waveform, create a Trace
+    tr = st[0]
+    tr.write(tr_add, format='SAC')
+    tr = read(tr_add)[0]
+    try:
+        tr.stats.sac.stla = float(sta_ev_arr[4])
+    except Exception, e:
+        pass
+    try:
+        tr.stats.sac.stlo = float(sta_ev_arr[5])
+    except Exception, e:
+        pass
+    try:
+        tr.stats.sac.stel = float(sta_ev_arr[6])
+    except Exception, e:
+        pass
+    try:
+        tr.stats.sac.stdp = float(sta_ev_arr[7])
+    except Exception, e:
+        pass
+    try:
+        tr.stats.sac.evla = float(sta_ev_arr[9])
+    except Exception, e:
+        pass
+    try:
+        tr.stats.sac.evlo = float(sta_ev_arr[10])
+    except Exception, e:
+        pass
+    try:
+        tr.stats.sac.evdp = float(sta_ev_arr[11])
+    except Exception, e:
+        pass
+    try:
+        tr.stats.sac.mag = float(sta_ev_arr[12])
+    except Exception, e:
+        pass
+    tr.write(tr_add, format='SAC')

@@ -123,7 +123,8 @@ def process_core_iterate(sta_ev_arr, input_dics, target_path, starti, endi):
             data_source = staev_ar[13]
         else:
             data_source = staev_ar[9]
-        process_unit(tr_add, target_path, input_dics)
+        if input_dics['pre_process']:
+            process_unit(tr_add, target_path, input_dics, staev_ar)
 
 # ##################### plot_filter_event ###############################
 
@@ -699,4 +700,5 @@ def plot_seismicity(input_dics, events):
         plt.tight_layout()
 
     plt.show()
+
 

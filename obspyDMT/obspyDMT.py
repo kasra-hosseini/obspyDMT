@@ -19,6 +19,7 @@ from utils.event_handler import get_time_window
 from utils.input_handler import command_parse, read_input_command
 from utils.metadata_handler import get_metadata
 from utils.local_handler import process_data, plot_unit
+from utils.plotxml_handler import plot_xml_response
 from utils.utility_codes import header_printer, goodbye_printer
 from utils.utility_codes import print_event_catalogs, print_data_sources
 from utils.data_handler import get_data
@@ -48,6 +49,9 @@ def obspyDMT(**kwargs):
     # ------------------Print event catalogs-----------------------------------
     if input_dics['print_event_catalogs']:
         print_event_catalogs()
+    # # ------------------plot stationxml files--------------------
+    if input_dics['plot_stationxml']:
+        plot_xml_response(input_dics)
     # ------------------Getting List of Events/Continuous requests-------------
     if input_dics['primary_mode'] in ['event_based', 'continuous', 'local']:
         # events contains all the information for requested time-window
@@ -70,6 +74,7 @@ def obspyDMT(**kwargs):
     # LOCAL:
     # custom functions to be applied to all the data ---> SAC, ...
     # choose one station at each grid point or distance
+
     if input_dics['pre_process']:
         for ev in range(len(events)):
             process_data(input_dics, events[ev])
@@ -77,32 +82,11 @@ def obspyDMT(**kwargs):
     if input_dics['plot']:
         plot_unit(input_dics, events)
 
-    # # ------------------plot stationxml files--------------------
-    # if input_dics['plotxml_dir']:
-    #     plot_xml_response(input_dics)
-    # # ------------------Seismicity--------------------------------------
-    # if input_dics['seismicity'] == 'Y':
-    #     seismicity(input_dics, events)
-    # # ------------------instrument---------------------------------
-    # if input_dics['fdsn_ic'] != 'N' or input_dics['fdsn_ic_auto'] == 'Y':
-    #     create_tar_file_address = FDSN_ARC_IC(
-    #         input_dics, clients=input_dics['fdsn_base_url'])
-    # if input_dics['arc_ic'] != 'N' or input_dics['arc_ic_auto'] == 'Y':
-    #     create_tar_file_address = FDSN_ARC_IC(input_dics, clients='arc')
     # # ------------------merge--------------------------------------
     # if input_dics['fdsn_merge'] != 'N' or input_dics['fdsn_merge_auto'] == 'Y':
     #     FDSN_ARC_merge(input_dics, clients=input_dics['fdsn_base_url'])
     # if input_dics['arc_merge'] != 'N' or input_dics['arc_merge_auto'] == 'Y':
     #     FDSN_ARC_merge(input_dics, clients='arc')
-    # # ------------------plot_tools--------------------------------------------
-    # if input_dics['plot_dir'].lower() != 'n':
-    #     print 'Plotting %s' % input_dics['plot_dir']
-    #     if input_dics['plot_all'] == 'Y' or input_dics['plot_fdsn'] == 'Y':
-    #         plot_tools(input_dics, clients=input_dics['fdsn_base_url'])
-    #     if input_dics['plot_arc'] == 'Y':
-    #         plot_tools(input_dics, clients='arc')
-    # if input_dics['plot_all_events']:
-    #     raw_input('\nPress enter to continue ..\n')
     # # ------------------Compressing-------------------------------------------
     # if create_tar_file_address:
     #     if input_dics['zip_w'] == 'Y' or input_dics['zip_r'] == 'Y':
