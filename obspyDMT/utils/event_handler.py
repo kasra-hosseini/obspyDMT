@@ -609,7 +609,7 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     xml_add = glob.glob(os.path.join(dir_name, 'temp_neic_xml_*.xml'))
     xml_add.sort()
     cat = Catalog()
-    print 'Start assembling the xml files: %s...\n' % len(xml_add)
+    print '\nStart assembling the xml files: %s...\n' % len(xml_add)
     counter = 1
     for x_add in xml_add:
         print counter,

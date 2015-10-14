@@ -313,6 +313,14 @@ def command_parse():
     group_tw.add_option("--cut_time_phase", action="store_true",
                         dest="cut_time_phase", help=helpmsg)
 
+    helpmsg = "minimum azimuth to be considered for retrieving"
+    group_tw.add_option("--min_azi", action="store",
+                        dest="min_azi", help=helpmsg)
+
+    helpmsg = "maximum azimuth to be considered for retrieving"
+    group_tw.add_option("--max_azi", action="store",
+                        dest="max_azi", help=helpmsg)
+
     helpmsg = "SAC format for saving the waveforms. " \
               "Station location (stla and stlo), " \
               "station elevation (stel), " \
@@ -780,7 +788,8 @@ def read_input_command(parser, **kwargs):
                   'plot_type': 'raw',
                   'plot_save': '.', 'plot_format': 'png',
                   'plot_lon0': 180,
-                  'min_epi': 0.0, 'max_epi': 180.0,
+                  'min_epi': False, 'max_epi': False,
+                  'min_azi': False, 'max_azi': False,
                   'plotxml_dir': False,
                   'plotxml_date': False,
                   'plotxml_min_freq': 0.01,
@@ -1094,6 +1103,26 @@ def read_input_command(parser, **kwargs):
     else:
         input_dics['cut_time_phase'] = False
 
+    if options.min_azi:
+        input_dics['min_azi'] = float(options.min_azi)
+    else:
+        input_dics['min_azi'] = False
+
+    if options.max_azi:
+        input_dics['max_azi'] = float(options.max_azi)
+    else:
+        input_dics['max_azi'] = False
+
+    if options.min_epi:
+        input_dics['min_epi'] = float(options.min_epi)
+    else:
+        input_dics['min_epi'] = False
+
+    if options.max_epi:
+        input_dics['max_epi'] = float(options.max_epi)
+    else:
+        input_dics['max_epi'] = False
+
     if options.event_catalog:
         input_dics['event_catalog'] = options.event_catalog.upper()
 
@@ -1112,6 +1141,8 @@ def read_input_command(parser, **kwargs):
         input_dics['user_select_event'] = 'N'
     input_dics['plot_seismicity'] = options.plot_seismicity
     input_dics['plot_waveform'] = options.plot_waveform
+    if input_dics['plot_waveform']:
+        input_dics['plot'] = True
     input_dics['plot_dir_name'] = options.plot_dir_name
     input_dics['plot'] = options.plot
     if input_dics['plot']:
@@ -1138,7 +1169,7 @@ def read_input_command(parser, **kwargs):
     if options.resample_method:
         input_dics['resample_method'] = options.resample_method
     else:
-        input_dics['resample_method'] = 'decimate'
+        input_dics['resample_method'] = 'lanczos'
     if options.resample_raw:
         input_dics['resample_raw'] = float(options.resample_raw)
     else:

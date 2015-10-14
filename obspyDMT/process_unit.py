@@ -1,7 +1,7 @@
 # Required Python and Obspy modules will be imported in this part.
 from obspy.core import read
 from obspy import read_inventory
-from utils.resample_handler import resample_trace
+from utils.resample_handler import resample_unit
 try:
     from obspy.io.xseed import Parser
 except Exception, e:
@@ -49,22 +49,21 @@ def process_unit(tr_add, target_path, input_dics):
     # Now, there is only one waveform, create a Trace
     tr = st[0]
 
+    corr_unit = input_dics['corr_unit']
+    if not os.path.isdir(os.path.join(target_path, 'BH_%s' % corr_unit)):
+        os.mkdir(os.path.join(target_path, 'BH_%s' % corr_unit))
+    save_path = os.path.join(target_path, 'BH_%s' % corr_unit, tr.id)
+
     # Resample the data
     if input_dics['resample_corr']:
-        print "Applying resampling"
-        print tr.stats.sampling_rate
-        tr = resample_trace(tr,
-                            des_sr=input_dics['resample_corr'],
-                            resample_method=input_dics['resample_method'])
-        print tr.stats.sampling_rate
+        print("resampling for: %s" % tr.id)
+        tr = resample_unit(tr,
+                           des_sr=input_dics['resample_corr'],
+                           resample_method=input_dics['resample_method'])
+        tr.write(save_path, format='mseed')
 
     # apply instrument correction
     if input_dics['instrument_correction']:
-        corr_unit = input_dics['corr_unit']
-        if not os.path.isdir(os.path.join(target_path, 'BH_%s' % corr_unit)):
-            os.mkdir(os.path.join(target_path, 'BH_%s' % corr_unit))
-        save_path = os.path.join(target_path, 'BH_%s' % corr_unit, tr.id)
-
         instrument_correction(tr, target_path, save_path,
                               input_dics['corr_unit'], input_dics['pre_filt'],
                               input_dics['water_level'])

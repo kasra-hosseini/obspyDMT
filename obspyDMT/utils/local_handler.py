@@ -16,6 +16,7 @@
 # Required Python and Obspy modules will be imported in this part.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+import fnmatch
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 import multiprocessing
@@ -26,6 +27,13 @@ try:
     from obspy.geodetics import locations2degrees
 except Exception, e:
     from obspy.core.util import locations2degrees
+try:
+    from obspy.geodetics.base import gps2dist_azimuth as gps2DistAzimuth
+except Exception, e:
+    try:
+        from obspy.geodetics import gps2DistAzimuth
+    except Exception, e:
+        from obspy.core.util import gps2DistAzimuth
 import os
 import sys
 
@@ -150,6 +158,35 @@ def plot_filter_event(input_dics, event_dic):
             return False
     return True
 
+# ##################### plot_filter_station ###############################
+
+
+def plot_filter_station(input_dics, sta_ev):
+    """
+    check whether the station can pass the criteria
+    :param input_dics:
+    :param sta_ev:
+    :return:
+    """
+    if not fnmatch.fnmatch(sta_ev[0], input_dics['net']):
+        return False
+    if not fnmatch.fnmatch(sta_ev[1], input_dics['sta']):
+        return False
+    if not fnmatch.fnmatch(sta_ev[2], input_dics['loc']):
+        return False
+    if not fnmatch.fnmatch(sta_ev[3], input_dics['cha']):
+        return False
+    if isinstance(input_dics['mlat_rbb'], float):
+        if not float(sta_ev[4]) <= input_dics['Mlat_rbb']:
+            return False
+        if not float(sta_ev[4]) >= input_dics['mlat_rbb']:
+            return False
+        if not float(sta_ev[5]) <= input_dics['Mlon_rbb']:
+            return False
+        if not float(sta_ev[5]) >= input_dics['mlon_rbb']:
+            return False
+    return True
+
 # ###################### plot_unit #############
 
 
@@ -218,6 +255,13 @@ def plot_waveform(input_dics, events):
         sta_ev_arr = np.loadtxt(
             os.path.join(target_path, 'info', 'station_event'),
             delimiter=',', dtype='object')
+        del_index = []
+        for sti in range(len(sta_ev_arr)):
+            if not plot_filter_station(input_dics, sta_ev_arr[sti]):
+                del_index.append(sti)
+        del_index.sort(reverse=True)
+        for di in del_index:
+            sta_ev_arr[di] = np.delete(sta_ev_arr, (di), axis=0)
         for si in range(len(sta_ev_arr)):
             sta_id = sta_ev_arr[si, 0] + '.' + sta_ev_arr[si, 1] + '.' + \
                      sta_ev_arr[si, 2] + '.' + sta_ev_arr[si, 3]
@@ -227,16 +271,34 @@ def plot_waveform(input_dics, events):
                                        sta_id))[0]
                 time_diff = tr.stats.starttime - events[ei]['datetime']
                 taxis = tr.times() + time_diff
-                dist = locations2degrees(events[ei]['latitude'],
-                                         events[ei]['longitude'],
-                                         float(sta_ev_arr[si][4]),
-                                         float(sta_ev_arr[si][5]))
-                plt.plot(taxis, tr.normalize().data + dist, c='k', alpha=0.5)
+
+                dist, azi, bazi = gps2DistAzimuth(
+                    events[ei]['latitude'],
+                    events[ei]['longitude'],
+                    float(sta_ev_arr[si, 4]),
+                    float(sta_ev_arr[si, 5]))
+                epi_dist = dist/111.194/1000.
+                if input_dics['min_azi'] or input_dics['max_azi'] or \
+                        input_dics['min_epi'] or input_dics['max_epi']:
+
+                    if input_dics['min_epi']:
+                        if epi_dist < input_dics['min_epi']:
+                            continue
+                    if input_dics['max_epi']:
+                        if epi_dist > input_dics['max_epi']:
+                            continue
+                    if input_dics['min_azi']:
+                        if azi > input_dics['min_azi']:
+                            continue
+                    if input_dics['max_azi']:
+                        if azi > input_dics['max_azi']:
+                            continue
+                plt.plot(taxis, tr.normalize().data + epi_dist, c='k',
+                         alpha=0.5)
             except Exception, e:
                 continue
     plt.xlabel('Time (sec)', size=18, weight='bold')
     plt.ylabel('Epicentral Distance (deg)', size=18, weight='bold')
-    plt.ylim(ymin=0.2)
     plt.xticks(size=18, weight='bold')
     plt.yticks(size=18, weight='bold')
     plt.tight_layout()
@@ -348,7 +410,7 @@ def plot_sta_ev_ray(input_dics, events):
                           zorder=5, alpha=0.65)
         if plt_stations or plt_ray_path:
             target_path = locate(input_dics['datapath'],
-                 events[ei]['event_id'])
+                                 events[ei]['event_id'])
             if len(target_path) > 1:
                 print("[LOCAL] more than one path was found "
                       "for one event:")
@@ -364,6 +426,36 @@ def plot_sta_ev_ray(input_dics, events):
             sta_ev_arr = np.loadtxt(os.path.join(
                 target_path, 'info', 'station_event'),
                 delimiter=',', dtype='object')
+            del_index = []
+            for sti in range(len(sta_ev_arr)):
+                if not plot_filter_station(input_dics, sta_ev_arr[sti]):
+                    del_index.append(sti)
+
+                dist, azi, bazi = gps2DistAzimuth(
+                    events[ei]['latitude'],
+                    events[ei]['longitude'],
+                    float(sta_ev_arr[sti, 4]),
+                    float(sta_ev_arr[sti, 5]))
+                epi_dist = dist/111.194/1000.
+                if input_dics['min_azi'] or input_dics['max_azi'] or \
+                        input_dics['min_epi'] or input_dics['max_epi']:
+                    if input_dics['min_epi']:
+                        if epi_dist < input_dics['min_epi']:
+                            del_index.append(sti)
+                    if input_dics['max_epi']:
+                        if epi_dist > input_dics['max_epi']:
+                            del_index.append(sti)
+                    if input_dics['min_azi']:
+                        if azi < input_dics['min_azi']:
+                            del_index.append(sti)
+                    if input_dics['max_azi']:
+                        if azi > input_dics['max_azi']:
+                            del_index.append(sti)
+
+            del_index = list(set(del_index))
+            del_index.sort(reverse=True)
+            for di in del_index:
+                sta_ev_arr = np.delete(sta_ev_arr, (di), axis=0)
         if plt_stations:
             if len(sta_ev_arr) > 0:
                 x, y = m(sta_ev_arr[:, 5], sta_ev_arr[:, 4])

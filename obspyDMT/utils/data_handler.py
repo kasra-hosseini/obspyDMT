@@ -27,6 +27,13 @@ try:
     from obspy.clients.arclink import Client as Client_arclink
 except Exception, e:
     from obspy.arclink import Client as Client_arclink
+try:
+    from obspy.geodetics.base import gps2dist_azimuth as gps2DistAzimuth
+except Exception, e:
+    try:
+        from obspy.geodetics import gps2DistAzimuth
+    except Exception, e:
+        from obspy.core.util import gps2DistAzimuth
 import os
 import pickle
 
@@ -249,6 +256,30 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
             t_start = event['t1']
             t_end = event['t2']
 
+        if input_dics['min_azi'] or input_dics['max_azi'] or \
+                input_dics['min_epi'] or input_dics['max_epi']:
+            dist, azi, bazi = gps2DistAzimuth(event['latitude'],
+                                              event['longitude'],
+                                              float(st_avail[4]),
+                                              float(st_avail[5]))
+            epi_dist = dist/111.194/1000.
+            if input_dics['min_epi']:
+                if epi_dist < input_dics['min_epi']:
+                    raise Exception('%s out of epi range: %s'
+                                    % (st_id, epi_dist))
+            if input_dics['max_epi']:
+                if epi_dist > input_dics['max_epi']:
+                    raise Exception('%s out of epi range: %s'
+                                    % (st_id, epi_dist))
+            if input_dics['min_azi']:
+                if azi < input_dics['min_azi']:
+                    raise Exception('%s outo f Azimuth range: %s'
+                                    % (st_id, azi))
+            if input_dics['max_azi']:
+                if azi > input_dics['max_azi']:
+                    raise Exception('%s out of Azimuth range: %s'
+                                    % (st_id, azi))
+
         if input_dics['waveform']:
             dummy = 'waveform'
             if not os.path.isfile(os.path.join(target_path, 'BH_RAW', st_id)):
@@ -466,6 +497,30 @@ def arc_download_core(st_avail, event, input_dics, target_path,
         else:
             t_start = event['t1']
             t_end = event['t2']
+
+        if input_dics['min_azi'] or input_dics['max_azi'] or \
+                input_dics['min_epi'] or input_dics['max_epi']:
+            dist, azi, bazi = gps2DistAzimuth(event['latitude'],
+                                              event['longitude'],
+                                              float(st_avail[4]),
+                                              float(st_avail[5]))
+            epi_dist = dist/111.194/1000.
+            if input_dics['min_epi']:
+                if epi_dist < input_dics['min_epi']:
+                    raise Exception('%s out of epi range: %s'
+                                    % (st_id, epi_dist))
+            if input_dics['max_epi']:
+                if epi_dist > input_dics['max_epi']:
+                    raise Exception('%s out of epi range: %s'
+                                    % (st_id, epi_dist))
+            if input_dics['min_azi']:
+                if azi < input_dics['min_azi']:
+                    raise Exception('%s outo f Azimuth range: %s'
+                                    % (st_id, azi))
+            if input_dics['max_azi']:
+                if azi > input_dics['max_azi']:
+                    raise Exception('%s out of Azimuth range: %s'
+                                    % (st_id, azi))
 
         if input_dics['waveform']:
             dummy = 'waveform'

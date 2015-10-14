@@ -57,7 +57,7 @@ def zerophase_chebychev_lowpass_filter(trace, freqmax):
 # ###################### decimate_trace #############
 
 
-def decimate_trace(tr, dt):
+def resample_trace(tr, dt, method, lanczos_a=20):
     """
     Decimate ObsPy Trace (tr) with dt as delta (1/sampling_rate).
 
@@ -72,70 +72,19 @@ def decimate_trace(tr, dt):
         if decimation_factor > 1:
             new_nyquist = tr.stats.sampling_rate / 2.0 / decimation_factor
             zerophase_chebychev_lowpass_filter(tr, new_nyquist)
-            tr.decimate(factor=decimation_factor, no_filter=True)
+            if method == 'decimate':
+                tr.decimate(factor=decimation_factor, no_filter=True)
+            elif method == 'lanczos':
+                tr.interpolate(method='lanczos',
+                               sampling_rate=1./dt,
+                               a=lanczos_a)
         else:
             return tr
-
-# ##################### resample_all ####################################
-
-
-def resample_all(i, address_events, des_sr, resample_method='decimate'):
-    """
-    resample all the traces based on the selected sampling rate
-    :param i:
-    :param address_events:
-    :param des_sr:
-    :param lancz_a:
-    :return:
-    """
-    sta_ev = read_station_event(address_events[i])
-    ls_saved_stas = []
-
-    for j in range(len(sta_ev[0])):
-        station_id = '%s.%s.%s.%s' % (sta_ev[0][j][0],
-                                      sta_ev[0][j][1],
-                                      sta_ev[0][j][2],
-                                      sta_ev[0][j][3])
-        ls_saved_stas.append(os.path.join(address_events[i],
-                                          'BH_RAW', station_id))
-    for j in range(len(sta_ev[0])):
-        try:
-            st = read(ls_saved_stas[j])
-            if len(st) > 1:
-                print("\n=== WARNING:")
-                print("%s" % ls_saved_stas[j])
-                print("probably has some gaps!")
-                print("It will be merged (fill_value=0).")
-                print("\nFor more information refer to:")
-                print("%s" % os.path.join(address_events[i], 'info',
-                                          'waveform_gap.txt'))
-                print("which contains all the waveforms with gap.")
-
-                st.merge(method=1, fill_value=0, interpolation_samples=0)
-                gap_fio = open(os.path.join(address_events[i], 'info',
-                                            'waveform_gap.txt'), 'a+')
-                gap_msg = '%s.%s.%s.%s\t%s\n' % (sta_ev[0][j][0],
-                                                 sta_ev[0][j][1],
-                                                 sta_ev[0][j][2],
-                                                 sta_ev[0][j][3],
-                                                 'resampling')
-                gap_fio.writelines(gap_msg)
-                gap_fio.close()
-            tr = st[0]
-            # resample
-            if resample_method.lower() == 'decimate':
-                tr = decimate_trace(tr, dt=1./des_sr)
-            tr.write(ls_saved_stas[j], format='MSEED')
-
-        except Exception as e:
-            print('\nWARNING: %s' % e)
-            print(ls_saved_stas[j])
-            print('------------------')
 
 # ##################### resample_trace ####################################
 
 
-def resample_trace(tr, des_sr, resample_method='decimate'):
+def resample_unit(tr, des_sr, resample_method='decimate'):
     """
     resample one trace based on the selected sampling rate
     :param tr:
@@ -146,7 +95,14 @@ def resample_trace(tr, des_sr, resample_method='decimate'):
     try:
         # resample
         if resample_method.lower() == 'decimate':
-            tr = decimate_trace(tr, dt=1./des_sr)
+            tr = resample_trace(tr, dt=1./des_sr, method='decimate')
+        elif resample_method.lower() == 'lanczos':
+            try:
+                from obspy.signal.interpolation import lanczos_interpolation
+                print("method: lanczos")
+                tr = resample_trace(tr, dt=1./des_sr, method='lanczos')
+            except Exception, e:
+                tr = resample_trace(tr, dt=1./des_sr, method='decimate')
         return tr
     except Exception as e:
         print('\nWARNING: %s' % e)
