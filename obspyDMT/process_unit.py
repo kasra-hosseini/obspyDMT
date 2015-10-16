@@ -55,10 +55,10 @@ def process_unit(tr_add, target_path, input_dics, staev_ar):
     save_path = os.path.join(target_path, 'BH_%s' % corr_unit, tr.id)
 
     # Resample the data
-    if input_dics['resample_corr']:
+    if input_dics['des_sampling_rate']:
         print("resampling for: %s" % tr.id)
         tr = resample_unit(tr,
-                           des_sr=input_dics['resample_corr'],
+                           des_sr=input_dics['des_sampling_rate'],
                            resample_method=input_dics['resample_method'])
         tr.write(save_path, format='mseed')
 

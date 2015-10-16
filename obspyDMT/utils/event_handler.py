@@ -96,10 +96,10 @@ def get_time_window(input_dics, request):
 
     except Exception, error:
         print 'WARNING: %s' % error
-        return 0
+        return []
 
     if len(events) < 1:
-        return 0
+        return []
 
     events2, row_format, header = output_shell_event(events, request)
 
@@ -153,9 +153,9 @@ def read_info(input_dics):
     fio = open(os.path.join(ev_info, 'event_list_pickle'), 'r')
     events = pickle.load(fio)
     remove_index = []
-    if input_dics['event_name']:
+    if input_dics['dir_select']:
         for ei in range(len(events)):
-            if events[ei]['event_id'] not in input_dics['event_name']:
+            if events[ei]['event_id'] not in input_dics['dir_select']:
                 remove_index.append(ei)
         remove_index.sort(reverse=True)
         for ri in remove_index:
@@ -426,13 +426,13 @@ def continuous_info(input_dics):
                  ('half_duration', False),
                  ('flynn_region', 'NAN'),
                  ('t1', m_date + (i-1)*input_dics['interval'] +
-                  input_dics['preset_cont']),
+                  input_dics['preset']),
                  ('t2', m_date + i*input_dics['interval'] +
-                  input_dics['offset_cont']),
+                  input_dics['offset']),
                  ]))
 
         final_time = m_date + num_div*input_dics['interval'] + \
-                     input_dics['offset_cont']
+                     input_dics['offset']
         if not M_date == final_time:
             cont_dir_name = str(num_div+1)
             events.append(OrderedDict(
@@ -450,7 +450,7 @@ def continuous_info(input_dics):
                  ('half_duration', False),
                  ('flynn_region', 'NAN'),
                  ('t1', m_date + num_div*input_dics['interval'] +
-                  input_dics['preset_cont']),
+                  input_dics['preset']),
                  ('t2', M_date),
                  ]))
     else:

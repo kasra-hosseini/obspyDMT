@@ -19,16 +19,16 @@ import numpy as np
 from obspy.core import read
 try:
     from obspy.clients.fdsn import URL_MAPPINGS
-except Exception, e:
+except:
     from obspy.fdsn.header import URL_MAPPINGS
 try:
     from obspy.geodetics import locations2degrees
-except Exception, e:
+except:
     from obspy.core.util import locations2degrees
 from obspy.signal.util import nextpow2
 try:
     from obspy.taup import getTravelTimes
-except Exception, e:
+except:
     from obspy.taup.taup import getTravelTimes
 import os
 import pickle

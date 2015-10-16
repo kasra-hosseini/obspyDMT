@@ -39,12 +39,11 @@ def obspyDMT(**kwargs):
     """
     # printing the header
     header_printer()
-    # initializing variables:
-    events = None
     # ------------------parsing command-line options---------------------------
     (options, args, parser) = command_parse()
     # ------------------create input dictionary--------------------------------
     input_dics = read_input_command(parser, **kwargs)
+    import ipdb; ipdb.set_trace()
     # ------------------print data sources-------------------------------------
     if input_dics['print_data_sources']:
         print_data_sources()
@@ -61,7 +60,7 @@ def obspyDMT(**kwargs):
         # it is still called as events.
         events = get_time_window(input_dics,
                                  request=input_dics['primary_mode'])
-        if events == 0:
+        if len(events) == 0:
             return input_dics
     # ------------------checking the availability------------------------------
     for ev in range(len(events)):
