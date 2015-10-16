@@ -56,8 +56,10 @@ def get_data(stas_avail, event, input_dics):
     t_wave_1 = datetime.now()
 
     req_clients = np.unique(stas_avail[:, -1])
-    print "Number of all requested data sources: %s" % len(req_clients)
-    print req_clients
+    print "Requested data sources:"
+    for req_c in req_clients:
+        print req_c,
+    print '\n'
 
     if input_dics['test']:
         stas_avail = stas_avail[0:input_dics['test_num']]

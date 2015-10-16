@@ -12,8 +12,6 @@
 # -----------------------------------------------------------------------
 # ----------------Import required Modules (Python and Obspy)-------------
 # -----------------------------------------------------------------------
-
-# Required Python and Obspy modules will be imported in this part.
 from collections import OrderedDict
 import copy
 from datetime import datetime, timedelta
@@ -50,7 +48,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def get_time_window(input_dics, request):
     """
-    Generating a list of requests for both event_based and continuous requests.
+    generating a list of requests for both event_based and continuous requests.
     :param input_dics:
     :param request:
     :return:
@@ -58,7 +56,7 @@ def get_time_window(input_dics, request):
     t_event_1 = time.time()
 
     # request can be 'event_based' or 'continuous'
-    # events contains all the information for requested time-window
+    # events list contains all the information for requested time-window
     # Although we do not have any events in continuous requests,
     # it is still called as events.
     events = []
@@ -67,38 +65,43 @@ def get_time_window(input_dics, request):
         events_local, events_qml_local = read_info(input_dics)
         if input_dics['event_catalog'].lower() == 'local':
             if events_local == 'no_local':
+                print "[WARNING] no local event was found!"
+                print "[WARNING] use IRIS catalog instead!"
                 input_dics['event_catalog'] = 'IRIS'
             else:
                 events = copy.deepcopy(events_local)
                 events_qml = copy.deepcopy(events_qml_local)
+
         if events == 'no_local' or events == []:
             if request.lower() == 'event_based':
                 events, events_qml = event_info(input_dics)
             elif request.lower() == 'continuous':
                 events, events_qml = continuous_info(input_dics)
-        remove_indx = []
-        if input_dics['event_catalog'].lower() != 'local':
-            if events_local != 'no_local':
-                for nei in range(len(events)):
+
+        if not input_dics['continuous']:
+            remove_indx = []
+            if input_dics['event_catalog'].lower() != 'local':
+                if events_local != 'no_local':
+                    for nei in range(len(events)):
+                        for oei in range(len(events_local)):
+                            if (events[nei]['event_id'] ==
+                                    events_local[oei]['event_id']):
+                                remove_indx.append(nei)
+                                break
+                    if len(remove_indx) > 0:
+                        remove_indx.sort(reverse=True)
+                        for ri in remove_indx:
+                            del events[ri]
+                            del events_qml[ri]
                     for oei in range(len(events_local)):
-                        if (events[nei]['event_id'] ==
-                                events_local[oei]['event_id']):
-                            remove_indx.append(nei)
-                            break
-                if len(remove_indx) > 0:
-                    remove_indx.sort(reverse=True)
-                    for ri in remove_indx:
-                        del events[ri]
-                        del events_qml[ri]
-                for oei in range(len(events_local)):
-                    events.append(events_local[oei])
-                    events_qml.append(events_qml_local[oei])
+                        events.append(events_local[oei])
+                        events_qml.append(events_qml_local[oei])
 
     except Exception, error:
         print 'WARNING: %s' % error
         return []
 
-    if len(events) < 1:
+    if len(events) == 0:
         return []
 
     events2, row_format, header = output_shell_event(events, request)
@@ -113,7 +116,6 @@ def get_time_window(input_dics, request):
             input_dics['min_date'].split('T')[0],
             input_dics['max_date'].split('T')[0])
         eventpath = os.path.join(input_dics['datapath'], period)
-
         write_cat_logger(input_dics, eventpath, period, events, events_qml,
                          events2, row_format, header)
     return events
@@ -128,10 +130,10 @@ def read_info(input_dics):
     :return:
     """
     evs_info = locate(input_dics['datapath'], 'EVENTS-INFO')
-    if len(evs_info) < 1:
+    if len(evs_info) == 0:
         return "no_local", "no_local"
     if len(evs_info) > 1:
-        print "WARNING: Found two directories that have EVENTS-INFO. " \
+        print "[WARNING] Found two directories that have EVENTS-INFO. " \
               "Continue with:"
         print evs_info[0]
         print '\n'
@@ -161,9 +163,12 @@ def read_info(input_dics):
         for ri in remove_index:
             del events[ri]
     if input_dics['event_catalog'].lower() == 'local':
-        print "Use local files:"
-        print "(all relevant options will be omitted!)"
+        print "\n========================================================="
+        print "use the local files:"
+        print "(all relevant options (time, magnitude, depth, location) " \
+              "will be omitted!)"
         print os.path.join(ev_info, 'event_list_pickle')
+        print "=========================================================\n"
     return events, events_QML
 
 # ##################### event_info #####################################
@@ -171,7 +176,7 @@ def read_info(input_dics):
 
 def event_info(input_dics):
     """
-    Get event(s) info for event_based request.
+    get event(s) info for event_based request
     :param input_dics:
     :return:
     """
@@ -198,7 +203,7 @@ def event_info(input_dics):
             event_url = 'IRIS'
             event_fdsn_cat = 'ISC'
 
-        print 'Event(s) are based on:\t',
+        print '\nEvent(s) are based on:\t',
         print input_dics['event_catalog']
 
         if event_switch == 'fdsn':
@@ -251,9 +256,8 @@ def event_info(input_dics):
                              input_dics['max_depth'],
                              input_dics['min_mag'],
                              input_dics['max_mag'])
-
         else:
-            sys.exit('%s is not supported'
+            sys.exit('[ERROR] %s is not supported'
                      % input_dics['event_catalog'])
 
         # no matter if list was passed or requested, sort catalogue,
@@ -263,7 +267,7 @@ def event_info(input_dics):
 
     except Exception as error:
         print 60*'-'
-        print 'ERROR: %s' % error
+        print '[WARNING] %s' % error
         print 60*'-'
         events = []
         events_QML = []
@@ -285,7 +289,6 @@ def qml_to_event_list(events_QML):
     """
     events = []
     for i in range(len(events_QML)):
-
         try:
             event_time = events_QML.events[i].preferred_origin().time or \
                          events_QML.events[i].origins[0].time
@@ -297,7 +300,6 @@ def qml_to_event_list(events_QML):
         except Exception, error:
             print error
             continue
-
         try:
             if not events_QML.events[i].focal_mechanisms == []:
                 focal_mechanism = [
@@ -316,7 +318,7 @@ def qml_to_event_list(events_QML):
             else:
                 focal_mechanism = False
         except AttributeError:
-            print "WARNING: focal_mechanism does not exist for " \
+            print "[WARNING] focal_mechanism does not exist for " \
                   "event: %s -- set to False" % (i+1)
             focal_mechanism = False
         except TypeError:
@@ -340,7 +342,7 @@ def qml_to_event_list(events_QML):
                 half_duration = mag_halfduration(
                     mag=events_QML.events[i].preferred_magnitude().mag)
         except AttributeError:
-            print "WARNING: half_duration does not exist for " \
+            print "[WARNING] half_duration does not exist for " \
                   "event: %s -- set to False" % (i+1)
             half_duration = False
         except TypeError:
@@ -392,17 +394,17 @@ def qml_to_event_list(events_QML):
 
 def continuous_info(input_dics):
     """
-    Get 'event(s)' info for continuous request.
+    get 'event(s)' info for continuous request
     :param input_dics:
     :return:
     """
-    print 'Start identifying the intervals ..'
+    print 'start identifying the intervals...',
     m_date = UTCDateTime(input_dics['min_date'])
     M_date = UTCDateTime(input_dics['max_date'])
     t_cont = M_date - m_date
 
     if t_cont < 0:
-        sys.exit("\nERROR: max_date is lower than min_date!")
+        sys.exit("\n\n[ERROR] max_date is lower than min_date!")
 
     events = []
     if t_cont > input_dics['interval']:
@@ -432,7 +434,8 @@ def continuous_info(input_dics):
                  ]))
 
         final_time = m_date + num_div*input_dics['interval'] + \
-                     input_dics['offset']
+            input_dics['offset']
+
         if not M_date == final_time:
             cont_dir_name = str(num_div+1)
             events.append(OrderedDict(
@@ -504,8 +507,9 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     try:
         import mechanize
     except Exception, error:
-        sys.exit('ERROR:\nFor NEIC_USGS, "mechanize" should be installed: %s\n'
-                 '\npip install mechanize\n' % error)
+        sys.exit('[ERROR]\nFor NEIC_USGS, '
+                 '"mechanize" should be installed:\n%s'
+                 '\n\npip install mechanize\n' % error)
 
     tic = time.clock()
 
@@ -538,8 +542,8 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     else:
         br.form1['latitude'] = str(latitude)
         br.form1['longitude'] = str(longitude)
-        br.form1['minradiuskm'] = str(float(radius_min)*111.32)
-        br.form1['maxradiuskm'] = str(float(radius_max)*111.32)
+        br.form1['minradiuskm'] = str(float(radius_min)*111.194)
+        br.form1['maxradiuskm'] = str(float(radius_max)*111.194)
 
     # This function at this moment only provides these settings
     br.form1['format'] = ['quakeml']
@@ -553,9 +557,7 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     interval = 30.*24.*60.*60.
 
     num_div = int(dur_event/interval)
-    print 'Number of divisions: %s' % num_div
-    # residual time is: (has not been used here)
-    # t_res = t_cont - num_div*input_dics['interval']
+    print '#Divisions: %s' % num_div
     for i in range(1, num_div+1):
         print i,
         sys.stdout.flush()
@@ -575,8 +577,7 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
 
         if 'quakeml' in page_content:
             with open(os.path.join(dir_name,
-                                   'temp_neic_xml_%05i.xml' % i),
-                      'w') as fid:
+                                   'temp_neic_xml_%05i.xml' % i), 'w') as fid:
                 fid.write(page_content)
             fid.close()
         else:
@@ -586,7 +587,6 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     if not M_date == final_time:
         t_start_split = m_date + num_div*interval
         t_end_split = M_date
-        print '\nEnd time: %s\n' % t_end_split
         br.form1['starttime'] = str(t_start_split)
         br.form1['endtime'] = str(t_end_split)
 
@@ -609,7 +609,7 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     xml_add = glob.glob(os.path.join(dir_name, 'temp_neic_xml_*.xml'))
     xml_add.sort()
     cat = Catalog()
-    print '\nStart assembling the xml files: %s...\n' % len(xml_add)
+    print '\nAssembling %s xml files...' % len(xml_add)
     counter = 1
     for x_add in xml_add:
         print counter,
@@ -619,12 +619,13 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
             cat.extend(readEvents(x_add, format='QuakeML'))
             os.remove(x_add)
         except Exception, error:
-            print 'WARNING: %s' % error
+            print '[WARNING] %s' % error
             os.remove(x_add)
 
+    print "Cleaning up the temporary folder."
     os.rmdir(dir_name)
     toc = time.clock()
-    print '\nIt took %s sec to retrieve the earthquakes form NEIC.' % (toc-tic)
+    print '\n%s sec to retrieve the event info form NEIC.' % (toc-tic)
     return cat
 
 # ##################### gcmt_catalog ############################
@@ -953,7 +954,7 @@ def write_cat_logger(input_dics, eventpath, period, events, catalog,
                 (row_format.format(*events2[i].values())).rstrip() + '\n')
         event_table.writelines('-'*80 + '\n')
     except Exception as err:
-        print '\nCouldn\'t write catalog object to ASCII file as:\n>>:\t %s\n' \
+        print '\nCouldn\'t write catalog object to ASCII file as:\n %s\n' \
               'Proceed without ..\n' % err
 
     # output catalogue as QUAKEML / JSON files

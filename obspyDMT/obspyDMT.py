@@ -43,7 +43,6 @@ def obspyDMT(**kwargs):
     (options, args, parser) = command_parse()
     # ------------------create input dictionary--------------------------------
     input_dics = read_input_command(parser, **kwargs)
-    import ipdb; ipdb.set_trace()
     # ------------------print data sources-------------------------------------
     if input_dics['print_data_sources']:
         print_data_sources()
@@ -62,6 +61,7 @@ def obspyDMT(**kwargs):
                                  request=input_dics['primary_mode'])
         if len(events) == 0:
             return input_dics
+    import ipdb; ipdb.set_trace()
     # ------------------checking the availability------------------------------
     for ev in range(len(events)):
         if input_dics['meta_data']:

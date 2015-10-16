@@ -44,7 +44,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def header_printer():
     """
-    Clear the screen and print the welcome message.
+    clear the screen and print the welcome message.
     :return:
     """
     os.system('clear')
@@ -96,7 +96,8 @@ def print_data_sources():
     Function to print available data providers
     :return:
     """
-    print "\nList of all shortcut names"
+    print "\n--------------------------"
+    print "list of all shortcut names"
     print "--------------------------\n"
     for key in sorted(URL_MAPPINGS.keys()):
         print("{0:<7} {1}".format(key,  URL_MAPPINGS[key]))
@@ -116,16 +117,17 @@ def print_event_catalogs():
     Function to print available event catalogs
     :return:
     """
-    print "\nSupported event catalogs:"
-    print "-------------------------\n"
+    print "\n------------------------"
+    print "supported event catalogs"
+    print "------------------------\n"
     for ev_cat in ['LOCAL', 'NEIC_USGS', 'GCMT_COMBO', 'IRIS', 'NCEDC',
                    'USGS', 'INGV', 'ISC', 'NERIES']:
         print ev_cat
 
     print "\n============================================================"
-    print "This is the list of all shortcut names which can be used for"
-    print "--data_source option."
-    print "However, FDSN base URLs can be entered directly as well."
+    print "This is the list of all available event catalogs that can be"
+    print "used for --event_catalog option."
+    print "============================================================"
     sys.exit()
 
 # ##################### create_folders_files ############################
@@ -133,7 +135,7 @@ def print_event_catalogs():
 
 def create_folders_files(event, eventpath, input_dics):
     """
-    Create required directories and files for one event
+    create required directories and files for one event
     :param event:
     :param eventpath:
     :param input_dics:
@@ -172,13 +174,12 @@ def create_folders_files(event, eventpath, input_dics):
 
 def read_list_stas(add_list, normal_mode_syn, specfem3D):
     """
-    read a list of stations instead of checking the availability.
+    read a list of stations instead of checking the availability
     :param add_list:
     :param normal_mode_syn:
     :param specfem3D:
     :return:
     """
-
     print '\n---------------------------------------------'
     print 'INFO:'
     print 'Format of the station list:'
@@ -250,8 +251,11 @@ def read_event_dic(address):
         target_add = None
 
     if len(target_add) > 1:
-        sys.exit('length of directories to read the event info: %s'
-                 % len(target_add))
+        print "[ERROR] there are more than one directory to " \
+              "read the event info:"
+        for tar_add in target_add:
+            print tar_add
+        sys.exit('\nonly one directory should be specified to proceed!')
 
     event_dic = False
     for t_add in target_add:
@@ -259,7 +263,7 @@ def read_event_dic(address):
             ev_file_fio = open(os.path.join(t_add, 'event.pkl'), 'r')
             event_dic = pickle.load(ev_file_fio)
         else:
-            sys.exit('event.pkl can not be found in: %s' % t_add)
+            sys.exit('[ERROR] event.pkl can not be found in: %s' % t_add)
     return event_dic
 
 # ##################### read_station_event ##############################
@@ -267,7 +271,7 @@ def read_event_dic(address):
 
 def read_station_event(address):
     """
-    Reads the station_event file ("info" folder)
+    reads the station_event file ("info" folder)
     :param address:
     :return:
     """
@@ -279,7 +283,7 @@ def read_station_event(address):
     elif locate(address, 'info'):
         target_add = locate(address, 'info')
     else:
-        print 'Error: There is no "info" directory in %s' % address
+        print '[ERROR] There is no "info" directory in:\n%s' % address
         target_add = None
 
     sta_ev = []
@@ -289,7 +293,7 @@ def read_station_event(address):
         else:
             print '====================================='
             print 'station_event could not be found'
-            print 'Start Creating the station_event file'
+            print 'start Creating the station_event file'
             print '====================================='
             create_station_event(address=t_add)
             sta_file_open = open(os.path.join(t_add, 'station_event'), 'r')
@@ -305,20 +309,18 @@ def read_station_event(address):
 
 def create_station_event(address):
     """
-    Creates the station_event file ("info" folder)
+    create the station_event file ("info" folder)
     :param address:
     :return:
     """
-
     event_address = os.path.dirname(address)
     if os.path.isdir(os.path.join(event_address, 'BH_RAW')):
         sta_address = os.path.join(event_address, 'BH_RAW')
     elif os.path.isdir(os.path.join(event_address, 'BH')):
         sta_address = os.path.join(event_address, 'BH')
     else:
-        print 'ERROR: There is no reference (BH_RAW or BH) ' \
-              'to create station_event file!'
-        sys.exit()
+        sys.exit('[ERROR] There is no reference (BH_RAW or BH) '
+                 'to create station_event file!')
 
     ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
     ls_stas.sort()
@@ -331,7 +333,7 @@ def create_station_event(address):
         try:
             sta = read(ls_stas[i])[0]
         except Exception as e:
-            print 'WARNING: NOT readable: %s\n%s' % (ls_stas[i], e)
+            print '[WARNING] NOT readable: %s\n%s' % (ls_stas[i], e)
             sta = None
         try:
             sta_stats = sta.stats
@@ -349,10 +351,10 @@ def create_station_event(address):
                           sta_stats.sac.evlo,
                           sta_stats.sac.evdp,
                           sta_stats.sac.mag)
-        except Exception as e:
-            print '\nWARNING: Can not read all the required information ' \
+        except Exception as error:
+            print '\n[WARNING] Can not read all the required information ' \
                   'from the headers, some of them are presumed!'
-            print e
+            print error
             sta_info = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,iris,\n' \
                        % (sta_stats.network,
                           sta_stats.station,
@@ -363,20 +365,19 @@ def create_station_event(address):
                           -12345.0, -12345.0, -12345.0, -12345.0)
         sta_file_open.writelines(sta_info)
         sta_file_open.close()
-    print 'station_event file is created in %s' % os.path.join(address,
-                                                               'station_event')
+    print 'station_event file is created in %s' \
+          % os.path.join(address, 'station_event')
 
 # ##################### locate ##########################################
 
 
 def locate(root='.', target='info'):
     """
-    Locates a subdirectory within a directory.
+    locates a subdirectory within a directory
     :param root:
     :param target:
     :return:
     """
-
     matches = []
     for root, dirnames, filenames in os.walk(root):
         for dirname in fnmatch.filter(dirnames, target):
@@ -389,15 +390,14 @@ def locate(root='.', target='info'):
 
 def calculate_time_phase(event, sta, bg_model='iasp91'):
     """
-    calculate arrival time of the requested phase to adjust the time in
-    retrieving the waveforms
+    calculate arrival time of the requested phase
     :param event:
     :param sta:
     :param bg_model:
     :return:
     """
-
     phase_list = ['P', 'Pdiff', 'PKIKP']
+
     time_ph = 0
     ev_lat = event['latitude']
     ev_lon = event['longitude']
@@ -409,7 +409,7 @@ def calculate_time_phase(event, sta, bg_model='iasp91'):
     try:
         from obspy.taup import tau
         tau_bg = tau.TauPyModel(model=bg_model)
-    except Exception, error:
+    except:
         tau_bg = False
 
     if not tau_bg:
@@ -424,11 +424,9 @@ def calculate_time_phase(event, sta, bg_model='iasp91'):
                         break
                     else:
                         continue
-            if flag:
-                print 'Phase: %s' % ph
-            else:
+            if not flag:
                 time_ph = 0
-        except Exception, error:
+        except:
             time_ph = 0
     else:
         try:
@@ -441,7 +439,7 @@ def calculate_time_phase(event, sta, bg_model='iasp91'):
                 else:
                     time_ph = tt
                     break
-        except Exception, e:
+        except:
             time_ph = 0
 
     t_start = event['t1'] + time_ph
@@ -453,7 +451,7 @@ def calculate_time_phase(event, sta, bg_model='iasp91'):
 
 def getFolderSize(folder):
     """
-    Returns the size of a folder in bytes.
+    returns the size of a folder in bytes
     :param folder:
     :return:
     """
@@ -466,63 +464,12 @@ def getFolderSize(folder):
             total_size += getFolderSize(itempath)
     return total_size
 
-# ##################### create_tar_file #######################################
-
-
-def create_tar_file(input_dics, address):
-    """
-    create a tar file out of a given directory
-    :param input_dics:
-    :param address:
-    :return:
-    """
-    print '\n**************************'
-    print 'Start creating tar file(s)'
-    print '**************************'
-    events, address_events = quake_info(address, 'info')
-    for i in range(len(events)):
-        # ---------Creating Tar files (Waveform files)
-        if input_dics['zip_w'] == 'Y':
-            print 'Compressing Raw files...'
-            path = os.path.join(address_events[i], 'BH_RAW')
-            tar_file = os.path.join(path, 'BH_RAW.tar')
-            files = '*.*.*.*'
-            compress_gzip(path=path, tar_file=tar_file, files=files)
-
-        # ---------Creating Tar files (Response files)
-        if input_dics['zip_r'] == 'Y':
-            print 'Compressing Resp files...'
-            path = os.path.join(address_events[i], 'Resp')
-            tar_file = os.path.join(path, 'Resp.tar')
-            files = '*.*.*.*'
-            compress_gzip(path=path, tar_file=tar_file, files=files)
-
-# ##################### compress_gzip ###################################
-
-
-def compress_gzip(path, tar_file, files):
-    """
-    Compressing files and creating a tar file
-    :param path:
-    :param tar_file:
-    :param files:
-    :return:
-    """
-    tar = tarfile.open(tar_file, "w:gz")
-    os.chdir(path)
-
-    for infile in glob.glob(os.path.join(path, files)):
-        print '.',
-        tar.add(os.path.basename(infile))
-        os.remove(infile)
-    tar.close()
-
 # ##################### send_email ######################################
 
 
 def send_email(input_dics):
     """
-    Sending email to the specified "email" address
+    send email to the specified "email" address
     :param input_dics:
     :return:
     """
@@ -535,12 +482,11 @@ def send_email(input_dics):
     fromaddr = 'obspyDMT'
     toaddrs = input_dics['email']
     msg = "request finished at:\n%s" % t2_str
-
     try:
         server = smtplib.SMTP('localhost')
         server.sendmail(fromaddr, toaddrs, msg)
-    except Exception as err:
-        print '\nNo e-mail sent, as:\n>>:\t', err
+    except Exception as error:
+        print '\ne-mail was not sent, as:\n%s' % error
         # err_info = traceback.extract_tb(sys.exc_info()[2])
 
 # ##################### check_par_jobs ######################################
@@ -563,7 +509,9 @@ def check_par_jobs(jobs, sleep_time=1):
             else:
                 pp_flag = False
     if not pp_flag:
-        print '\n\nAll %s processes are finished...\n' % len(jobs)
+        print '\n\n================================'
+        print 'All %s processes are finished...' % len(jobs)
+        print '================================'
 
 # ##################### spectrum_calc ##################################
 
