@@ -760,7 +760,7 @@ def read_input_command(parser, **kwargs):
                   'mlon_rbb': None, 'Mlon_rbb': None,
                   'test': False,
                   'fdsn_update': 'N', 'arc_update': 'N', 'update_all': 'N',
-                  'email': 'N',
+                  'email': False,
                   'ic_all': 'N',
                   'fdsn_ic': 'N', 'fdsn_ic_auto': 'Y',
                   'arc_ic': 'N', 'arc_ic_auto': 'Y',
@@ -1275,7 +1275,7 @@ def read_input_command(parser, **kwargs):
     input_dics['plot_format'] = options.plot_format
     input_dics['plot_lon0'] = float(options.plot_lon0)
     input_dics['email'] = options.email
-    if input_dics['email'] != 'N':
+    if input_dics['email']:
         try:
             import smtplib
         except Exception as error:
@@ -1283,7 +1283,7 @@ def read_input_command(parser, **kwargs):
             print "Unable to import smtplib. Sending email is not possible!"
             print "Error: %s" % error
             print "********************************************************\n"
-            sys.exit()
+            input_dics['email'] = False
 
     # --------------Changing relevant options for some specific options
     if not input_dics['continuous']:

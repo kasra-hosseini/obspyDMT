@@ -3,7 +3,7 @@
 
 # -------------------------------------------------------------------
 #   Filename:  utility_codes.py
-#   Purpose:   Collection of helping scripts and utility codes
+#   Purpose:   collection of helping scripts and utility codes
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GNU Lesser General Public License, Version 3
@@ -12,12 +12,11 @@
 # -----------------------------------------------------------------------
 # ----------------Import required Modules (Python and Obspy)-------------
 # -----------------------------------------------------------------------
-
-# Required Python and Obspy modules will be imported in this part.
 from datetime import datetime, timedelta
 import fnmatch
 import glob
 import numpy as np
+from obspy.core import read
 try:
     from obspy.clients.fdsn import URL_MAPPINGS
 except Exception, e:
@@ -26,7 +25,6 @@ try:
     from obspy.geodetics import locations2degrees
 except Exception, e:
     from obspy.core.util import locations2degrees
-from obspy.core import read
 from obspy.signal.util import nextpow2
 try:
     from obspy.taup import getTravelTimes
@@ -46,7 +44,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def header_printer():
     """
-    Printing the welcome message
+    Clear the screen and print the welcome message.
     :return:
     """
     os.system('clear')
@@ -67,20 +65,27 @@ def header_printer():
 
 
 def goodbye_printer(input_dics, t1_pro):
+    """
+    print the goodbye message which contains information about duration of
+    the run and size of the directory.
+    :param input_dics:
+    :param t1_pro:
+    :return:
+    """
     print "\n\n=================================================="
-    print "obspyDMT main program has finished !\n"
+    print "obspyDMT main program has finished!\n"
     try:
         size = getFolderSize(input_dics['datapath'])
         size /= (1024.**2)
         print "Info:"
-        print "* The storing directory contains %s MB of data." \
+        print "* The directory contains %s MB of data." \
               % "{:.3f}".format(float(size))
         print input_dics['datapath']
         print "* Total time of execution: %s (h:m:s)" \
               % str(timedelta(seconds=round(float(time.time() - t1_pro))))
         print "==================================================\n\n"
-    except Exception as e:
-        print 'ERROR: %s' % e
+    except Exception as error:
+        print 'ERROR: %s' % error
         pass
 
 # ##################### print_data_sources ##################################
@@ -116,7 +121,11 @@ def print_event_catalogs():
     for ev_cat in ['LOCAL', 'NEIC_USGS', 'GCMT_COMBO', 'IRIS', 'NCEDC',
                    'USGS', 'INGV', 'ISC', 'NERIES']:
         print ev_cat
-    print '\n'
+
+    print "\n============================================================"
+    print "This is the list of all shortcut names which can be used for"
+    print "--data_source option."
+    print "However, FDSN base URLs can be entered directly as well."
     sys.exit()
 
 # ##################### create_folders_files ############################

@@ -73,6 +73,7 @@ def process_unit(tr_add, target_path, input_dics, staev_ar):
 
 # ##################### instrument_correction #################################
 
+
 def instrument_correction(tr, target_path, save_path, corr_unit, pre_filt,
                           water_level):
     """
@@ -131,6 +132,8 @@ def obspy_fullresp_stxml(trace, stxml_file, save_path, unit,
             print 'tarce: %s' % trace.id
             print 'save path: %s' % save_path
 
+        if os.path.isfile(save_path):
+            return
         # remove the trend
         trace.detrend('linear')
         inv = read_inventory(stxml_file, format="stationxml")

@@ -15,22 +15,25 @@
 import sys
 import time
 
+from utils.data_handler import get_data
 from utils.event_handler import get_time_window
 from utils.input_handler import command_parse, read_input_command
-from utils.metadata_handler import get_metadata
 from utils.local_handler import process_data, plot_unit
+from utils.metadata_handler import get_metadata
 from utils.plotxml_handler import plot_xml_response
 from utils.utility_codes import header_printer, goodbye_printer
 from utils.utility_codes import print_event_catalogs, print_data_sources
-from utils.data_handler import get_data
+from utils.utility_codes import send_email
 
-# ##################### obspyDMT ##################################
+# =============================================================================
+# ############################## obspyDMT #####################################
+# =============================================================================
 
 
 def obspyDMT(**kwargs):
     """
     Main function of obspyDMT toolbox.
-    All the sub-main functions are organized here and will be called from here.
+    All the sub-main functions are organized and will be called from here.
     :param kwargs:
     :return:
     """
@@ -38,77 +41,77 @@ def obspyDMT(**kwargs):
     header_printer()
     # initializing variables:
     events = None
-    create_tar_file_address = None
-    # ------------------Parsing command-line options---------------------------
+    # ------------------parsing command-line options---------------------------
     (options, args, parser) = command_parse()
-    # ------------------Read INPUT file (Parameters)---------------------------
+    # ------------------create input dictionary--------------------------------
     input_dics = read_input_command(parser, **kwargs)
-    # ------------------Print data sources-------------------------------------
+    # ------------------print data sources-------------------------------------
     if input_dics['print_data_sources']:
         print_data_sources()
-    # ------------------Print event catalogs-----------------------------------
+    # ------------------print event catalogs-----------------------------------
     if input_dics['print_event_catalogs']:
         print_event_catalogs()
-    # # ------------------plot stationxml files--------------------
+    # ------------------plot stationxml files----------------------------------
     if input_dics['plot_stationxml']:
         plot_xml_response(input_dics)
-    # ------------------Getting List of Events/Continuous requests-------------
+    # ------------------getting list of events/continuous requests-------------
     if input_dics['primary_mode'] in ['event_based', 'continuous', 'local']:
         # events contains all the information for requested time-window
         # Although we do not have any events in continuous requests,
         # it is still called as events.
-        events = get_time_window(
-            input_dics, request=input_dics['primary_mode'])
+        events = get_time_window(input_dics,
+                                 request=input_dics['primary_mode'])
         if events == 0:
             return input_dics
-    # ------------------Checking the availability------------------------------
+    # ------------------checking the availability------------------------------
     for ev in range(len(events)):
         if input_dics['meta_data']:
-            stas_avail = get_metadata(input_dics, events[ev],
+            stas_avail = get_metadata(input_dics,
+                                      events[ev],
                                       info_avail='%s/%s' % (ev+1, len(events)))
             if not len(stas_avail) > 0:
                 continue
         if input_dics['primary_mode'] in ['event_based', 'continuous']:
             get_data(stas_avail, events[ev], input_dics)
-    # ------------------instrument---------------------------------------------
-    # LOCAL:
-    # custom functions to be applied to all the data ---> SAC, ...
-    # choose one station at each grid point or distance
-
+    # ------------------processing---------------------------------------------
+    # From this section, we do not need to connect to the data sources anymore.
+    # This consists of pre_processing and plotting tools.
+    # XXX remaining:
+    # XXX custom functions to be applied to all the data ---> SAC, ...
+    # XXX choose one station at each grid point or distance
     if input_dics['pre_process']:
         for ev in range(len(events)):
             process_data(input_dics, events[ev])
-
+    # ------------------plotting-----------------------------------------------
     if input_dics['plot']:
         plot_unit(input_dics, events)
-
-    # # ------------------merge--------------------------------------
-    # if input_dics['fdsn_merge'] != 'N' or input_dics['fdsn_merge_auto'] == 'Y':
-    #     FDSN_ARC_merge(input_dics, clients=input_dics['fdsn_base_url'])
-    # if input_dics['arc_merge'] != 'N' or input_dics['arc_merge_auto'] == 'Y':
-    #     FDSN_ARC_merge(input_dics, clients='arc')
-    # # ------------------Compressing-------------------------------------------
-    # if create_tar_file_address:
-    #     if input_dics['zip_w'] == 'Y' or input_dics['zip_r'] == 'Y':
-    #         create_tar_file(input_dics, address=create_tar_file_address)
-    # # ------------------Email-------------------------------------------
-    # if input_dics['email'] != 'N':
-    #     send_email(input_dics)
+    # ------------------compressing--------------------------------------------
+    # XXX a for loop over all events and compress the BH_RAW
+    # if input_dics['zip_w'] == 'Y' or input_dics['zip_r'] == 'Y':
+    # create_tar_file(input_dics, address=create_tar_file_address)
+    # ------------------email--------------------------------------------------
+    if input_dics['email']:
+        send_email(input_dics)
+    # ------------------exit the program---------------------------------------
     return input_dics
 
-########################################################################
-########################################################################
-########################################################################
+# =============================================================================
+###############################################################################
+# =============================================================================
 
 
 def main():
     t1_pro = time.time()
-    # Run the main program
+    # run the main program
     input_dics = obspyDMT()
+    # print goodbye message and exit
     goodbye_printer(input_dics, t1_pro)
     # pass the return of main to the command line.
     sys.exit()
 
+    # =========================================================================
+    # ------------------debugging----------------------------------------------
+    # =========================================================================
     # For debugging purposes:
     # from pycallgraph import PyCallGraph
     # from pycallgraph.output import GraphvizOutput
