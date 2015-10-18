@@ -12,8 +12,6 @@
 # -----------------------------------------------------------------------
 # ----------------Import required Modules (Python and Obspy)-------------
 # -----------------------------------------------------------------------
-
-# Required Python and Obspy modules will be imported in this part.
 from datetime import datetime
 import fileinput
 import glob
@@ -21,18 +19,18 @@ import multiprocessing
 import numpy as np
 try:
     from obspy.clients.fdsn import Client as Client_fdsn
-except Exception, e:
+except:
     from obspy.fdsn import Client as Client_fdsn
 try:
     from obspy.clients.arclink import Client as Client_arclink
-except Exception, e:
+except:
     from obspy.arclink import Client as Client_arclink
 try:
     from obspy.geodetics.base import gps2dist_azimuth as gps2DistAzimuth
-except Exception, e:
+except:
     try:
         from obspy.geodetics import gps2DistAzimuth
-    except Exception, e:
+    except:
         from obspy.core.util import gps2DistAzimuth
 import os
 import pickle
@@ -45,18 +43,19 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 # ##################### get_data ###############################
 
 
-def get_data(stas_avail, event, input_dics):
+def get_data(stas_avail, event, input_dics, info_event):
     """
     get the waveform/response from FDSN and ArcLink
     :param stas_avail:
     :param event:
     :param input_dics:
+    :param info_event:
     :return:
     """
     t_wave_1 = datetime.now()
 
-    req_clients = np.unique(stas_avail[:, -1])
-    print "Requested data sources:"
+    req_clients = np.unique(stas_avail[:, 8])
+    print "[INFO] requested data sources:"
     for req_c in req_clients:
         print req_c,
     print '\n'
@@ -67,16 +66,18 @@ def get_data(stas_avail, event, input_dics):
     if input_dics['req_parallel']:
         par_jobs = []
         for req_cli in req_clients:
-            st_avail = stas_avail[stas_avail[:, -1] == req_cli]
+            st_avail = stas_avail[stas_avail[:, 8] == req_cli]
             if not req_cli.lower() in ['arclink']:
                 p = multiprocessing.Process(target=fdsn_waveform,
                                             args=(st_avail, event,
-                                                  input_dics, req_cli))
+                                                  input_dics, req_cli,
+                                                  info_event))
                 par_jobs.append(p)
             elif req_cli.lower() == 'arclink':
                 p = multiprocessing.Process(target=arc_waveform,
                                             args=(st_avail, event,
-                                                  input_dics, req_cli))
+                                                  input_dics, req_cli,
+                                                  info_event))
                 par_jobs.append(p)
 
         sub_par_jobs = []
@@ -98,27 +99,28 @@ def get_data(stas_avail, event, input_dics):
                     counter += 1
     else:
         for req_cli in req_clients:
-            st_avail = stas_avail[stas_avail[:, -1] == req_cli]
+            st_avail = stas_avail[stas_avail[:, 8] == req_cli]
             if not req_cli.lower() in ['arclink']:
-                fdsn_waveform(st_avail, event, input_dics, req_cli)
+                fdsn_waveform(st_avail, event, input_dics, req_cli, info_event)
             elif req_cli.lower() == 'arclink':
-                arc_waveform(st_avail, event, input_dics, req_cli)
+                arc_waveform(st_avail, event, input_dics, req_cli, info_event)
 
-    print "\n==================="
+    print "\n========================"
     print "DONE with Event: %s" % event['event_id']
     print "Time: %s" % (datetime.now() - t_wave_1)
-    print "==================="
+    print "========================"
 
 # ##################### fdsn_waveform ###############################
 
 
-def fdsn_waveform(stas_avail, event, input_dics, req_cli):
+def fdsn_waveform(stas_avail, event, input_dics, req_cli, info_event):
     """
-    Gets Waveforms, StationXML files and meta-data from FDSN
+    get Waveforms, StationXML files and meta-data from FDSN
     :param stas_avail:
     :param event:
     :param input_dics:
     :param req_cli:
+    :param info_event:
     :return:
     """
     period = '{0:s}_{1:s}'.format(
@@ -130,8 +132,8 @@ def fdsn_waveform(stas_avail, event, input_dics, req_cli):
     if input_dics['bulk']:
         try:
             fdsn_bulk_request(target_path, req_cli, input_dics)
-        except Exception as e:
-            print 'WARNING: %s' % e
+        except Exception as error:
+            print '[WARNING] %s' % error
         print 'DONE'
 
         # Following parameter is set to 'N' to avoid
@@ -142,22 +144,25 @@ def fdsn_waveform(stas_avail, event, input_dics, req_cli):
         print '%s bulkdataselect request is done for event: %s' \
               % (req_cli, target_path)
 
-    fdsn_serial_parallel(stas_avail, event, input_dics, target_path, req_cli)
+    fdsn_serial_parallel(stas_avail, event, input_dics, target_path,
+                         req_cli, info_event)
 
 # ##################### fdsn_serial_parallel ##################################
 
 
-def fdsn_serial_parallel(stas_avail, event, input_dics, target_path, req_cli):
+def fdsn_serial_parallel(stas_avail, event, input_dics, target_path,
+                         req_cli, info_event):
     """
-    Retrieving data from FDSN
+    retrieving data from FDSN
     :param stas_avail:
     :param event:
     :param input_dics:
     :param target_path:
     :param req_cli:
+    :param info_event:
     :return:
     """
-    print '\nEvent: %s' % target_path
+    print '%s -- event: %s' % (req_cli, target_path)
 
     client_fdsn = Client_fdsn(base_url=req_cli,
                               user=input_dics['username'],
@@ -165,15 +170,23 @@ def fdsn_serial_parallel(stas_avail, event, input_dics, target_path, req_cli):
 
     if input_dics['req_parallel']:
         if input_dics['password']:
+            print "[INFO] Restricted data from %s" % req_cli
+            print "[WARNING] parallel retrieving is now possible!"
+            print "[WARNING] serial retrieving is activated!"
             num_req_np = 1
         else:
             num_req_np = input_dics['req_np']
         par_jobs = []
+        st_counter = 0
         for st_avail in stas_avail:
+            st_counter += 1
+            info_station = '[%s-%s/%s]' % (info_event, st_counter,
+                                           len(stas_avail))
             p = multiprocessing.Process(target=fdsn_download_core,
                                         args=(st_avail, event,
                                               input_dics, target_path,
-                                              client_fdsn, req_cli))
+                                              client_fdsn, req_cli,
+                                              info_station))
             par_jobs.append(p)
 
         sub_par_jobs = []
@@ -194,9 +207,13 @@ def fdsn_serial_parallel(stas_avail, event, input_dics, target_path, req_cli):
                 if par_jobs[ll].is_alive():
                     counter += 1
     else:
+        st_counter = 0
         for st_avail in stas_avail:
+            st_counter += 1
+            info_station = '[%s-%s/%s]' % (info_event, st_counter,
+                                           len(stas_avail))
             fdsn_download_core(st_avail, event, input_dics, target_path,
-                               client_fdsn, req_cli)
+                               client_fdsn, req_cli, info_station)
 
     update_sta_ev_file(target_path)
 
@@ -204,7 +221,7 @@ def fdsn_serial_parallel(stas_avail, event, input_dics, target_path, req_cli):
         input_dics['waveform'] = True
         sta_saved_path = glob.glob(os.path.join(target_path, 'BH_RAW',
                                                 '*.*.*.*'))
-        print '\nAdjusting the station_event file...',
+        print '\n[INFO] adjusting the station_event file for bulk request...',
 
         sta_saved_list = []
         for sta_num in range(len(sta_saved_path)):
@@ -231,19 +248,21 @@ def fdsn_serial_parallel(stas_avail, event, input_dics, target_path, req_cli):
 
 
 def fdsn_download_core(st_avail, event, input_dics, target_path,
-                       client_fdsn, req_cli):
+                       client_fdsn, req_cli, info_station):
     """
-    Downloading the waveforms, reponse files (StationXML) and metadata
-    This program should be normally called by some higher-level functions
+    downloading the waveforms, reponse files (StationXML) and metadata
+    this function should be normally called by some higher-level functions
     :param st_avail:
     :param event:
     :param input_dics:
     :param target_path:
     :param client_fdsn:
     :param req_cli:
+    :param info_station:
     :return:
     """
-    dummy = 'Initializing'
+    dummy = 'initializing'
+
     t11 = datetime.now()
     identifier = 0
     st_id = '%s.%s.%s.%s' % (st_avail[0], st_avail[1],
@@ -292,8 +311,8 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
                                                                 'BH_RAW',
                                                                 st_id))
                 identifier += 10
-                print '%s -- saving waveform for: %s  ---> DONE' \
-                      % (req_cli, st_id)
+                print '%s -- %s -- saving waveform for: %s  ---> DONE' \
+                      % (info_station, req_cli, st_id)
             else:
                 identifier += 1
 
@@ -313,8 +332,8 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
                                                  'STXML.%s' % st_id),
                                              level='response')
                 identifier += 100
-                print "%s -- saving response for: %s  ---> DONE" \
-                      % (req_cli, st_id)
+                print "%s -- %s -- saving response for: %s  ---> DONE" \
+                      % (info_station, req_cli, st_id)
             else:
                 identifier += 1
 
@@ -331,13 +350,15 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
                  st_avail[4], st_avail[5],
                  float(st_avail[6]),
                  float(st_avail[7]),
+                 req_cli,
                  event['event_id'], event['latitude'],
                  event['longitude'], event['depth'],
-                 event['magnitude'], req_cli, identifier)
+                 event['magnitude'], identifier)
         syn_file.writelines(syn)
         syn_file.close()
 
-        print "%s -- saving metadata for: %s  ---> DONE" % (req_cli, st_id)
+        print "%s -- %s -- saving metadata for: %s  ---> DONE" \
+              % (info_station, req_cli, st_id)
 
         t22 = datetime.now()
         if input_dics['time_get_data']:
@@ -387,21 +408,23 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
 
 def fdsn_bulk_request(target_path, req_cli, input_dics):
     """
-    Send bulk request to FDSN
+    send bulk request to FDSN
     :param target_path:
     :param req_cli:
     :param input_dics:
     :return:
     """
-    print '\nSending bulk request to: %s' % req_cli
+    print '\n[INFO] sending bulk request to: %s' % req_cli
+
     client_fdsn = Client_fdsn(base_url=req_cli,
                               user=input_dics['username'],
                               password=input_dics['password'])
+
     bulk_list_fio = open(os.path.join(target_path, 'info',
                                       'bulkdata_list_%s' % req_cli))
     bulk_list = pickle.load(bulk_list_fio)
     bulk_smgrs = client_fdsn.get_waveforms_bulk(bulk_list)
-    print 'Saving the retrieved waveforms...',
+    print '[INFO] saving the retrieved waveforms from %s...' % req_cli
     for bulk_st in bulk_smgrs:
         bulk_st.write(os.path.join(target_path, 'BH_RAW',
                                    '%s.%s.%s.%s'
@@ -414,44 +437,57 @@ def fdsn_bulk_request(target_path, req_cli, input_dics):
 # ##################### arc_waveform ###############################
 
 
-def arc_waveform(stas_avail, event, input_dics, req_cli):
+def arc_waveform(stas_avail, event, input_dics, req_cli, info_event):
     """
-    Gets Waveforms, StationXML files and meta-data from FDSN
+    get Waveforms, StationXML files and meta-data from ArcLink
     :param stas_avail:
     :param event:
     :param input_dics:
     :param req_cli:
+    :param info_event:
     :return:
     """
-    t_wave_1 = datetime.now()
-
     period = '{0:s}_{1:s}'.format(
         input_dics['min_date'].split('T')[0],
         input_dics['max_date'].split('T')[0])
     eventpath = os.path.join(input_dics['datapath'], period)
     target_path = os.path.join(eventpath, event['event_id'])
 
-    arc_serial_parallel(stas_avail, event, input_dics, target_path, req_cli)
+    arc_serial_parallel(stas_avail, event, input_dics, target_path,
+                        req_cli, info_event)
 
 # ##################### arc_serial_parallel ##################################
 
 
-def arc_serial_parallel(stas_avail, event, input_dics, target_path, req_cli):
+def arc_serial_parallel(stas_avail, event, input_dics, target_path,
+                        req_cli, info_event):
     """
-    Retrieving data from ArcLink
+    retrieving data from ArcLink
+    :param stas_avail:
+    :param event:
+    :param input_dics:
+    :param target_path:
+    :param req_cli:
+    :param info_event:
+    :return:
     """
-    print '\nEvent: %s' % target_path
+    print '%s -- event: %s' % (req_cli, target_path)
 
     client_arclink = Client_arclink(user='test@obspy.org',
                                     timeout=input_dics['arc_wave_timeout'])
 
     if input_dics['req_parallel']:
         par_jobs = []
+        st_counter = 0
         for st_avail in stas_avail:
+            st_counter += 1
+            info_station = '[%s-%s/%s]' % (info_event, st_counter,
+                                           len(stas_avail))
             p = multiprocessing.Process(target=arc_download_core,
                                         args=(st_avail, event,
                                               input_dics, target_path,
-                                              client_arclink, req_cli))
+                                              client_arclink, req_cli,
+                                              info_station))
             par_jobs.append(p)
 
         sub_par_jobs = []
@@ -472,20 +508,33 @@ def arc_serial_parallel(stas_avail, event, input_dics, target_path, req_cli):
                 if par_jobs[ll].is_alive():
                     counter += 1
     else:
+        st_counter = 0
         for st_avail in stas_avail:
+            st_counter += 1
+            info_station = '[%s-%s/%s]' % (info_event, st_counter,
+                                           len(stas_avail))
             arc_download_core(st_avail, event, input_dics, target_path,
-                              client_arclink, req_cli)
+                              client_arclink, req_cli, info_station)
 
 # ##################### arc_download_core ##################################
 
 
 def arc_download_core(st_avail, event, input_dics, target_path,
-                      client_arclink, req_cli):
+                      client_arclink, req_cli, info_station):
     """
-    Downloading the waveforms, reponse files (StationXML) and metadata
-    This program should be normally called by some higher-level functions
+    downloading the waveforms, reponse files (StationXML) and metadata
+    this function should be normally called by some higher-level functions
+    :param st_avail:
+    :param event:
+    :param input_dics:
+    :param target_path:
+    :param client_arclink:
+    :param req_cli:
+    :param info_station:
+    :return:
     """
-    dummy = 'Initializing'
+    dummy = 'initializing'
+
     t11 = datetime.now()
     identifier = 0
     st_id = '%s.%s.%s.%s' % (st_avail[0], st_avail[1],
@@ -533,8 +582,8 @@ def arc_download_core(st_avail, event, input_dics, target_path,
                                             st_avail[2], st_avail[3],
                                             t_start, t_end)
                 identifier += 10
-                print '%s -- saving waveform for: %s  ---> DONE' \
-                      % (req_cli, st_id)
+                print '%s -- %s -- saving waveform for: %s  ---> DONE' \
+                      % (info_station, req_cli, st_id)
             else:
                 identifier += 1
 
@@ -550,8 +599,8 @@ def arc_download_core(st_avail, event, input_dics, target_path,
                         st_avail[0], st_avail[1], st_avail[2], st_avail[3],
                         t_start, t_end)
                 identifier += 100
-                print "%s -- saving response for: %s  ---> DONE" \
-                      % (req_cli, st_id)
+                print "%s -- %s -- saving response for: %s  ---> DONE" \
+                      % (info_station, req_cli, st_id)
             else:
                 identifier += 1
 
@@ -568,13 +617,15 @@ def arc_download_core(st_avail, event, input_dics, target_path,
                  st_avail[4], st_avail[5],
                  float(st_avail[6]),
                  float(st_avail[7]),
+                 req_cli,
                  event['event_id'], event['latitude'],
                  event['longitude'], event['depth'],
-                 event['magnitude'], req_cli, identifier)
+                 event['magnitude'], identifier)
         syn_file.writelines(syn)
         syn_file.close()
 
-        print "%s -- saving Metadata for: %s  ---> DONE" % (req_cli, st_id)
+        print "%s -- %s -- saving Metadata for: %s  ---> DONE" \
+              % (info_station, req_cli, st_id)
 
         t22 = datetime.now()
         if input_dics['time_get_data']:
@@ -624,7 +675,7 @@ def arc_download_core(st_avail, event, input_dics, target_path,
 
 def update_sta_ev_file(target_path):
     """
-    Update the station event file based on already stored waveforms
+    update the station_event file based on already stored waveforms
     """
     sta_ev_add = os.path.join(target_path, 'info', 'station_event')
     if os.path.isfile(sta_ev_add):
@@ -632,6 +683,7 @@ def update_sta_ev_file(target_path):
         if len(sta_ev_fi) > 0:
             sta_ev_names = sta_ev_fi[:, 0] + '.' + sta_ev_fi[:, 1] + '.' + \
                            sta_ev_fi[:, 2] + '.' + sta_ev_fi[:, 3]
+
             sta_saved_path = glob.glob(
                 os.path.join(target_path, 'BH_RAW', '*.*.*.*'))
             sta_saved_path.sort()
@@ -641,16 +693,17 @@ def update_sta_ev_file(target_path):
                     sta_sav = os.path.basename(sta_sav_abs)
                     sta_indx = np.where(sta_ev_names == sta_sav)[0][-1]
                     sta_sorted.append(sta_ev_fi[sta_indx])
-                except Exception, e:
+                except:
                     continue
             np.savetxt(sta_ev_add, sta_sorted, delimiter=',', fmt='%s')
     else:
-        print "[DATA] Can not find: %s" % sta_ev_add
+        print "[INFO] can not find: %s" % sta_ev_add
         avail_arr = np.loadtxt(os.path.join(target_path, 'info',
                                             'availability.txt'),
                                delimiter=',', dtype='object')
         sta_ev_names = avail_arr[:, 0] + '.' + avail_arr[:, 1] + '.' + \
                        avail_arr[:, 2] + '.' + avail_arr[:, 3]
+
         sta_saved_path = glob.glob(
             os.path.join(target_path, 'BH_RAW', '*.*.*.*'))
         sta_saved_path.sort()
@@ -660,9 +713,9 @@ def update_sta_ev_file(target_path):
                 sta_sav = os.path.basename(sta_sav_abs)
                 sta_indx = np.where(sta_ev_names == sta_sav)[0][-1]
                 sta_sorted.append(avail_arr[sta_indx])
-            except Exception, e:
+            except:
                 continue
-        np.savetxt(sta_ev_add, sta_sorted, delimiter=',', fmt='%s')
+        np.savetxt(sta_ev_add, sta_sorted[:, :-1], delimiter=',', fmt='%s')
 
 # -------------------------------- TRASH
 

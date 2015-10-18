@@ -203,8 +203,7 @@ def read_list_stas(add_list, normal_mode_syn, specfem3D):
                                    list_stas[sta][5],
                                    list_stas[sta][6],
                                    list_stas[sta][7],
-                                   st_id,
-                                   'IRIS'])
+                                   'IRIS', st_id])
     elif normal_mode_syn:
         for sta in range(len(list_stas)):
             for chan in ['LXE', 'LXN', 'LXZ']:
@@ -215,8 +214,7 @@ def read_list_stas(add_list, normal_mode_syn, specfem3D):
                                    list_stas[sta][5],
                                    list_stas[sta][6],
                                    list_stas[sta][7],
-                                   st_id,
-                                   'IRIS'])
+                                   'IRIS', st_id])
     else:
         for sta in range(len(list_stas)):
             st_id = '%s_%s_%s_%s' % (list_stas[sta][0],
@@ -227,7 +225,7 @@ def read_list_stas(add_list, normal_mode_syn, specfem3D):
                                list_stas[sta][2], list_stas[sta][3],
                                list_stas[sta][4], list_stas[sta][5],
                                list_stas[sta][6], list_stas[sta][7],
-                               st_id, list_stas[sta][8]])
+                               list_stas[sta][8], st_id])
     return final_list
 
 # ##################### read_event_dic ##############################

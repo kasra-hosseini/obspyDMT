@@ -12,8 +12,6 @@
 # -----------------------------------------------------------------------
 # ----------------Import required Modules (Python and Obspy)-------------
 # -----------------------------------------------------------------------
-
-# Required Python and Obspy modules will be imported in this part.
 import copy
 from datetime import datetime
 import numpy as np
@@ -32,9 +30,9 @@ except:
     from obspy.core.util import locations2degrees
 import os
 import pickle
-import sys
 
 from utility_codes import create_folders_files
+from utility_codes import print_data_sources
 from utility_codes import read_list_stas, calculate_time_phase
 from utility_codes import read_station_event
 
@@ -46,7 +44,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 def get_metadata(input_dics, event, info_avail):
     """
-    Retrieve meta-data information.
+    retrieve meta-data information.
     :param input_dics:
     :param event:
     :param info_avail:
@@ -62,9 +60,10 @@ def get_metadata(input_dics, event, info_avail):
     eventpath = os.path.join(input_dics['datapath'], period)
 
     t_1 = datetime.now()
-    print 'Initializing folders and files...',
+    print 'initializing files and directories...',
     create_folders_files(event, eventpath, input_dics)
     print 'DONE'
+
     target_path = os.path.join(eventpath, event['event_id'])
 
     if not input_dics['list_stas']:
@@ -77,11 +76,17 @@ def get_metadata(input_dics, event, info_avail):
                 stas_cli = arc_available(input_dics, event,
                                          target_path)
             else:
-                sys.exit('ERROR: %s is not implemented!'
-                         % input_dics['data_source'][cl])
+                print '\nERROR: %s is not implemented!' \
+                      % input_dics['data_source'][cl]
+                print_data_sources()
             # put all the available stations together
             for st_fds in stas_cli:
-                stas_all.append(st_fds)
+                if len(st_fds) == 0:
+                    continue
+                elif len(st_fds) == 1:
+                    stas_all.append([st_fds])
+                else:
+                    stas_all.append(st_fds)
     else:
         stas_all = read_list_stas(input_dics['list_stas'],
                                   input_dics['normal_mode_syn'],
@@ -91,9 +96,18 @@ def get_metadata(input_dics, event, info_avail):
                                   stas_all, event)
     stas_arr = np.array(stas_all)
     np.save(os.path.join(target_path, 'info', 'availability'), stas_arr)
-    avail_fi = \
-        open(os.path.join(target_path, 'info', 'availability.txt'), 'ab')
+    avail_add = os.path.join(target_path, 'info', 'availability.txt')
+    avail_fi = open(avail_add, 'ab')
     np.savetxt(avail_fi, stas_arr, delimiter=',', fmt='%s')
+    avail_fi.close()
+
+    saved_avail = np.loadtxt(avail_add, delimiter=',', dtype='object')
+    if len(saved_avail) > 1:
+        unique_avail = unique_rows_avail(saved_avail)
+        avail_fi = open(avail_add, 'w')
+        np.savetxt(avail_fi, unique_avail, delimiter=',', fmt='%s')
+        avail_fi.close()
+
     stas_update = rm_duplicate(stas_all, target_path)
     stas_arr_update = np.array(stas_update)
 
@@ -107,19 +121,34 @@ def get_metadata(input_dics, event, info_avail):
 
     return stas_arr_update
 
+# ##################### unique_rows_avail ##################################
+
+
+def unique_rows_avail(av):
+    """
+    unique (row-wise) the availability array
+    :param av:
+    :return:
+    """
+    av_hash = av[:, 0] + '#' + av[:, 1] + '#' + av[:, 2] + '#' + \
+              av[:, 3] + '#' + av[:, 8]
+    av_hash_unique, av_indx = np.unique(av_hash, return_index=True)
+    return av[av_indx]
+
+
 # ##################### fdsn_available ##################################
 
 
 def fdsn_available(input_dics, cl, event, target_path):
     """
-    Check the availablity of FDSN stations
+    check the availablity of FDSN stations
     :param input_dics:
     :param cl:
     :param event:
     :param target_path:
     :return:
     """
-    print "Check the availability: %s" % input_dics['data_source'][cl]
+    print "check the availability: %s" % input_dics['data_source'][cl]
 
     if input_dics['username']:
         include_restricted = True
@@ -161,10 +190,10 @@ def fdsn_available(input_dics, cl, event, target_path):
                                      channel.location_code, channel.code,
                                      channel.latitude, channel.longitude,
                                      channel.elevation, channel.depth,
-                                     st_id, input_dics['data_source'][cl]])
+                                     input_dics['data_source'][cl], st_id])
 
         if input_dics['bulk']:
-            print 'Start creating a list for bulk request'
+            print 'creating a list for bulk request...'
             bulk_list = []
             for bulk_sta in sta_fdsn:
                 if input_dics['cut_time_phase']:
@@ -200,13 +229,14 @@ def fdsn_available(input_dics, cl, event, target_path):
 
 def arc_available(input_dics, event, target_path):
     """
-    Check the availability of ArcLink stations
+    check the availability of ArcLink stations
     :param input_dics:
     :param event:
     :param target_path:
     :return:
     """
-    print "Check the availability: ArcLink"
+    print "check the availability: ArcLink"
+
     client_arclink = Client_arclink(user='test@obspy.org',
                                     timeout=input_dics['arc_avai_timeout'])
     sta_arc = []
@@ -238,12 +268,12 @@ def arc_available(input_dics, event, target_path):
                                 inventories[sta]['longitude'],
                                 inventories[sta]['elevation'],
                                 inventories[sta]['depth'],
-                                st_id, 'ARCLINK'])
+                                'ARCLINK', st_id])
         if input_dics['lon_cba'] and input_dics['lat_cba']:
             index_rm = []
+            lat1 = float(input_dics['lat_cba'])
+            lon1 = float(input_dics['lon_cba'])
             for ai in range(len(sta_arc)):
-                lat1 = float(input_dics['lat_cba'])
-                lon1 = float(input_dics['lon_cba'])
                 dist = locations2degrees(lat1, lon1,
                                          float(sta_arc[ai][4]),
                                          float(sta_arc[ai][5]))
@@ -272,14 +302,14 @@ def arc_available(input_dics, event, target_path):
 
 def fdsn_create_bulk_list(target_path, input_dics, stas_all, event):
     """
-    Create bulkdata_list in case of --list_stas flag
+    create bulkdata_list in case of --list_stas flag
     :param target_path:
     :param input_dics:
     :param stas_all:
     :param event:
     :return:
     """
-    print 'Start creating a list for bulk request'
+    print 'creating a list for bulk request...'
     bulk_list = []
     for bulk_sta in stas_all:
         if input_dics['cut_time_phase']:
@@ -300,9 +330,9 @@ def fdsn_create_bulk_list(target_path, input_dics, stas_all, event):
 
 def rm_duplicate(all_sta_avail, address):
     """
-    remove duplicates and give back the required list for updating
+    read already retrieved channels, compare them with the availability,
+    remove the duplications and give back the remainings
     """
-
     id_avai_stas = []
     for sta in all_sta_avail:
         if sta[2] == '--' or sta[2] == '  ':

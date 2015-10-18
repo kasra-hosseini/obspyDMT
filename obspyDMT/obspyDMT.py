@@ -61,17 +61,18 @@ def obspyDMT(**kwargs):
                                  request=input_dics['primary_mode'])
         if len(events) == 0:
             return input_dics
-    import ipdb; ipdb.set_trace()
     # ------------------checking the availability------------------------------
     for ev in range(len(events)):
+        info_event = '%s/%s' % (ev+1, len(events))
         if input_dics['meta_data']:
             stas_avail = get_metadata(input_dics,
                                       events[ev],
-                                      info_avail='%s/%s' % (ev+1, len(events)))
+                                      info_avail=info_event)
             if not len(stas_avail) > 0:
                 continue
+        import ipdb; ipdb.set_trace()
         if input_dics['primary_mode'] in ['event_based', 'continuous']:
-            get_data(stas_avail, events[ev], input_dics)
+            get_data(stas_avail, events[ev], input_dics, info_event=info_event)
     # ------------------processing---------------------------------------------
     # From this section, we do not need to connect to the data sources anymore.
     # This consists of pre_processing and plotting tools.
