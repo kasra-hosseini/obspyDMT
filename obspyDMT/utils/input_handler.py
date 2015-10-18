@@ -266,8 +266,7 @@ def command_parse():
     helpmsg = "search for all the stations within the defined circle, " \
               "syntax: <lon>/<lat>/<rmin>/<rmax>. " \
               "May not be used together with rectangular bounding box " \
-              "station restrictions (station_rect). Currently, " \
-              "ArcLink does not support this option!"
+              "station restrictions (station_rect)."
     group_sta.add_option("--station_circle", action="store",
                          dest="station_circle", help=helpmsg)
     parser.add_option_group(group_sta)

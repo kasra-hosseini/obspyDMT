@@ -20,12 +20,16 @@ import numpy as np
 from obspy import UTCDateTime
 try:
     from obspy.clients.arclink import Client as Client_arclink
-except Exception, e:
+except:
     from obspy.arclink import Client as Client_arclink
 try:
     from obspy.clients.fdsn import Client as Client_fdsn
-except Exception, e:
+except:
     from obspy.fdsn import Client as Client_fdsn
+try:
+    from obspy.geodetics import locations2degrees
+except:
+    from obspy.core.util import locations2degrees
 import os
 import pickle
 import sys
@@ -235,6 +239,20 @@ def arc_available(input_dics, event, target_path):
                                 inventories[sta]['elevation'],
                                 inventories[sta]['depth'],
                                 st_id, 'ARCLINK'])
+        if input_dics['lon_cba'] and input_dics['lat_cba']:
+            index_rm = []
+            for ai in range(len(sta_arc)):
+                lat1 = float(input_dics['lat_cba'])
+                lon1 = float(input_dics['lon_cba'])
+                dist = locations2degrees(lat1, lon1,
+                                         float(sta_arc[ai][4]),
+                                         float(sta_arc[ai][5]))
+                if not input_dics['mr_cba'] <= dist <= input_dics['Mr_cba']:
+                    index_rm.append(ai)
+            index_rm.sort()
+            index_rm.reverse()
+            for ri in range(len(index_rm)):
+                del sta_arc[ri]
 
     except Exception as error:
         exc_file = open(os.path.join(target_path, 'info', 'exception'), 'a+')

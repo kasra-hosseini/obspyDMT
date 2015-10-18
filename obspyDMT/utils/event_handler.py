@@ -720,7 +720,7 @@ def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
         print "ERROR: %s" % error
 
     toc = datetime.now()
-    print 'It took %s to retrieve the earthquakes form GCMT.' % (toc-tic)
+    print '%s sec to retrieve the event info form GCMT.' % (toc-tic)
 
     filt1 = 'time >= %s' % t_start
     filt2 = 'time <= %s' % t_end
@@ -869,7 +869,7 @@ def event_spaces(events, request):
 def write_cat_logger(input_dics, eventpath, period, events, catalog,
                      events2, row_format, header):
     """
-    Writing outputs out of get_Events function
+    writing outputs from get_time_window
     :param input_dics:
     :param eventpath:
     :param period:
@@ -877,6 +877,7 @@ def write_cat_logger(input_dics, eventpath, period, events, catalog,
     :param catalog:
     :param events2:
     :param row_format:
+    :param header:
     :return:
     """
     if not os.path.isdir(os.path.join(eventpath, 'EVENTS-INFO')):
@@ -976,7 +977,7 @@ def write_cat_logger(input_dics, eventpath, period, events, catalog,
 
 def sort_catalogue(cat):
     """
-    Sort catalogue of retrieved events chronological.
+    sort catalogue of retrieved events chronological.
     :param cat:
     :return:
     """
@@ -991,7 +992,7 @@ def sort_catalogue(cat):
 
 def mag_halfduration(mag, type_curve=1):
     """
-    Calculate the half_duration out of magnitude
+    calculate the half_duration out of magnitude
     type_curve can be 1, 2, 3:
     1: 2005-2014
     2: 1976-1990
