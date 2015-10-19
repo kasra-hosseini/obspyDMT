@@ -461,7 +461,7 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
         ax.grid()
 
         ax = plt.subplot(2, 1, 2)
-        ax.semilogx(freq, phase_resp, lw=3, ls=l_style[counter]
+        ax.semilogx(freq, phase_resp, lw=3, ls=l_style[counter],
                     label='%s (%s->%s)' % (i, inp, out))
         ax.axvline(nyquist, ls="--", color='black', lw=3)
 
