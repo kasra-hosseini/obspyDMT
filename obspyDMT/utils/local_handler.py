@@ -36,6 +36,7 @@ import os
 import sys
 
 from .data_handler import update_sta_ev_file
+from .kml_handler import plot_ev_sta_kml
 from process_unit import process_unit
 from .utility_codes import locate, check_par_jobs
 
@@ -150,6 +151,8 @@ def plot_unit(input_dics, events):
         plot_sta_ev_ray(input_dics, events)
     if input_dics['plot_waveform']:
         plot_waveform(input_dics, events)
+    if True:
+        plot_ev_sta_kml(input_dics, events)
 
 # ##################### plot_filter_event #####################################
 
