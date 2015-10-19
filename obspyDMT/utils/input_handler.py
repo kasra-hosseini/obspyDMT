@@ -321,6 +321,10 @@ def command_parse():
     group_ev_based.add_option("--event_catalog", action="store",
                               dest="event_catalog", help=helpmsg)
 
+    helpmsg = "only retrieve event information and exit!"
+    group_ev_based.add_option("--event_info", action="store",
+                              dest="event_info", help=helpmsg)
+
     helpmsg = "read in an existing event catalog and proceed. " \
               "Currently supported data formats: " \
               "'QUAKEML', 'MCHEDR' e.g.: --read_catalog 'path/to/file'"
@@ -466,8 +470,8 @@ def command_parse():
     group_plt.add_option("--plot_waveform", action="store_true",
                          dest="plot_waveform", help=helpmsg)
 
-    helpmsg = "directory name that contains the waveforms, e.g. BH_RAW. " \
-              "[default: BH_RAW]"
+    helpmsg = "directory name that contains the waveforms, e.g. raw. " \
+              "[default: raw]"
     group_plt.add_option("--plot_dir_name", action="store",
                          dest="plot_dir_name", help=helpmsg)
 
@@ -647,7 +651,7 @@ def read_input_command(parser, **kwargs):
                   'water_level': 600.0,
 
                   'depth_bins_seismicity': 10,
-                  'plot_dir_name': 'BH_RAW',
+                  'plot_dir_name': 'raw',
                   'plot_save': '.', 'plot_format': 'png',
                   'plot_lon0': 180,
 
@@ -948,6 +952,7 @@ def read_input_command(parser, **kwargs):
 
     if options.event_catalog:
         input_dics['event_catalog'] = options.event_catalog.upper()
+    input_dics['event_info'] = options.event_info
     if options.read_catalog:
         input_dics['read_catalog'] = options.read_catalog
     else:

@@ -61,6 +61,8 @@ def obspyDMT(**kwargs):
                                  request=input_dics['primary_mode'])
         if len(events) == 0:
             return input_dics
+        if input_dics['event_info']:
+            return input_dics
     # ------------------checking the availability------------------------------
     for ev in range(len(events)):
         info_event = '%s/%s' % (ev+1, len(events))
@@ -70,25 +72,17 @@ def obspyDMT(**kwargs):
                                       info_avail=info_event)
             if not len(stas_avail) > 0:
                 continue
-        import ipdb; ipdb.set_trace()
         if input_dics['primary_mode'] in ['event_based', 'continuous']:
             get_data(stas_avail, events[ev], input_dics, info_event=info_event)
     # ------------------processing---------------------------------------------
     # From this section, we do not need to connect to the data sources anymore.
     # This consists of pre_processing and plotting tools.
-    # XXX remaining:
-    # XXX custom functions to be applied to all the data ---> SAC, ...
-    # XXX choose one station at each grid point or distance
     if input_dics['pre_process']:
         for ev in range(len(events)):
             process_data(input_dics, events[ev])
     # ------------------plotting-----------------------------------------------
     if input_dics['plot']:
         plot_unit(input_dics, events)
-    # ------------------compressing--------------------------------------------
-    # XXX a for loop over all events and compress the BH_RAW
-    # if input_dics['zip_w'] == 'Y' or input_dics['zip_r'] == 'Y':
-    # create_tar_file(input_dics, address=create_tar_file_address)
     # ------------------email--------------------------------------------------
     if input_dics['email']:
         send_email(input_dics)

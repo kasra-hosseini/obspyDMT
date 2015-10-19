@@ -142,7 +142,7 @@ def create_folders_files(event, eventpath, input_dics):
     :return:
     """
     try:
-        for t_dir in ['BH_RAW', 'Resp', 'info']:
+        for t_dir in ['raw', 'resp', 'info']:
             tar_dir = os.path.join(eventpath, event['event_id'], t_dir)
             if not os.path.isdir(tar_dir):
                 os.makedirs(tar_dir)
@@ -312,12 +312,12 @@ def create_station_event(address):
     :return:
     """
     event_address = os.path.dirname(address)
-    if os.path.isdir(os.path.join(event_address, 'BH_RAW')):
-        sta_address = os.path.join(event_address, 'BH_RAW')
+    if os.path.isdir(os.path.join(event_address, 'raw')):
+        sta_address = os.path.join(event_address, 'raw')
     elif os.path.isdir(os.path.join(event_address, 'BH')):
         sta_address = os.path.join(event_address, 'BH')
     else:
-        sys.exit('[ERROR] There is no reference (BH_RAW or BH) '
+        sys.exit('[ERROR] There is no reference (raw or BH) '
                  'to create station_event file!')
 
     ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
@@ -382,6 +382,55 @@ def locate(root='.', target='info'):
             matches.append(os.path.join(root, dirname))
 
     return matches
+
+# ##################### convert_to_sac ########################################
+
+
+def convert_to_sac(tr, save_path, sta_ev_arr):
+    """
+    convert tr format to SAC and try to fill in some header information
+    :param tr:
+    :param save_path:
+    :param sta_ev_arr:
+    :return:
+    """
+    tr.write(save_path, format='SAC')
+    tr = read(save_path)[0]
+
+    # start filling in some header information
+    try:
+        tr.stats.sac.stla = float(sta_ev_arr[4])
+    except:
+        pass
+    try:
+        tr.stats.sac.stlo = float(sta_ev_arr[5])
+    except:
+        pass
+    try:
+        tr.stats.sac.stel = float(sta_ev_arr[6])
+    except:
+        pass
+    try:
+        tr.stats.sac.stdp = float(sta_ev_arr[7])
+    except:
+        pass
+    try:
+        tr.stats.sac.evla = float(sta_ev_arr[10])
+    except:
+        pass
+    try:
+        tr.stats.sac.evlo = float(sta_ev_arr[11])
+    except:
+        pass
+    try:
+        tr.stats.sac.evdp = float(sta_ev_arr[12])
+    except:
+        pass
+    try:
+        tr.stats.sac.mag = float(sta_ev_arr[13])
+    except:
+        pass
+    return tr
 
 # ##################### calculate_time_phase ##################################
 
@@ -534,3 +583,17 @@ def spectrum_calc(tr):
     spec_tr = np.abs(np.fft.rfft(tr.data, n=nfft))
 
     return freqs, spec_tr
+
+# ----------------------------------------------------------------------------
+# process_unit:
+# if len(st) > 1:
+#     st.merge(method=1, fill_value=0, interpolation_samples=0)
+#     gap_fio = open(os.path.join(target_path, 'info',
+#                                 'waveform_gap.txt'), 'a+')
+#     gap_msg = '%s.%s.%s.%s\t%s\n' % (st[0].stats.network,
+#                                      st[0].stats.station,
+#                                      st[0].stats.location,
+#                                      st[0].stats.channel,
+#                                      'instrument_correction')
+#     gap_fio.writelines(gap_msg)
+#     gap_fio.close()

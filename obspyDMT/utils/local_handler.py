@@ -3,7 +3,7 @@
 
 # -------------------------------------------------------------------
 #   Filename:  local_handler.py
-#   Purpose:   handling local processings/plottings in obspyDMT
+#   Purpose:   handling local processing/plotting in obspyDMT
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GNU Lesser General Public License, Version 3
@@ -12,8 +12,6 @@
 # -----------------------------------------------------------------------
 # ----------------Import required Modules (Python and Obspy)-------------
 # -----------------------------------------------------------------------
-
-# Required Python and Obspy modules will be imported in this part.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import fnmatch
@@ -25,14 +23,14 @@ from obspy.imaging.beachball import Beach
 from obspy import UTCDateTime, read
 try:
     from obspy.geodetics import locations2degrees
-except Exception, e:
+except:
     from obspy.core.util import locations2degrees
 try:
     from obspy.geodetics.base import gps2dist_azimuth as gps2DistAzimuth
-except Exception, e:
+except:
     try:
         from obspy.geodetics import gps2DistAzimuth
-    except Exception, e:
+    except:
         from obspy.core.util import gps2DistAzimuth
 import os
 import sys
@@ -41,22 +39,16 @@ from .data_handler import update_sta_ev_file
 from process_unit import process_unit
 from .utility_codes import locate, check_par_jobs
 
-# ############### POTENTIAL
-# if input_dics['resample_raw']:
-#     print '\nResample RAW traces to %sHz...' % input_dics['resample_raw'],
-#     resample_all(i=i, address_events=add_event,
-#                  des_sr=input_dics['resample_raw'],
-#                  resample_method=input_dics['resample_method'])
-#     print 'DONE'
-# if input_dics['SAC'] == 'Y':
-#     print '\nConverting the MSEED files to SAC...',
-#     writesac_all(i=i, address_events=add_event)
-#     print 'DONE'
-
-# ###################### process_data #############
+# ###################### process_data #########################################
 
 
 def process_data(input_dics, event):
+    """
+    prepare the target directories and pass them to process_serial_parallel
+    :param input_dics:
+    :param event:
+    :return:
+    """
     target_path = locate(input_dics['datapath'], event['event_id'])
     if len(target_path) > 1:
         print("[LOCAL] more than one path was found for one event:")
@@ -68,25 +60,26 @@ def process_data(input_dics, event):
         print("[LOCAL] Path:")
         target_path = target_path[0]
         print(target_path)
+    print("[INFO] update station_event file...")
     update_sta_ev_file(target_path)
     sta_ev_arr = np.loadtxt(os.path.join(target_path, 'info', 'station_event'),
                             delimiter=',', dtype='object')
     if len(sta_ev_arr) > 0:
         process_serial_parallel(sta_ev_arr, input_dics, target_path)
     else:
-        print("[LOCAL] No station to process!")
+        print("[LOCAL] no waveform to process for %s!" % target_path)
 
-# ###################### process_serial_parallel #############
+# ###################### process_serial_parallel ##############################
 
 
 def process_serial_parallel(sta_ev_arr, input_dics, target_path):
     """
-    Unit for running the process core in parallel or in serial
+    run the processing unit in parallel or in serial
     :param sta_ev_arr:
     :param input_dics:
+    :param target_path:
     :return:
     """
-
     if input_dics['parallel_process']:
         start = 0
         end = int(len(sta_ev_arr))
@@ -110,23 +103,55 @@ def process_serial_parallel(sta_ev_arr, input_dics, target_path):
         process_core_iterate(sta_ev_arr, input_dics, target_path,
                              0, len(sta_ev_arr))
 
-# ###################### process_core_iterate #############
+# ###################### process_core_iterate #################################
 
 
 def process_core_iterate(sta_ev_arr, input_dics, target_path, starti, endi):
+    """
+    running the process_unit for starti and endi defined by
+    either serial or parallel mode
+    :param sta_ev_arr:
+    :param input_dics:
+    :param target_path:
+    :param starti:
+    :param endi:
+    :return:
+    """
     for i in range(starti, endi):
         staev_ar = sta_ev_arr[i]
         station_id = '%s.%s.%s.%s' % (staev_ar[0], staev_ar[1],
                                       staev_ar[2], staev_ar[3])
-        tr_add = os.path.join(target_path, 'BH_RAW', station_id)
-        if len(staev_ar) > 10:
-            data_source = staev_ar[13]
-        else:
-            data_source = staev_ar[9]
+        tr_add = os.path.join(target_path, 'raw', station_id)
+        data_source = staev_ar[8]
         if input_dics['pre_process']:
             process_unit(tr_add, target_path, input_dics, staev_ar)
 
-# ##################### plot_filter_event ###############################
+# ###################### plot_unit ############################################
+
+
+def plot_unit(input_dics, events):
+    """
+    this function re-direct the flow to the relevant plotting function
+    :param input_dics:
+    :param events:
+    :return:
+    """
+    del_index = []
+    for ev in range(len(events)):
+        if not plot_filter_event(input_dics, events[ev]):
+            del_index.append(ev)
+    del_index.sort(reverse=True)
+    for di in del_index:
+        del events[di]
+    if input_dics['plot_seismicity']:
+        plot_seismicity(input_dics, events)
+    if input_dics['plot_ev'] or input_dics['plot_sta'] or \
+            input_dics['plot_ray']:
+        plot_sta_ev_ray(input_dics, events)
+    if input_dics['plot_waveform']:
+        plot_waveform(input_dics, events)
+
+# ##################### plot_filter_event #####################################
 
 
 def plot_filter_event(input_dics, event_dic):
@@ -188,70 +213,33 @@ def plot_filter_station(input_dics, sta_ev):
             return False
     return True
 
-# ###################### plot_unit #############
-
-
-def plot_unit(input_dics, events):
-
-    del_index = []
-    for ev in range(len(events)):
-        if not plot_filter_event(input_dics, events[ev]):
-            del_index.append(ev)
-    del_index.sort(reverse=True)
-    for di in del_index:
-        del events[di]
-    if input_dics['plot_seismicity']:
-        plot_seismicity(input_dics, events)
-    if input_dics['plot_ev'] or input_dics['plot_sta'] or \
-            input_dics['plot_ray']:
-        plot_sta_ev_ray(input_dics, events)
-    if input_dics['plot_waveform']:
-        plot_waveform(input_dics, events)
-    # target_path = locate(input_dics['datapath'], event['event_id'])
-    # if len(target_path) > 1:
-    #     print("[LOCAL] more than one path was found for one event:")
-    #     print(target_path)
-    #     print("use the first one:")
-    #     target_path = target_path[0]
-    #     print(target_path)
-    # else:
-    #     print("[LOCAL] Path:")
-    #     target_path = target_path[0]
-    #     print(target_path)
-    # update_sta_ev_file(target_path)
-    # sta_ev_arr = np.loadtxt(os.path.join(target_path, 'info', 'station_event'),
-    #                         delimiter=',', dtype='object')
-    # if len(sta_ev_arr) > 0:
-    #     (sta_ev_arr, input_dics, target_path)
-    # else:
-    #     print("[LOCAL] No station to process!")
-
-# ##################### plot_sta_ev_ray ###############################
+# ##################### plot_waveform #########################################
 
 
 def plot_waveform(input_dics, events):
     """
+    plot waveforms arranged by the epicentral distance
     :param input_dics:
-    :param ls_saved_stas:
+    :param events:
     :return:
     """
     try:
         plt.style.use('ggplot')
     except Exception, error:
-        print("WARNING: %s" % error)
+        print("[WARNING] %s" % error)
     for ei in range(len(events)):
         target_path = locate(input_dics['datapath'], events[ei]['event_id'])
         if len(target_path) > 1:
-            print("[LOCAL] more than one path was found "
-                  "for one event:")
+            print("[LOCAL] more than one path was found for the event:")
             print(target_path)
-            print("use the first one:")
+            print("[INFO] use the first one:")
             target_path = target_path[0]
             print(target_path)
         else:
             print("[LOCAL] Path:")
             target_path = target_path[0]
             print(target_path)
+
         update_sta_ev_file(target_path)
         sta_ev_arr = np.loadtxt(
             os.path.join(target_path, 'info', 'station_event'),
@@ -263,6 +251,7 @@ def plot_waveform(input_dics, events):
         del_index.sort(reverse=True)
         for di in del_index:
             sta_ev_arr[di] = np.delete(sta_ev_arr, (di), axis=0)
+
         for si in range(len(sta_ev_arr)):
             sta_id = sta_ev_arr[si, 0] + '.' + sta_ev_arr[si, 1] + '.' + \
                      sta_ev_arr[si, 2] + '.' + sta_ev_arr[si, 3]
@@ -273,15 +262,13 @@ def plot_waveform(input_dics, events):
                 time_diff = tr.stats.starttime - events[ei]['datetime']
                 taxis = tr.times() + time_diff
 
-                dist, azi, bazi = gps2DistAzimuth(
-                    events[ei]['latitude'],
-                    events[ei]['longitude'],
-                    float(sta_ev_arr[si, 4]),
-                    float(sta_ev_arr[si, 5]))
+                dist, azi, bazi = gps2DistAzimuth(events[ei]['latitude'],
+                                                  events[ei]['longitude'],
+                                                  float(sta_ev_arr[si, 4]),
+                                                  float(sta_ev_arr[si, 5]))
                 epi_dist = dist/111.194/1000.
                 if input_dics['min_azi'] or input_dics['max_azi'] or \
                         input_dics['min_epi'] or input_dics['max_epi']:
-
                     if input_dics['min_epi']:
                         if epi_dist < input_dics['min_epi']:
                             continue
@@ -289,15 +276,16 @@ def plot_waveform(input_dics, events):
                         if epi_dist > input_dics['max_epi']:
                             continue
                     if input_dics['min_azi']:
-                        if azi > input_dics['min_azi']:
+                        if azi < input_dics['min_azi']:
                             continue
                     if input_dics['max_azi']:
                         if azi > input_dics['max_azi']:
                             continue
                 plt.plot(taxis, tr.normalize().data + epi_dist, c='k',
                          alpha=0.5)
-            except Exception, e:
+            except:
                 continue
+
     plt.xlabel('Time (sec)', size=18, weight='bold')
     plt.ylabel('Epicentral Distance (deg)', size=18, weight='bold')
     plt.xticks(size=18, weight='bold')
@@ -312,9 +300,9 @@ def plot_waveform(input_dics, events):
 
 def plot_sta_ev_ray(input_dics, events):
     """
-    Plots stations, events and ray paths on a map with basemap.
+    plot stations, events and ray paths on a map using basemap.
     :param input_dics:
-    :param ls_saved_stas:
+    :param events:
     :return:
     """
     plt.figure(figsize=(20., 10.))
@@ -337,11 +325,6 @@ def plot_sta_ev_ray(input_dics, events):
 
     if plt_ray_path:
         # # hammer, kav7, cyl, mbtfpq, moll
-        # m = Basemap(projection='aeqd', lon_0=0, lat_0=0)
-        # parallels = np.arange(-90, 90, 30.)
-        # m.drawparallels(parallels, color='gray')
-        # meridians = np.arange(-180., 180., 60.)
-        # m.drawmeridians(meridians, color='gray')
         m = Basemap(projection='robin', lon_0=input_dics['plot_lon0'])
         parallels = np.arange(-90, 90, 30.)
         m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=24)
@@ -359,7 +342,6 @@ def plot_sta_ev_ray(input_dics, events):
         width_beach = 5
         width_station = 10
     elif glob_map:
-        # hammer, kav7, cyl, mbtfpq, moll
         m = Basemap(projection='robin', lon_0=input_dics['plot_lon0'])
         parallels = np.arange(-90, 90, 30.)
         m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=24)
@@ -368,18 +350,18 @@ def plot_sta_ev_ray(input_dics, events):
         width_beach = 5e5
         width_station = 50
     else:
-        sys.exit('ERROR: %s' % input_dics)
+        sys.exit('[ERROR] can not continue, error:\n%s' % input_dics)
 
-    raw_input_resp = raw_input('Choose your map style:\n'
-                               '1. Bluemarble (PIL should be installed)\n'
-                               '2. Etopo (PIL should be installed)\n'
-                               '3. Shaderelief (PIL should be installed)\n'
-                               '4. Simple\n')
-    if raw_input_resp == '1':
+    raw_input_resp = raw_input('choose the map style:\n'
+                               '1. bluemarble (PIL should be installed)\n'
+                               '2. etopo (PIL should be installed)\n'
+                               '3. shaderelief (PIL should be installed)\n'
+                               '4. simple\n')
+    if int(raw_input_resp) == 1:
         m.bluemarble(scale=0.5)
-    elif raw_input_resp == '2':
+    elif int(raw_input_resp) == 2:
         m.etopo(scale=0.5)
-    elif raw_input_resp == '3':
+    elif int(raw_input_resp) == 3:
         m.shadedrelief(scale=0.1)
     else:
         m.fillcontinents()
@@ -388,7 +370,7 @@ def plot_sta_ev_ray(input_dics, events):
         if plt_events:
             if input_dics['plot_focal']:
                 if not events[ei]['focal_mechanism']:
-                    sys.exit('ERROR:\nMoment tensor does not exists!')
+                    sys.exit('[ERROR] moment tensor does not exist!')
                 x, y = m(events[ei]['longitude'],
                          events[ei]['latitude'])
                 focmecs = [float(events[ei]['focal_mechanism'][0]),
@@ -413,30 +395,31 @@ def plot_sta_ev_ray(input_dics, events):
             target_path = locate(input_dics['datapath'],
                                  events[ei]['event_id'])
             if len(target_path) > 1:
-                print("[LOCAL] more than one path was found "
-                      "for one event:")
+                print("[LOCAL] more than one path was found for the event:")
                 print(target_path)
-                print("use the first one:")
+                print("[INFO] use the first one:")
                 target_path = target_path[0]
                 print(target_path)
             else:
                 print("[LOCAL] Path:")
                 target_path = target_path[0]
                 print(target_path)
+
             update_sta_ev_file(target_path)
-            sta_ev_arr = np.loadtxt(os.path.join(
-                target_path, 'info', 'station_event'),
-                delimiter=',', dtype='object')
+            sta_ev_arr = np.loadtxt(os.path.join(target_path,
+                                                 'info', 'station_event'),
+                                    delimiter=',', dtype='object')
             del_index = []
             for sti in range(len(sta_ev_arr)):
+
                 if not plot_filter_station(input_dics, sta_ev_arr[sti]):
                     del_index.append(sti)
 
-                dist, azi, bazi = gps2DistAzimuth(
-                    events[ei]['latitude'],
-                    events[ei]['longitude'],
-                    float(sta_ev_arr[sti, 4]),
-                    float(sta_ev_arr[sti, 5]))
+                dist, azi, bazi = gps2DistAzimuth(events[ei]['latitude'],
+                                                  events[ei]['longitude'],
+                                                  float(sta_ev_arr[sti, 4]),
+                                                  float(sta_ev_arr[sti, 5]))
+
                 epi_dist = dist/111.194/1000.
                 if input_dics['min_azi'] or input_dics['max_azi'] or \
                         input_dics['min_epi'] or input_dics['max_epi']:
@@ -457,20 +440,22 @@ def plot_sta_ev_ray(input_dics, events):
             del_index.sort(reverse=True)
             for di in del_index:
                 sta_ev_arr = np.delete(sta_ev_arr, (di), axis=0)
+
         if plt_stations:
             if len(sta_ev_arr) > 0:
                 x, y = m(sta_ev_arr[:, 5], sta_ev_arr[:, 4])
                 m.scatter(x, y, color='red', s=width_station,
                           edgecolors='none', marker='v',
                           zorder=4, alpha=0.9)
+
         if plt_ray_path:
             for si in range(len(sta_ev_arr)):
-                gcline = m.drawgreatcircle(
-                    float(events[ei]['longitude']),
-                    float(events[ei]['latitude']),
-                    float(sta_ev_arr[si][5]),
-                    float(sta_ev_arr[si][4]),
-                    color='k', alpha=0.0)
+                gcline = m.drawgreatcircle(float(events[ei]['longitude']),
+                                           float(events[ei]['latitude']),
+                                           float(sta_ev_arr[si][5]),
+                                           float(sta_ev_arr[si][4]),
+                                           color='k', alpha=0.0)
+
                 gcx, gcy = gcline[0].get_data()
                 gcx_diff = gcx[0:-1] - gcx[1:]
                 gcy_diff = gcy[0:-1] - gcy[1:]
@@ -487,29 +472,33 @@ def plot_sta_ev_ray(input_dics, events):
                     plt.plot(gcy[gcy_max_arg+1:], gcy[gcy_max_arg+1:],
                              color='k', alpha=0.1)
                 else:
-                    m.drawgreatcircle(
-                        float(events[ei]['longitude']),
-                        float(events[ei]['latitude']),
-                        float(sta_ev_arr[si][5]),
-                        float(sta_ev_arr[si][4]),
-                        color='k', alpha=0.1)
+                    m.drawgreatcircle(float(events[ei]['longitude']),
+                                      float(events[ei]['latitude']),
+                                      float(sta_ev_arr[si][5]),
+                                      float(sta_ev_arr[si][4]),
+                                      color='k', alpha=0.1)
 
     plt.savefig(os.path.join(input_dics['plot_save'],
                              'event_station.%s' % input_dics['plot_format']))
     plt.show()
 
+# ##################### plot_seismicity #######################################
+
+
 def plot_seismicity(input_dics, events):
     """
-    Create seismicity map
+    create a seismicity map with some basic statistical analysis on the results
     :param input_dics:
     :param events:
     :return:
     """
-    print('\n##############')
+    print('\n==============')
     print('Seismicity map')
-    print('##############\n')
+    print('==============\n')
+
     if not len(events) > 0:
-        print("No events pass the given criteria!")
+        print("[WARNING] no event passed the given criteria!")
+        print("[WARNING] can not create any seismicity map.")
         return
 
     if input_dics['evlatmin'] is None:
@@ -521,7 +510,7 @@ def plot_seismicity(input_dics, events):
     else:
         map_proj = 'cyl'
 
-    # Set-up the map
+    # set-up the map
     m = Basemap(projection=map_proj,
                 llcrnrlat=input_dics['evlatmin'],
                 urcrnrlat=input_dics['evlatmax'],
@@ -529,26 +518,27 @@ def plot_seismicity(input_dics, events):
                 urcrnrlon=input_dics['evlonmax'],
                 lon_0=input_dics['plot_lon0'],
                 resolution='l')
+
     parallels = np.arange(-90, 90, 30.)
     m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=24)
     meridians = np.arange(-180., 180., 60.)
     m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=24)
 
-    raw_input_resp = raw_input('Choose your map style:\n'
-                               '1. Bluemarble (PIL should be installed)\n'
-                               '2. Etopo (PIL should be installed)\n'
-                               '3. Shaderelief (PIL should be installed)\n'
-                               '4. Simple\n')
-    if raw_input_resp == '1':
+    raw_input_resp = raw_input('choose the map style:\n'
+                               '1. bluemarble (PIL should be installed)\n'
+                               '2. etopo (PIL should be installed)\n'
+                               '3. shaderelief (PIL should be installed)\n'
+                               '4. simple\n')
+    if int(raw_input_resp) == 1:
         m.bluemarble(scale=0.5)
-    elif raw_input_resp == '2':
+    elif int(raw_input_resp) == 2:
         m.etopo(scale=0.5)
-    elif raw_input_resp == '3':
+    elif int(raw_input_resp) == 3:
         m.shadedrelief(scale=0.1)
     else:
         m.fillcontinents()
 
-    # Defining Labels:
+    # defining labels
     x_ev, y_ev = m(-360, 0)
     m.scatter(x_ev, y_ev, 20, color='red', marker="o",
               edgecolor="black", zorder=10, label='0-70km')
@@ -558,13 +548,13 @@ def plot_seismicity(input_dics, events):
               edgecolor="black", zorder=10, label='300< km')
 
     m.scatter(x_ev, y_ev, 10, color='white', marker="o",
-              edgecolor="black", zorder=10, label='<=4.0')
+              edgecolor="black", zorder=10, label='< 4.0')
     m.scatter(x_ev, y_ev, 40, color='white', marker="o",
               edgecolor="black", zorder=10, label='4.0-5.0')
     m.scatter(x_ev, y_ev, 70, color='white', marker="o",
               edgecolor="black", zorder=10, label='5.0-6.0')
     m.scatter(x_ev, y_ev, 100, color='white', marker="o",
-              edgecolor="black", zorder=10, label='6.0<')
+              edgecolor="black", zorder=10, label='6.0<=')
 
     ev_dp_all = []
     ev_mag_all = []
@@ -574,20 +564,21 @@ def plot_seismicity(input_dics, events):
         x_ev, y_ev = m(float(ev['longitude']), float(ev['latitude']))
         ev_dp_all.append(abs(float(ev['depth'])))
         ev_mag_all.append(abs(float(ev['magnitude'])))
-        if abs(float(ev['depth'])) <= 70.0:
+
+        if abs(float(ev['depth'])) < 70.0:
             color = 'red'
-        elif 70.0 < abs(float(ev['depth'])) <= 300.0:
+        elif 70.0 <= abs(float(ev['depth'])) < 300.0:
             color = 'green'
-        elif 300.0 < abs(float(ev['depth'])) <= 1000.0:
+        elif 300.0 <= abs(float(ev['depth'])):
             color = 'blue'
 
-        if float(ev['magnitude']) <= 4.0:
+        if float(ev['magnitude']) < 4.0:
             size = 10
-        elif 4.0 < float(ev['magnitude']) <= 5.0:
+        elif 4.0 <= float(ev['magnitude']) < 5.0:
             size = 40
-        elif 5.0 < float(ev['magnitude']) <= 6.0:
+        elif 5.0 <= float(ev['magnitude']) < 6.0:
             size = 70
-        elif 6.0 < float(ev['magnitude']):
+        elif 6.0 <= float(ev['magnitude']):
             size = 100
 
         if ev['focal_mechanism']:
@@ -630,7 +621,7 @@ def plot_seismicity(input_dics, events):
 
     if plot_focal_mechanism:
         plt.figure()
-        # Set-up the map
+
         m = Basemap(projection=map_proj,
                     llcrnrlat=input_dics['evlatmin'],
                     urcrnrlat=input_dics['evlatmax'],
@@ -638,19 +629,23 @@ def plot_seismicity(input_dics, events):
                     urcrnrlon=input_dics['evlonmax'],
                     lon_0=input_dics['plot_lon0'],
                     resolution='l')
+
         parallels = np.arange(-90, 90, 30.)
         m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=24)
         meridians = np.arange(-180., 180., 60.)
         m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=24)
-        if raw_input_resp == '1':
+
+        if int(raw_input_resp) == 1:
             m.bluemarble(scale=0.5)
-        elif raw_input_resp == '2':
+        elif int(raw_input_resp) == 2:
             m.etopo(scale=0.5)
-        elif raw_input_resp == '3':
+        elif int(raw_input_resp) == 3:
             m.shadedrelief(scale=0.1)
         else:
             m.fillcontinents()
+
         for evfoc in ev_info_ar:
+            focmec = False
             try:
                 ax = plt.gca()
                 focmec = (float(evfoc[5]), float(evfoc[6]), float(evfoc[7]),
@@ -660,21 +655,21 @@ def plot_seismicity(input_dics, events):
                           linewidth=1, alpha=0.85)
                 b.set_zorder(10)
                 ax.add_collection(b)
-            except Exception, e:
-                print('EXCEPTION: %s' % e)
-                print('Focal Mechanism:')
+            except Exception, error:
+                print('[EXCEPTION] focal mechanism:')
                 print(focmec)
-                print('----------------')
+                print('[EXCEPTION] error: %s' % error)
 
-    if len(events) > 1:
+    if len(events) > 0:
         try:
             plt.style.use('ggplot')
         except Exception, error:
-            print("WARNING: %s" % error)
+            print("[WARNING] %s" % error)
         plt.figure()
         plt.hist(ev_dp_all, input_dics['depth_bins_seismicity'],
                  alpha=0.75, log=True,
                  histtype='stepfilled')
+
         plt.xlabel('Depth', size=18, weight='bold')
         plt.ylabel('#Events (log)', size=18, weight='bold')
         plt.yscale('log')
@@ -700,5 +695,3 @@ def plot_seismicity(input_dics, events):
         plt.tight_layout()
 
     plt.show()
-
-

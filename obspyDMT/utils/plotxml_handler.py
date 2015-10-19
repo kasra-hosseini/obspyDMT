@@ -12,8 +12,6 @@
 # -----------------------------------------------------------------------
 # ----------------Import required Modules (Python and Obspy)-------------
 # -----------------------------------------------------------------------
-
-# Required Python and Obspy modules will be imported in this part.
 import glob
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
@@ -38,30 +36,29 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def plot_xml_response(input_dics):
     """
-    This function plots the response file of stationXML file(s)
-    It has several modes such as:
-    plotting all the stages
-    plotting full response file
-    plotting selected stages
-    plotting only PAZ
-    :param input_dics: input dictionary.
+    plot the transfer function of stationXML file(s)
+    :param input_dics:
     :return:
     """
     print '[INFO] plotting StationXML file/files in: %s' % \
           input_dics['datapath']
     if not os.path.isdir('./stationxml_plots'):
-        print '[INFO] creating stationxml_plots directory...',
+        print '[INFO] creating stationxml_plots directory...'
         os.mkdir('./stationxml_plots')
-        print 'DONE'
 
-    # Assign the input_dics parameters to the running parameters
-    # in this function:
+    # assign the input_dics parameters to the running parameters:
     stxml_dir = input_dics['datapath']
     plotxml_datetime = input_dics['plotxml_date']
     min_freq = input_dics['plotxml_min_freq']
     output = input_dics['plotxml_output']
-    if output.lower() == 'dis':
+    if 'dis' in output.lower():
         output = 'DISP'
+    elif 'vel' in output.lower():
+        output = 'VEL'
+    elif 'acc' in output.lower():
+        output = 'ACC'
+    else:
+        output = output.upper()
     start_stage = input_dics['plotxml_start_stage']
     end_stage_input = input_dics['plotxml_end_stage']
     percentage = input_dics['plotxml_percentage']/100.
@@ -79,8 +76,8 @@ def plot_xml_response(input_dics):
     else:
         try:
             addxml_all = glob.glob(os.path.join(stxml_dir))
-        except Exception, e:
-            print 'ERROR: %s' % e
+        except Exception, error:
+            print '[ERROR] %s' % error
             sys.exit('[ERROR] wrong address: %s' % stxml_dir)
 
     addxml_all.sort()
@@ -88,12 +85,13 @@ def plot_xml_response(input_dics):
     sta_lat = []
     sta_lon = []
     latlon_color = []
-    report_fio = open(os.path.join('./stationxml_plots', 'report_stationxml'),
-                      'w')
+    report_fio = open(os.path.join('./stationxml_plots',
+                                   'report_stationxml'), 'w')
     report_fio.writelines('channel_id\t\t\t\t%(Phase)\t\t'
-                          'Max Diff(abs) \tLat\t\t\tLon\t\t\tDatetime\t'
+                          'Max diff(abs) \tLat\t\t\tLon\t\t\tDatetime\t'
                           'decimation delay\tdecimation correction\n')
     report_fio.close()
+
     add_counter = 0
     for addxml in addxml_all:
         end_stage = end_stage_input
@@ -118,8 +116,8 @@ def plot_xml_response(input_dics):
                 sampling_rate = xml_inv[0][0][0].sample_rate
             else:
                 for stage in xml_response.response_stages[::-1]:
-                    if (stage.decimation_input_sample_rate is not None
-                        and stage.decimation_factor is not None):
+                    if (stage.decimation_input_sample_rate is not None) and\
+                            (stage.decimation_factor is not None):
                         sampling_rate = (stage.decimation_input_sample_rate /
                                          stage.decimation_factor)
                         break
@@ -142,14 +140,15 @@ def plot_xml_response(input_dics):
                 cpx_12, freq = xml_response.get_evalresp_response(
                     t_samp=t_samp, nfft=nfft, output=output, start_stage=1,
                     end_stage=2)
-            except Exception, e:
-                print 'WARNING: %s' % e
+            except Exception, error:
+                print '[WARNING] %s' % error
                 continue
 
             paz, decimation_delay, decimation_correction = \
                 convert_xml_paz(xml_response, output, cha_name, cha_date)
             if not paz:
                 continue
+
             h, f = pazToFreqResp(paz['poles'], paz['zeros'], paz['gain'],
                                  1./sampling_rate, nfft, freq=True)
 
@@ -268,7 +267,7 @@ def plot_xml_response(input_dics):
             phase_resp_check = phase_resp[:int(percentage*len(phase_resp))]
             phase_h_check = np.angle(h)[:int(percentage*len(np.angle(h)))]
             if not len(phase_resp_check) == len(phase_h_check):
-                sys.exit('Lengths of phase responses do not match: '
+                sys.exit('[ERROR] lengths of phase responses do not match: '
                          '%s (StationXML) != %s (PAZ)'
                          % (len(phase_resp_check), len(phase_h_check)))
             compare = abs(phase_resp_check - phase_h_check)
@@ -303,13 +302,14 @@ def plot_xml_response(input_dics):
                    np.sum(decimation_delay),
                    np.sum(decimation_correction)))
             report_fio.close()
-        except Exception, e:
-            print 'Exception: %s' % e
+        except Exception, error:
+            print '[Exception] %s' % error
 
     if plot_map_compare:
         plt.figure()
+
         m = Basemap(projection='robin', lon_0=input_dics['plot_lon0'], lat_0=0)
-        # m.drawcoastlines()
+
         m.fillcontinents()
         m.drawparallels(np.arange(-90., 120., 30.))
         m.drawmeridians(np.arange(0., 420., 60.))
@@ -399,8 +399,8 @@ def get_coordinates(xml_network, seed_id, datetime=None):
 def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
                            output, start_stage, end_stage, cha_name):
     """
-    plot all the stages in a StationXML file.
-    This is controlled by start_stage and end_stage
+    plot all the stages in a StationXML file. This is controlled by
+    start_stage and end_stage
     :param xml_response:
     :param t_samp:
     :param nyquist:
@@ -412,39 +412,44 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
     :param cha_name:
     :return:
     """
-
     if not os.path.isdir('./stationxml_plots'):
         print '[INFO] creating stationxml_plots directory...',
         os.mkdir('./stationxml_plots')
         print 'DONE'
+
     plt.figure(figsize=(20, 10))
     plt.suptitle(cha_name, size=24, weight='bold')
+    l_style = ['-', '-', '-', '-', '-', '-', '-',
+               '--', '--', '--', '--', '--', '--']
+    counter = -1
     for i in range(start_stage, end_stage+1):
+        counter += 1
         try:
             cpx_response, freq = xml_response.get_evalresp_response(
                 t_samp=t_samp, nfft=nfft, output=output,
                 start_stage=i, end_stage=i)
-        except Exception, e:
-            print 'WARNING: %s' % e
+        except Exception, error:
+            print '[WARNING] %s' % error
             continue
 
         try:
             inp = xml_response.response_stages[i-1].input_units
-        except Exception, e:
-            print 'WARNING: %s' % e
+        except Exception, error:
+            print '[WARNING] %s' % error
             inp = ''
         try:
             out = xml_response.response_stages[i-1].output_units
-        except Exception, e:
-            print 'WARNING: %s' % e
+        except Exception, error:
+            print '[WARNING] %s' % error
             out = ''
 
         phase_resp = np.angle(cpx_response)
 
         ax = plt.subplot(2, 1, 1)
-        ax.loglog(freq, abs(cpx_response), lw=3,
+        ax.loglog(freq, abs(cpx_response), lw=3, ls=l_style[counter],
                   label='%s (%s->%s)' % (i, inp, out))
         ax.axvline(nyquist, ls="--", color='black', lw=3)
+
         plt.ylabel('Amplitude', size=24, weight='bold')
         plt.xticks(size=18, weight='bold')
         plt.yticks(size=18, weight='bold')
@@ -456,9 +461,10 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
         ax.grid()
 
         ax = plt.subplot(2, 1, 2)
-        ax.semilogx(freq, phase_resp, lw=3,
+        ax.semilogx(freq, phase_resp, lw=3, ls=l_style[counter]
                     label='%s (%s->%s)' % (i, inp, out))
         ax.axvline(nyquist, ls="--", color='black', lw=3)
+
         plt.xlabel('Frequency [Hz]', size=24, weight='bold')
         plt.ylabel('Phase [rad]', size=24, weight='bold')
         plt.xticks(size=18, weight='bold')
@@ -499,7 +505,7 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
             poles.append(resp_stage.poles)
             zeros.append(resp_stage.zeros)
             normalization_factor.append(resp_stage.normalization_factor)
-        except Exception as e:
+        except:
             pass
         if resp_stage.decimation_delay:
             decimation_delay.append(resp_stage.decimation_delay)
@@ -507,9 +513,9 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
             decimation_correction.append(resp_stage.decimation_correction)
 
     if len(poles) > 1:
-        print 'WARNING: More than one group of poles was found: %s' % poles
+        print '[WARNING] More than one group of poles was found: %s' % poles
     if len(zeros) > 1:
-        print 'WARNING: More than one group of zeros was found: %s' % zeros
+        print '[WARNING] More than one group of zeros was found: %s' % zeros
 
     normalization_factor = normalization_factor[0]
     poles = poles[0]
@@ -530,27 +536,38 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
 
     input_units = xml_response.response_stages[0].input_units
     if not input_units.lower() in ['m', 'm/s', 'm/s**2', 'pa']:
-        print('ERROR: input unit is not defined: %s\nContact the developer'
+        print('[ERROR] input unit is not defined: %s\nContact the developer'
               % input_units)
         error_fio = open(os.path.join('./stationxml_plots',
                                       'error_format'), 'a')
         error_fio.writelines('%s\t\t%s\t\t%s\n' % (cha_name, cha_date,
                                                    input_units))
         return False
+
+    if input_units.lower() == 'm':
+        if output.lower() == 'vel':
+            poles[0].append(0.0j)
+        if output.lower() == 'acc':
+            poles[0].append(0.0j)
+            poles[0].append(0.0j)
     if input_units.lower() == 'm/s':
         if output.lower() == 'disp':
             zeros[0].append(0.0j)
+        if output.lower() == 'acc':
+            poles[0].append(0.0j)
     if input_units.lower() == 'm/s**2':
         if output.lower() == 'disp':
             zeros[0].append(0.0j)
             zeros[0].append(0.0j)
         if output.lower() == 'vel':
             zeros[0].append(0.0j)
-    if output.lower() == 'acc':
-        sys.exit('%s output has not implemented!' % output)
+
     paz['zeros'] = zeros
     paz['gain'] = normalization_factor
     paz['sensitivity'] = np.prod(np.array(gain_arr))
-    print 'Final PAZ:'
-    print paz
+    print '[INFO] final PAZ:'
+    print 'zeros: ', paz['zeros']
+    print 'poles: ', paz['poles']
+    print 'gain: ', paz['gain']
+    print 'sensitivity: ', paz['sensitivity']
     return paz, decimation_delay, decimation_correction

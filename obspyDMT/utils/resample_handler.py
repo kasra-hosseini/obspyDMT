@@ -12,17 +12,11 @@
 # -----------------------------------------------------------------------
 # ----------------Import required Modules (Python and Obspy)-------------
 # -----------------------------------------------------------------------
-
-# Required Python and Obspy modules will be imported in this part.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import os
-from obspy.core import read
 from scipy import signal
 
-from utils.utility_codes import read_station_event
-
-# ###################### zerophase_chebychev_lowpass_filter #############
+# ###################### zerophase_chebychev_lowpass_filter ###################
 
 
 def zerophase_chebychev_lowpass_filter(trace, freqmax):
@@ -40,8 +34,10 @@ def zerophase_chebychev_lowpass_filter(trace, freqmax):
     """
     # rp - maximum ripple of passband, rs - attenuation of stopband
     rp, rs, order = 1, 96, 1e99
-    ws = freqmax / (trace.stats.sampling_rate * 0.5) # stop band frequency
-    wp = ws # pass band frequency
+    # stop band frequency
+    ws = freqmax / (trace.stats.sampling_rate * 0.5)
+    # pass band frequency
+    wp = ws
 
     while True:
         if order <= 12:
@@ -54,19 +50,27 @@ def zerophase_chebychev_lowpass_filter(trace, freqmax):
     # Apply twice to get rid of the phase distortion.
     trace.data = signal.filtfilt(b, a, trace.data)
 
-# ###################### decimate_trace #############
+# ###################### resample_trace #######################################
 
 
 def resample_trace(tr, dt, method, lanczos_a=20):
     """
-    Decimate ObsPy Trace (tr) with dt as delta (1/sampling_rate).
+    resample ObsPy Trace (tr) with dt as delta (1/sampling_rate).
 
     This code is from LASIF repository (Lion Krischer) with some
     minor modifications.
+    :param tr:
+    :param dt:
+    :param method:
+    :param lanczos_a:
+    :return:
     """
     while True:
-        decimation_factor = int(dt / tr.stats.delta)
-        # Decimate in steps for large sample rate reductions.
+        if method == 'decimate':
+            decimation_factor = int(dt / tr.stats.delta)
+        elif method == 'lanczos':
+            decimation_factor = float(dt) / tr.stats.delta
+        # decimate in steps for large sample rate reductions.
         if decimation_factor > 5:
             decimation_factor = 5
         if decimation_factor > 1:
@@ -76,7 +80,7 @@ def resample_trace(tr, dt, method, lanczos_a=20):
                 tr.decimate(factor=decimation_factor, no_filter=True)
             elif method == 'lanczos':
                 tr.interpolate(method='lanczos',
-                               sampling_rate=1./dt,
+                               sampling_rate=1./(dt*decimation_factor),
                                a=lanczos_a)
         else:
             return tr
@@ -93,17 +97,14 @@ def resample_unit(tr, des_sr, resample_method='decimate'):
     :return:
     """
     try:
-        # resample
         if resample_method.lower() == 'decimate':
             tr = resample_trace(tr, dt=1./des_sr, method='decimate')
         elif resample_method.lower() == 'lanczos':
             try:
                 from obspy.signal.interpolation import lanczos_interpolation
-                print("method: lanczos")
                 tr = resample_trace(tr, dt=1./des_sr, method='lanczos')
-            except Exception, e:
+            except:
                 tr = resample_trace(tr, dt=1./des_sr, method='decimate')
         return tr
-    except Exception as e:
-        print('\nWARNING: %s' % e)
-        print('------------------')
+    except Exception as error:
+        print('[WARNING] resampling of %s: %s' % (tr.id, error))

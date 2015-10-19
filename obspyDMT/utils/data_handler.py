@@ -219,8 +219,7 @@ def fdsn_serial_parallel(stas_avail, event, input_dics, target_path,
 
     if input_dics['bulk']:
         input_dics['waveform'] = True
-        sta_saved_path = glob.glob(os.path.join(target_path, 'BH_RAW',
-                                                '*.*.*.*'))
+        sta_saved_path = glob.glob(os.path.join(target_path, 'raw', '*.*.*.*'))
         print '\n[INFO] adjusting the station_event file for bulk request...',
 
         sta_saved_list = []
@@ -303,12 +302,12 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
 
         if input_dics['waveform']:
             dummy = 'waveform'
-            if not os.path.isfile(os.path.join(target_path, 'BH_RAW', st_id)):
+            if not os.path.isfile(os.path.join(target_path, 'raw', st_id)):
                 client_fdsn.get_waveforms(st_avail[0], st_avail[1],
                                           st_avail[2], st_avail[3],
                                           t_start, t_end,
                                           filename=os.path.join(target_path,
-                                                                'BH_RAW',
+                                                                'raw',
                                                                 st_id))
                 identifier += 10
                 print '%s -- %s -- saving waveform for: %s  ---> DONE' \
@@ -318,9 +317,9 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
 
         if input_dics['response']:
             dummy = 'response'
-            if not os.path.isfile(os.path.join(target_path, 'Resp',
+            if not os.path.isfile(os.path.join(target_path, 'resp',
                                                'STXML.' + st_id)):
-                if not os.path.isfile(os.path.join(target_path, 'Resp',
+                if not os.path.isfile(os.path.join(target_path, 'resp',
                                                    'DATALESS.' + st_id)):
                     client_fdsn.get_stations(network=st_avail[0],
                                              station=st_avail[1],
@@ -328,7 +327,7 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
                                              channel=st_avail[3],
                                              starttime=t_start, endtime=t_end,
                                              filename=os.path.join(
-                                                 target_path, 'Resp',
+                                                 target_path, 'resp',
                                                  'STXML.%s' % st_id),
                                              level='response')
                 identifier += 100
@@ -426,8 +425,7 @@ def fdsn_bulk_request(target_path, req_cli, input_dics):
     bulk_smgrs = client_fdsn.get_waveforms_bulk(bulk_list)
     print '[INFO] saving the retrieved waveforms from %s...' % req_cli
     for bulk_st in bulk_smgrs:
-        bulk_st.write(os.path.join(target_path, 'BH_RAW',
-                                   '%s.%s.%s.%s'
+        bulk_st.write(os.path.join(target_path, 'raw', '%s.%s.%s.%s'
                                    % (bulk_st.stats['network'],
                                       bulk_st.stats['station'],
                                       bulk_st.stats['location'],
@@ -575,9 +573,9 @@ def arc_download_core(st_avail, event, input_dics, target_path,
 
         if input_dics['waveform']:
             dummy = 'waveform'
-            if not os.path.isfile(os.path.join(target_path, 'BH_RAW', st_id)):
+            if not os.path.isfile(os.path.join(target_path, 'raw', st_id)):
                 client_arclink.saveWaveform(os.path.join(target_path,
-                                                         'BH_RAW', st_id),
+                                                         'raw', st_id),
                                             st_avail[0], st_avail[1],
                                             st_avail[2], st_avail[3],
                                             t_start, t_end)
@@ -589,12 +587,12 @@ def arc_download_core(st_avail, event, input_dics, target_path,
 
         if input_dics['response']:
             dummy = 'response'
-            if not os.path.isfile(os.path.join(target_path, 'Resp',
+            if not os.path.isfile(os.path.join(target_path, 'resp',
                                                'STXML.' + st_id)):
-                if not os.path.isfile(os.path.join(target_path, 'Resp',
+                if not os.path.isfile(os.path.join(target_path, 'resp',
                                                    'DATALESS.' + st_id)):
                     client_arclink.saveResponse(
-                        os.path.join(target_path, 'Resp',
+                        os.path.join(target_path, 'resp',
                                      'DATALESS.%s' % st_id),
                         st_avail[0], st_avail[1], st_avail[2], st_avail[3],
                         t_start, t_end)
@@ -685,7 +683,7 @@ def update_sta_ev_file(target_path):
                            sta_ev_fi[:, 2] + '.' + sta_ev_fi[:, 3]
 
             sta_saved_path = glob.glob(
-                os.path.join(target_path, 'BH_RAW', '*.*.*.*'))
+                os.path.join(target_path, 'raw', '*.*.*.*'))
             sta_saved_path.sort()
             sta_sorted = []
             for sta_sav_abs in sta_saved_path:
@@ -705,7 +703,7 @@ def update_sta_ev_file(target_path):
                        avail_arr[:, 2] + '.' + avail_arr[:, 3]
 
         sta_saved_path = glob.glob(
-            os.path.join(target_path, 'BH_RAW', '*.*.*.*'))
+            os.path.join(target_path, 'raw', '*.*.*.*'))
         sta_saved_path.sort()
         sta_sorted = []
         for sta_sav_abs in sta_saved_path:
