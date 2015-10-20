@@ -54,10 +54,7 @@ def get_metadata(input_dics, event, info_avail):
     print 'metadata mode'
     print '============='
 
-    period = '{0:s}_{1:s}'.format(
-        input_dics['min_date'].split('T')[0],
-        input_dics['max_date'].split('T')[0])
-    eventpath = os.path.join(input_dics['datapath'], period)
+    eventpath = os.path.join(input_dics['datapath'])
 
     t_1 = datetime.now()
     print 'initializing files and directories...',

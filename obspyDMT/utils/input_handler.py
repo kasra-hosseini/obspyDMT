@@ -322,7 +322,7 @@ def command_parse():
                               dest="event_catalog", help=helpmsg)
 
     helpmsg = "only retrieve event information and exit!"
-    group_ev_based.add_option("--event_info", action="store",
+    group_ev_based.add_option("--event_info", action="store_true",
                               dest="event_info", help=helpmsg)
 
     helpmsg = "read in an existing event catalog and proceed. " \
@@ -447,6 +447,11 @@ def command_parse():
               "found in the specified directory (--datapath)."
     group_plt.add_option("--plot_ray", action="store_true",
                          dest="plot_ray", help=helpmsg)
+
+    helpmsg = "create KML file(s) for event/station/ray. KML format is " \
+              "readable by Google-Earth."
+    group_plt.add_option("--create_kml", action="store_true",
+                         dest="create_kml", help=helpmsg)
 
     helpmsg = "plot \"Data(MB)-Time(Sec)\" for the " \
               "specified directory (--datapath) " \
@@ -875,6 +880,8 @@ def read_input_command(parser, **kwargs):
     else:
         input_dics['cut_time_phase'] = False
     input_dics['waveform_format'] = options.waveform_format
+    if input_dics['waveform_format']:
+        input_dics['waveform_format'] = input_dics['waveform_format'].lower()
     input_dics['resample_method'] = options.resample_method
     if options.des_sampling_rate:
         input_dics['des_sampling_rate'] = float(options.des_sampling_rate)
@@ -1021,6 +1028,7 @@ def read_input_command(parser, **kwargs):
     input_dics['plot_ev'] = options.plot_ev
     input_dics['plot_focal'] = options.plot_focal
     input_dics['plot_ray'] = options.plot_ray
+    input_dics['create_kml'] = options.create_kml
     input_dics['plot_dt'] = options.plot_dt
     input_dics['plot_seismicity'] = options.plot_seismicity
     input_dics['depth_bins_seismicity'] = int(options.depth_bins_seismicity)

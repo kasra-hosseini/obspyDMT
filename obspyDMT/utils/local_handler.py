@@ -14,7 +14,6 @@
 # -----------------------------------------------------------------------
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import fnmatch
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 import multiprocessing
@@ -36,9 +35,9 @@ import os
 import sys
 
 from .data_handler import update_sta_ev_file
-from .kml_handler import plot_ev_sta_kml
+from .kml_handler import create_ev_sta_kml
 from process_unit import process_unit
-from .utility_codes import locate, check_par_jobs
+from .utility_codes import locate, check_par_jobs, plot_filter_station
 
 # ###################### process_data #########################################
 
@@ -144,6 +143,8 @@ def plot_unit(input_dics, events):
     del_index.sort(reverse=True)
     for di in del_index:
         del events[di]
+    if input_dics['create_kml']:
+        create_ev_sta_kml(input_dics, events)
     if input_dics['plot_seismicity']:
         plot_seismicity(input_dics, events)
     if input_dics['plot_ev'] or input_dics['plot_sta'] or \
@@ -151,8 +152,6 @@ def plot_unit(input_dics, events):
         plot_sta_ev_ray(input_dics, events)
     if input_dics['plot_waveform']:
         plot_waveform(input_dics, events)
-    if True:
-        plot_ev_sta_kml(input_dics, events)
 
 # ##################### plot_filter_event #####################################
 
@@ -184,35 +183,6 @@ def plot_filter_event(input_dics, event_dic):
         if not event_dic['latitude'] >= float(input_dics['evlatmin']):
             return False
         if not event_dic['longitude'] >= float(input_dics['evlonmin']):
-            return False
-    return True
-
-# ##################### plot_filter_station ###############################
-
-
-def plot_filter_station(input_dics, sta_ev):
-    """
-    check whether the station can pass the criteria
-    :param input_dics:
-    :param sta_ev:
-    :return:
-    """
-    if not fnmatch.fnmatch(sta_ev[0], input_dics['net']):
-        return False
-    if not fnmatch.fnmatch(sta_ev[1], input_dics['sta']):
-        return False
-    if not fnmatch.fnmatch(sta_ev[2], input_dics['loc']):
-        return False
-    if not fnmatch.fnmatch(sta_ev[3], input_dics['cha']):
-        return False
-    if isinstance(input_dics['mlat_rbb'], float):
-        if not float(sta_ev[4]) <= input_dics['Mlat_rbb']:
-            return False
-        if not float(sta_ev[4]) >= input_dics['mlat_rbb']:
-            return False
-        if not float(sta_ev[5]) <= input_dics['Mlon_rbb']:
-            return False
-        if not float(sta_ev[5]) >= input_dics['mlon_rbb']:
             return False
     return True
 

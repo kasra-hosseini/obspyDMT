@@ -493,6 +493,35 @@ def calculate_time_phase(event, sta, bg_model='iasp91'):
     t_end = event['t2'] + time_ph
     return t_start, t_end
 
+# ##################### plot_filter_station ###############################
+
+
+def plot_filter_station(input_dics, sta_ev):
+    """
+    check whether the station can pass the criteria
+    :param input_dics:
+    :param sta_ev:
+    :return:
+    """
+    if not fnmatch.fnmatch(sta_ev[0], input_dics['net']):
+        return False
+    if not fnmatch.fnmatch(sta_ev[1], input_dics['sta']):
+        return False
+    if not fnmatch.fnmatch(sta_ev[2], input_dics['loc']):
+        return False
+    if not fnmatch.fnmatch(sta_ev[3], input_dics['cha']):
+        return False
+    if isinstance(input_dics['mlat_rbb'], float):
+        if not float(sta_ev[4]) <= input_dics['Mlat_rbb']:
+            return False
+        if not float(sta_ev[4]) >= input_dics['mlat_rbb']:
+            return False
+        if not float(sta_ev[5]) <= input_dics['Mlon_rbb']:
+            return False
+        if not float(sta_ev[5]) >= input_dics['mlon_rbb']:
+            return False
+    return True
+
 # ##################### getFolderSize ###################################
 
 

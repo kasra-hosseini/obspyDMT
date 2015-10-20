@@ -123,10 +123,7 @@ def fdsn_waveform(stas_avail, event, input_dics, req_cli, info_event):
     :param info_event:
     :return:
     """
-    period = '{0:s}_{1:s}'.format(
-        input_dics['min_date'].split('T')[0],
-        input_dics['max_date'].split('T')[0])
-    eventpath = os.path.join(input_dics['datapath'], period)
+    eventpath = os.path.join(input_dics['datapath'])
     target_path = os.path.join(eventpath, event['event_id'])
 
     if input_dics['bulk']:
@@ -445,10 +442,7 @@ def arc_waveform(stas_avail, event, input_dics, req_cli, info_event):
     :param info_event:
     :return:
     """
-    period = '{0:s}_{1:s}'.format(
-        input_dics['min_date'].split('T')[0],
-        input_dics['max_date'].split('T')[0])
-    eventpath = os.path.join(input_dics['datapath'], period)
+    eventpath = os.path.join(input_dics['datapath'])
     target_path = os.path.join(eventpath, event['event_id'])
 
     arc_serial_parallel(stas_avail, event, input_dics, target_path,

@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # -------------------------------------------------------------------
-#   Filename:  local_handler.py
-#   Purpose:   handling local processing/plotting in obspyDMT
+#   Filename:  kml_handler.py
+#   Purpose:   handling KML format in obspyDMT
 #   Author:    Kasra Hosseini
 #   Email:     hosseini@geophysik.uni-muenchen.de
 #   License:   GNU Lesser General Public License, Version 3
@@ -14,6 +14,7 @@
 # -----------------------------------------------------------------------
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+import matplotlib.pyplot as plt
 import numpy as np
 from obspy.imaging.beachball import Beachball
 try:
@@ -31,13 +32,14 @@ import os
 import sys
 
 from .data_handler import update_sta_ev_file
-from .utility_codes import locate
+from .utility_codes import locate, plot_filter_station
 
-# ##################### plot_ev_sta_kml ###############################
+# ##################### create_ev_sta_kml ###############################
 
 
-def plot_ev_sta_kml(input_dics, events):
+def create_ev_sta_kml(input_dics, events):
     """
+    create event/station/ray in KML format readable by Google-Earth
     :param input_dics:
     :param events:
     :return:
@@ -50,75 +52,100 @@ def plot_ev_sta_kml(input_dics, events):
 
     if not os.path.isdir('kml_dir'):
         os.mkdir('kml_dir')
+    else:
+        print('[INFO] kml_dir already exists!')
 
     counter = 0
     for ei in range(len(events)):
+        print(events[ei]['event_id'])
+        counter += 1
+
         # create a document element with multiple label style
         kmlobj = KML.kml(KML.Document())
-        counter += 1
-        focmecs = [float(events[ei]['focal_mechanism'][0]),
-           float(events[ei]['focal_mechanism'][1]),
-           float(events[ei]['focal_mechanism'][2]),
-           float(events[ei]['focal_mechanism'][3]),
-           float(events[ei]['focal_mechanism'][4]),
-           float(events[ei]['focal_mechanism'][5])]
 
-        beach = Beachball(focmecs,
-                          outfile=os.path.join(
-                              'kml_dir', events[ei]['event_id'] + '.png'),
-                          facecolor='black', edgecolor='black')
-        kmlobj.Document.append(
-            KML.Style(
-                KML.IconStyle(
-                    KML.Icon(
-                        KML.href(os.path.join(
+        ev_date = '%04i/%02i/%02i-%02i:%02i:%02i' \
+                  % (events[ei]['datetime'].year,
+                     events[ei]['datetime'].month,
+                     events[ei]['datetime'].day,
+                     events[ei]['datetime'].hour,
+                     events[ei]['datetime'].minute,
+                     events[ei]['datetime'].second
+                     )
+
+        if input_dics['plot_focal']:
+            focmecs = [float(events[ei]['focal_mechanism'][0]),
+                       float(events[ei]['focal_mechanism'][1]),
+                       float(events[ei]['focal_mechanism'][2]),
+                       float(events[ei]['focal_mechanism'][3]),
+                       float(events[ei]['focal_mechanism'][4]),
+                       float(events[ei]['focal_mechanism'][5])]
+        else:
+            focmecs = [1, 1, 1, 0, 0, 0]
+
+        try:
+            Beachball(focmecs,
+                      outfile=os.path.join(
+                          'kml_dir', events[ei]['event_id'] + '.png'),
+                      facecolor='red',
+                      edgecolor='red')
+        except Exception, error:
+            print(error)
+            print(focmecs)
+            continue
+        plt.close()
+        plt.clf()
+
+        if input_dics['plot_ev'] or input_dics['plot_ray']:
+            kmlobj.Document.append(
+                KML.Style(
+                    KML.IconStyle(
+                        KML.Icon(KML.href(os.path.join(
                             events[ei]['event_id'] + '.png')),
+                        ),
+                        KML.scale(2.5),
+                        KML.heading(0.0),
                     ),
-                    KML.scale(5.0),
-                    KML.heading(0.0),
+                    id='beach_ball_%i' % counter
                 ),
-                id='beach_ball_%i' % counter
-            ),
-        )
-        ev_date = '%s/%s/%s-%s:%s:%s' % (events[ei]['datetime'].year,
-                                         events[ei]['datetime'].month,
-                                         events[ei]['datetime'].day,
-                                         events[ei]['datetime'].hour,
-                                         events[ei]['datetime'].minute,
-                                         events[ei]['datetime'].second
-                                         )
-        kmlobj.Document.append(
-            KML.Placemark(
-                KML.ExtendedData(
-                    KML.Data(
-                        KML.value('%s' % events[ei]['event_id']),
-                        name='event_id'
-                    ),
-                    KML.Data(
-                        KML.value('%s' % events[ei]['magnitude']),
-                        name='magnitude'
-                    ),
-                    KML.Data(
-                        KML.value('%s' % ev_date),
-                        name='datetime'
-                    ),
-                    KML.Data(
-                        KML.value('%s' % events[ei]['latitude']),
-                        name='latitude'
-                    ),
-                    KML.Data(
-                        KML.value('%s' % events[ei]['longitude']),
-                        name='longitude'
-                    ),
-                ),
-                KML.styleUrl('#beach_ball_%i' % counter),
-                KML.Point(KML.coordinates(events[ei]['longitude'], ',',
-                                          events[ei]['latitude']),
-                          ),
-            ),
-        )
+            )
 
-        if True:
+            kmlobj.Document.append(
+                KML.Placemark(
+                    KML.name(events[ei]['event_id']),
+                    KML.ExtendedData(
+                        KML.Data(
+                            KML.value('%s' % events[ei]['event_id']),
+                            name='event_id'
+                        ),
+                        KML.Data(
+                            KML.value('%s' % events[ei]['magnitude']),
+                            name='magnitude'
+                        ),
+                        KML.Data(
+                            KML.value('%s' % ev_date),
+                            name='datetime'
+                        ),
+                        KML.Data(
+                            KML.value('%s' % events[ei]['depth']),
+                            name='depth'
+                        ),
+                        KML.Data(
+                            KML.value('%s' % events[ei]['latitude']),
+                            name='latitude'
+                        ),
+                        KML.Data(
+                            KML.value('%s' % events[ei]['longitude']),
+                            name='longitude'
+                        ),
+                    ),
+                    KML.styleUrl('#beach_ball_%i' % counter),
+                    KML.Point(KML.coordinates(events[ei]['longitude'], ',',
+                                              events[ei]['latitude']),
+                              ),
+                ),
+            )
+
+        if input_dics['plot_sta'] or input_dics['plot_ray']:
             target_path = locate(input_dics['datapath'],
                                  events[ei]['event_id'])
             if len(target_path) > 1:
@@ -171,57 +198,94 @@ def plot_ev_sta_kml(input_dics, events):
             kmlobj.Document.append(
                 KML.Style(
                     KML.IconStyle(
-                        KML.scale(5.0),
+                        KML.scale(2.5),
                         KML.heading(0.0),
                     ),
-                    id='success'
+                    id='station'
                 ),
             )
             kmlobj.Document.append(
                 KML.Style(
                     KML.LineStyle(
                         KML.width(1.0),
+                        # KML.color('ff33ccff'),
                         KML.color('2333ccff'),
                     ),
-                    id='bendigo_line'
+                    id='great_circle_distance'
                 ),
             )
             for sti in sta_ev_arr:
+                dist, azi, bazi = gps2DistAzimuth(events[ei]['latitude'],
+                                                  events[ei]['longitude'],
+                                                  float(sti[4]),
+                                                  float(sti[5]))
+                epi_dist = dist/111.194/1000.
                 sta_id = '%s.%s.%s.%s' % (sti[0], sti[1], sti[2], sti[3])
                 kmlobj.Document.append(
                     KML.Placemark(
+                        KML.name(sta_id),
                         KML.ExtendedData(
                             KML.Data(
                                 KML.value('%s' % sta_id),
                                 name='StationID'
                             ),
-                        ),
-                        KML.styleUrl('success'),
-                        KML.Point(KML.coordinates(float(sti[5]), ',',
-                                                  float(sti[4])),
-                                  ),
-                    ),
-                )
-                kmlobj.Document.append(
-                    KML.Placemark(
-                        KML.ExtendedData(
                             KML.Data(
-                                KML.value('%s' % sta_id),
-                                name='StationID'
+                                KML.value('%s' % epi_dist),
+                                name='Distance'
+                            ),
+                            KML.Data(
+                                KML.value('%s' % sti[6]),
+                                name='Elevation'
+                            ),
+                            KML.Data(
+                                KML.value('%s' % sti[7]),
+                                name='Depth'
+                            ),
+                            KML.Data(
+                                KML.value('%s' % bazi),
+                                name='Back-Azimuth'
+                            ),
+                            KML.Data(
+                                KML.value('%s' % azi),
+                                name='Azimuth'
+                            ),
+                            KML.Data(
+                                KML.value('%s' % events[ei]['event_id']),
+                                name='EventID'
+                            ),
+                            KML.Data(
+                                KML.value('%s' % sti[8]),
+                                name='Source'
                             ),
                         ),
-                        KML.styleUrl('bendigo_line'),
-
-                        KML.LineString(KML.coordinates(
-                            '%s,%s,0\n%s,%s,0' % (float(sti[5]),
-                                                    float(sti[4]),
-                            events[ei]['longitude'], events[ei]['latitude']))
-                                  ,
-                        KML.tessellate(1)),
+                        KML.styleUrl('station'),
+                        KML.Point(KML.coordinates(
+                            float(sti[5]), ',', float(sti[4]))
+                        ),
                     ),
                 )
-
+                if input_dics['plot_ray']:
+                    kmlobj.Document.append(
+                        KML.Placemark(
+                            KML.name(sta_id),
+                            KML.ExtendedData(
+                                KML.Data(
+                                    KML.value('%s' % sta_id),
+                                    name='StationID'
+                                ),
+                            ),
+                            KML.styleUrl('great_circle_distance'),
+                            KML.LineString(KML.coordinates(
+                                '%s,%s,0\n'
+                                '%s,%s,0' % (float(sti[5]),
+                                             float(sti[4]),
+                                             events[ei]['longitude'],
+                                             events[ei]['latitude'])),
+                                KML.tessellate(1)),
+                        ),
+                    )
         kml_outfile = file(os.path.join(
             'kml_dir',
-            'kml_output_%s.kml' % events[ei]['event_id']), 'a')
+            'kml_output_%s.kml' % events[ei]['event_id']), 'w')
         kml_outfile.write(etree.tostring(kmlobj, pretty_print=True))
+    sys.exit('[INFO] KML file(s) are stored in ./kml_dir!')

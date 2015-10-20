@@ -84,7 +84,7 @@ def process_unit(tr_add, target_path, input_dics, staev_ar):
     # -------------- OUTPUT ---------------------------------------------------
     if not tr:
         pass
-    elif input_dics['waveform_format'].lower() == 'sac':
+    elif input_dics['waveform_format'] == 'sac':
         tr = convert_to_sac(tr, save_path, staev_ar)
         tr.write(save_path, format='SAC')
     else:

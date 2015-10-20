@@ -112,11 +112,8 @@ def get_time_window(input_dics, request):
 
     if input_dics['primary_mode'] in ['event_based', 'continuous']:
         # formatting output / check if directory exists
-        period = '{0:s}_{1:s}'.format(
-            input_dics['min_date'].split('T')[0],
-            input_dics['max_date'].split('T')[0])
-        eventpath = os.path.join(input_dics['datapath'], period)
-        write_cat_logger(input_dics, eventpath, period, events, events_qml,
+        eventpath = os.path.join(input_dics['datapath'])
+        write_cat_logger(input_dics, eventpath, events, events_qml,
                          events2, row_format, header)
     return events
 
@@ -866,13 +863,12 @@ def event_spaces(events, request):
 # ##################### write_cat_logger ############################
 
 
-def write_cat_logger(input_dics, eventpath, period, events, catalog,
+def write_cat_logger(input_dics, eventpath, events, catalog,
                      events2, row_format, header):
     """
     writing outputs from get_time_window
     :param input_dics:
     :param eventpath:
-    :param period:
     :param events:
     :param catalog:
     :param events2:
@@ -895,7 +891,6 @@ def write_cat_logger(input_dics, eventpath, period, events, catalog,
     for item in sys.argv:
         st_argus += item + ' '
     st_argus += '\n'
-    event_cat.writelines('\n\n' + str(period) + '\n')
     event_cat.writelines(st_argus)
     event_cat.writelines('\n')
     event_cat.writelines('Information about the requested Events:' + '\n\n')
@@ -946,7 +941,6 @@ def write_cat_logger(input_dics, eventpath, period, events, catalog,
         st_argus += '\n'
         event_table = open(os.path.join(eventpath, 'EVENTS-INFO',
                                         'catalog_table.txt'), 'a+')
-        event_table.writelines('\n\n' + str(period) + '\n')
         event_table.writelines(st_argus)
         event_table.writelines('\n' + row_format.format(*header))
         event_table.writelines('\n' + '-'*80 + '\n')
