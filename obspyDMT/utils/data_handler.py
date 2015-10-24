@@ -170,7 +170,8 @@ def fdsn_serial_parallel(stas_avail, event, input_dics, target_path,
             print "[INFO] Restricted data from %s" % req_cli
             print "[WARNING] parallel retrieving is now possible!"
             print "[WARNING] serial retrieving is activated!"
-            num_req_np = 1
+            # num_req_np = 1
+            num_req_np = input_dics['req_np']
         else:
             num_req_np = input_dics['req_np']
         par_jobs = []
@@ -357,39 +358,8 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
               % (info_station, req_cli, st_id)
 
         t22 = datetime.now()
-        if input_dics['time_get_data']:
-            time_fdsn = t22 - t11
-            time_file = open(os.path.join(target_path, 'info',
-                                          'time_get_data'), 'a')
-            size = getFolderSize(os.path.join(target_path))
-            ti = '%s,%s,%s,%s,%s,%s,%s,+,%s,\n' % (st_avail[0],
-                                                   st_avail[1],
-                                                   st_avail[2],
-                                                   st_avail[3],
-                                                   time_fdsn.seconds,
-                                                   time_fdsn.microseconds,
-                                                   size/(1024.**2),
-                                                   req_cli)
-            time_file.writelines(ti)
-            time_file.close()
     except Exception as error:
         t22 = datetime.now()
-        if input_dics['time_get_data']:
-            time_fdsn = t22 - t11
-            time_file = open(os.path.join(target_path, 'info',
-                                          'time_get_data'), 'a')
-            size = getFolderSize(os.path.join(target_path))
-            ti = '%s,%s,%s,%s,%s,%s,%s,-,%s\n' % (st_avail[0],
-                                                  st_avail[1],
-                                                  st_avail[2],
-                                                  st_avail[3],
-                                                  time_fdsn.seconds,
-                                                  time_fdsn.microseconds,
-                                                  size/(1024.**2),
-                                                  req_cli)
-            time_file.writelines(ti)
-            time_file.close()
-
         if len(st_avail) > 0:
             ee = '%s -- %s -- %s -- %s\n' % (req_cli, dummy, st_id, error)
         else:
@@ -620,38 +590,8 @@ def arc_download_core(st_avail, event, input_dics, target_path,
               % (info_station, req_cli, st_id)
 
         t22 = datetime.now()
-        if input_dics['time_get_data']:
-            time_fdsn = t22 - t11
-            time_file = open(os.path.join(target_path, 'info',
-                                          'time_get_data'), 'a')
-            size = getFolderSize(os.path.join(target_path))
-            ti = '%s,%s,%s,%s,%s,%s,%s,+,%s,\n' % (st_avail[0],
-                                                   st_avail[1],
-                                                   st_avail[2],
-                                                   st_avail[3],
-                                                   time_fdsn.seconds,
-                                                   time_fdsn.microseconds,
-                                                   size/(1024.**2),
-                                                   req_cli)
-            time_file.writelines(ti)
-            time_file.close()
     except Exception as error:
         t22 = datetime.now()
-        if input_dics['time_get_data']:
-            time_fdsn = t22 - t11
-            time_file = open(os.path.join(target_path, 'info',
-                                          'time_get_data'), 'a')
-            size = getFolderSize(os.path.join(target_path))
-            ti = '%s,%s,%s,%s,%s,%s,%s,-,%s,\n' % (st_avail[0],
-                                                   st_avail[1],
-                                                   st_avail[2],
-                                                   st_avail[3],
-                                                   time_fdsn.seconds,
-                                                   time_fdsn.microseconds,
-                                                   size/(1024.**2),
-                                                   req_cli)
-            time_file.writelines(ti)
-            time_file.close()
 
         if len(st_avail) != 0:
             ee = '%s -- %s -- %s -- %s\n' % (req_cli, dummy, st_id, error)

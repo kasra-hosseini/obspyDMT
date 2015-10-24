@@ -53,20 +53,18 @@ def process_unit(tr_add, target_path, input_dics, staev_ar):
     # we define some paths to be used later:
     # you can adjust it as you want, here is just one example
 
-    # corr_unit is the correction unit for instrument correction:
-    corr_unit = input_dics['corr_unit']
-    if not os.path.isdir(os.path.join(target_path, 'BH_%s' % corr_unit)):
-        os.mkdir(os.path.join(target_path, 'BH_%s' % corr_unit))
+    if not os.path.isdir(os.path.join(target_path, 'processed')):
+        os.mkdir(os.path.join(target_path, 'processed'))
     # save_path is the address that will be used to save the processed data
-    save_path = os.path.join(target_path, 'BH_%s' % corr_unit, tr.id)
+    save_path = os.path.join(target_path, 'processed', tr.id)
 
     # -------------- PROCESSING -----------------------------------------------
     # * resample the data
-    # input_dics['des_sampling_rate'] determines the desired sampling rate
-    if input_dics['des_sampling_rate']:
+    # input_dics['sampling_rate'] determines the desired sampling rate
+    if input_dics['sampling_rate']:
         print("resampling for: %s" % tr.id)
         tr = resample_unit(tr,
-                           des_sr=input_dics['des_sampling_rate'],
+                           des_sr=input_dics['sampling_rate'],
                            resample_method=input_dics['resample_method'])
 
     # * apply instrument correction which consists of:

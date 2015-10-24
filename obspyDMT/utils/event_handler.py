@@ -190,6 +190,8 @@ def event_info(input_dics):
 
         event_switch = 'fdsn'
         event_url = input_dics['event_catalog']
+        if input_dics['read_catalog']:
+            event_switch = 'local'
         event_fdsn_cat = None
 
         if event_url.lower() == 'gcmt_combo':
@@ -253,6 +255,10 @@ def event_info(input_dics):
                              input_dics['max_depth'],
                              input_dics['min_mag'],
                              input_dics['max_mag'])
+
+        elif event_switch == 'local':
+            events_QML = readEvents(input_dics['read_catalog'])
+
         else:
             sys.exit('[ERROR] %s is not supported'
                      % input_dics['event_catalog'])

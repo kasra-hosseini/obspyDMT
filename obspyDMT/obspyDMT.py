@@ -53,27 +53,33 @@ def obspyDMT(**kwargs):
     if input_dics['plot_stationxml']:
         plot_xml_response(input_dics)
     # ------------------getting list of events/continuous requests-------------
-    if input_dics['primary_mode'] in ['event_based', 'continuous', 'local']:
+    if input_dics['primary_mode'] in ['meta_data', 'event_based',
+                                      'continuous', 'local']:
         # events contains all the information for requested time-window
         # Although we do not have any events in continuous requests,
         # it is still called as events.
-        events = get_time_window(input_dics,
-                                 request=input_dics['primary_mode'])
+        ev_request = input_dics['primary_mode']
+        if ev_request == 'meta_data':
+            if input_dics['continuous']:
+                ev_request = 'continuous'
+            else:
+                ev_request = 'event_based'
+        events = get_time_window(input_dics, request=ev_request)
         if len(events) == 0:
             return input_dics
-        if input_dics['event_info']:
-            return input_dics
     # ------------------checking the availability------------------------------
-    for ev in range(len(events)):
-        info_event = '%s/%s' % (ev+1, len(events))
-        if input_dics['meta_data']:
-            stas_avail = get_metadata(input_dics,
-                                      events[ev],
-                                      info_avail=info_event)
-            if not len(stas_avail) > 0:
-                continue
-        if input_dics['primary_mode'] in ['event_based', 'continuous']:
-            get_data(stas_avail, events[ev], input_dics, info_event=info_event)
+    if not input_dics['event_info']:
+        for ev in range(len(events)):
+            info_event = '%s/%s' % (ev+1, len(events))
+            if input_dics['meta_data']:
+                stas_avail = get_metadata(input_dics,
+                                          events[ev],
+                                          info_avail=info_event)
+                if not len(stas_avail) > 0:
+                    continue
+            if input_dics['primary_mode'] in ['event_based', 'continuous']:
+                get_data(stas_avail, events[ev], input_dics,
+                         info_event=info_event)
     # ------------------processing---------------------------------------------
     # From this section, we do not need to connect to the data sources anymore.
     # This consists of pre_processing and plotting tools.

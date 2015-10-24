@@ -82,12 +82,19 @@ def create_ev_sta_kml(input_dics, events):
         else:
             focmecs = [1, 1, 1, 0, 0, 0]
 
+        if 0 <= events[ei]['depth'] < 70:
+            event_color = 'red'
+        elif 70 <= events[ei]['depth'] < 300:
+            event_color = 'green'
+        else:
+            event_color = 'blue'
+
         try:
             Beachball(focmecs,
                       outfile=os.path.join(
                           'kml_dir', events[ei]['event_id'] + '.png'),
-                      facecolor='red',
-                      edgecolor='red')
+                      facecolor=event_color,
+                      edgecolor=event_color)
         except Exception, error:
             print(error)
             print(focmecs)
@@ -102,7 +109,7 @@ def create_ev_sta_kml(input_dics, events):
                         KML.Icon(KML.href(os.path.join(
                             events[ei]['event_id'] + '.png')),
                         ),
-                        KML.scale(2.5),
+                        KML.scale(events[ei]['magnitude']/2.),
                         KML.heading(0.0),
                     ),
                     id='beach_ball_%i' % counter
@@ -140,7 +147,10 @@ def create_ev_sta_kml(input_dics, events):
                     ),
                     KML.styleUrl('#beach_ball_%i' % counter),
                     KML.Point(KML.coordinates(events[ei]['longitude'], ',',
-                                              events[ei]['latitude']),
+                                              events[ei]['latitude'], ',',
+                                              700000 -
+                                              abs(events[ei]['depth']*1000)),
+                              KML.altitudeMode('absolute')
                               ),
                 ),
             )
@@ -286,6 +296,7 @@ def create_ev_sta_kml(input_dics, events):
                     )
         kml_outfile = file(os.path.join(
             'kml_dir',
-            'kml_output_%s.kml' % events[ei]['event_id']), 'w')
+            'kml_output_%04i_%s.kml'
+            % (int(events[ei]['depth']), events[ei]['event_id'])), 'w')
         kml_outfile.write(etree.tostring(kmlobj, pretty_print=True))
     sys.exit('[INFO] KML file(s) are stored in ./kml_dir!')
