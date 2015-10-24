@@ -237,57 +237,65 @@ def arc_available(input_dics, event, target_path):
     client_arclink = Client_arclink(user='test@obspy.org',
                                     timeout=input_dics['arc_avai_timeout'])
     sta_arc = []
-    try:
-        inventories = client_arclink.getInventory(
-            network=input_dics['net'],
-            station=input_dics['sta'],
-            location=input_dics['loc'],
-            channel=input_dics['cha'],
-            starttime=UTCDateTime(event['t1']),
-            endtime=UTCDateTime(event['t2']),
-            min_latitude=input_dics['mlat_rbb'],
-            max_latitude=input_dics['Mlat_rbb'],
-            min_longitude=input_dics['mlon_rbb'],
-            max_longitude=input_dics['Mlon_rbb'])
+    nets_req = input_dics['net'].split(',')
+    stas_req = input_dics['sta'].split(',')
+    locs_req = input_dics['loc'].split(',')
+    chas_req = input_dics['cha'].split(',')
+    for net_req in nets_req:
+        for sta_req in stas_req:
+            for loc_req in locs_req:
+                for cha_req in chas_req:
+                    try:
+                        inventories = client_arclink.getInventory(
+                            network=net_req,
+                            station=sta_req,
+                            location=loc_req,
+                            channel=cha_req,
+                            starttime=UTCDateTime(event['t1']),
+                            endtime=UTCDateTime(event['t2']),
+                            min_latitude=input_dics['mlat_rbb'],
+                            max_latitude=input_dics['Mlat_rbb'],
+                            min_longitude=input_dics['mlon_rbb'],
+                            max_longitude=input_dics['Mlon_rbb'])
 
-        for inv_key in inventories.keys():
-            netsta = inv_key.split('.')
-            if len(netsta) == 4:
-                sta = '%s.%s' % (netsta[0], netsta[1])
-                if not inventories[sta]['depth']:
-                    inventories[sta]['depth'] = 0.0
-                st_id = '%s_%s_%s_%s' % (netsta[0],
-                                         netsta[1],
-                                         netsta[2],
-                                         netsta[3])
-                sta_arc.append([netsta[0], netsta[1], netsta[2], netsta[3],
-                                inventories[sta]['latitude'],
-                                inventories[sta]['longitude'],
-                                inventories[sta]['elevation'],
-                                inventories[sta]['depth'],
-                                'ARCLINK', st_id])
-        if input_dics['lon_cba'] and input_dics['lat_cba']:
-            index_rm = []
-            lat1 = float(input_dics['lat_cba'])
-            lon1 = float(input_dics['lon_cba'])
-            for ai in range(len(sta_arc)):
-                dist = locations2degrees(lat1, lon1,
-                                         float(sta_arc[ai][4]),
-                                         float(sta_arc[ai][5]))
-                if not input_dics['mr_cba'] <= dist <= input_dics['Mr_cba']:
-                    index_rm.append(ai)
-            index_rm.sort()
-            index_rm.reverse()
-            for ri in range(len(index_rm)):
-                del sta_arc[ri]
+                        for inv_key in inventories.keys():
+                            netsta = inv_key.split('.')
+                            if len(netsta) == 4:
+                                sta = '%s.%s' % (netsta[0], netsta[1])
+                                if not inventories[sta]['depth']:
+                                    inventories[sta]['depth'] = 0.0
+                                st_id = '%s_%s_%s_%s' % (netsta[0],
+                                                         netsta[1],
+                                                         netsta[2],
+                                                         netsta[3])
+                                sta_arc.append([netsta[0], netsta[1], netsta[2], netsta[3],
+                                                inventories[sta]['latitude'],
+                                                inventories[sta]['longitude'],
+                                                inventories[sta]['elevation'],
+                                                inventories[sta]['depth'],
+                                                'ARCLINK', st_id])
+                        if input_dics['lon_cba'] and input_dics['lat_cba']:
+                            index_rm = []
+                            lat1 = float(input_dics['lat_cba'])
+                            lon1 = float(input_dics['lon_cba'])
+                            for ai in range(len(sta_arc)):
+                                dist = locations2degrees(lat1, lon1,
+                                                         float(sta_arc[ai][4]),
+                                                         float(sta_arc[ai][5]))
+                                if not input_dics['mr_cba'] <= dist <= input_dics['Mr_cba']:
+                                    index_rm.append(ai)
+                            index_rm.sort()
+                            index_rm.reverse()
+                            for ri in range(len(index_rm)):
+                                del sta_arc[ri]
 
-    except Exception as error:
-        exc_file = open(os.path.join(target_path, 'info', 'exception'), 'a+')
-        ee = 'availability -- arclink -- %s\n' % error
-        exc_file.writelines(ee)
-        exc_file.close()
-        print 'ERROR: %s' % ee
-        return []
+                    except Exception as error:
+                        exc_file = open(os.path.join(target_path, 'info', 'exception'), 'a+')
+                        ee = 'availability -- arclink -- %s\n' % error
+                        exc_file.writelines(ee)
+                        exc_file.close()
+                        print 'ERROR: %s' % ee
+                        return []
 
     if len(sta_arc) == 0:
         sta_arc.append([])

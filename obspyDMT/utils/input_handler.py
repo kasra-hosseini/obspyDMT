@@ -732,6 +732,7 @@ def read_input_command(parser, **kwargs):
         options.identity = 'TA.1*.*.BHZ'
         options.event_catalog = 'IRIS'
         options.req_parallel = True
+        options.instrument_correction = True
 
     # =================== Absolute path generator==============================
     for paths in ['datapath']:
@@ -757,7 +758,8 @@ def read_input_command(parser, **kwargs):
     input_dics['datapath'] = options.datapath
 
     if not os.path.isdir(input_dics['datapath']):
-        os.mkdir(input_dics['datapath'])
+        if not options.plot_stationxml:
+            os.mkdir(input_dics['datapath'])
 
     # =================== obspyDMT mode========================================
     # plot_stationxml option always change the mode to local
