@@ -36,7 +36,7 @@ import sys
 
 from .data_handler import update_sta_ev_file
 from .kml_handler import create_ev_sta_kml
-from process_unit import process_unit
+from obspyDMT.process_unit import process_unit
 from .utility_codes import locate, check_par_jobs, plot_filter_station
 
 # ###################### process_data #########################################
@@ -197,10 +197,7 @@ def plot_waveform(input_dics, events):
     :param events:
     :return:
     """
-    try:
-        plt.style.use('ggplot')
-    except Exception, error:
-        print("[WARNING] %s" % error)
+    plt.rc('font', family='serif')
     for ei in range(len(events)):
         target_path = locate(input_dics['datapath'], events[ei]['event_id'])
         if len(target_path) > 1:
@@ -256,12 +253,12 @@ def plot_waveform(input_dics, events):
                         if azi > input_dics['max_azi']:
                             continue
                 plt.plot(taxis, tr.normalize().data + epi_dist, c='k',
-                         alpha=0.5)
+                         alpha=0.7)
             except:
                 continue
 
-    plt.xlabel('Time (sec)', size=18, weight='bold')
-    plt.ylabel('Epicentral Distance (deg)', size=18, weight='bold')
+    plt.xlabel('Time (sec)', size=24, weight='bold')
+    plt.ylabel('Epicentral Distance (deg)', size=24, weight='bold')
     plt.xticks(size=18, weight='bold')
     plt.yticks(size=18, weight='bold')
     plt.tight_layout()
@@ -480,6 +477,7 @@ def plot_seismicity(input_dics, events):
     print('Seismicity map')
     print('==============\n')
 
+    plt.rc('font', family='serif')
     if not len(events) > 0:
         print("[WARNING] no event passed the given criteria!")
         print("[WARNING] can not create any seismicity map.")
@@ -645,37 +643,36 @@ def plot_seismicity(input_dics, events):
                 print('[EXCEPTION] error: %s' % error)
 
     if len(events) > 0:
-        try:
-            plt.style.use('ggplot')
-        except Exception, error:
-            print("[WARNING] %s" % error)
         plt.figure()
-        plt.hist(ev_dp_all, input_dics['depth_bins_seismicity'],
-                 alpha=0.75, log=True,
-                 histtype='stepfilled')
+        hn, hbins, hpatches = \
+            plt.hist(ev_dp_all, input_dics['depth_bins_seismicity'],
+                     facecolor='g', alpha=0.5, log=True)
 
-        plt.xlabel('Depth', size=18, weight='bold')
-        plt.ylabel('#Events (log)', size=18, weight='bold')
+        plt.xlabel('Depth', size=24, weight='bold')
+        plt.ylabel('#Events (log)', size=24, weight='bold')
         plt.yscale('log')
         plt.ylim(ymin=0.2)
         plt.xticks(size=18, weight='bold')
         plt.yticks(size=18, weight='bold')
         plt.tight_layout()
+        plt.grid(True)
 
         plt.figure()
-        plt.hist(ev_mag_all,
-                 bins=np.linspace(int(float(input_dics['min_mag'])),
-                                  int(float(input_dics['max_mag'])),
-                                  (int(float(input_dics['max_mag'])) -
-                                  int(float(input_dics['min_mag'])))*2+1),
-                 alpha=0.75, log=True,
-                 histtype='stepfilled')
-        plt.xlabel('Magnitude', size=18, weight='bold')
-        plt.ylabel('#Events (log)', size=18, weight='bold')
+        hn, hbins, hpatches = \
+            plt.hist(ev_mag_all,
+                     bins=np.linspace(int(float(input_dics['min_mag'])),
+                                      int(float(input_dics['max_mag'])),
+                                      (int(float(input_dics['max_mag'])) -
+                                       int(float(input_dics['min_mag'])))*2+1),
+                     facecolor='g', alpha=0.5, log=True)
+
+        plt.xlabel('Magnitude', size=24, weight='bold')
+        plt.ylabel('#Events (log)', size=24, weight='bold')
         plt.yscale('log')
         plt.ylim(ymin=0.2)
         plt.xticks(size=18, weight='bold')
         plt.yticks(size=18, weight='bold')
         plt.tight_layout()
+        plt.grid(True)
 
     plt.show()

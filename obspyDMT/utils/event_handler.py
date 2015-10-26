@@ -627,7 +627,7 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
             print '[WARNING] %s' % error
             os.remove(x_add)
 
-    print "Cleaning up the temporary folder."
+    print "\ncleaning up the temporary folder."
     os.rmdir(dir_name)
     toc = time.clock()
     print '\n%s sec to retrieve the event info form NEIC.' % (toc-tic)
