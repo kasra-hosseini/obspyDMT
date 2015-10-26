@@ -430,6 +430,11 @@ def command_parse():
     group_plt.add_option("--plot_sta", action="store_true",
                          dest="plot_sta", help=helpmsg)
 
+    helpmsg = "plot all the availabilities (potential seismometers) found " \
+              "in the specified directory (--datapath)."
+    group_plt.add_option("--plot_availability", action="store_true",
+                         dest="plot_availability", help=helpmsg)
+
     helpmsg = "plot all the events found " \
               "in the specified directory (--datapath)."
     group_plt.add_option("--plot_ev", action="store_true",
@@ -783,8 +788,8 @@ def read_input_command(parser, **kwargs):
     else:
         input_dics['continuous'] = False
     if options.meta_data:
-        input_dics['event_based'] = False
-        input_dics['continuous'] = False
+        input_dics['event_based'] = options.event_based
+        input_dics['continuous'] = options.continuous
         input_dics['meta_data'] = options.meta_data
         input_dics['local'] = False
         input_dics['primary_mode'] = 'meta_data'
@@ -1022,6 +1027,7 @@ def read_input_command(parser, **kwargs):
 
     input_dics['plot'] = options.plot
     input_dics['plot_sta'] = options.plot_sta
+    input_dics['plot_availability'] = options.plot_availability
     input_dics['plot_ev'] = options.plot_ev
     input_dics['plot_focal'] = options.plot_focal
     input_dics['plot_ray'] = options.plot_ray
@@ -1031,9 +1037,9 @@ def read_input_command(parser, **kwargs):
     input_dics['plot_waveform'] = options.plot_waveform
 
     if input_dics['plot_waveform'] or input_dics['plot_sta'] or \
-            input_dics['plot_ev'] or input_dics['plot_focal'] or \
-            input_dics['plot_ray'] or input_dics['create_kml'] or \
-            input_dics['plot_seismicity']:
+            input_dics['plot_availability'] or input_dics['plot_ev'] or \
+            input_dics['plot_focal'] or input_dics['plot_ray'] or \
+            input_dics['create_kml'] or input_dics['plot_seismicity']:
         input_dics['plot'] = True
 
     input_dics['plot_dir_name'] = options.plot_dir_name

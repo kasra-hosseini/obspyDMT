@@ -148,7 +148,7 @@ def plot_unit(input_dics, events):
     if input_dics['plot_seismicity']:
         plot_seismicity(input_dics, events)
     if input_dics['plot_ev'] or input_dics['plot_sta'] or \
-            input_dics['plot_ray']:
+            input_dics['plot_availability'] or input_dics['plot_ray']:
         plot_sta_ev_ray(input_dics, events)
     if input_dics['plot_waveform']:
         plot_waveform(input_dics, events)
@@ -167,23 +167,24 @@ def plot_filter_event(input_dics, event_dic):
         return False
     if not event_dic['datetime'] >= UTCDateTime(input_dics['min_date']):
         return False
-    if not event_dic['magnitude'] <= float(input_dics['max_mag']):
-        return False
-    if not event_dic['magnitude'] >= float(input_dics['min_mag']):
-        return False
-    if not event_dic['depth'] <= float(input_dics['max_depth']):
-        return False
-    if not event_dic['depth'] >= float(input_dics['min_depth']):
-        return False
-    if isinstance(input_dics['evlatmin'], float):
-        if not event_dic['latitude'] <= float(input_dics['evlatmax']):
+    if not event_dic['magnitude'] < 0:
+        if not event_dic['magnitude'] <= float(input_dics['max_mag']):
             return False
-        if not event_dic['longitude'] <= float(input_dics['evlonmax']):
+        if not event_dic['magnitude'] >= float(input_dics['min_mag']):
             return False
-        if not event_dic['latitude'] >= float(input_dics['evlatmin']):
+        if not event_dic['depth'] <= float(input_dics['max_depth']):
             return False
-        if not event_dic['longitude'] >= float(input_dics['evlonmin']):
+        if not event_dic['depth'] >= float(input_dics['min_depth']):
             return False
+        if isinstance(input_dics['evlatmin'], float):
+            if not event_dic['latitude'] <= float(input_dics['evlatmax']):
+                return False
+            if not event_dic['longitude'] <= float(input_dics['evlonmax']):
+                return False
+            if not event_dic['latitude'] >= float(input_dics['evlatmin']):
+                return False
+            if not event_dic['longitude'] >= float(input_dics['evlonmin']):
+                return False
     return True
 
 # ##################### plot_waveform #########################################
@@ -280,6 +281,7 @@ def plot_sta_ev_ray(input_dics, events):
     """
     plt.figure(figsize=(20., 10.))
     plt_stations = input_dics['plot_sta']
+    plt_availability = input_dics['plot_availability']
     plt_events = input_dics['plot_ev']
     plt_ray_path = input_dics['plot_ray']
 
@@ -364,7 +366,7 @@ def plot_sta_ev_ray(input_dics, events):
                 m.scatter(x, y, color="blue", s=10*magnitude,
                           edgecolors='none', marker="o",
                           zorder=5, alpha=0.65)
-        if plt_stations or plt_ray_path:
+        if plt_stations or plt_availability or plt_ray_path:
             target_path = locate(input_dics['datapath'],
                                  events[ei]['event_id'])
             if len(target_path) > 1:
@@ -379,42 +381,51 @@ def plot_sta_ev_ray(input_dics, events):
                 print(target_path)
 
             update_sta_ev_file(target_path)
-            sta_ev_arr = np.loadtxt(os.path.join(target_path,
-                                                 'info', 'station_event'),
-                                    delimiter=',', dtype='object')
-            del_index = []
-            for sti in range(len(sta_ev_arr)):
+            if not input_dics['plot_availability']:
+                sta_ev_arr = np.loadtxt(os.path.join(target_path,
+                                                     'info', 'station_event'),
+                                        delimiter=',', dtype='object')
+            else:
+                sta_ev_arr = np.loadtxt(os.path.join(target_path,
+                                                     'info',
+                                                     'availability.txt'),
+                                        delimiter=',', dtype='object')
 
-                if not plot_filter_station(input_dics, sta_ev_arr[sti]):
-                    del_index.append(sti)
+            if events[ei]['magnitude'] > 0:
+                del_index = []
+                for sti in range(len(sta_ev_arr)):
 
-                dist, azi, bazi = gps2DistAzimuth(events[ei]['latitude'],
-                                                  events[ei]['longitude'],
-                                                  float(sta_ev_arr[sti, 4]),
-                                                  float(sta_ev_arr[sti, 5]))
+                    if not plot_filter_station(input_dics, sta_ev_arr[sti]):
+                        del_index.append(sti)
 
-                epi_dist = dist/111.194/1000.
-                if input_dics['min_azi'] or input_dics['max_azi'] or \
-                        input_dics['min_epi'] or input_dics['max_epi']:
-                    if input_dics['min_epi']:
-                        if epi_dist < input_dics['min_epi']:
-                            del_index.append(sti)
-                    if input_dics['max_epi']:
-                        if epi_dist > input_dics['max_epi']:
-                            del_index.append(sti)
-                    if input_dics['min_azi']:
-                        if azi < input_dics['min_azi']:
-                            del_index.append(sti)
-                    if input_dics['max_azi']:
-                        if azi > input_dics['max_azi']:
-                            del_index.append(sti)
+                    dist, azi, bazi = gps2DistAzimuth(
+                        events[ei]['latitude'],
+                        events[ei]['longitude'],
+                        float(sta_ev_arr[sti, 4]),
+                        float(sta_ev_arr[sti, 5]))
 
-            del_index = list(set(del_index))
-            del_index.sort(reverse=True)
-            for di in del_index:
-                sta_ev_arr = np.delete(sta_ev_arr, (di), axis=0)
+                    epi_dist = dist/111.194/1000.
+                    if input_dics['min_azi'] or input_dics['max_azi'] or \
+                            input_dics['min_epi'] or input_dics['max_epi']:
+                        if input_dics['min_epi']:
+                            if epi_dist < input_dics['min_epi']:
+                                del_index.append(sti)
+                        if input_dics['max_epi']:
+                            if epi_dist > input_dics['max_epi']:
+                                del_index.append(sti)
+                        if input_dics['min_azi']:
+                            if azi < input_dics['min_azi']:
+                                del_index.append(sti)
+                        if input_dics['max_azi']:
+                            if azi > input_dics['max_azi']:
+                                del_index.append(sti)
 
-        if plt_stations:
+                del_index = list(set(del_index))
+                del_index.sort(reverse=True)
+                for di in del_index:
+                    sta_ev_arr = np.delete(sta_ev_arr, (di), axis=0)
+
+        if plt_stations or plt_availability:
             if len(sta_ev_arr) > 0:
                 x, y = m(sta_ev_arr[:, 5], sta_ev_arr[:, 4])
                 m.scatter(x, y, color='red', s=width_station,

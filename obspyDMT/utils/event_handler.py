@@ -66,8 +66,9 @@ def get_time_window(input_dics, request):
         if input_dics['event_catalog'].lower() == 'local':
             if events_local == 'no_local':
                 print "[WARNING] no local event was found!"
-                print "[WARNING] use IRIS catalog instead!"
-                input_dics['event_catalog'] = 'IRIS'
+                if request == 'event_based':
+                    print "[WARNING] use IRIS catalog instead!"
+                    input_dics['event_catalog'] = 'IRIS'
             else:
                 events = copy.deepcopy(events_local)
                 events_qml = copy.deepcopy(events_qml_local)
@@ -110,7 +111,8 @@ def get_time_window(input_dics, request):
     print 'Time for retrieving and saving the event info: %s' \
           % str(timedelta(seconds=round(float(time.time() - t_event_1))))
 
-    if input_dics['primary_mode'] in ['event_based', 'continuous']:
+    if input_dics['primary_mode'] in ['event_based', 'continuous',
+                                      'meta_data']:
         # formatting output / check if directory exists
         eventpath = os.path.join(input_dics['datapath'])
         write_cat_logger(input_dics, eventpath, events, events_qml,
