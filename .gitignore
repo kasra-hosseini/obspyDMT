@@ -4,3 +4,4 @@ obspyDMT/ignore
 obspyDMT.egg-info
 *pyc
 dist
+obspyDMT/utils/old
