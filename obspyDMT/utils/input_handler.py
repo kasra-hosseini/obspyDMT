@@ -730,7 +730,7 @@ def read_input_command(parser, **kwargs):
         print 'obspyDMT Quick Tour will start in 2 sec!'
         print '########################################\n'
         time.sleep(2)
-        options.datapath = './dmt-tour-data'
+        options.datapath = './dmt_tour_dir'
         options.min_date = '2011-03-10'
         options.max_date = '2011-03-12'
         options.min_mag = '8.9'
@@ -830,7 +830,7 @@ def read_input_command(parser, **kwargs):
     input_dics['data_source'] = options.data_source
     if input_dics['data_source'].lower() == 'all':
         input_dics['data_source'] = \
-            "LMU,GFZ,ETH,INGV,NIEP,IPGP,RESIF,ORFEUS,ODC,BGR,KOERI," \
+            "LMU,GFZ,ETH,INGV,NEIP,IPGP,RESIF,ORFEUS,ODC,BGR,KOERI," \
             "GEONET,USP,NCEDC,SCEDC,IRIS,ARCLINK"
         print "\n================================="
         print "Waveforms will be retrieved from:"

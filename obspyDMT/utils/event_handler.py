@@ -334,27 +334,27 @@ def qml_to_event_list(events_QML):
 
         try:
             if not events_QML.events[i].focal_mechanisms == []:
-                half_duration = [
+                source_duration = [
                     events_QML.events[i].preferred_focal_mechanism()
                     ['moment_tensor']['source_time_function']['type'],
                     events_QML.events[i].preferred_focal_mechanism()
                     ['moment_tensor']['source_time_function']
                     ['duration']]
-                if not half_duration[1]:
-                    half_duration = mag_halfduration(
+                if not source_duration[1]:
+                    source_duration = mag_duration(
                         mag=events_QML.events[i].preferred_magnitude().mag)
             else:
-                half_duration = mag_halfduration(
+                source_duration = mag_duration(
                     mag=events_QML.events[i].preferred_magnitude().mag)
         except AttributeError:
-            print "[WARNING] half_duration does not exist for " \
+            print "[WARNING] source duration does not exist for " \
                   "event: %s -- set to False" % (i+1)
-            half_duration = False
+            source_duration = False
         except TypeError:
-            half_duration = False
+            source_duration = False
         except Exception, error:
             print error
-            half_duration = False
+            source_duration = False
 
         try:
             events.append(OrderedDict(
@@ -386,7 +386,7 @@ def qml_to_event_list(events_QML):
                  ('origin_id', events_QML.events[i].preferred_origin_id or
                   events_QML.events[i].origins[0].resource_id.resource_id),
                  ('focal_mechanism', focal_mechanism),
-                 ('half_duration', half_duration),
+                 ('source_duration', source_duration),
                  ('flynn_region', 'NAN'),
                  ]))
         except Exception, error:
@@ -430,7 +430,7 @@ def continuous_info(input_dics):
                  ('event_id', 'continuous' + cont_dir_name),
                  ('origin_id', -12345),
                  ('focal_mechanism', False),
-                 ('half_duration', False),
+                 ('source_duration', False),
                  ('flynn_region', 'NAN'),
                  ('t1', m_date + (i-1)*input_dics['interval'] +
                   input_dics['preset']),
@@ -455,7 +455,7 @@ def continuous_info(input_dics):
                  ('event_id', 'continuous' + cont_dir_name),
                  ('origin_id', -12345),
                  ('focal_mechanism', False),
-                 ('half_duration', False),
+                 ('source_duration', False),
                  ('flynn_region', 'NAN'),
                  ('t1', m_date + num_div*input_dics['interval'] +
                   input_dics['preset']),
@@ -474,7 +474,7 @@ def continuous_info(input_dics):
              ('event_id', 'continuous1'),
              ('origin_id', -12345),
              ('focal_mechanism', False),
-             ('half_duration', False),
+             ('source_duration', False),
              ('flynn_region', 'NAN'),
              ('t1', m_date),
              ('t2', M_date),
@@ -818,7 +818,7 @@ def event_spaces(events, request):
     events2 = copy.deepcopy(events)
     for i in range(len(events2)):
         for item_ev in ['t1', 't2', 'origin_id', 'magnitude_type',
-                        'focal_mechanism', 'half_duration']:
+                        'focal_mechanism', 'source_duration']:
             try:
                 del events2[i][item_ev]
             except Exception, error:
@@ -992,9 +992,9 @@ def sort_catalogue(cat):
 # ##################### mag_halfduration ###################################
 
 
-def mag_halfduration(mag, type_curve=1):
+def mag_duration(mag, type_curve=1):
     """
-    calculate the half_duration out of magnitude
+    calculate the source duration out of magnitude
     type_curve can be 1, 2, 3:
     1: 2005-2014
     2: 1976-1990
@@ -1010,6 +1010,7 @@ def mag_halfduration(mag, type_curve=1):
     elif type_curve == 3:
         half_duration = 0.00392*np.exp(1.101*mag)
     else:
-        sys.exit('%s Type for magnitude to half_duration conversion is not '
+        sys.exit('%s Type for magnitude to source duration conversion is not '
                  'implemented' % type_curve)
-    return ['triangle', round(half_duration, 3)]
+    source_duration = round(half_duration, 3)*2
+    return ['triangle', source_duration]

@@ -40,6 +40,7 @@ def plot_xml_response(input_dics):
     :param input_dics:
     :return:
     """
+    plt.rc('font', family='serif')
     print '[INFO] plotting StationXML file/files in: %s' % \
           input_dics['datapath']
     if not os.path.isdir('./stationxml_plots'):
@@ -412,6 +413,7 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
     :param cha_name:
     :return:
     """
+    plt.rc('font', family='serif')
     if not os.path.isdir('./stationxml_plots'):
         print '[INFO] creating stationxml_plots directory...',
         os.mkdir('./stationxml_plots')
