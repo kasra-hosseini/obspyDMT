@@ -315,13 +315,15 @@ def command_parse():
     group_ev_based.add_option("--event_catalog", action="store",
                               dest="event_catalog", help=helpmsg)
 
-    helpmsg = "only retrieve event information and exit!"
+    helpmsg = "retrieve event information without downloading actual " \
+              "waveform data."
     group_ev_based.add_option("--event_info", action="store_true",
                               dest="event_info", help=helpmsg)
 
     helpmsg = "read in an existing event catalog and proceed. " \
               "Currently supported data formats: " \
-              "'QUAKEML', 'MCHEDR', e.g.: --read_catalog 'path/to/file'"
+              "'QUAKEML', 'ZMAP', 'MCHEDR', 'NDK', " \
+              "e.g.: --read_catalog 'path/to/file'"
     group_ev_based.add_option("--read_catalog", action="store",
                               dest="read_catalog", help=helpmsg)
 
@@ -391,7 +393,8 @@ def command_parse():
 
     # --------------- processing ----------------------------------------------
     group_process = OptionGroup(parser, "11. processing")
-    helpmsg = "process the local/retrieved data. XXX"
+    helpmsg = "run the processing unit on the local/retrieved data. " \
+              "[default: True]"
     group_process.add_option("--pre_process", action="store",
                              dest="pre_process", help=helpmsg)
 

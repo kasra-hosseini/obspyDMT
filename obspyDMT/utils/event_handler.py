@@ -564,52 +564,59 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     num_div = int(dur_event/interval)
     print '#Divisions: %s' % num_div
     for i in range(1, num_div+1):
-        print i,
-        sys.stdout.flush()
-        t_start_split = m_date + (i-1)*interval
-        t_end_split = m_date + i*interval
-        br.form1['starttime'] = str(t_start_split)
-        br.form1['endtime'] = str(t_end_split)
+        try:
+            print i,
+            sys.stdout.flush()
+            t_start_split = m_date + (i-1)*interval
+            t_end_split = m_date + i*interval
+            br.form1['starttime'] = str(t_start_split)
+            br.form1['endtime'] = str(t_end_split)
 
-        # Final output will be now porcessed
-        request = br.form1.click()
-        br.open(request)
-        url = br.geturl()
+            # Final output will be now porcessed
+            request = br.form1.click()
+            br.open(request)
+            url = br.geturl()
 
-        remotefile = ('%s' % url)
-        page = urllib2.urlopen(remotefile)
-        page_content = page.read()
+            remotefile = ('%s' % url)
+            page = urllib2.urlopen(remotefile)
+            page_content = page.read()
 
-        if 'quakeml' in page_content:
-            with open(os.path.join(dir_name,
-                                   'temp_neic_xml_%05i.xml' % i), 'w') as fid:
-                fid.write(page_content)
-            fid.close()
-        else:
-            continue
+            if 'quakeml' in page_content:
+                with open(os.path.join(dir_name,
+                                       'temp_neic_xml_%05i.xml' % i), 'w') \
+                        as fid:
+                    fid.write(page_content)
+                fid.close()
+            else:
+                continue
+        except Exception, error:
+            print "\nWARNING: %s\n" % error
 
-    final_time = m_date + num_div*interval
-    if not M_date == final_time:
-        t_start_split = m_date + num_div*interval
-        t_end_split = M_date
-        br.form1['starttime'] = str(t_start_split)
-        br.form1['endtime'] = str(t_end_split)
+    try:
+        final_time = m_date + num_div*interval
+        if not M_date == final_time:
+            t_start_split = m_date + num_div*interval
+            t_end_split = M_date
+            br.form1['starttime'] = str(t_start_split)
+            br.form1['endtime'] = str(t_end_split)
 
-        # Final output will be now porcessed
-        request = br.form1.click()
-        br.open(request)
-        url = br.geturl()
+            # Final output will be now porcessed
+            request = br.form1.click()
+            br.open(request)
+            url = br.geturl()
 
-        remotefile = ('%s' % url)
-        page = urllib2.urlopen(remotefile)
-        page_content = page.read()
+            remotefile = ('%s' % url)
+            page = urllib2.urlopen(remotefile)
+            page_content = page.read()
 
-        if 'quakeml' in page_content:
-            with open(os.path.join(dir_name,
-                                   'temp_neic_xml_%05i.xml' % (num_div+1)),
-                      'w') as fid:
-                fid.write(page_content)
-            fid.close()
+            if 'quakeml' in page_content:
+                with open(os.path.join(dir_name,
+                                       'temp_neic_xml_%05i.xml' % (num_div+1)),
+                          'w') as fid:
+                    fid.write(page_content)
+                fid.close()
+    except Exception, error:
+        print "\nWARNING: %s\n" % error
 
     xml_add = glob.glob(os.path.join(dir_name, 'temp_neic_xml_*.xml'))
     xml_add.sort()
@@ -685,8 +692,9 @@ def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     yy_ret = []
     mm_ret = []
     remotefile_add = False
-    try:
-        for i in range(len(yymmls)):
+
+    for i in range(len(yymmls)):
+        try:
             yy = yymmls[i][0:4]
             mm = yymmls[i][4:6]
             if int(yy) < 2006:
@@ -720,10 +728,10 @@ def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
             cat.extend(readEvents(file_to_open))
             yy_ret.append(yy)
             mm_ret.append(mm)
-        print 'Done reading the data from GCMT webpage.'
-    except Exception, error:
-        print "ERROR: %s" % error
+        except Exception, error:
+            print "ERROR: %s" % error
 
+    print 'Done reading the data from GCMT webpage.'
     toc = datetime.now()
     print '%s sec to retrieve the event info form GCMT.' % (toc-tic)
 
