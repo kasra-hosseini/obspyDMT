@@ -34,7 +34,7 @@ Software functionality:
 
 This tutorial has been divided into the following sections: 
 
-1.  [How to cite obspyDMT]
+1.  [How to cite obspyDMT]()
 2.  `Lets get started`_: install obspyDMT and check your local machine for required dependencies.
 3.  `Quick tour`_: run a quick tour.
 4.  `Option types`_: there are two types of options in obspyDMT: *option-1* (with value) and *option-2* (without value)
