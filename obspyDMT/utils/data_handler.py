@@ -300,7 +300,8 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
 
         if input_dics['waveform']:
             dummy = 'waveform'
-            if not os.path.isfile(os.path.join(target_path, 'raw', st_id)):
+            if (not os.path.isfile(os.path.join(target_path, 'raw', st_id)))\
+                    or input_dics['force_waveform']:
                 client_fdsn.get_waveforms(st_avail[0], st_avail[1],
                                           st_avail[2], st_avail[3],
                                           t_start, t_end,
@@ -315,19 +316,20 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
 
         if input_dics['response']:
             dummy = 'response'
-            if not os.path.isfile(os.path.join(target_path, 'resp',
-                                               'STXML.' + st_id)):
-                if not os.path.isfile(os.path.join(target_path, 'resp',
-                                                   'DATALESS.' + st_id)):
-                    client_fdsn.get_stations(network=st_avail[0],
-                                             station=st_avail[1],
-                                             location=st_avail[2],
-                                             channel=st_avail[3],
-                                             starttime=t_start, endtime=t_end,
-                                             filename=os.path.join(
-                                                 target_path, 'resp',
-                                                 'STXML.%s' % st_id),
-                                             level='response')
+            if (not os.path.isfile(os.path.join(target_path, 'resp',
+                                                'STXML.' + st_id))) \
+                or (not os.path.isfile(os.path.join(target_path, 'resp',
+                                                    'DATALESS.' + st_id))) \
+                    or input_dics['force_response']:
+                client_fdsn.get_stations(network=st_avail[0],
+                                         station=st_avail[1],
+                                         location=st_avail[2],
+                                         channel=st_avail[3],
+                                         starttime=t_start, endtime=t_end,
+                                         filename=os.path.join(
+                                             target_path, 'resp',
+                                             'STXML.%s' % st_id),
+                                         level='response')
                 identifier += 100
                 print "%s -- %s -- saving response for: %s  ---> DONE" \
                       % (info_station, req_cli, st_id)
@@ -537,7 +539,8 @@ def arc_download_core(st_avail, event, input_dics, target_path,
 
         if input_dics['waveform']:
             dummy = 'waveform'
-            if not os.path.isfile(os.path.join(target_path, 'raw', st_id)):
+            if (not os.path.isfile(os.path.join(target_path, 'raw', st_id))) \
+                    or input_dics['force_waveform']:
                 client_arclink.saveWaveform(os.path.join(target_path,
                                                          'raw', st_id),
                                             st_avail[0], st_avail[1],
@@ -551,15 +554,16 @@ def arc_download_core(st_avail, event, input_dics, target_path,
 
         if input_dics['response']:
             dummy = 'response'
-            if not os.path.isfile(os.path.join(target_path, 'resp',
-                                               'STXML.' + st_id)):
-                if not os.path.isfile(os.path.join(target_path, 'resp',
-                                                   'DATALESS.' + st_id)):
-                    client_arclink.saveResponse(
-                        os.path.join(target_path, 'resp',
-                                     'DATALESS.%s' % st_id),
-                        st_avail[0], st_avail[1], st_avail[2], st_avail[3],
-                        t_start, t_end)
+            if (not os.path.isfile(os.path.join(target_path, 'resp',
+                                                'STXML.' + st_id))) \
+                or (not os.path.isfile(os.path.join(target_path, 'resp',
+                                                    'DATALESS.' + st_id))) \
+                    or input_dics['force_response']:
+                client_arclink.saveResponse(
+                    os.path.join(target_path, 'resp',
+                                 'DATALESS.%s' % st_id),
+                    st_avail[0], st_avail[1], st_avail[2], st_avail[3],
+                    t_start, t_end)
                 identifier += 100
                 print "%s -- %s -- saving response for: %s  ---> DONE" \
                       % (info_station, req_cli, st_id)

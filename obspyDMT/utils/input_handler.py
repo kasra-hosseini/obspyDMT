@@ -124,9 +124,19 @@ def command_parse():
     group_general.add_option("--waveform", action="store_true",
                              dest="waveform", help=helpmsg)
 
+    helpmsg = "force to retrieve waveform(s) even though they might " \
+              "already exist in the directory."
+    group_general.add_option("--force_waveform", action="store_true",
+                             dest="force_waveform", help=helpmsg)
+
     helpmsg = "retrieve the response file(s). [default]"
     group_general.add_option("--response", action="store_true",
                              dest="response", help=helpmsg)
+
+    helpmsg = "force to retrieve response file(s) even though they might " \
+              "already exist in the directory."
+    group_general.add_option("--force_response", action="store_true",
+                             dest="force_response", help=helpmsg)
 
     helpmsg = "set of selected directory names to update/process/plot. " \
               "If it is not specified, all available directories " \
@@ -398,6 +408,17 @@ def command_parse():
     group_process.add_option("--pre_process", action="store",
                              dest="pre_process", help=helpmsg)
 
+    helpmsg = "force to run the processing unit on the local/retrieved " \
+              "data. Although the processed data might exist."
+    group_process.add_option("--force_process", action="store_true",
+                             dest="force_process", help=helpmsg)
+
+    helpmsg = "before processing, select one waveform every X degree(s). " \
+              "syntax: --select_data 5, i.e. select one waveform every 5 " \
+              "degrees. [default: False]"
+    group_process.add_option("--select_data", action="store",
+                             dest="select_data", help=helpmsg)
+
     helpmsg = "apply instrument correction in the process unit."
     group_process.add_option("--instrument_correction", action="store_true",
                              dest="instrument_correction", help=helpmsg)
@@ -647,6 +668,7 @@ def read_input_command(parser, **kwargs):
                   'interval': 3600*24,
 
                   'pre_process': 'True',
+                  'select_data': False,
                   'corr_unit': 'DIS',
                   'pre_filt': '(0.008, 0.012, 3.0, 4.0)',
                   'water_level': 600.0,
@@ -779,6 +801,10 @@ def read_input_command(parser, **kwargs):
         options.local = True
 
     input_dics['pre_process'] = eval(options.pre_process)
+    input_dics['force_process'] = options.force_process
+    input_dics['select_data'] = options.select_data
+    if input_dics['select_data']:
+        input_dics['select_data'] = float(input_dics['select_data'])
     input_dics['event_based'] = options.event_based
     input_dics['primary_mode'] = 'event_based'
 
@@ -845,7 +871,9 @@ def read_input_command(parser, **kwargs):
         input_dics['data_source'][cli] = input_dics['data_source'][cli].upper()
 
     input_dics['waveform'] = options.waveform
+    input_dics['force_waveform'] = options.force_waveform
     input_dics['response'] = options.response
+    input_dics['force_response'] = options.force_response
 
     input_dics['dir_select'] = options.dir_select
     if input_dics['dir_select']:
@@ -1145,7 +1173,8 @@ def input_logger(argus, address, inputs):
     :param inputs:
     :return:
     """
-    st_argus = 'Command line:\n-------------\n'
+    st_argus = '\n\n' + 20*'='
+    st_argus += 'command line:\n-------------\n'
     for item in argus:
         st_argus += item + ' '
     st_argus += '\n\ninputs:\n-------\n'
@@ -1155,6 +1184,6 @@ def input_logger(argus, address, inputs):
     items.sort()
     for item in items:
         st_argus += '%s: %s\n' % (item, inputs[item])
-    logger_open = open(address, 'w')
+    logger_open = open(address, 'a')
     logger_open.write(st_argus)
     logger_open.close()

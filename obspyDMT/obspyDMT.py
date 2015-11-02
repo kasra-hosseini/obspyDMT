@@ -83,7 +83,7 @@ def obspyDMT(**kwargs):
     # ------------------processing---------------------------------------------
     # From this section, we do not need to connect to the data sources anymore.
     # This consists of pre_processing and plotting tools.
-    if input_dics['pre_process']:
+    if input_dics['pre_process'] or input_dics['select_data']:
         for ev in range(len(events)):
             process_data(input_dics, events[ev])
     # ------------------plotting-----------------------------------------------

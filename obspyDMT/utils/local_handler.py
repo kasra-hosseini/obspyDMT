@@ -64,10 +64,50 @@ def process_data(input_dics, event):
     update_sta_ev_file(target_path)
     sta_ev_arr = np.loadtxt(os.path.join(target_path, 'info', 'station_event'),
                             delimiter=',', dtype='object')
+    if input_dics['select_data']:
+        sta_ev_arr = select_data(deg_step=float(input_dics['select_data']),
+                                 sta_ev=sta_ev_arr)
     if len(sta_ev_arr) > 0:
         process_serial_parallel(sta_ev_arr, input_dics, target_path)
     else:
         print("[LOCAL] no waveform to process for %s!" % target_path)
+
+# ###################### select_data #################################
+
+
+def select_data(deg_step, sta_ev):
+    """
+    select stations every deg_step
+    :param deg_step:
+    :param sta_ev:
+    :return:
+    """
+    lat_step = deg_step
+    lon_step = deg_step
+    eradius = 6371
+    lats = np.arange(-90, 90+lat_step, lat_step)
+    lons = np.arange(-180, 180+lon_step, lon_step)
+    grd_points = np.empty([len(lats)*len(lons), 2])
+
+    counter = 0
+    for lat in lats:
+        for lon in lons:
+            grd_points[counter, 0] = lat
+            grd_points[counter, 1] = lon
+            counter += 1
+
+    from utils.spherical_nearest import SphericalNearestNeighbour
+    kd = SphericalNearestNeighbour(grd_points[:, 0],
+                                   grd_points[:, 1],
+                                   np.zeros(len(grd_points[:, 1])),
+                                   eradius=eradius)
+    dists, indxs = kd.query(sta_ev[:, 4].astype(np.float),
+                            sta_ev[:, 5].astype(np.float),
+                            np.zeros(len(sta_ev[:, 4])),
+                            1)
+    indxs_unique = np.unique(indxs, return_index=True)
+    sta_ev_arr_unique = sta_ev[indxs_unique]
+    return sta_ev_arr_unique
 
 # ###################### process_serial_parallel ##############################
 
@@ -124,6 +164,8 @@ def process_core_iterate(sta_ev_arr, input_dics, target_path, starti, endi):
         tr_add = os.path.join(target_path, 'raw', station_id)
         data_source = staev_ar[8]
         if input_dics['pre_process']:
+            print('[%s/%s] start processing: %s'
+                  % (i+1, len(sta_ev_arr), station_id))
             process_unit(tr_add, target_path, input_dics, staev_ar)
 
 # ###################### plot_unit ############################################

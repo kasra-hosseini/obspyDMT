@@ -669,10 +669,17 @@ def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     # for the time record
     tic = datetime.now()
 
-    if not os.path.exists('gcmt_catalog'):
-        os.mkdir('gcmt_catalog')
-        os.mkdir(os.path.join('gcmt_catalog', 'NEW_MONTHLY'))
-        os.mkdir(os.path.join('gcmt_catalog', 'COMBO'))
+    try:
+        import obspyDMT
+        dmt_path = obspyDMT.__path__[0]
+    except Exception, error:
+        print "WARNING: %s" % error
+        dmt_path = '.'
+    gcmt_cat_path = os.path.join(dmt_path, 'gcmt_catalog')
+    if not os.path.exists(gcmt_cat_path):
+        os.mkdir(gcmt_cat_path)
+        os.mkdir(os.path.join(gcmt_cat_path, 'NEW_MONTHLY'))
+        os.mkdir(os.path.join(gcmt_cat_path, 'COMBO'))
 
     # creating a time list
     t_list = []
@@ -705,7 +712,7 @@ def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
                               'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
             if int(yy) >= 2005:
                 new_monthly = 'NEW_MONTHLY'
-                file_to_open = os.path.join('gcmt_catalog', new_monthly,
+                file_to_open = os.path.join(gcmt_cat_path, new_monthly,
                                             '%s%s.ndk'
                                             % (month_year[int(mm)-1], yy[-2:]))
                 remotefile_add = '%s/%s/%s/%s%s.ndk' \
@@ -715,7 +722,7 @@ def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
                 new_monthly = 'COMBO'
                 if yy in yy_ret:
                     continue
-                file_to_open = os.path.join('gcmt_catalog', new_monthly,
+                file_to_open = os.path.join(gcmt_cat_path, new_monthly,
                                             '%s.qml' % yy)
             if not os.path.exists(file_to_open) and not new_monthly == 'COMBO':
                 print 'Reading the data from GCMT webpage: %s' % yymmls[i]
