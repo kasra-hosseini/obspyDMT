@@ -99,13 +99,13 @@ def command_parse():
     group_general = OptionGroup(parser, "04. general options (all modes)")
     helpmsg = "print available data sources. " \
               "These are the data-centers that can be given as " \
-              "arguments for --data_source."
+              "arguments to --data_source."
     group_general.add_option("--print_data_sources", action="store_true",
                              dest="print_data_sources", help=helpmsg)
 
     helpmsg = "print available event catalogs. " \
               "These are the event-catalogs that can be given as " \
-              "arguments for --event_catalog."
+              "arguments to --event_catalog."
     group_general.add_option("--print_event_catalogs", action="store_true",
                              dest="print_event_catalogs", help=helpmsg)
 
@@ -215,7 +215,8 @@ def command_parse():
 
     helpmsg = "format of the waveforms. the retrieved waveforms are in " \
               "mseed format, but it is possible to convert them to SAC. " \
-              "This will fill in some basic header information as well."
+              "This will fill in some basic header information as well. " \
+              "syntax: --waveform_format 'sac'"
     group_tw.add_option("--waveform_format", action="store",
                         dest="waveform_format", help=helpmsg)
 
@@ -223,7 +224,7 @@ def command_parse():
               "Both methods use sharp low pass filter before resampling " \
               "to avoid any aliasing effects. If the desired sampling rate " \
               "is 5 times lower than the original one, it will be " \
-              "automatically done in several stages. [default: decimate]"
+              "automatically done in several stages. [default: lanczos]"
     group_tw.add_option("--resample_method", action="store",
                         dest="resample_method", help=helpmsg)
 
@@ -290,7 +291,7 @@ def command_parse():
               "Since this method returns multiple channels of " \
               "time series data for specified time ranges in one request, " \
               "it speeds up the waveform retrieving approximately by " \
-              "a factor of two. [RECOMMENDED]"
+              "a factor of two."
     group_parallel.add_option("--bulk", action="store_true",
                               dest="bulk", help=helpmsg)
 
@@ -492,8 +493,9 @@ def command_parse():
     group_plt.add_option("--plot_waveform", action="store_true",
                          dest="plot_waveform", help=helpmsg)
 
-    helpmsg = "directory name that contains the waveforms, e.g.: raw. " \
-              "[default: raw]"
+    helpmsg = "directory name that contains the waveforms for " \
+              "--plot_waveform option flag, e.g.: " \
+              "--plot_waveform 'processed' [default: raw]"
     group_plt.add_option("--plot_dir_name", action="store",
                          dest="plot_dir_name", help=helpmsg)
 

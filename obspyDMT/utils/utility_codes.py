@@ -49,9 +49,9 @@ def header_printer():
     """
     os.system('clear')
     print 80*'-'
-    print '\t\tobspyDMT (obspy Data Management Tool)\n'
-    print '\tAutomatic tool for Downloading, Processing and Management'
-    print '\t\t\tof Large Seismological Datasets\n'
+    print '\t\t   obspyDMT (obspy Data Management Tool)\n'
+    print '\tPython Toolbox for Retrieving, Processing and Management of'
+    print '\t\t\tLarge Seismological Datasets\n'
     print ':copyright:'
     print 'The ObsPy Development Team (devs@obspy.org)\n'
     print 'Developed by Kasra Hosseini'
