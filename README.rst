@@ -56,16 +56,18 @@ This tutorial has following sections:
 19. `Algorithm`_: flow chart of the main steps in each obspyDMT mode.
 20. `Example: RHUM-RUM stations`_: exclusively for RHUM-RUM users.
 
-## How to cite obspyDMT
+====================
+How to cite obspyDMT
+====================
 
 If you use obspyDMT, please consider citing the code as:
 
-```
-Kasra Hosseini (2015), obspyDMT (Version 1.0.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
-```
+::
+
+    Kasra Hosseini (2015), obspyDMT (Version 1.0.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
 
 We have also published a paper in SRL (Seismological Research Letters) for obspyDMT's predecessor that we kindly ask you to cite in case that you found obspyDMT useful for your research:
 
-```
-C. Scheingraber, K. Hosseini, R. Barsch, and K. Sigloch (2013), ObsPyLoad - a tool for fully automated retrieval of seismological waveform data, Seismological Research Letters, 84(3), 525-531, DOI:10.1785/0220120103.
-```
+::
+
+    C. Scheingraber, K. Hosseini, R. Barsch, and K. Sigloch (2013), ObsPyLoad - a tool for fully automated retrieval of seismological waveform data, Seismological Research Letters, 84(3), 525-531, DOI:10.1785/0220120103.
