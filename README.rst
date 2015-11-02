@@ -1,4 +1,6 @@
-# obspyDMT: A Python Toolbox for Retrieving and Processing of Large Seismological Datasets
+========================================================================================
+obspyDMT: A Python Toolbox for Retrieving and Processing of Large Seismological Datasets
+========================================================================================
 
 Welcome to obspyDMT version 2.0.0 tutorial!
 
@@ -31,10 +33,9 @@ Software functionality:
 -   Retrieval of synthetic seismograms, for comparison to real data.
 
 
+This tutorial has following sections: 
 
-This tutorial has been divided into the following sections: 
-
-1.  [How to cite obspyDMT]()
+1.  `How to cite obspyDMT`_
 2.  `Lets get started`_: install obspyDMT and check your local machine for required dependencies.
 3.  `Quick tour`_: run a quick tour.
 4.  `Option types`_: there are two types of options in obspyDMT: *option-1* (with value) and *option-2* (without value)
