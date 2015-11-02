@@ -139,11 +139,9 @@ To have an overview on the retrieved raw counts, the waveforms can be plotted by
 
     obspyDMT --datapath dmt_tour_dir --local --plot_waveform --min_date 2011-01-01
 
-
 .. image:: figures/epi_time_20110311_1_raw.png
-:scale: 60%
+   :scale: 60%
    :align: center
-
 
 for plotting the corrected waveforms:
 
@@ -151,11 +149,9 @@ for plotting the corrected waveforms:
 
     obspyDMT --datapath dmt_tour_dir --local --plot_waveform --min_date 2011-01-01 --plot_dir_name processed
 
-
 .. image:: figures/epi_time_20110311_1.png
-:scale: 60%
+   :scale: 60%
    :align: center
-
 
 obspyDMT plots the ray coverage (ray path between each source-receiver pair) by:
 
@@ -163,26 +159,21 @@ obspyDMT plots the ray coverage (ray path between each source-receiver pair) by:
 
     obspyDMT --datapath dmt_tour_dir --local --plot_ev --plot_sta --plot_ray --min_date 2011-01-01
 
-
 .. image:: figures/tour_ray.png
-:scale: 75%
+   :scale: 75%
    :align: center
-
 
 It is also possible to change the map projection in the pop-up menu (with the same command line as above):
 
-
 .. image:: figures/tour_ray_shaded.png
-:scale: 75%
+   :scale: 75%
    :align: center
-
 
 -------------------
 Directory structure
 -------------------
 
 obspyDMT organizes the data in a simple and efficient way. For each request, it creates a parent directory at *datapath* and arranges the retrieved data either in different event directories (*event-based request*) or in chronologically named directories (*continuous request*). It also creates a directory in which a catalog of all requested events/time spans are stored. Raw waveforms, StationXML/response files and corrected waveforms are collected in sub-directories. While retrieving the data, obspyDMT creates metadata files such as station/event location files, and they are all stored in *info* directory of each event.
-
 
 .. image:: figures/dmt_dir_structure.png
    :scale: 80%
