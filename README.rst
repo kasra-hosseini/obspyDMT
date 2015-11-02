@@ -36,25 +36,6 @@ Software functionality:
 This tutorial has following sections: 
 
 1.  `How to cite obspyDMT`_
-2.  `Lets get started`_: install obspyDMT and check your local machine for required dependencies.
-3.  `Quick tour`_: run a quick tour.
-4.  `Option types`_: there are two types of options in obspyDMT: *option-1* (with value) and *option-2* (without value)
-5.  `event-info request`_: if you are looking for some events and you want to get info about them without downloading waveforms.
-6.  `event-based request`_: retrieve the waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
-7.  `continuous request`_: retrieve the waveforms, stationXML/response files and meta-data of all the requested stations and for the requested time span.
-8.  `Update`_: if you want to continue an interrupted request or complete your existing archive.
-9.  `Geographical restriction`_: if you want to work with the events happened in a specific geographical coordinate and/or retrieving the data from the stations in a specific circular or rectangular bounding area.
-10. `Instrument correction`_: applying instrument correction to raw counts using stationXML/response files.
-11. `Parallel retrieving and processing`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
-12. `Resampling raw and corrected waveforms`_: how to automatically resample raw and/or corrected waveforms while creating a database.
-13. `Plot`_: for an existing archive, you can plot all the events and/or all the stations, ray path for event-station pairs and epicentral-distance/time for the waveforms using GMT-5 or basemap tools.
-14. `Explore stationXML file`_: how to explore and analyze different stages available in a stationXML file.
-15. `Seismicity`_: plot the geographical and historical distribution of earthquake activities (seismicity).
-16. `NEIC and GCMT`_: retrieving event information including moment tensor from NEIC or GCMT.
-17. `Folder structure`_: the way that obspyDMT organizes your retrieved and processed data in the file-based mode.
-18. `Available options`_: all options currently available in obspyDMT.
-19. `Algorithm`_: flow chart of the main steps in each obspyDMT mode.
-20. `Example: RHUM-RUM stations`_: exclusively for RHUM-RUM users.
 
 ====================
 How to cite obspyDMT
@@ -71,3 +52,5 @@ We have also published a paper in SRL (Seismological Research Letters) for obspy
 ::
 
     C. Scheingraber, K. Hosseini, R. Barsch, and K. Sigloch (2013), ObsPyLoad - a tool for fully automated retrieval of seismological waveform data, Seismological Research Letters, 84(3), 525-531, DOI:10.1785/0220120103.
+
+.. _obspyDMT: https://github.com/kasra-hosseini/obspyDMT
