@@ -352,8 +352,7 @@ Explore stationXML file
     obspyDMT --datapath /path/to/STXML.IC.XAN.00.BHZ --plot stationxml --plotxml paz --plotxml min freq 0.0001
 
 .. image:: figures/ic_XAN.png
-   :width: 5 px
-   :height: 5 px
+   :scale: 75%
    :align: center
 
 ::
@@ -361,14 +360,14 @@ Explore stationXML file
     obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot stationxml --plotxml paz --plotxml min freq 0.0001
 
 .. image:: figures/ic_LBTB.png
-   :scale: 1
+   :scale: 75%
    :align: center
 ::
 
     obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot stationxml --plotxml min freq 0.0001 --plotxml allstages
 
 .. image:: figures/ic_LBTB_stages.png
-   :scale: 1
+   :scale: 75%
    :align: center
 
 -------------------
