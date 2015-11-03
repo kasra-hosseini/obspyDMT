@@ -43,8 +43,9 @@ This tutorial has following sections:
 6.  `event_based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
 7.  `continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations and for the requested time span.
 8.  `processing`_: process the data right after retrieval and/or on a data-set.
-9.  `Explore stationXML file`_: explore and analyze stationXML file(s).
-10. `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
+9.  `Parallel retrieving and processing`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
+10. `Explore stationXML file`_: explore and analyze stationXML file(s).
+11. `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
 
 --------------------
 How to cite obspyDMT
@@ -342,6 +343,25 @@ we need --force_process since we have already processed the data in the previous
 .. image:: figures/lmu_resampled_zoomed.png
    :scale: 75%
    :align: center
+
+----------------------------------
+Parallel retrieving and processing
+----------------------------------
+
+enable parallel waveform/response request with X threads.
+::
+
+    --req_parallel --req_np X
+
+enable parallel processing with X threads.
+::
+
+    --parallel_process --process_np X
+
+using the bulkdataselect web service. Since this method returns multiple channels of time series data for specified time ranges in one request, it speeds up the waveform retrieving.
+::
+
+    --bulk
 
 -----------------------
 Explore stationXML file
