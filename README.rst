@@ -353,6 +353,7 @@ Explore stationXML file
 
 .. image:: figures/ic_XAN.png
    :width: 5 px
+   :height: 5 px
    :align: center
 
 ::
