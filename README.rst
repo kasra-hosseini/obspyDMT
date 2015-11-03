@@ -42,6 +42,7 @@ This tutorial has following sections:
 5.  `event_info request`_: get info about events without downloading waveforms.
 6.  `event_based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
 7.  `continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations and for the requested time span.
+8.  `processing`_: process the data right after retrieval and/or on a data-set.
 8. `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
 
 --------------------
@@ -290,6 +291,54 @@ continuous mode
     obspyDMT --datapath continuous_dir --min_date 2014-01-01 --max_date 2014-02-01 --net TA --sta "1*" --cha BHZ --continuous
 
 .. image:: figures/continuous_example.png
+   :scale: 75%
+   :align: center
+
+----------
+processing
+----------
+
+Processing of the data set using default or user defined processing function; user can customize the processing unit by writing a script in obspy, SAC and/or any other processing tool on the waveform level; Application to the whole data set directly after data-retrieval or as a separate step. Support for parallelized processing.
+
+Only apply instrument correction:
+
+::
+
+    obspyDMT --datapath lmu_process_dir --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 8.0 --event_catalog NEIC_USGS --data_source "LMU" --cha "BHZ,HHZ" --preset 300 --offset 3600 --instrument_correction
+
+::
+
+    obspyDMT --datapath lmu_process_dir --local --plot --plot_waveform --min_date 2014-01-01
+
+.. image:: figures/lmu_raw_counts.png
+   :scale: 75%
+   :align: center
+
+::
+
+    obspyDMT --datapath lmu_process_dir --local --plot --plot_waveform --plot_dir_name processed --min_date 2014-01-01
+
+.. image:: figures/lmu_processed.png
+   :scale: 75%
+   :align: center
+
+.. image:: figures/lmu_not_resampled_zoomed.png
+   :scale: 75%
+   :align: center
+
+Resample the already archived waveforms to (1Hz) and apply instrument correction:
+
+::
+
+    obspyDMT --datapath lmu_process_dir --local --instrument_correction --sampling_rate 1. --force_process
+
+we need --force_process since we have already processed the data in the previous step.
+
+.. image:: figures/lmu_resampled.png
+   :scale: 75%
+   :align: center
+
+.. image:: figures/lmu_resampled_zoomed.png
    :scale: 75%
    :align: center
 
