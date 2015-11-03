@@ -277,7 +277,7 @@ To create KML file:
    :scale: 75%
    :align: center
 
-.. image:: figures/google_earth_zoom.jpg
+.. image:: figures/google_earth_zoom.png
    :scale: 75%
    :align: center
 
