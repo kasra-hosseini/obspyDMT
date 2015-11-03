@@ -359,7 +359,7 @@ Explore stationXML file
 
     obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot stationxml --plotxml paz --plotxml min freq 0.0001
 
-.. image:: figures/ic_LBTB.png
+.. figure:: figures/ic_LBTB.png
    :scale: 1
    :align: center
 ::
