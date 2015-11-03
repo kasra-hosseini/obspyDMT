@@ -43,7 +43,8 @@ This tutorial has following sections:
 6.  `event_based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
 7.  `continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations and for the requested time span.
 8.  `processing`_: process the data right after retrieval and/or on a data-set.
-8. `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
+9.  `Explore stationXML file`_: explore and analyze stationXML file(s).
+10. `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
 
 --------------------
 How to cite obspyDMT
@@ -339,6 +340,33 @@ we need --force_process since we have already processed the data in the previous
    :align: center
 
 .. image:: figures/lmu_resampled_zoomed.png
+   :scale: 75%
+   :align: center
+
+-----------------------
+Explore stationXML file
+-----------------------
+
+::
+
+    obspyDMT --datapath /path/to/STXML.IC.XAN.00.BHZ --plot stationxml --plotxml paz --plotxml min freq 0.0001
+
+.. image:: figures/ic_XAN.png
+   :scale: 75%
+   :align: center
+
+::
+
+    obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot stationxml --plotxml paz --plotxml min freq 0.0001
+
+.. image:: figures/ic_LBTB.png
+   :scale: 75%
+   :align: center
+::
+
+    obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot stationxml --plotxml min freq 0.0001 --plotxml allstages
+
+.. image:: figures/ic_LBTB_stages.png
    :scale: 75%
    :align: center
 
