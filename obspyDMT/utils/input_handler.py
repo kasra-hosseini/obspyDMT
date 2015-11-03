@@ -643,7 +643,7 @@ def read_input_command(parser, **kwargs):
                   'preset': 0.0, 'offset': 1800.0,
                   'waveform_format': False,
                   'resample_method': 'lanczos',
-                  'sampling_rate': None,
+                  'sampling_rate': False,
 
                   'net': '*', 'sta': '*', 'loc': '*', 'cha': '*',
                   'lat_cba': None, 'lon_cba': None,
