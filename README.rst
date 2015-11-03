@@ -319,9 +319,9 @@ Only apply instrument correction:
 
     obspyDMT --datapath lmu_process_dir --local --plot --plot_waveform --plot_dir_name processed --min_date 2014-01-01
 
-.. image:: figures/lmu_processed.png
-   :scale: 75%
-   :align: center
+.. .. image:: figures/lmu_processed.png
+..    :scale: 75%
+..    :align: center
 
 .. image:: figures/lmu_not_resampled_zoomed.png
    :scale: 75%
@@ -335,9 +335,9 @@ Resample the already archived waveforms to (1Hz) and apply instrument correction
 
 we need --force_process since we have already processed the data in the previous step.
 
-.. image:: figures/lmu_resampled.png
-   :scale: 75%
-   :align: center
+.. .. image:: figures/lmu_resampled.png
+..    :scale: 75%
+..    :align: center
 
 .. image:: figures/lmu_resampled_zoomed.png
    :scale: 75%
