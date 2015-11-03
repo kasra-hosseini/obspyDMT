@@ -44,7 +44,11 @@ def process_unit(tr_add, target_path, input_dics, staev_ar):
     # 2. in case that there are more than one waveform in a Stream (this can
     # happen due to some gaps in the waveforms) merge them.
     if len(st) > 1:
-        st.merge(method=1, fill_value=0, interpolation_samples=0)
+        try:
+            st.merge(method=1, fill_value=0, interpolation_samples=0)
+        except Exception, error:
+            print 'WARNING: %s' % error
+            return False
     # 3. Now, there is only one waveform, create a Trace
     tr = st[0]
 
