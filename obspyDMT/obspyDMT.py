@@ -58,13 +58,13 @@ def obspyDMT(**kwargs):
         # events contains all the information for requested time-window
         # Although we do not have any events in continuous requests,
         # it is still called as events.
-        ev_request = input_dics['primary_mode']
-        if ev_request == 'meta_data':
+        request_ident = input_dics['primary_mode']
+        if request_ident == 'meta_data':
             if input_dics['continuous']:
-                ev_request = 'continuous'
+                request_ident = 'continuous'
             else:
-                ev_request = 'event_based'
-        events = get_time_window(input_dics, request=ev_request)
+                request_ident = 'event_based'
+        events = get_time_window(input_dics, request=request_ident)
         if len(events) == 0:
             return input_dics
     # ------------------checking the availability------------------------------

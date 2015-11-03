@@ -737,7 +737,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print '\n\t\t' + '*********************************'
         print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*\t' + 5*' ' + '1.0.1b1' + '\t\t*'
+        print '\t\t' + '*\t' + 5*' ' + '1.0.2b1' + '\t\t*'
         print '\t\t' + '*********************************'
         print '\n'
         sys.exit(2)
@@ -1069,10 +1069,10 @@ def read_input_command(parser, **kwargs):
     input_dics['depth_bins_seismicity'] = int(options.depth_bins_seismicity)
     input_dics['plot_waveform'] = options.plot_waveform
 
-    if input_dics['plot_waveform'] or input_dics['plot_sta'] or \
-            input_dics['plot_availability'] or input_dics['plot_ev'] or \
-            input_dics['plot_focal'] or input_dics['plot_ray'] or \
-            input_dics['create_kml'] or input_dics['plot_seismicity']:
+    if input_dics['plot_sta'] or input_dics['plot_availability'] or \
+            input_dics['plot_ev'] or input_dics['plot_focal'] or \
+            input_dics['plot_ray'] or input_dics['create_kml'] or \
+            input_dics['plot_seismicity'] or input_dics['plot_waveform']:
         input_dics['plot'] = True
 
     input_dics['plot_dir_name'] = options.plot_dir_name

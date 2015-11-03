@@ -37,8 +37,10 @@ This tutorial has following sections:
 
 1.  `How to cite obspyDMT`_
 2.  `Lets get started`_: install obspyDMT and check your local machine for required dependencies.
-3.  `Quick tour`_: run a quick tour.
-4. `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
+3.  `Supported event catalogs and data-sources`_: available event catalogs and data-sources.
+4.  `Quick tour`_: run a quick tour.
+5.  `event_info request`_: get info about events without downloading waveforms.
+6. `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
 
 --------------------
 How to cite obspyDMT
@@ -166,6 +168,50 @@ obspyDMT plots the ray coverage (ray path between each source-receiver pair) by:
 It is also possible to change the map projection in the pop-up menu (with the same command line as above):
 
 .. image:: figures/tour_ray_shaded.png
+   :scale: 75%
+   :align: center
+
+-----------------------------------------
+Supported event catalogs and data-sources
+-----------------------------------------
+
+Available event catalogs:
+
+::
+
+    obspyDMT --print_event_catalogs
+
+and supported data sources:
+
+::
+
+    obspyDMT --print_data_sources
+
+------------------
+event_info request
+------------------
+
+::
+
+    obspyDMT --datapath neic_events_2014 --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.0 --event_catalog NEIC_USGS --event_info
+
+To plot the retrieved event information:
+
+::
+
+    obspyDMT --datapath neic_events_2014 --local --plot_ev --plot_focal --min_date 2014-01-01
+
+.. image:: figures/neic_event_focal.png
+   :scale: 75%
+   :align: center
+
+To plot the seismicity map:
+
+::
+
+    obspyDMT --datapath neic events dir --min date 1976-01-01 --max date 2015-01-01 --min mag 5.0 --event catalog NEIC USGS --event info --plot seismicity
+
+.. image:: figures/neic_catalog_assembled.png
    :scale: 75%
    :align: center
 
