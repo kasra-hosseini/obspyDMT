@@ -263,9 +263,35 @@ Similarly, it is possible to update the data-set for TA network and * stations: 
    :scale: 75%
    :align: center
 
+To create KML file:
+
+::
+
+    obspyDMT --datapath neic_events_2014 --local --plot_ev --plot_focal --plot_sta --plot_ray  --create_kml --min_date 2014-01-01
+
+.. image:: figures/google_earth_us.jpg
+   :scale: 75%
+   :align: center
+
+.. image:: figures/google_earth_indo.jpg
+   :scale: 75%
+   :align: center
+
+.. image:: figures/google_earth_zoom.jpg
+   :scale: 75%
+   :align: center
+
 ---------------
 continuous mode
 ---------------
+
+::
+
+    obspyDMT --datapath continuous_dir --min_date 2014-01-01 --max_date 2014-02-01 --net TA --sta "1*" --cha BHZ --continuous
+
+.. image:: figures/continuous_example.png
+   :scale: 75%
+   :align: center
 
 -------------------
 Directory structure

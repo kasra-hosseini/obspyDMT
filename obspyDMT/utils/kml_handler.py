@@ -146,10 +146,15 @@ def create_ev_sta_kml(input_dics, events):
                         ),
                     ),
                     KML.styleUrl('#beach_ball_%i' % counter),
+                    # KML.Point(KML.coordinates(events[ei]['longitude'], ',',
+                    #                           events[ei]['latitude'], ',',
+                    #                           700000 -
+                    #                           abs(events[ei]['depth']*1000)),
+                    #           KML.altitudeMode('absolute')
+                    #           ),
                     KML.Point(KML.coordinates(events[ei]['longitude'], ',',
                                               events[ei]['latitude'], ',',
-                                              700000 -
-                                              abs(events[ei]['depth']*1000)),
+                                              0.),
                               KML.altitudeMode('absolute')
                               ),
                 ),
