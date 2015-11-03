@@ -40,7 +40,9 @@ This tutorial has following sections:
 3.  `Supported event catalogs and data-sources`_: available event catalogs and data-sources.
 4.  `Quick tour`_: run a quick tour.
 5.  `event_info request`_: get info about events without downloading waveforms.
-6. `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
+6.  `event_based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
+7.  `continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations and for the requested time span.
+8. `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
 
 --------------------
 How to cite obspyDMT
@@ -214,6 +216,56 @@ To plot the seismicity map:
 .. image:: figures/neic_catalog_assembled.png
    :scale: 75%
    :align: center
+
+----------------
+event_based mode
+----------------
+
+All BHZ and HHZ channels from GFZ data-center:
+
+::
+
+    obspyDMT --datapath neic_events_2014 --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.0 --event_catalog NEIC_USGS --data_source "GFZ" --cha "BHZ,HHZ" --preset 300 --offset 3600
+
+To plot the ray coverage:
+
+::
+
+    obspyDMT --datapath neic_events_2014 --local --plot_ev --plot_focal --plot_sta --plot_ray --min_date 2014-01-01
+
+.. image:: figures/gfz_event_based.png
+   :scale: 75%
+   :align: center
+
+It is possible to update the above data-set with other event/stations:
+
+::
+
+    obspyDMT --datapath neic_events_2014 --data_source "GEONET" --cha "BHZ,HHZ" --preset 300 --offset 3600
+
+.. image:: figures/gfz_geonet_event_based.png
+   :scale: 75%
+   :align: center
+
+In fact, it could have been also possible to request GFZ and GEONET at the same time:
+
+::
+
+    obspyDMT --datapath neic_events_2014 --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.0 --event_catalog NEIC_USGS --data_source "GFZ,GEONET" --cha "BHZ,HHZ" --preset 300 --offset 3600
+
+Similarly, it is possible to update the data-set for TA network and * stations: (--data_source is omitted as IRIS is the default data source, i.e. --data_source IRIS would give the same result)
+
+::
+
+    obspyDMT --datapath neic_events_2014 --net TA --cha "BHZ,HHZ" --preset 300 --offset 3600
+
+.. image:: figures/gfz_geonet_iris_event_based.png
+   :scale: 75%
+   :align: center
+
+---------------
+continuous mode
+---------------
 
 -------------------
 Directory structure
