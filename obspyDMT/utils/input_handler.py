@@ -305,7 +305,7 @@ def command_parse():
                               dest="process_np", help=helpmsg)
     parser.add_option_group(group_parallel)
 
-    # --------------- restricted data request ----------
+    # --------------- restricted data request ---------------------------------
     group_restrict = OptionGroup(parser, "08. restricted data request "
                                          "(all modes)")
     helpmsg = "username for restricted data requests (waveform/response). " \
@@ -847,15 +847,8 @@ def read_input_command(parser, **kwargs):
     print "\nobspyDMT primary mode: %s\n" % input_dics['primary_mode']
 
     # =================== Print Data sources and Event catalogs
-    if options.print_data_sources:
-        input_dics['print_data_sources'] = True
-    else:
-        input_dics['print_data_sources'] = False
-
-    if options.print_event_catalogs:
-        input_dics['print_event_catalogs'] = True
-    else:
-        input_dics['print_event_catalogs'] = False
+    input_dics['print_data_sources'] = options.print_data_sources
+    input_dics['print_event_catalogs'] = options.print_event_catalogs
 
     # =================== Data sources
     input_dics['data_source'] = options.data_source
@@ -912,10 +905,9 @@ def read_input_command(parser, **kwargs):
     input_dics['max_date'] = str(UTCDateTime(options.max_date))
     input_dics['preset'] = float(options.preset)
     input_dics['offset'] = float(options.offset)
-    if options.cut_time_phase:
-        input_dics['cut_time_phase'] = True
-    else:
-        input_dics['cut_time_phase'] = False
+
+    input_dics['cut_time_phase'] = options.cut_time_phase
+
     input_dics['waveform_format'] = options.waveform_format
     if input_dics['waveform_format']:
         input_dics['waveform_format'] = input_dics['waveform_format'].lower()
