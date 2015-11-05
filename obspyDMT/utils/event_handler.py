@@ -60,9 +60,9 @@ def get_time_window(input_dics, request):
     # Although we do not have any events in continuous requests,
     # it is still called as events.
     events = []
-    events_qml = []
+    events_qml = Catalog(events=[])
     try:
-        events_local, events_qml_local = read_info(input_dics)
+        events_local = read_info(input_dics)
         if input_dics['event_catalog'].lower() == 'local':
             if events_local == 'no_local':
                 print "[WARNING] no local event was found!"
@@ -71,7 +71,6 @@ def get_time_window(input_dics, request):
                     input_dics['event_catalog'] = 'IRIS'
             else:
                 events = copy.deepcopy(events_local)
-                events_qml = copy.deepcopy(events_qml_local)
 
         if events == 'no_local' or events == []:
             if request.lower() == 'event_based':
@@ -93,10 +92,9 @@ def get_time_window(input_dics, request):
                         remove_indx.sort(reverse=True)
                         for ri in remove_indx:
                             del events[ri]
-                            del events_qml[ri]
+
                     for oei in range(len(events_local)):
                         events.append(events_local[oei])
-                        events_qml.append(events_qml_local[oei])
 
     except Exception, error:
         print 'WARNING: %s' % error
@@ -130,7 +128,7 @@ def read_info(input_dics):
     """
     evs_info = locate(input_dics['datapath'], 'EVENTS-INFO')
     if len(evs_info) == 0:
-        return "no_local", "no_local"
+        return "no_local"
     if len(evs_info) > 1:
         print "[WARNING] Found two directories that have EVENTS-INFO. " \
               "Continue with:"
@@ -140,16 +138,7 @@ def read_info(input_dics):
     ev_info = evs_info[0]
 
     if not os.path.isfile(os.path.join(ev_info, 'event_list_pickle')):
-        return "no_local", "no_local"
-    if not os.path.isfile(os.path.join(ev_info, 'catalog.ml')):
-        if not os.path.isfile(os.path.join(ev_info, 'catalog.zmap')):
-            return "no_local", "no_local"
-        else:
-            events_QML = readEvents(os.path.join(ev_info, 'catalog.zmap'),
-                                    format='ZMAP')
-    else:
-        events_QML = readEvents(os.path.join(ev_info, 'catalog.ml'),
-                                format='QuakeML')
+        return "no_local"
 
     fio = open(os.path.join(ev_info, 'event_list_pickle'), 'r')
     events = pickle.load(fio)
@@ -168,7 +157,7 @@ def read_info(input_dics):
               "will be omitted!)"
         print os.path.join(ev_info, 'event_list_pickle')
         print "=========================================================\n"
-    return events, events_QML
+    return events
 
 # ##################### event_info #####################################
 

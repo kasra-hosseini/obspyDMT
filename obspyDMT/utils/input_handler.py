@@ -1168,7 +1168,7 @@ def input_logger(argus, address, inputs):
     :return:
     """
     st_argus = '\n\n' + 20*'='
-    st_argus += 'command line:\n-------------\n'
+    st_argus += 'command line:\n'
     for item in argus:
         st_argus += item + ' '
     st_argus += '\n\ninputs:\n-------\n'
@@ -1177,7 +1177,7 @@ def input_logger(argus, address, inputs):
         items.append(item)
     items.sort()
     for item in items:
-        st_argus += '%s: %s\n' % (item, inputs[item])
+        st_argus += '%s: %s, ' % (item, inputs[item])
     logger_open = open(address, 'a')
     logger_open.write(st_argus)
     logger_open.close()
