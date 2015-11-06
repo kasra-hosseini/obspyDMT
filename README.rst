@@ -198,23 +198,39 @@ event_info request
 
 ::
 
-    obspyDMT --datapath neic_events_2014 --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.0 --event_catalog NEIC_USGS --event_info
+    obspyDMT --datapath neic_events_2014_dir --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.0 --event_catalog NEIC_USGS --event_info
 
 To plot the retrieved event information:
 
 ::
 
-    obspyDMT --datapath neic_events_2014 --local --plot_ev --plot_focal --min_date 2014-01-01
+    obspyDMT --datapath neic_events_2014_dir --local --plot_ev --plot_focal --min_date 2014-01-01
 
 .. image:: figures/neic_event_focal.png
    :scale: 75%
    :align: center
 
-To plot the seismicity map:
+The created event-catalog can be updated for all events with magnitude more than 6.0:
 
 ::
 
-    obspyDMT --datapath neic events dir --min date 1976-01-01 --max date 2015-01-01 --min mag 5.0 --event catalog NEIC USGS --event info --plot seismicity
+    obspyDMT --datapath neic_events_2014_dir --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 6.0 --event_catalog NEIC_USGS --event_info
+
+and again to plot the event information in the local data-set:
+
+::
+
+    obspyDMT --datapath neic_events_2014_dir --local --plot_ev --plot_focal --min_date 2014-01-01
+
+.. image:: figures/neic_event_focal_updated.png
+   :scale: 75%
+   :align: center
+
+To plot the seismicity map for all events in NEIC with magnitude more than 5.0:
+
+::
+
+    obspyDMT --datapath neic_events_dir --min_date 1976-01-01 --max_date 2015-01-01 --min_mag 5.0 --event_catalog NEIC_USGS --event_info --plot_seismicity
 
 .. image:: figures/neic_catalog_assembled.png
    :scale: 75%
@@ -228,13 +244,13 @@ All BHZ and HHZ channels from GFZ data-center:
 
 ::
 
-    obspyDMT --datapath neic_events_2014 --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.0 --event_catalog NEIC_USGS --data_source "GFZ" --cha "BHZ,HHZ" --preset 300 --offset 3600
+    obspyDMT --datapath event_based_dir --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.0 --event_catalog NEIC_USGS --data_source "GFZ" --cha "BHZ,HHZ" --preset 300 --offset 3600
 
 To plot the ray coverage:
 
 ::
 
-    obspyDMT --datapath neic_events_2014 --local --plot_ev --plot_focal --plot_sta --plot_ray --min_date 2014-01-01
+    obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --plot_ray --min_date 2014-01-01
 
 .. image:: figures/gfz_event_based.png
    :scale: 75%
@@ -244,7 +260,7 @@ It is possible to update the above data-set with other event/stations:
 
 ::
 
-    obspyDMT --datapath neic_events_2014 --data_source "GEONET" --cha "BHZ,HHZ" --preset 300 --offset 3600
+    obspyDMT --datapath event_based_dir --data_source "GEONET" --cha "BHZ,HHZ" --preset 300 --offset 3600
 
 .. image:: figures/gfz_geonet_event_based.png
    :scale: 75%
@@ -254,13 +270,13 @@ In fact, it could have been also possible to request GFZ and GEONET at the same 
 
 ::
 
-    obspyDMT --datapath neic_events_2014 --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.0 --event_catalog NEIC_USGS --data_source "GFZ,GEONET" --cha "BHZ,HHZ" --preset 300 --offset 3600
+    obspyDMT --datapath event_based_dir --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.0 --event_catalog NEIC_USGS --data_source "GFZ,GEONET" --cha "BHZ,HHZ" --preset 300 --offset 3600
 
 Similarly, it is possible to update the data-set for TA network and * stations: (--data_source is omitted as IRIS is the default data source, i.e. --data_source IRIS would give the same result)
 
 ::
 
-    obspyDMT --datapath neic_events_2014 --net TA --cha "BHZ,HHZ" --preset 300 --offset 3600
+    obspyDMT --datapath event_based_dir --net TA --cha "BHZ,HHZ" --preset 300 --offset 3600
 
 .. image:: figures/gfz_geonet_iris_event_based.png
    :scale: 75%
@@ -270,7 +286,7 @@ To create KML file:
 
 ::
 
-    obspyDMT --datapath neic_events_2014 --local --plot_ev --plot_focal --plot_sta --plot_ray  --create_kml --min_date 2014-01-01
+    obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --plot_ray  --create_kml --min_date 2014-01-01
 
 .. image:: figures/google_earth_us.jpg
    :scale: 75%

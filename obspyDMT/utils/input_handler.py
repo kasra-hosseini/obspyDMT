@@ -1168,7 +1168,7 @@ def input_logger(argus, address, inputs):
     :return:
     """
     st_argus = '\n\n' + 20*'='
-    st_argus += 'command line:\n'
+    st_argus += 'command line\n'
     for item in argus:
         st_argus += item + ' '
     st_argus += '\n\ninputs:\n-------\n'

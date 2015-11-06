@@ -920,26 +920,6 @@ def write_cat_logger(input_dics, eventpath, events, catalog,
     event_cat.writelines('\n\n=====================================\n')
     event_cat.close()
 
-    for i in range(len(events)):
-        event_cat = open(os.path.join(eventpath, 'EVENTS-INFO',
-                                      'catalog.txt'), 'a')
-        event_cat.writelines("Event No: %s\n" % (i+1))
-        event_cat.writelines("Author: %s\n" % events[i]['author'])
-        event_cat.writelines("Event-ID: %s\n" % events[i]['event_id'])
-        event_cat.writelines("Date Time: %s\n" % events[i]['datetime'])
-        event_cat.writelines("Magnitude: %s\n" % events[i]['magnitude'])
-        event_cat.writelines("Magnitude Type: %s\n"
-                             % events[i]['magnitude_type'])
-        event_cat.writelines("Depth: %s\n" % events[i]['depth'])
-        event_cat.writelines("Latitude: %s\n" % events[i]['latitude'])
-        event_cat.writelines("Longitude: %s\n" % events[i]['longitude'])
-        try:
-            event_cat.writelines("Flynn-Region: %s\n"
-                                 % events[i]['flynn_region'])
-        except KeyError:
-            event_cat.writelines("Flynn-Region: None\n")
-        event_cat.writelines('=====================================' + '\n')
-        event_cat.close()
     event_file = open(os.path.join(eventpath, 'EVENTS-INFO',
                                    'event_list_pickle'), 'w')
     pickle.dump(events, event_file)

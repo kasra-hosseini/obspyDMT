@@ -178,13 +178,7 @@ def plot_unit(input_dics, events):
     :param events:
     :return:
     """
-    del_index = []
-    for ev in range(len(events)):
-        if not plot_filter_event(input_dics, events[ev]):
-            del_index.append(ev)
-    del_index.sort(reverse=True)
-    for di in del_index:
-        del events[di]
+    events = event_filter(events, input_dics)
     if input_dics['create_kml']:
         create_ev_sta_kml(input_dics, events)
     if input_dics['plot_seismicity']:
@@ -194,6 +188,25 @@ def plot_unit(input_dics, events):
         plot_sta_ev_ray(input_dics, events)
     if input_dics['plot_waveform']:
         plot_waveform(input_dics, events)
+
+# ##################### event_filter ##########################################
+
+
+def event_filter(events, input_dics):
+    """
+    filtering events based on the inputs
+    :param events:
+    :param input_dics:
+    :return:
+    """
+    del_index = []
+    for ev in range(len(events)):
+        if not plot_filter_event(input_dics, events[ev]):
+            del_index.append(ev)
+    del_index.sort(reverse=True)
+    for di in del_index:
+        del events[di]
+    return events
 
 # ##################### plot_filter_event #####################################
 
@@ -393,11 +406,15 @@ def plot_sta_ev_ray(input_dics, events):
                            float(events[ei]['focal_mechanism'][3]),
                            float(events[ei]['focal_mechanism'][4]),
                            float(events[ei]['focal_mechanism'][5])]
-                ax = plt.gca()
-                b = Beach(focmecs, xy=(x, y), facecolor='blue',
-                          width=width_beach, linewidth=1, alpha=0.85)
-                b.set_zorder(10)
-                ax.add_collection(b)
+                try:
+                    ax = plt.gca()
+                    b = Beach(focmecs, xy=(x, y), facecolor='blue',
+                              width=width_beach, linewidth=1, alpha=0.85)
+                    b.set_zorder(10)
+                    ax.add_collection(b)
+                except Exception, error:
+                    print("[WARNING: %s -- %s]" % (error, focmecs))
+                    continue
             else:
                 x, y = m(events[ei]['longitude'],
                          events[ei]['latitude'])
