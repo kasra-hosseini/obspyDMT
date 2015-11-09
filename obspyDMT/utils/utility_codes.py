@@ -190,7 +190,7 @@ def read_list_stas(add_list, normal_mode_syn, specfem3D):
     list_stas = list_stas_fio.readlines()
     for sta in range(len(list_stas)):
         if not list_stas[sta].startswith('\n'):
-            list_stas[sta] = list_stas[sta].split(',')
+            list_stas[sta] = [x.strip() for x in list_stas[sta].split(',')]
 
     final_list = []
     if specfem3D:
@@ -291,7 +291,7 @@ def read_station_event(address):
         else:
             print '====================================='
             print 'station_event could not be found'
-            print 'start Creating the station_event file'
+            print 'start creating the station_event file'
             print '====================================='
             create_station_event(address=t_add)
             sta_file_open = open(os.path.join(t_add, 'station_event'), 'r')
@@ -314,13 +314,13 @@ def create_station_event(address):
     event_address = os.path.dirname(address)
     if os.path.isdir(os.path.join(event_address, 'raw')):
         sta_address = os.path.join(event_address, 'raw')
-    elif os.path.isdir(os.path.join(event_address, 'BH')):
-        sta_address = os.path.join(event_address, 'BH')
+    elif os.path.isdir(os.path.join(event_address, 'processed')):
+        sta_address = os.path.join(event_address, 'processed')
     else:
-        sys.exit('[ERROR] There is no reference (raw or BH) '
+        sys.exit('[ERROR] There is no reference (raw or processed) '
                  'to create station_event file!')
 
-    ls_stas = glob.glob(os.path.join(sta_address, '*.*.*.*'))
+    ls_stas = glob.glob(os.path.join(sta_address, '*'))
     ls_stas.sort()
 
     print '%s stations found in %s' % (len(ls_stas), sta_address)

@@ -63,8 +63,9 @@ def get_metadata(input_dics, event, info_avail):
 
     target_path = os.path.join(eventpath, event['event_id'])
 
+    stas_all = []
     if not input_dics['list_stas']:
-        stas_all = []
+        stas_cli = []
         for cl in range(len(input_dics['data_source'])):
             if input_dics['data_source'][cl].lower() not in ['arclink']:
                 stas_cli = fdsn_available(input_dics, cl,
@@ -77,13 +78,13 @@ def get_metadata(input_dics, event, info_avail):
                       % input_dics['data_source'][cl]
                 print_data_sources()
             # put all the available stations together
-            for st_fds in stas_cli:
-                if len(st_fds) == 0:
+            for st_fdarc in stas_cli:
+                if len(st_fdarc) == 0:
                     continue
-                elif len(st_fds) == 1:
-                    stas_all.append([st_fds])
+                elif len(st_fdarc) == 1:
+                    stas_all.append([st_fdarc])
                 else:
-                    stas_all.append(st_fds)
+                    stas_all.append(st_fdarc)
     else:
         stas_all = read_list_stas(input_dics['list_stas'],
                                   input_dics['normal_mode_syn'],
@@ -91,6 +92,7 @@ def get_metadata(input_dics, event, info_avail):
         if input_dics['bulk']:
             fdsn_create_bulk_list(target_path, input_dics,
                                   stas_all, event)
+
     stas_arr = np.array(stas_all)
     np.save(os.path.join(target_path, 'info', 'availability'), stas_arr)
     avail_add = os.path.join(target_path, 'info', 'availability.txt')
@@ -132,11 +134,10 @@ def unique_rows_avail(av):
     :param av:
     :return:
     """
-    av_hash = av[:, 0] + '#' + av[:, 1] + '#' + av[:, 2] + '#' + \
+    av_hash = av[:, 0] + '#' + av[:, 1] + '#' + av[:, 2] + '#' +\
               av[:, 3] + '#' + av[:, 8]
     av_hash_unique, av_indx = np.unique(av_hash, return_index=True)
     return av[av_indx]
-
 
 # ##################### fdsn_available ##################################
 
@@ -159,9 +160,10 @@ def fdsn_available(input_dics, cl, event, target_path):
 
     sta_fdsn = []
     try:
-        client_fdsn = Client_fdsn(base_url=input_dics['data_source'][cl],
-                                  user=input_dics['username'],
-                                  password=input_dics['password'])
+        client_fdsn = Client_fdsn(
+            base_url=input_dics['data_source'][cl].upper(),
+            user=input_dics['username'],
+            password=input_dics['password'])
 
         available = client_fdsn.get_stations(
             network=input_dics['net'],
@@ -242,10 +244,10 @@ def arc_available(input_dics, event, target_path):
     client_arclink = Client_arclink(user='test@obspy.org',
                                     timeout=input_dics['arc_avai_timeout'])
     sta_arc = []
-    nets_req = input_dics['net'].split(',')
-    stas_req = input_dics['sta'].split(',')
-    locs_req = input_dics['loc'].split(',')
-    chas_req = input_dics['cha'].split(',')
+    nets_req = [x.strip() for x in input_dics['net'].split(',')]
+    stas_req = [x.strip() for x in input_dics['sta'].split(',')]
+    locs_req = [x.strip() for x in input_dics['loc'].split(',')]
+    chas_req = [x.strip() for x in input_dics['cha'].split(',')]
     for net_req in nets_req:
         for sta_req in stas_req:
             for loc_req in locs_req:
@@ -273,7 +275,8 @@ def arc_available(input_dics, event, target_path):
                                                          netsta[1],
                                                          netsta[2],
                                                          netsta[3])
-                                sta_arc.append([netsta[0], netsta[1], netsta[2], netsta[3],
+                                sta_arc.append([netsta[0], netsta[1],
+                                                netsta[2], netsta[3],
                                                 inventories[sta]['latitude'],
                                                 inventories[sta]['longitude'],
                                                 inventories[sta]['elevation'],
@@ -287,15 +290,16 @@ def arc_available(input_dics, event, target_path):
                                 dist = locations2degrees(lat1, lon1,
                                                          float(sta_arc[ai][4]),
                                                          float(sta_arc[ai][5]))
-                                if not input_dics['mr_cba'] <= dist <= input_dics['Mr_cba']:
+                                if not input_dics['mr_cba'] <= dist <= \
+                                        input_dics['Mr_cba']:
                                     index_rm.append(ai)
-                            index_rm.sort()
-                            index_rm.reverse()
+                            index_rm.sort(reverse=True)
                             for ri in range(len(index_rm)):
                                 del sta_arc[ri]
 
                     except Exception as error:
-                        exc_file = open(os.path.join(target_path, 'info', 'exception'), 'a+')
+                        exc_file = open(os.path.join(target_path, 'info',
+                                                     'exception'), 'a+')
                         ee = 'availability -- arclink -- %s\n' % error
                         exc_file.writelines(ee)
                         exc_file.close()
