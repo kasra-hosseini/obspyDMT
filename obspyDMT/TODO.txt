@@ -1,22 +1,4 @@
-========= Tests
-- All examples in the paper
-* ADD examples to README.rst for each test!
-- correct tests dir
-- Event-based
-- Continuous
-- Around phase
-- bulk request
-- Azimuth and epicentral distance
-- Update ---> channel, data source
-- other catalogs
-- processing ---> python, SAC
-- resampling
-- plotting ---> channel, location, ...
-- read list of stations
-- circle bounding for ArcLink
-- plotxml
 - RESIF %d? Client?
-
 
 ========================================
 Upload to PyPI Live
