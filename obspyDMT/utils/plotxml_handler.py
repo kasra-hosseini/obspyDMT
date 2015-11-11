@@ -534,8 +534,6 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
     else:
         sys.exit('pz_type: %s' % pz_type)
 
-    paz = {'poles': poles}
-
     input_units = xml_response.response_stages[0].input_units
     if not input_units.lower() in ['m', 'm/s', 'm/s**2', 'pa']:
         print('[ERROR] input unit is not defined: %s\nContact the developer'
@@ -546,24 +544,28 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
                                                    input_units))
         return False
 
+    poles = poles.tolist()
+    zeros = zeros.tolist()
+
     if input_units.lower() == 'm':
         if output.lower() == 'vel':
-            poles[0].append(0.0j)
+            poles.append(0.0j)
         if output.lower() == 'acc':
-            poles[0].append(0.0j)
-            poles[0].append(0.0j)
+            poles.append(0.0j)
+            poles.append(0.0j)
     if input_units.lower() == 'm/s':
         if output.lower() == 'disp':
-            zeros[0].append(0.0j)
+            zeros.append(0.0j)
         if output.lower() == 'acc':
-            poles[0].append(0.0j)
+            poles.append(0.0j)
     if input_units.lower() == 'm/s**2':
         if output.lower() == 'disp':
-            zeros[0].append(0.0j)
-            zeros[0].append(0.0j)
+            zeros.append(0.0j)
+            zeros.append(0.0j)
         if output.lower() == 'vel':
-            zeros[0].append(0.0j)
+            zeros.append(0.0j)
 
+    paz = {'poles': poles}
     paz['zeros'] = zeros
     paz['gain'] = normalization_factor
     paz['sensitivity'] = np.prod(np.array(gain_arr))
