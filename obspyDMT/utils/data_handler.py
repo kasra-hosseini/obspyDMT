@@ -168,7 +168,7 @@ def fdsn_serial_parallel(stas_avail, event, input_dics, target_path,
     if input_dics['req_parallel']:
         if input_dics['password']:
             print "[INFO] Restricted data from %s" % req_cli
-            print "[WARNING] parallel retrieving is now possible!"
+            print "[WARNING] parallel retrieving is not possible!"
             print "[WARNING] serial retrieving is activated!"
             # num_req_np = 1
             num_req_np = input_dics['req_np']
