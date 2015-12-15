@@ -367,7 +367,7 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
         else:
             ee = '%s: There is no available station for this event.' % req_cli
         Exception_file = open(os.path.join(target_path,
-                                           'info', 'exception'), 'a')
+                                           'info', 'exception'), 'a+')
         Exception_file.writelines(ee)
         Exception_file.close()
 
@@ -602,7 +602,7 @@ def arc_download_core(st_avail, event, input_dics, target_path,
         else:
             ee = '%s: There is no available station for this event.' % req_cli
         Exception_file = open(os.path.join(target_path,
-                                           'info', 'exception'), 'a')
+                                           'info', 'exception'), 'a+')
         Exception_file.writelines(ee)
         Exception_file.close()
 
