@@ -40,7 +40,11 @@ def process_unit(tr_add, target_path, input_dics, staev_ar):
     """
     # -------------- read the waveform, deal with gaps ------------------------
     # 1. read the waveform and create an obspy Stream object
-    st = read(tr_add)
+    try:
+        st = read(tr_add)
+    except Exception, error:
+        print 'WARNING: %s' % error
+        return False
     # 2. in case that there are more than one waveform in a Stream (this can
     # happen due to some gaps in the waveforms) merge them.
     if len(st) > 1:

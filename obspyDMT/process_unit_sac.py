@@ -39,11 +39,19 @@ def process_unit(tr_add, target_path, input_dics, staev_ar):
     """
     # -------------- read the waveform, deal with gaps ------------------------
     # 1. read the waveform and create an obspy Stream object
-    st = read(tr_add)
+    try:
+        st = read(tr_add)
+    except Exception, error:
+        print 'WARNING: %s' % error
+        return False
     # 2. in case that there are more than one waveform in a Stream (this can
     # happen due to some gaps in the waveforms) merge them.
     if len(st) > 1:
-        st.merge(method=1, fill_value=0, interpolation_samples=0)
+        try:
+            st.merge(method=1, fill_value=0, interpolation_samples=0)
+        except Exception, error:
+            print 'WARNING: %s' % error
+            return False
     # 3. Now, there is only one waveform, create a Trace
     tr = st[0]
 
@@ -56,6 +64,8 @@ def process_unit(tr_add, target_path, input_dics, staev_ar):
         os.mkdir(os.path.join(target_path, 'processed'))
     # save_path is the address that will be used to save the processed data
     save_path = os.path.join(target_path, 'processed', tr.id)
+    if os.path.isfile(save_path) and (not input_dics['force_process']):
+        return False
 
     # -------------- PROCESSING -----------------------------------------------
     tr = convert_to_sac(tr, save_path, staev_ar)
