@@ -68,6 +68,8 @@ def process_data(input_dics, event):
         sta_ev_arr = select_data(deg_step=float(input_dics['select_data']),
                                  sta_ev=sta_ev_arr)
     if len(sta_ev_arr) > 0:
+        if len(np.shape(sta_ev_arr)) == 1:
+            sta_ev_arr = np.reshape(sta_ev_arr, [1, len(sta_ev_arr)])
         process_serial_parallel(sta_ev_arr, input_dics, target_path)
     else:
         print("[LOCAL] no waveform to process for %s!" % target_path)
@@ -123,13 +125,19 @@ def process_serial_parallel(sta_ev_arr, input_dics, target_path):
     if input_dics['parallel_process']:
         start = 0
         end = int(len(sta_ev_arr))
-        step = (end - start) / input_dics['process_np'] + 1
+        if end < input_dics['process_np']:
+            req_proc = end - 1
+        else:
+            req_proc = input_dics['process_np']
+        step = (end - start) / req_proc + 1
         step = int(step)
 
         jobs = []
-        for index in xrange(input_dics['process_np']):
+        for index in xrange(req_proc):
             starti = start + index * step
             endi = min(start + (index + 1) * step, end)
+            if starti == endi:
+                break
             p = multiprocessing.Process(target=process_core_iterate,
                                         args=(sta_ev_arr, input_dics,
                                               target_path,
