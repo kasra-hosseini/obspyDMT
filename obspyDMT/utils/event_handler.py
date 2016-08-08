@@ -190,8 +190,7 @@ def event_info(input_dics):
         if event_url.lower() == 'neic_usgs':
             event_switch = 'neic_usgs'
         if event_url.lower() == 'isc':
-            event_url = 'IRIS'
-            event_fdsn_cat = 'ISC'
+            event_switch = 'isc_cat'
 
         print '\nEvent(s) are based on:\t',
         print input_dics['event_catalog']
@@ -247,6 +246,23 @@ def event_info(input_dics):
                              input_dics['min_mag'],
                              input_dics['max_mag'])
 
+        elif event_switch == 'isc_cat':
+            print "PROBLEMS: REVIEWED OR COMPREHENSIVE"
+            events_QML = \
+                isc_catalog(bot_lat=evlatmin, top_lat=evlatmax,
+                            left_lon=evlonmin, right_lon=evlonmax,
+                            ctr_lat=evlat, ctr_lon=evlon,
+                            radius=evradmax,
+                            start_time=input_dics['min_date'],
+                            end_time=input_dics['max_date'],
+                            min_dep=input_dics['min_depth'],
+                            max_dep=input_dics['max_depth'],
+                            min_mag=input_dics['min_mag'],
+                            max_mag=input_dics['max_mag'],
+                            mag_type=input_dics['mag_type'],
+                            req_mag_agcy='Any',
+                            rev_comp='REVIEWED')
+
         elif event_switch == 'local':
             events_QML = readEvents(input_dics['read_catalog'])
 
@@ -254,6 +270,21 @@ def event_info(input_dics):
             sys.exit('[ERROR] %s is not supported'
                      % input_dics['event_catalog'])
 
+        for i in range(len(events_QML)):
+            if not hasattr(events_QML.events[i], 'preferred_mag'):
+                events_QML.events[i].preferred_mag = \
+                    events_QML.events[i].preferred_magnitude().mag or \
+                    events_QML.events[i].magnitudes[0].mag
+
+            if not hasattr(events_QML.events[i], 'preferred_mag_type'):
+                events_QML.events[i].preferred_mag_type = \
+                    events_QML.events[i].preferred_magnitude().magnitude_type or \
+                    events_QML.events[i].magnitudes[0].magnitude_type
+
+            if not hasattr(events_QML.events[i], 'preferred_author'):
+                events_QML.events[i].preferred_author = \
+                    events_QML.events[i].preferred_magnitude().creation_info.author or \
+                    events_QML.events[i].magnitudes[0].creation_info.author
         # no matter if list was passed or requested, sort catalogue,
         # plot events and proceed
         events_QML = sort_catalogue(events_QML)
@@ -269,6 +300,8 @@ def event_info(input_dics):
     for i in range(len(events)):
         events[i]['t1'] = events[i]['datetime'] - input_dics['preset']
         events[i]['t2'] = events[i]['datetime'] + input_dics['offset']
+
+    vtk_generator(events)
 
     return events, events_QML
 
@@ -331,10 +364,10 @@ def qml_to_event_list(events_QML):
                     ['duration']]
                 if not source_duration[1]:
                     source_duration = mag_duration(
-                        mag=events_QML.events[i].preferred_magnitude().mag)
+                        mag=events_QML.events[i].preferred_mag)
             else:
                 source_duration = mag_duration(
-                    mag=events_QML.events[i].preferred_magnitude().mag)
+                    mag=events_QML.events[i].preferred_mag)
         except AttributeError:
             print "[WARNING] source duration does not exist for " \
                   "event: %s -- set to False" % (i+1)
@@ -359,15 +392,11 @@ def qml_to_event_list(events_QML):
                   events_QML.events[i].origins[0].depth/1000.),
                  ('datetime', event_time),
                  ('magnitude',
-                  events_QML.events[i].preferred_magnitude().mag or
-                  events_QML.events[i].magnitudes[0].mag),
+                  events_QML.events[i].preferred_mag),
                  ('magnitude_type',
-                  events_QML.events[i].preferred_magnitude().magnitude_type or
-                  events_QML.events[i].magnitudes[0].magnitude_type),
+                  events_QML.events[i].preferred_mag_type),
                  ('author',
-                  events_QML.events[i].preferred_magnitude().
-                  creation_info.author or
-                  events_QML.events[i].magnitudes[0].creation_info.author),
+                  events_QML.events[i].preferred_author),
                  ('event_id', str(event_time.year) +
                   event_time_month + event_time_day + '_' +
                   event_time_hour + event_time_minute +
@@ -770,6 +799,170 @@ def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
 
     return cat
 
+# ##################### isc_catalog ####################################
+
+
+def isc_catalog(bot_lat=-90, top_lat=90,
+                left_lon=-180, right_lon=180,
+                ctr_lat=0, ctr_lon=0, radius=180,
+                start_time=UTCDateTime() - 30*24*3600,
+                end_time=UTCDateTime(),
+                min_dep=-10, max_dep=1000, min_mag=0, max_mag=10,
+                mag_type='MW', req_mag_agcy='Any',
+                rev_comp='REVIEWED'):
+
+    search_domain = 'rectangular'
+    if None in [ctr_lat, ctr_lon, radius]:
+        if None in [bot_lat, top_lat, left_lon, right_lon]:
+            left_lon = '-180'
+            right_lon = '180'
+            bot_lat = '-90'
+            top_lat = '90'
+            search_domain = 'rectangular'
+    else:
+        ctr_lat = str(ctr_lat)
+        ctr_lon = str(ctr_lon)
+        radius = str(radius)
+        search_domain = 'circular'
+
+    if not mag_type:
+        mag_type = 'MW'
+    else:
+        mag_type = mag_type.upper()
+
+    if req_mag_agcy.lower() == 'any':
+        req_mag_agcy = ''
+
+    start_time = UTCDateTime(start_time)
+    end_time = UTCDateTime(end_time)
+
+    base_url = isc_url_builder(search_domain=search_domain,
+                               bot_lat=bot_lat, top_lat=top_lat,
+                               left_lon=left_lon, right_lon=right_lon,
+                               ctr_lat=ctr_lat, ctr_lon=ctr_lon,
+                               radius=radius,
+                               start_time=start_time,
+                               end_time=end_time,
+                               min_dep=min_dep, max_dep=max_dep,
+                               min_mag=min_mag, max_mag=max_mag,
+                               mag_type=mag_type,
+                               req_mag_agcy=req_mag_agcy,
+                               rev_comp=rev_comp)
+
+    print "URL:\n%s" % base_url
+
+    try_url = 5
+    while try_url > 0:
+        print "Try: %s" % try_url
+        try:
+            isc_req = urllib2.urlopen(base_url)
+            isc_contents = isc_req.read()
+            isc_events = readEvents(isc_contents)
+            try_url = 0
+        except Exception, e:
+            print "requested content from ISC:\n%s" % e
+        try_url -= 1
+
+    isc_events = isc_events.filter("magnitude >= %s" % min_mag,
+                                   "magnitude <= %s" % max_mag)
+
+    remove_index = []
+    for i in range(len(isc_events)):
+        found_mag_type = False
+        for j in range(len(isc_events.events[i].magnitudes)):
+            if mag_type in \
+                    isc_events.events[i].magnitudes[j].magnitude_type.upper():
+                isc_events.events[i].preferred_mag = \
+                    isc_events.events[i].magnitudes[j].mag
+                isc_events.events[i].preferred_mag_type = \
+                    isc_events.events[i].magnitudes[j].magnitude_type
+                isc_events.events[i].preferred_author = \
+                    isc_events.events[i].magnitudes[j].creation_info.author
+                found_mag_type = True
+                break
+        if not found_mag_type:
+            remove_index.append(i)
+
+    if len(remove_index) > 0:
+        remove_index.sort(reverse=True)
+        for ri in remove_index:
+            del isc_events.events[ri]
+
+    return isc_events
+
+# ##################### isc_url_builder ####################################
+
+
+def isc_url_builder(search_domain='rectangular', bot_lat=-90, top_lat=90,
+                    left_lon=-180, right_lon=180,
+                    ctr_lat=0, ctr_lon=0, radius=180,
+                    start_time=UTCDateTime() - 30*24*3600,
+                    end_time=UTCDateTime(),
+                    min_dep=-10, max_dep=1000, min_mag=0, max_mag=10,
+                    mag_type='MW', req_mag_agcy='Any',
+                    rev_comp='reviewed'):
+    """
+    URL builder for ISC event catalog
+    :param search_domain:
+    :param bot_lat:
+    :param top_lat:
+    :param left_lon:
+    :param right_lon:
+    :param ctr_lat:
+    :param ctr_lon:
+    :param radius:
+    :param start_time:
+    :param end_time:
+    :param min_dep:
+    :param max_dep:
+    :param min_mag:
+    :param max_mag:
+    :param mag_type:
+    :param req_mag_agcy:
+    :return:
+    """
+    base_url = 'http://www.isc.ac.uk/cgi-bin/web-db-v4?'
+    base_url += 'request=%s' % rev_comp
+    base_url += '&out_format=CATQuakeML'
+    if search_domain == 'rectangular':
+        base_url += '&searchshape=RECT'
+        base_url += '&bot_lat=%s' % bot_lat
+        base_url += '&top_lat=%s' % top_lat
+        base_url += '&left_lon=%s' % left_lon
+        base_url += '&right_lon=%s' % right_lon
+        base_url += '&ctr_lat=&ctr_lon=&radius=&max_dist_units=deg'
+        base_url += '&srn=&grn='
+    elif search_domain == 'circular':
+        base_url += '&searchshape=CIRC'
+        base_url += '&ctr_lat=%s' % ctr_lat
+        base_url += '&ctr_lon=%s' % ctr_lon
+        base_url += '&radius=%s' % radius
+        base_url += '&max_dist_units=deg'
+        base_url += '&bot_lat=&top_lat=&left_lon=&right_lon='
+        base_url += '&srn=&grn='
+    base_url += '&start_year=%s' % start_time.year
+    base_url += '&start_month=%s' % start_time.month
+    base_url += '&start_day=%s' % start_time.day
+    base_url += '&start_time=%02i%%3A%02i%%3A%02i' % (start_time.hour,
+                                              start_time.minute,
+                                              start_time.second)
+    base_url += '&end_year=%s' % end_time.year
+    base_url += '&end_month=%s' % end_time.month
+    base_url += '&end_day=%s' % end_time.day
+    base_url += '&end_time=%02i%%3A%02i%%3A%02i' % (end_time.hour,
+                                            end_time.minute,
+                                            end_time.second)
+    base_url += '&min_dep=%s' % min_dep
+    base_url += '&max_dep=%s' % max_dep
+    base_url += '&null_dep=off'
+    base_url += '&min_mag=%s' % min_mag
+    base_url += '&max_mag=%s' % max_mag
+    base_url += '&null_mag=off'
+    base_url += '&req_mag_type=%s' % mag_type
+    base_url += '&req_mag_agcy=%s' % req_mag_agcy
+    base_url += '&include_links=on'
+    return base_url
+
 # ##################### output_shell_event ####################################
 
 
@@ -998,3 +1191,40 @@ def mag_duration(mag, type_curve=1):
                  'implemented' % type_curve)
     source_duration = round(half_duration, 3)*2
     return ['triangle', source_duration]
+
+# ##################### vtk_generator ###################################
+
+
+def vtk_generator(events):
+
+    counter = 0
+    xyz = []
+    for i in range(len(events)):
+        elat = events[i]['latitude']*np.pi/180.
+        elon = events[i]['longitude']*np.pi/180.
+        edp = events[i]['depth']
+        x = (6371-edp) * np.cos(elat) * np.cos(elon)
+        y = (6371-edp) * np.cos(elat) * np.sin(elon)
+        z = (6371-edp) * np.sin(elat)
+        print
+        xyz.append("%s %s %s" % (x, y, z))
+        counter += 1
+    fio = open('events.vtk', 'w')
+    fio.writelines('# vtk DataFile Version 3.0\n')
+    fio.writelines('vtk output\n')
+    fio.writelines('ASCII\n')
+    fio.writelines('DATASET UNSTRUCTURED_GRID\n')
+    fio.writelines('POINTS %i float\n' % counter)
+    for i in range(len(xyz)):
+        fio.writelines('%s\n' % xyz[i])
+
+    fio.writelines('\n')
+    fio.writelines('CELLS %i %i\n' % (counter, counter*2))
+    for i in range(len(xyz)):
+        fio.writelines('1 %s\n' % i)
+
+    fio.writelines('\n')
+    fio.writelines('CELL_TYPES %i\n' % counter)
+    for i in range(len(xyz)):
+        fio.writelines('1\n')
+    fio.close()
