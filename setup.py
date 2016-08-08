@@ -8,8 +8,8 @@ setup(
     version="2.0.0",
     keywords=["obspyDMT", "obspy", "seismology", "geophysics"],
     requires=['matplotlib', 'numpy'],
-    description="obspyDMT: A Python Toolbox for Retrieving and Processing of "
-                "Large Seismological Datasets",
+    description="obspyDMT: A Python Toolbox for Retrieving, Processing and "
+                "Management of Large Seismological Datasets",
     long_description="""\
 obspyDMT (obspy Data Management Tool) is a command line tool for retrieving,
 processing and management of large seismological datasets in a fully automatic
