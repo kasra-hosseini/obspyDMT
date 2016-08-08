@@ -164,6 +164,7 @@ def fdsn_serial_parallel(stas_avail, event, input_dics, target_path,
     client_fdsn = Client_fdsn(base_url=req_cli,
                               user=input_dics['username'],
                               password=input_dics['password'])
+                              #debug=True)
 
     if input_dics['req_parallel']:
         if input_dics['password']:
@@ -617,6 +618,8 @@ def update_sta_ev_file(target_path):
     if os.path.isfile(sta_ev_add):
         sta_ev_fi = np.loadtxt(sta_ev_add, delimiter=',', dtype='object')
         if len(sta_ev_fi) > 0:
+            if len(np.shape(sta_ev_fi)) == 1:
+                sta_ev_fi = np.reshape(sta_ev_fi, [1, len(sta_ev_fi)])
             sta_ev_names = sta_ev_fi[:, 0] + '.' + sta_ev_fi[:, 1] + '.' + \
                            sta_ev_fi[:, 2] + '.' + sta_ev_fi[:, 3]
 
