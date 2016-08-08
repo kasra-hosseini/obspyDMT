@@ -55,7 +55,7 @@ If you use obspyDMT, please consider citing the code as:
 
 ::
 
-    Kasra Hosseini (2015), obspyDMT (Version 1.0.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
+    Kasra Hosseini (2016), obspyDMT (Version 2.0.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
 
 We have also published a paper in SRL (Seismological Research Letters) for obspyDMT's predecessor that we kindly ask you to cite in case that you found obspyDMT useful for your research:
 
