@@ -1,8 +1,8 @@
-.idea
-obspyDMT/outputs
-obspyDMT/ignore
-obspyDMT.egg-info
 *pyc
+.idea
 dist
+obspyDMT/ignore
+obspyDMT/outputs
 obspyDMT/utils/old
+obspyDMT.egg-info
 README_BK.md
