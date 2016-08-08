@@ -1,5 +1,3 @@
-- RESIF %d? Client?
-
 ========================================
 Upload to PyPI Live
 
