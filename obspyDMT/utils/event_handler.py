@@ -261,7 +261,7 @@ def event_info(input_dics):
                             max_mag=input_dics['max_mag'],
                             mag_type=input_dics['mag_type'],
                             req_mag_agcy='Any',
-                            rev_comp='REVIEWED')
+                            rev_comp=input_dics['isc_rev_comp'])
 
         elif event_switch == 'local':
             events_QML = readEvents(input_dics['read_catalog'])
