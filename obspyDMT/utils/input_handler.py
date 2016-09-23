@@ -383,16 +383,6 @@ def command_parse():
     group_ev_based.add_option("--max_result", action="store",
                               dest="max_result", help=helpmsg)
 
-    helpmsg = "searches the ISC Bulletin (COMPREHENSIVE) or " \
-              "searches the Reviewed ISC Bulletin (REVIEWED)" \
-              "- a subset of the ISC Bulletin. [default: COMPREHENSIVE]"
-    group_ev_based.add_option("--isc_rev_comp", action="store",
-                              dest="isc_rev_comp", help=helpmsg)
-
-    helpmsg = "focal mechanism solutions for ISC catalog. [default: False]"
-    group_ev_based.add_option("--isc_include_focal", action="store",
-                              dest="isc_include_focal", help=helpmsg)
-
     helpmsg = "retrieve synthetic waveforms calculated by normal mode " \
               "summation code. (ShakeMovie project)"
     group_ev_based.add_option("--normal_mode_syn", action="store_true",
@@ -676,8 +666,6 @@ def read_input_command(parser, **kwargs):
                   'evlat': None, 'evlon': None,
                   'evradmin': None, 'evradmax': None,
                   'max_result': 2500,
-                  'isc_rev_comp': "COMPREHENSIVE",
-                  'isc_include_focal': False,
 
                   'interval': 3600*24,
 
@@ -1052,8 +1040,6 @@ def read_input_command(parser, **kwargs):
     input_dics['evradmin'] = options.evradmin
 
     input_dics['max_result'] = int(options.max_result)
-    input_dics['isc_rev_comp'] = options.isc_rev_comp
-    input_dics['isc_include_focal'] = options.isc_include_focal
     input_dics['specfem3D'] = options.specfem3D
     input_dics['normal_mode_syn'] = options.normal_mode_syn
 

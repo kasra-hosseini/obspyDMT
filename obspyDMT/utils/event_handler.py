@@ -247,6 +247,7 @@ def event_info(input_dics):
                              input_dics['max_mag'])
 
         elif event_switch == 'isc_cat':
+            print "PROBLEMS: REVIEWED OR COMPREHENSIVE"
             events_QML = \
                 isc_catalog(bot_lat=evlatmin, top_lat=evlatmax,
                             left_lon=evlonmin, right_lon=evlonmax,
@@ -260,8 +261,7 @@ def event_info(input_dics):
                             max_mag=input_dics['max_mag'],
                             mag_type=input_dics['mag_type'],
                             req_mag_agcy='Any',
-                            rev_comp=input_dics['isc_rev_comp'],
-                            include_focal=input_dics['isc_include_focal'])
+                            rev_comp='REVIEWED')
 
         elif event_switch == 'local':
             events_QML = readEvents(input_dics['read_catalog'])
@@ -809,8 +809,7 @@ def isc_catalog(bot_lat=-90, top_lat=90,
                 end_time=UTCDateTime(),
                 min_dep=-10, max_dep=1000, min_mag=0, max_mag=10,
                 mag_type='MW', req_mag_agcy='Any',
-                rev_comp='REVIEWED',
-                include_focal=False):
+                rev_comp='REVIEWED'):
 
     search_domain = 'rectangular'
     if None in [ctr_lat, ctr_lon, radius]:
@@ -848,8 +847,7 @@ def isc_catalog(bot_lat=-90, top_lat=90,
                                min_mag=min_mag, max_mag=max_mag,
                                mag_type=mag_type,
                                req_mag_agcy=req_mag_agcy,
-                               rev_comp=rev_comp,
-                               include_focal=include_focal)
+                               rev_comp=rev_comp)
 
     print "URL:\n%s" % base_url
 
@@ -901,8 +899,8 @@ def isc_url_builder(search_domain='rectangular', bot_lat=-90, top_lat=90,
                     start_time=UTCDateTime() - 30*24*3600,
                     end_time=UTCDateTime(),
                     min_dep=-10, max_dep=1000, min_mag=0, max_mag=10,
-                    mag_type='MW', req_mag_agcy='Any', rev_comp='reviewed',
-                    include_focal=False):
+                    mag_type='MW', req_mag_agcy='Any',
+                    rev_comp='reviewed'):
     """
     URL builder for ISC event catalog
     :param search_domain:
@@ -921,15 +919,11 @@ def isc_url_builder(search_domain='rectangular', bot_lat=-90, top_lat=90,
     :param max_mag:
     :param mag_type:
     :param req_mag_agcy:
-    :param rev_comp:
     :return:
     """
     base_url = 'http://www.isc.ac.uk/cgi-bin/web-db-v4?'
     base_url += 'request=%s' % rev_comp
-    if not include_focal:
-        base_url += '&out_format=CATQuakeML'
-    else:
-        base_url += '&out_format=FMQuakeML'
+    base_url += '&out_format=CATQuakeML'
     if search_domain == 'rectangular':
         base_url += '&searchshape=RECT'
         base_url += '&bot_lat=%s' % bot_lat
