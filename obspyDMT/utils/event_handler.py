@@ -247,7 +247,6 @@ def event_info(input_dics):
                              input_dics['max_mag'])
 
         elif event_switch == 'isc_cat':
-            print "PROBLEMS: REVIEWED OR COMPREHENSIVE"
             events_QML = \
                 isc_catalog(bot_lat=evlatmin, top_lat=evlatmax,
                             left_lon=evlonmin, right_lon=evlonmax,
