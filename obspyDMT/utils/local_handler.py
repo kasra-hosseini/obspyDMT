@@ -50,6 +50,9 @@ def process_data(input_dics, event):
     :return:
     """
     target_path = locate(input_dics['datapath'], event['event_id'])
+
+    if len(target_path) == 0:
+        return
     if len(target_path) > 1:
         print("[LOCAL] more than one path was found for one event:")
         print(target_path)
@@ -263,6 +266,9 @@ def plot_waveform(input_dics, events):
     plt.rc('font', family='serif')
     for ei in range(len(events)):
         target_path = locate(input_dics['datapath'], events[ei]['event_id'])
+
+	if len(target_path) == 0:
+            continue
         if len(target_path) > 1:
             print("[LOCAL] more than one path was found for the event:")
             print(target_path)
@@ -433,6 +439,8 @@ def plot_sta_ev_ray(input_dics, events):
         if plt_stations or plt_availability or plt_ray_path:
             target_path = locate(input_dics['datapath'],
                                  events[ei]['event_id'])
+	    if len(target_path) == 0:
+                continue
             if len(target_path) > 1:
                 print("[LOCAL] more than one path was found for the event:")
                 print(target_path)
