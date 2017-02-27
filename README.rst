@@ -10,7 +10,7 @@ This tutorial has the following sections:
 *  `Installation`_: install obspyDMT and check your local machine for required dependencies.
 *  `Supported event catalogs and data-sources`_: available event catalogs and data-sources.
 *  `Quick tour`_: run a quick tour.
-*  `Examples`_: collection of examples
+*  `Examples <event_info request>`_: collection of examples
 
    -  `event_info request`_: get info about events without downloading waveforms.
    -  `event_based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
