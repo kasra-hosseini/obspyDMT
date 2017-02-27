@@ -564,7 +564,7 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     else:
         br.form1['latitude'] = str(latitude)
         br.form1['longitude'] = str(longitude)
-        br.form1['minradiuskm'] = str(float(radius_min)*111.194)
+        # br.form1['minradiuskm'] = str(float(radius_min)*111.194)
         br.form1['maxradiuskm'] = str(float(radius_max)*111.194)
 
     # This function at this moment only provides these settings

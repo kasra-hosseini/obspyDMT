@@ -411,7 +411,8 @@ def plot_sta_ev_ray(input_dics, events):
         if plt_events:
             if input_dics['plot_focal']:
                 if not events[ei]['focal_mechanism']:
-                    sys.exit('[ERROR] moment tensor does not exist!')
+                    print('[ERROR] moment tensor does not exist!')
+                    continue
                 x, y = m(events[ei]['longitude'],
                          events[ei]['latitude'])
                 focmecs = [float(events[ei]['focal_mechanism'][0]),
