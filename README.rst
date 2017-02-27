@@ -51,7 +51,7 @@ Once a working *Python* and `ObsPy <https://github.com/obspy/obspy/wiki>`_ envir
 
     git clone https://github.com/kasra-hosseini/obspyDMT.git /path/to/my/obspyDMT
 
-obspyDMT can be installed then by:
+obspyDMT can be then installed then by:
 
 ::
 
@@ -72,7 +72,7 @@ or
     pip install obspyDMT
 
 
-obspyDMT can be used from a system shell without explicitly calling the *Python* interpreter. It contains various option flags for customizing the request. Each option has a reasonable default value and the user can change them to adjust obspyDMT option flags to a specific request.
+obspyDMT can be used from a system shell without explicitly calling the *Python* interpreter. It contains various option flags for customizing the request. Each option has a reasonable default value, and the user can change them to adjust obspyDMT option flags to a specific request.
 
 The following command gives all the available options with their default values:
 
