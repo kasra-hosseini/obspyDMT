@@ -28,7 +28,7 @@ Citing the code:
 
 ::
 
-    Kasra Hosseini (2016), obspyDMT (Version 2.0.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
+    Kasra Hosseini (2017), obspyDMT (Version 2.0.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
 
 Paper published in SRL (Seismological Research Letters) for obspyDMT's predecessor:
 
@@ -44,30 +44,32 @@ Installation
 
 Once a working *Python* and *ObsPy* environment is available, obspyDMT can be installed:
 
-**1. install obspyDMT package locally (using PyPi):** One simple way to install obspyDMT is via PyPi:
-
-::
-
-    pip install obspyDMT
-
-**2. install obspyDMT from the source code:** The latest version of obspyDMT is available on GitHub. After installing *git* on your machine:
+**1. install obspyDMT from the source code:** The latest version of obspyDMT is available on GitHub. After installing *git* on your machine:
 
 ::
 
     git clone https://github.com/kasra-hosseini/obspyDMT.git /path/to/my/obspyDMT
-    cd /path/to/my/obspyDMT
 
 obspyDMT can be installed then by:
 
 ::
 
+    cd /path/to/my/obspyDMT
     pip install -e .
 
 or
 
 ::
 
+    cd /path/to/my/obspyDMT
     python setup.py install
+
+**2. install obspyDMT package locally (using PyPi):** One simple way to install obspyDMT is via PyPi:
+
+::
+
+    pip install obspyDMT
+
 
 obspyDMT can be used from a system shell without explicitly calling the *Python* interpreter. It contains various option flags for customizing the request. Each option has a reasonable default value and the user can change them to adjust obspyDMT option flags to a specific request.
 
