@@ -23,7 +23,6 @@ Table of contents
 * `Explore stationXML file`_: explore and analyze stationXML file(s).
 * `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
 
---------------------
 How to cite obspyDMT
 --------------------
 
@@ -41,7 +40,6 @@ Cite the code:
 
 .. _obspyDMT: https://github.com/kasra-hosseini/obspyDMT
 
-------------
 Installation
 ------------
 
