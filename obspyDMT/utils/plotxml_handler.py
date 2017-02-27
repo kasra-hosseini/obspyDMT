@@ -5,7 +5,7 @@
 #   Filename:  plotxml_handler.py
 #   Purpose:   exploring stationXML files
 #   Author:    Kasra Hosseini
-#   Email:     hosseini@geophysik.uni-muenchen.de
+#   Email:     kasra.hosseinizad@earth.ox.ac.uk
 #   License:   GNU Lesser General Public License, Version 3
 # -------------------------------------------------------------------
 

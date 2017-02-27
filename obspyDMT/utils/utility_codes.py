@@ -5,7 +5,7 @@
 #   Filename:  utility_codes.py
 #   Purpose:   collection of helping scripts and utility codes
 #   Author:    Kasra Hosseini
-#   Email:     hosseini@geophysik.uni-muenchen.de
+#   Email:     kasra.hosseinizad@earth.ox.ac.uk
 #   License:   GNU Lesser General Public License, Version 3
 # -------------------------------------------------------------------
 
@@ -55,7 +55,7 @@ def header_printer():
     print ':copyright:'
     print 'The ObsPy Development Team (devs@obspy.org)\n'
     print 'Developed by Kasra Hosseini'
-    print 'email: hosseini@geophysik.uni-muenchen.de\n'
+    print 'email: kasra.hosseinizad@earth.ox.ac.uk\n'
     print ':license:'
     print 'GNU General Public License, Version 3'
     print '(http://www.gnu.org/licenses/gpl-3.0-standalone.html)'

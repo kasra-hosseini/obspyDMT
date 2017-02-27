@@ -5,7 +5,7 @@
 #   Filename:  kml_handler.py
 #   Purpose:   handling KML format in obspyDMT
 #   Author:    Kasra Hosseini
-#   Email:     hosseini@geophysik.uni-muenchen.de
+#   Email:     kasra.hosseinizad@earth.ox.ac.uk
 #   License:   GNU Lesser General Public License, Version 3
 # -------------------------------------------------------------------
 
