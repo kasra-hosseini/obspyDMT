@@ -10,10 +10,12 @@ This tutorial has the following sections:
 *  `Installation`_: install obspyDMT and check your local machine for required dependencies.
 *  `Supported event catalogs and data-sources`_: available event catalogs and data-sources.
 *  `Quick tour`_: run a quick tour.
-*  **Examples**: collection of examples
+*  `Gallery`_: collection of examples:
 
-   -  `event_info request`_: get info about events without downloading waveforms.
-   -  `event_based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
+   -  `Supported event catalogs and data sources`_
+   -  `event info request`_: get info about events without downloading waveforms.
+   -  `seismicity map`_
+   -  `event based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
    -  `continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
    -  `processing`_: process the data automatically after the data retrieval and/or on an existing data-set.
 
@@ -98,11 +100,6 @@ To check the dependencies required for running the code properly:
 
     obspyDMT --check
 
-For sending the request to *NEIC* catalog, we use *mechanize* which can be installed via PyPi:
-
-::
-
-    pip install mechanize
 
 ----------
 Quick tour
@@ -152,8 +149,14 @@ It is also possible to change the map projection in the pop-up menu (same comman
    :scale: 75%
    :align: center
 
+-------
+Gallery
+-------
+
+Collection of examples:
+
 -----------------------------------------
-Supported event catalogs and data-sources
+Supported event catalogs and data sources
 -----------------------------------------
 
 Available event catalogs:
@@ -169,8 +172,10 @@ and supported data sources:
     obspyDMT --print_data_sources
 
 ------------------
-event_info request
+event info request
 ------------------
+
+Get info about events without downloading/processing waveforms! This method can be used to check the available events before starting the actual waveform retrieval, for example:
 
 ::
 
@@ -186,7 +191,7 @@ To plot the retrieved event information:
    :scale: 75%
    :align: center
 
-The created event-catalog can be updated for all events with magnitude more than 6.0:
+The created event-catalog can be updated for all events with magnitude more than 6.0: (no waveform retrieval)
 
 ::
 
@@ -196,24 +201,28 @@ and again to plot the event information in the local data-set:
 
 ::
 
-    obspyDMT --datapath neic_events_2014_dir --local --plot_ev --plot_focal --min_date 2014-01-01
+   obspyDMT --datapath neic_events_2014_dir --local --plot_ev --plot_focal --min_date 2014-01-01
 
 .. image:: figures/neic_event_focal_updated.png
    :scale: 75%
    :align: center
 
-To plot the seismicity map for all events in NEIC with magnitude more than 5.0:
+--------------
+seismicity map
+--------------
+
+To plot a seismicity map for all events with magnitude more than 5.0 that occurred between 2000-2017 from NEIC catalog:
 
 ::
 
-    obspyDMT --datapath neic_events_dir --min_date 1976-01-01 --max_date 2015-01-01 --min_mag 5.0 --event_catalog NEIC_USGS --event_info --plot_seismicity
+   obspyDMT --datapath neic_events_dir --min_date 2000-01-01 --max_date 2017-01-01 --min_mag 5.0 --event_catalog NEIC_USGS --event_info --plot_seismicity
 
 .. image:: figures/neic_catalog_assembled.png
    :scale: 75%
    :align: center
 
 ----------------
-event_based mode
+event based mode
 ----------------
 
 All BHZ and HHZ channels from GFZ data-center:

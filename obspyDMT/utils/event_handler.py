@@ -35,6 +35,7 @@ import os
 import pickle
 import sys
 import time
+import urllib
 import urllib2
 
 from input_handler import input_logger
@@ -237,14 +238,14 @@ def event_info(input_dics):
 
         elif event_switch == 'neic_usgs':
             events_QML = \
-                neic_catalog(input_dics['min_date'],
-                             input_dics['max_date'],
-                             evlatmin, evlatmax, evlonmin, evlonmax,
-                             evlat, evlon, evradmin, evradmax,
-                             input_dics['min_depth'],
-                             input_dics['max_depth'],
-                             input_dics['min_mag'],
-                             input_dics['max_mag'])
+                neic_catalog_urllib(input_dics['min_date'],
+                                    input_dics['max_date'],
+                                    evlatmin, evlatmax, evlonmin, evlonmax,
+                                    evlat, evlon, evradmin, evradmax,
+                                    input_dics['min_depth'],
+                                    input_dics['max_depth'],
+                                    input_dics['min_mag'],
+                                    input_dics['max_mag'])
 
         elif event_switch == 'isc_cat':
             events_QML = \
@@ -500,13 +501,14 @@ def continuous_info(input_dics):
     events_QML = Catalog(events=[])
     return events, events_QML
 
-# ##################### neic_catalog ############################
+# ##################### neic_catalog_urllib ############################
 
 
-def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
-                 max_longitude, latitude, longitude, radius_min, radius_max,
-                 d_min, d_max, mag_min, mag_max,
-                 link_neic="http://earthquake.usgs.gov/earthquakes/search/"):
+def neic_catalog_urllib(t_start, t_end, min_latitude,
+                        max_latitude, min_longitude,
+                        max_longitude, latitude, longitude,
+                        radius_min, radius_max, d_min, d_max, mag_min, mag_max,
+                        link_neic="http://earthquake.usgs.gov/fdsnws/event/1/query.quakeml?"):
     """
     Function for downloading data from NEIC
     :param t_start:
@@ -526,52 +528,31 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     :param link_neic:
     :return:
     """
-    try:
-        import mechanize
-    except Exception, error:
-        sys.exit('[ERROR]\nFor NEIC_USGS, '
-                 '"mechanize" should be installed:\n%s'
-                 '\n\npip install mechanize\n' % error)
-
     tic = time.clock()
 
     dir_name = '%s_temp_xml_files' % int(UTCDateTime.now().timestamp)
     os.mkdir(dir_name)
 
-    # Defines which website we want to look at
-    br = mechanize.Browser()
-    br.open(link_neic)
-
-    # NEIC has two forms, but the relevant one for us is the first form!
-    br.form1 = list(br.forms())[0]
-
-    br.form1['minmagnitude'] = str(mag_min)
-    br.form1['maxmagnitude'] = str(mag_max)
-    br.form1['mindepth'] = str(d_min)
-    br.form1['maxdepth'] = str(d_max)
+    getVars = {'minmagnitude': str(mag_min),
+               'maxmagnitude': str(mag_max),
+               'mindepth': str(d_min),
+               'maxdepth': str(d_max),
+               }
 
     if None in [latitude, longitude, radius_min, radius_max]:
-        if None in [min_latitude, max_latitude, min_longitude, max_longitude]:
-            br.form1['minlongitude'] = '-180'
-            br.form1['maxlongitude'] = '180'
-            br.form1['minlatitude'] = '-90'
-            br.form1['maxlatitude'] = '90'
-        else:
-            br.form1['maxlatitude'] = str(max_latitude)
-            br.form1['minlongitude'] = str(min_longitude)
-            br.form1['maxlongitude'] = str(max_longitude)
-            br.form1['minlatitude'] = str(min_latitude)
+        if not None in [min_latitude, max_latitude, min_longitude, max_longitude]:
+            getVars['minlongitude'] = str(min_longitude)
+            getVars['maxlongitude'] = str(max_longitude)
+            getVars['minlatitude'] = str(min_latitude)
+            getVars['maxlatitiude'] = str(max_latitude)
     else:
-        br.form1['latitude'] = str(latitude)
-        br.form1['longitude'] = str(longitude)
-        # br.form1['minradiuskm'] = str(float(radius_min)*111.194)
-        br.form1['maxradiuskm'] = str(float(radius_max)*111.194)
+        getVars['latitude'] = str(latitude)
+        getVars['longitude'] = str(longitude)
+        getVars['maxradiuskm'] = str(float(radius_max)*111.194)
 
-    # This function at this moment only provides these settings
-    br.form1['format'] = ['quakeml']
-    br.form1['includeallorigins'] = ['true']
-    br.form1['includeallmagnitudes'] = ['true']
-    br.form1['producttype'] = 'moment-tensor'
+    getVars['includeallorigins'] = 'true'
+    getVars['includeallmagnitudes'] = 'true'
+    getVars['producttype'] = 'moment-tensor'
 
     m_date = UTCDateTime(t_start)
     M_date = UTCDateTime(t_end)
@@ -586,15 +567,11 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
             sys.stdout.flush()
             t_start_split = m_date + (i-1)*interval
             t_end_split = m_date + i*interval
-            br.form1['starttime'] = str(t_start_split)
-            br.form1['endtime'] = str(t_end_split)
+            getVars['starttime'] = str(t_start_split)
+            getVars['endtime'] = str(t_end_split)
 
-            # Final output will be now porcessed
-            request = br.form1.click()
-            br.open(request)
-            url = br.geturl()
-
-            remotefile = ('%s' % url)
+            url_values = urllib.parse.urlencode(getVars)
+            remotefile = link_neic + url_values
             page = urllib2.urlopen(remotefile)
             page_content = page.read()
 
@@ -606,32 +583,29 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
                 fid.close()
             else:
                 continue
+            page.close()
         except Exception, error:
-            print "\nWARNING: %s\n" % error
+            print "\nWARNING: %s -- %s\n" % (error, remotefile)
 
     try:
         final_time = m_date + num_div*interval
         if not M_date == final_time:
-            t_start_split = m_date + num_div*interval
-            t_end_split = M_date
-            br.form1['starttime'] = str(t_start_split)
-            br.form1['endtime'] = str(t_end_split)
+            t_start_split = m_date + (i-1)*interval
+            t_end_split = m_date + i*interval
+            getVars['starttime'] = str(t_start_split)
+            getVars['endtime'] = str(t_end_split)
 
-            # Final output will be now porcessed
-            request = br.form1.click()
-            br.open(request)
-            url = br.geturl()
-
-            remotefile = ('%s' % url)
+            url_values = urllib.parse.urlencode(getVars)
+            remotefile = link_neic + url_values
             page = urllib2.urlopen(remotefile)
             page_content = page.read()
-
             if 'quakeml' in page_content:
                 with open(os.path.join(dir_name,
                                        'temp_neic_xml_%05i.xml' % (num_div+1)),
                           'w') as fid:
                     fid.write(page_content)
                 fid.close()
+            page.close()
     except Exception, error:
         print "\nWARNING: %s\n" % error
 
@@ -663,8 +637,7 @@ def neic_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
 def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
                  max_longitude, latitude, longitude, radius_min, radius_max,
                  d_min, d_max, mag_min, mag_max,
-                 link_gcmt='http://www.ldeo.columbia.edu/~gcmt/projects/CMT/'
-                           'catalog'):
+                 link_gcmt='http://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog'):
     """
     Function for downloading data from GCMT
     :param t_start:
@@ -681,6 +654,7 @@ def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     :param d_max:
     :param mag_min:
     :param mag_max:
+    :param link_gcmt:
     :return:
     """
     # for the time record
