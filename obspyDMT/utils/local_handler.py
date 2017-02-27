@@ -14,6 +14,7 @@
 # -----------------------------------------------------------------------
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+from builtins import input as raw_input_built
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 import multiprocessing
@@ -66,7 +67,8 @@ def process_data(input_dics, event):
     print("[INFO] update station_event file...")
     update_sta_ev_file(target_path)
     sta_ev_arr = np.loadtxt(os.path.join(target_path, 'info', 'station_event'),
-                            delimiter=',', dtype='object')
+                            delimiter=',', dtype=bytes).astype(np.str)
+    sta_ev_arr = sta_ev_arr.astype(np.object)
     if input_dics['select_data']:
         sta_ev_arr = select_data(deg_step=float(input_dics['select_data']),
                                  sta_ev=sta_ev_arr)
@@ -266,8 +268,7 @@ def plot_waveform(input_dics, events):
     plt.rc('font', family='serif')
     for ei in range(len(events)):
         target_path = locate(input_dics['datapath'], events[ei]['event_id'])
-
-	if len(target_path) == 0:
+        if len(target_path) == 0:
             continue
         if len(target_path) > 1:
             print("[LOCAL] more than one path was found for the event:")
@@ -283,7 +284,8 @@ def plot_waveform(input_dics, events):
         update_sta_ev_file(target_path)
         sta_ev_arr = np.loadtxt(
             os.path.join(target_path, 'info', 'station_event'),
-            delimiter=',', dtype='object')
+            delimiter=',', dtype=bytes).astype(np.str)
+        sta_ev_arr = sta_ev_arr.astype(np.object)
         del_index = []
         for sti in range(len(sta_ev_arr)):
             if not plot_filter_station(input_dics, sta_ev_arr[sti]):
@@ -393,11 +395,11 @@ def plot_sta_ev_ray(input_dics, events):
     else:
         sys.exit('[ERROR] can not continue, error:\n%s' % input_dics)
 
-    raw_input_resp = raw_input('choose the map style:\n'
-                               '1. bluemarble (PIL should be installed)\n'
-                               '2. etopo (PIL should be installed)\n'
-                               '3. shaderelief (PIL should be installed)\n'
-                               '4. simple\n')
+    raw_input_resp = raw_input_built('choose the map style:\n'
+                                     '1. bluemarble (PIL should be installed)\n'
+                                     '2. etopo (PIL should be installed)\n'
+                                     '3. shaderelief (PIL should be installed)\n'
+                                     '4. simple\n')
     if int(raw_input_resp) == 1:
         m.bluemarble(scale=0.5)
     elif int(raw_input_resp) == 2:
@@ -427,7 +429,7 @@ def plot_sta_ev_ray(input_dics, events):
                               width=width_beach, linewidth=1, alpha=0.85)
                     b.set_zorder(10)
                     ax.add_collection(b)
-                except Exception, error:
+                except Exception as error:
                     print("[WARNING: %s -- %s]" % (error, focmecs))
                     continue
             else:
@@ -440,7 +442,7 @@ def plot_sta_ev_ray(input_dics, events):
         if plt_stations or plt_availability or plt_ray_path:
             target_path = locate(input_dics['datapath'],
                                  events[ei]['event_id'])
-	    if len(target_path) == 0:
+            if len(target_path) == 0:
                 continue
             if len(target_path) > 1:
                 print("[LOCAL] more than one path was found for the event:")
@@ -457,12 +459,13 @@ def plot_sta_ev_ray(input_dics, events):
             if not input_dics['plot_availability']:
                 sta_ev_arr = np.loadtxt(os.path.join(target_path,
                                                      'info', 'station_event'),
-                                        delimiter=',', dtype='object')
+                                        delimiter=',', dtype=bytes).astype(np.str)
             else:
                 sta_ev_arr = np.loadtxt(os.path.join(target_path,
                                                      'info',
                                                      'availability.txt'),
-                                        delimiter=',', dtype='object')
+                                        delimiter=',', dtype=bytes).astype(np.str)
+            sta_ev_arr = sta_ev_arr.astype(np.object)
 
             if events[ei]['magnitude'] > 0:
                 del_index = []
@@ -582,11 +585,11 @@ def plot_seismicity(input_dics, events):
     meridians = np.arange(-180., 180., 60.)
     m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=24)
 
-    raw_input_resp = raw_input('choose the map style:\n'
-                               '1. bluemarble (PIL should be installed)\n'
-                               '2. etopo (PIL should be installed)\n'
-                               '3. shaderelief (PIL should be installed)\n'
-                               '4. simple\n')
+    raw_input_resp = raw_input_built('choose the map style:\n'
+                                     '1. bluemarble (PIL should be installed)\n'
+                                     '2. etopo (PIL should be installed)\n'
+                                     '3. shaderelief (PIL should be installed)\n'
+                                     '4. simple\n')
     if int(raw_input_resp) == 1:
         m.bluemarble(scale=0.5)
     elif int(raw_input_resp) == 2:
@@ -713,7 +716,7 @@ def plot_seismicity(input_dics, events):
                           linewidth=1, alpha=0.85)
                 b.set_zorder(10)
                 ax.add_collection(b)
-            except Exception, error:
+            except Exception as error:
                 print('[EXCEPTION] focal mechanism:')
                 print(focmec)
                 print('[EXCEPTION] error: %s' % error)

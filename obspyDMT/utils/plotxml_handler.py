@@ -12,6 +12,8 @@
 # -----------------------------------------------------------------------
 # ----------------Import required Modules (Python and Obspy)-------------
 # -----------------------------------------------------------------------
+from __future__ import print_function
+from builtins import input as raw_input_built
 import glob
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
@@ -19,11 +21,11 @@ import numpy as np
 from obspy import read_inventory
 try:
     from obspy.signal import pazToFreqResp
-except Exception, e:
+except Exception as e:
     from obspy.signal.invsim import paz_to_freq_resp as pazToFreqResp
 try:
     from obspy.geodetics import locations2degrees
-except Exception, e:
+except Exception as e:
     from obspy.core.util import locations2degrees
 import os
 import sys
@@ -41,10 +43,10 @@ def plot_xml_response(input_dics):
     :return:
     """
     plt.rc('font', family='serif')
-    print '[INFO] plotting StationXML file/files in: %s' % \
-          input_dics['datapath']
+    print('[INFO] plotting StationXML file/files in: %s' % \
+          input_dics['datapath'])
     if not os.path.isdir('./stationxml_plots'):
-        print '[INFO] creating stationxml_plots directory...'
+        print('[INFO] creating stationxml_plots directory...')
         os.mkdir('./stationxml_plots')
 
     # assign the input_dics parameters to the running parameters:
@@ -77,8 +79,8 @@ def plot_xml_response(input_dics):
     else:
         try:
             addxml_all = glob.glob(os.path.join(stxml_dir))
-        except Exception, error:
-            print '[ERROR] %s' % error
+        except Exception as error:
+            print('[ERROR] %s' % error)
             sys.exit('[ERROR] wrong address: %s' % stxml_dir)
 
     addxml_all.sort()
@@ -86,8 +88,8 @@ def plot_xml_response(input_dics):
     sta_lat = []
     sta_lon = []
     latlon_color = []
-    report_fio = open(os.path.join('./stationxml_plots',
-                                   'report_stationxml'), 'w')
+    report_fio = open(os.path.join('stationxml_plots',
+                                   'report_stationxml'), 'wt')
     report_fio.writelines('channel_id\t\t\t\t%(Phase)\t\t'
                           'Max diff(abs) \tLat\t\t\tLon\t\t\tDatetime\t'
                           'decimation delay\tdecimation correction\n')
@@ -97,20 +99,20 @@ def plot_xml_response(input_dics):
     for addxml in addxml_all:
         end_stage = end_stage_input
         add_counter += 1
-        print 40*'-'
-        print '%s/%s' % (add_counter, len(addxml_all))
+        print(40*'-')
+        print('%s/%s' % (add_counter, len(addxml_all)))
         try:
             xml_inv = read_inventory(addxml, format='stationXML')
-            print "[STATIONXML] %s" % addxml
+            print("[STATIONXML] %s" % addxml)
             # we only take into account the first channel...
             cha_name = xml_inv.get_contents()['channels'][0]
             if plotxml_datetime:
                 cha_date = plotxml_datetime
             else:
                 cha_date = xml_inv.networks[0][0][-1].start_date
-                print '[INFO] plotxml_date has not been set, the start_date ' \
+                print('[INFO] plotxml_date has not been set, the start_date ' \
                       'of the last channel in stationXML file will be used ' \
-                      'instead: %s' % cha_date
+                      'instead: %s' % cha_date)
 
             xml_response = xml_inv.get_response(cha_name, cha_date + 0.1)
             if xml_inv[0][0][0].sample_rate:
@@ -141,8 +143,8 @@ def plot_xml_response(input_dics):
                 cpx_12, freq = xml_response.get_evalresp_response(
                     t_samp=t_samp, nfft=nfft, output=output, start_stage=1,
                     end_stage=2)
-            except Exception, error:
-                print '[WARNING] %s' % error
+            except Exception as error:
+                print('[WARNING] %s' % error)
                 continue
 
             paz, decimation_delay, decimation_correction = \
@@ -290,8 +292,8 @@ def plot_xml_response(input_dics):
                 plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft,
                                        min_freq, output,
                                        start_stage, end_stage, cha_name)
-            report_fio = open(os.path.join('./stationxml_plots',
-                                           'report_stationxml'), 'a')
+            report_fio = open(os.path.join('stationxml_plots',
+                                           'report_stationxml'), 'at')
             report_fio.writelines(
                 '%s\t\t\t%6.2f\t\t\t%6.2f\t\t\t%6.2f\t\t%7.2f\t\t%s\t%s\t%s\n'
                 % (cha_name,
@@ -303,8 +305,8 @@ def plot_xml_response(input_dics):
                    np.sum(decimation_delay),
                    np.sum(decimation_correction)))
             report_fio.close()
-        except Exception, error:
-            print '[Exception] %s' % error
+        except Exception as error:
+            print('[Exception] %s' % error)
 
     if plot_map_compare:
         plt.figure()
@@ -322,7 +324,7 @@ def plot_xml_response(input_dics):
         plt.colorbar(orientation='horizontal')
         plt.savefig(os.path.join('stationxml_plots', 'compare_plots.png'))
         plt.show()
-        raw_input('Press Enter...')
+        raw_input_built('Press Enter...')
     sys.exit('[EXIT] obspyDMT finished normally...')
 
 # ##################### get_coordinates ##########################
@@ -415,9 +417,9 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
     """
     plt.rc('font', family='serif')
     if not os.path.isdir('./stationxml_plots'):
-        print '[INFO] creating stationxml_plots directory...',
+        print('[INFO] creating stationxml_plots directory...', end='')
         os.mkdir('./stationxml_plots')
-        print 'DONE'
+        print('DONE')
 
     plt.figure(figsize=(20, 10))
     plt.suptitle(cha_name, size=24, weight='bold')
@@ -430,19 +432,19 @@ def plot_xml_plotallstages(xml_response, t_samp, nyquist, nfft, min_freq,
             cpx_response, freq = xml_response.get_evalresp_response(
                 t_samp=t_samp, nfft=nfft, output=output,
                 start_stage=i, end_stage=i)
-        except Exception, error:
-            print '[WARNING] %s' % error
+        except Exception as error:
+            print('[WARNING] %s' % error)
             continue
 
         try:
             inp = xml_response.response_stages[i-1].input_units
-        except Exception, error:
-            print '[WARNING] %s' % error
+        except Exception as error:
+            print('[WARNING] %s' % error)
             inp = ''
         try:
             out = xml_response.response_stages[i-1].output_units
-        except Exception, error:
-            print '[WARNING] %s' % error
+        except Exception as error:
+            print('[WARNING] %s' % error)
             out = ''
 
         phase_resp = np.angle(cpx_response)
@@ -515,9 +517,9 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
             decimation_correction.append(resp_stage.decimation_correction)
 
     if len(poles) > 1:
-        print '[WARNING] More than one group of poles was found: %s' % poles
+        print('[WARNING] More than one group of poles was found: %s' % poles)
     if len(zeros) > 1:
-        print '[WARNING] More than one group of zeros was found: %s' % zeros
+        print('[WARNING] More than one group of zeros was found: %s' % zeros)
 
     normalization_factor = normalization_factor[0]
     poles = poles[0]
@@ -539,7 +541,7 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
         print('[ERROR] input unit is not defined: %s\nContact the developer'
               % input_units)
         error_fio = open(os.path.join('./stationxml_plots',
-                                      'error_format'), 'a')
+                                      'error_format'), 'at')
         error_fio.writelines('%s\t\t%s\t\t%s\n' % (cha_name, cha_date,
                                                    input_units))
         return False
@@ -569,9 +571,9 @@ def convert_xml_paz(xml_response, output, cha_name, cha_date):
     paz['zeros'] = zeros
     paz['gain'] = normalization_factor
     paz['sensitivity'] = np.prod(np.array(gain_arr))
-    print '[INFO] final PAZ:'
-    print 'zeros: ', paz['zeros']
-    print 'poles: ', paz['poles']
-    print 'gain: ', paz['gain']
-    print 'sensitivity: ', paz['sensitivity']
+    print('[INFO] final PAZ:')
+    print('zeros: ', paz['zeros'])
+    print('poles: ', paz['poles'])
+    print('gain: ', paz['gain'])
+    print('sensitivity: ', paz['sensitivity'])
     return paz, decimation_delay, decimation_correction

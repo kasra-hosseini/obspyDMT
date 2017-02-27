@@ -46,7 +46,7 @@ def instrument_correction(tr, target_path, save_path, corr_unit, pre_filt,
                                       corr_unit, pre_filt, water_level,
                                       debug=False)
     else:
-        print "%s -- StationXML or Response file does not exist!" % tr.id
+        print("%s -- StationXML or Response file does not exist!" % tr.id)
         tr_corr = False
     return tr_corr
 
@@ -76,10 +76,10 @@ def obspy_fullresp_stxml(trace, stxml_file, save_path, unit,
         unit = unit.upper()
     try:
         if debug:
-            print 20*'='
-            print 'stationXML file: %s' % stxml_file
-            print 'tarce: %s' % trace.id
-            print 'save path: %s' % save_path
+            print(20*'=')
+            print('stationXML file: %s' % stxml_file)
+            print('tarce: %s' % trace.id)
+            print('save path: %s' % save_path)
 
         # remove the trend
         trace.detrend('linear')
@@ -102,12 +102,12 @@ def obspy_fullresp_stxml(trace, stxml_file, save_path, unit,
             unit_print = 'acceleration'
         else:
             unit_print = 'UNKNOWN'
-        print 'instrument correction to %s for: %s' % (unit_print, trace.id)
+        print('instrument correction to %s for: %s' % (unit_print, trace.id))
 
         return trace
 
     except Exception as error:
-        print '[EXCEPTION] %s -- %s' % (trace.id, error)
+        print('[EXCEPTION] %s -- %s' % (trace.id, error))
         return False
 
 # ##################### obspy_fullresp_resp ##################################
@@ -139,10 +139,10 @@ def obspy_fullresp_resp(trace, resp_file, save_path, unit,
     seedresp = {'filename': dataless_parser, 'units': unit}
 
     if debug:
-        print 20*'='
-        print 'stationXML file: %s' % resp_file
-        print 'tarce: %s' % trace.id
-        print 'save path: %s' % save_path
+        print(20*'=')
+        print('stationXML file: %s' % resp_file)
+        print('tarce: %s' % trace.id)
+        print('save path: %s' % save_path)
 
     # remove the trend
     trace.detrend('linear')
@@ -166,10 +166,10 @@ def obspy_fullresp_resp(trace, resp_file, save_path, unit,
             unit_print = 'acceleration'
         else:
             unit_print = 'UNKNOWN'
-        print 'instrument correction to %s for: %s' % (unit_print, trace.id)
+        print('instrument correction to %s for: %s' % (unit_print, trace.id))
 
         return trace
 
     except Exception as error:
-        print '[EXCEPTION] %s -- %s' % (trace.id, error)
+        print('[EXCEPTION] %s -- %s' % (trace.id, error))
         return False

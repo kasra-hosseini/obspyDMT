@@ -12,6 +12,7 @@
 # -----------------------------------------------------------------------
 # ----------------Import required Modules (Python and Obspy)-------------
 # -----------------------------------------------------------------------
+from __future__ import print_function
 import copy
 from datetime import datetime
 import numpy as np
@@ -31,10 +32,10 @@ except:
 import os
 import pickle
 
-from utility_codes import create_folders_files
-from utility_codes import print_data_sources
-from utility_codes import read_list_stas, calculate_time_phase
-from utility_codes import read_station_event
+from .utility_codes import create_folders_files
+from .utility_codes import print_data_sources
+from .utility_codes import read_list_stas, calculate_time_phase
+from .utility_codes import read_station_event
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -50,16 +51,16 @@ def get_metadata(input_dics, event, info_avail):
     :param info_avail:
     :return:
     """
-    print '\n============='
-    print 'metadata mode'
-    print '============='
+    print('\n=============')
+    print('metadata mode')
+    print('=============')
 
     eventpath = os.path.join(input_dics['datapath'])
 
     t_1 = datetime.now()
-    print 'initializing files and directories...',
+    print('initializing files and directories...', end='')
     create_folders_files(event, eventpath, input_dics)
-    print 'DONE'
+    print('DONE')
 
     target_path = os.path.join(eventpath, event['event_id'])
 
@@ -74,8 +75,8 @@ def get_metadata(input_dics, event, info_avail):
                 stas_cli = arc_available(input_dics, event,
                                          target_path)
             else:
-                print '\nERROR: %s is not implemented!' \
-                      % input_dics['data_source'][cl]
+                print('\nERROR: %s is not implemented!' \
+                      % input_dics['data_source'][cl])
                 print_data_sources()
             # put all the available stations together
             for st_fdarc in stas_cli:
@@ -100,11 +101,12 @@ def get_metadata(input_dics, event, info_avail):
     np.savetxt(avail_fi, stas_arr, delimiter=',', fmt='%s')
     avail_fi.close()
 
-    saved_avail = np.loadtxt(avail_add, delimiter=',', dtype='object')
+    saved_avail = np.loadtxt(avail_add, delimiter=',', dtype=bytes).astype(np.str)
+    saved_avail = saved_avail.astype(np.object)
     unique_avail = []
     if len(saved_avail) > 1:
         unique_avail = unique_rows_avail(saved_avail)
-        avail_fi = open(avail_add, 'w')
+        avail_fi = open(avail_add, 'wb')
         np.savetxt(avail_fi, unique_avail, delimiter=',', fmt='%s')
         avail_fi.close()
 
@@ -116,12 +118,12 @@ def get_metadata(input_dics, event, info_avail):
         stas_arr_update = np.array(unique_avail)
 
     if not input_dics['bulk']:
-        print '\navailability for event: %s ---> DONE' % info_avail
+        print('\navailability for event: %s ---> DONE' % info_avail)
     else:
-        print '\nbulkfile for event: %s ---> DONE' % info_avail
+        print('\nbulkfile for event: %s ---> DONE' % info_avail)
 
-    print 'Time for checking the availability: %s' \
-          % (datetime.now() - t_1)
+    print('Time for checking the availability: %s' \
+          % (datetime.now() - t_1))
 
     return stas_arr_update
 
@@ -151,7 +153,7 @@ def fdsn_available(input_dics, cl, event, target_path):
     :param target_path:
     :return:
     """
-    print "check the availability: %s" % input_dics['data_source'][cl]
+    print("check the availability: %s" % input_dics['data_source'][cl])
 
     if input_dics['username']:
         include_restricted = True
@@ -197,7 +199,7 @@ def fdsn_available(input_dics, cl, event, target_path):
                                      input_dics['data_source'][cl], st_id])
 
         if input_dics['bulk']:
-            print 'creating a list for bulk request...'
+            print('creating a list for bulk request...')
             bulk_list = []
             for bulk_sta in sta_fdsn:
                 if input_dics['cut_time_phase']:
@@ -210,17 +212,17 @@ def fdsn_available(input_dics, cl, event, target_path):
 
             bulk_list_fio = open(os.path.join(
                 target_path, 'info',
-                'bulkdata_list_%s' % input_dics['data_source'][cl]), 'a+')
+                'bulkdata_list_%s' % input_dics['data_source'][cl]), 'ab+')
             pickle.dump(bulk_list, bulk_list_fio)
             bulk_list_fio.close()
 
     except Exception as error:
-        exc_file = open(os.path.join(target_path, 'info', 'exception'), 'a+')
+        exc_file = open(os.path.join(target_path, 'info', 'exception'), 'at+')
         ee = 'availability -- %s -- %s\n' % (input_dics['data_source'][cl],
                                              error)
         exc_file.writelines(ee)
         exc_file.close()
-        print 'ERROR: %s' % ee
+        print('ERROR: %s' % ee)
         return []
 
     if len(sta_fdsn) == 0:
@@ -239,7 +241,7 @@ def arc_available(input_dics, event, target_path):
     :param target_path:
     :return:
     """
-    print "check the availability: ArcLink"
+    print("check the availability: ArcLink")
 
     client_arclink = Client_arclink(user='test@obspy.org',
                                     timeout=input_dics['arc_avai_timeout'])
@@ -299,11 +301,11 @@ def arc_available(input_dics, event, target_path):
 
                     except Exception as error:
                         exc_file = open(os.path.join(target_path, 'info',
-                                                     'exception'), 'a+')
+                                                     'exception'), 'at+')
                         ee = 'availability -- arclink -- %s\n' % error
                         exc_file.writelines(ee)
                         exc_file.close()
-                        print 'ERROR: %s' % ee
+                        print('ERROR: %s' % ee)
                         return []
 
     if len(sta_arc) == 0:
@@ -323,7 +325,7 @@ def fdsn_create_bulk_list(target_path, input_dics, stas_all, event):
     :param event:
     :return:
     """
-    print 'creating a list for bulk request...'
+    print('creating a list for bulk request...')
     bulk_list = []
     for bulk_sta in stas_all:
         if input_dics['cut_time_phase']:
@@ -335,7 +337,7 @@ def fdsn_create_bulk_list(target_path, input_dics, stas_all, event):
                           bulk_sta[3], t_start, t_end))
 
     bulk_list_fio = open(os.path.join(target_path, 'info',
-                                      'bulkdata_list_local'), 'a+')
+                                      'bulkdata_list_local'), 'ab+')
     pickle.dump(bulk_list, bulk_list_fio)
     bulk_list_fio.close()
 
@@ -378,11 +380,11 @@ def rm_duplicate(all_sta_avail, address):
         stas_update[i] = stas_update[i].split('#')
 
     stas_update.sort()
-    print '------------------------------------------'
-    print 'Info:'
-    print 'Number of all saved stations:     %s' % len(id_all_saved_stas)
-    print 'Number of all available stations: %s' % len(id_avai_stas)
-    print 'Number of stations to update for: %s' % len(stas_update)
-    print '------------------------------------------'
+    print('------------------------------------------')
+    print('Info:')
+    print('Number of all saved stations:     %s' % len(id_all_saved_stas))
+    print('Number of all available stations: %s' % len(id_avai_stas))
+    print('Number of stations to update for: %s' % len(stas_update))
+    print('------------------------------------------')
 
     return stas_update

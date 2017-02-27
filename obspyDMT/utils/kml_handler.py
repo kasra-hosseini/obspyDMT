@@ -95,7 +95,7 @@ def create_ev_sta_kml(input_dics, events):
                           'kml_dir', events[ei]['event_id'] + '.png'),
                       facecolor=event_color,
                       edgecolor=event_color)
-        except Exception, error:
+        except Exception as error:
             print(error)
             print(focmecs)
             continue
@@ -179,7 +179,8 @@ def create_ev_sta_kml(input_dics, events):
             update_sta_ev_file(target_path)
             sta_ev_arr = np.loadtxt(os.path.join(target_path,
                                                  'info', 'station_event'),
-                                    delimiter=',', dtype='object')
+                                    delimiter=',', dtype=bytes).astype(np.str)
+            sta_ev_arr = sta_ev_arr.astype(np.object)
             del_index = []
             for sti in range(len(sta_ev_arr)):
 

@@ -12,6 +12,7 @@
 # -----------------------------------------------------------------------
 # ----------------Import required Modules (Python and Obspy)-------------
 # -----------------------------------------------------------------------
+from __future__ import print_function
 from collections import OrderedDict
 import copy
 from datetime import datetime, timedelta
@@ -20,26 +21,29 @@ import numpy as np
 from obspy.core.event import Catalog
 try:
     from obspy.core.event import readEvents
-except Exception, e:
+except Exception as e:
     from obspy import read_events as readEvents
 from obspy.core import UTCDateTime
 try:
     from obspy.geodetics import locations2degrees
-except Exception, e:
+except Exception as e:
     from obspy.core.util import locations2degrees
 try:
     from obspy.clients.fdsn import Client as Client_fdsn
-except Exception, e:
+except Exception as e:
     from obspy.fdsn import Client as Client_fdsn
 import os
 import pickle
 import sys
 import time
 import urllib
-import urllib2
+try:
+    from urllib2 import urlopen 
+except ImportError:
+    from urllib.request import urlopen 
 
-from input_handler import input_logger
-from utility_codes import locate
+from .input_handler import input_logger
+from .utility_codes import locate
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -66,9 +70,9 @@ def get_time_window(input_dics, request):
         events_local = read_info(input_dics)
         if input_dics['event_catalog'].lower() == 'local':
             if events_local == 'no_local':
-                print "[WARNING] no local event was found!"
+                print("[WARNING] no local event was found!")
                 if request == 'event_based':
-                    print "[WARNING] use IRIS catalog instead!"
+                    print("[WARNING] use IRIS catalog instead!")
                     input_dics['event_catalog'] = 'IRIS'
             else:
                 events = copy.deepcopy(events_local)
@@ -97,8 +101,8 @@ def get_time_window(input_dics, request):
                     for oei in range(len(events_local)):
                         events.append(events_local[oei])
 
-    except Exception, error:
-        print 'WARNING: %s' % error
+    except Exception as error:
+        print('WARNING: %s' % error)
         return []
 
     if len(events) == 0:
@@ -106,9 +110,9 @@ def get_time_window(input_dics, request):
 
     events2, row_format, header = output_shell_event(events, request)
 
-    print 'Number of events/intervals: %s' % len(events)
-    print 'Time for retrieving and saving the event info: %s' \
-          % str(timedelta(seconds=round(float(time.time() - t_event_1))))
+    print('Number of events/intervals: %s' % len(events))
+    print('Time for retrieving and saving the event info: %s' \
+          % str(timedelta(seconds=round(float(time.time() - t_event_1)))))
 
     if input_dics['primary_mode'] in ['event_based', 'continuous',
                                       'meta_data']:
@@ -131,17 +135,17 @@ def read_info(input_dics):
     if len(evs_info) == 0:
         return "no_local"
     if len(evs_info) > 1:
-        print "[WARNING] Found two directories that have EVENTS-INFO. " \
-              "Continue with:"
-        print evs_info[0]
-        print '\n'
+        print("[WARNING] Found two directories that have EVENTS-INFO. " \
+              "Continue with:")
+        print(evs_info[0])
+        print('\n')
 
     ev_info = evs_info[0]
 
     if not os.path.isfile(os.path.join(ev_info, 'event_list_pickle')):
         return "no_local"
 
-    fio = open(os.path.join(ev_info, 'event_list_pickle'), 'r')
+    fio = open(os.path.join(ev_info, 'event_list_pickle'), 'rb')
     events = pickle.load(fio)
     remove_index = []
     if input_dics['dir_select']:
@@ -152,12 +156,12 @@ def read_info(input_dics):
         for ri in remove_index:
             del events[ri]
     if input_dics['event_catalog'].lower() == 'local':
-        print "\n========================================================="
-        print "use the local files:"
-        print "(all relevant options (time, magnitude, depth, location) " \
-              "will be omitted!)"
-        print os.path.join(ev_info, 'event_list_pickle')
-        print "=========================================================\n"
+        print("\n=========================================================")
+        print("use the local files:")
+        print("(all relevant options (time, magnitude, depth, location) " \
+              "will be omitted!)")
+        print(os.path.join(ev_info, 'event_list_pickle'))
+        print("=========================================================\n")
     return events
 
 # ##################### event_info #####################################
@@ -193,8 +197,7 @@ def event_info(input_dics):
         if event_url.lower() == 'isc':
             event_switch = 'isc_cat'
 
-        print '\nEvent(s) are based on:\t',
-        print input_dics['event_catalog']
+        print('\nEvent(s) are based on:\t%s' % input_dics['event_catalog'])
 
         if event_switch == 'fdsn':
             client_fdsn = Client_fdsn(base_url=event_url)
@@ -291,9 +294,9 @@ def event_info(input_dics):
         events = qml_to_event_list(events_QML)
 
     except Exception as error:
-        print 60*'-'
-        print '[WARNING] %s' % error
-        print 60*'-'
+        print(60*'-')
+        print('[WARNING] %s' % error)
+        print(60*'-')
         events = []
         events_QML = []
 
@@ -324,8 +327,8 @@ def qml_to_event_list(events_QML):
             event_time_hour = '%02i' % int(event_time.hour)
             event_time_minute = '%02i' % int(event_time.minute)
             event_time_second = '%02i' % int(event_time.second)
-        except Exception, error:
-            print error
+        except Exception as error:
+            print(error)
             continue
         try:
             if not events_QML.events[i].focal_mechanisms == []:
@@ -345,13 +348,13 @@ def qml_to_event_list(events_QML):
             else:
                 focal_mechanism = False
         except AttributeError:
-            print "[WARNING] focal_mechanism does not exist for " \
-                  "event: %s -- set to False" % (i+1)
+            print("[WARNING] focal_mechanism does not exist for " \
+                  "event: %s -- set to False" % (i+1))
             focal_mechanism = False
         except TypeError:
             focal_mechanism = False
-        except Exception, error:
-            print error
+        except Exception as error:
+            print(error)
             focal_mechanism = False
 
         try:
@@ -369,13 +372,13 @@ def qml_to_event_list(events_QML):
                 source_duration = mag_duration(
                     mag=events_QML.events[i].preferred_mag)
         except AttributeError:
-            print "[WARNING] source duration does not exist for " \
-                  "event: %s -- set to False" % (i+1)
+            print("[WARNING] source duration does not exist for " \
+                  "event: %s -- set to False" % (i+1))
             source_duration = False
         except TypeError:
             source_duration = False
-        except Exception, error:
-            print error
+        except Exception as error:
+            print(error)
             source_duration = False
 
         try:
@@ -407,8 +410,8 @@ def qml_to_event_list(events_QML):
                  ('source_duration', source_duration),
                  ('flynn_region', 'NAN'),
                  ]))
-        except Exception, error:
-            print error
+        except Exception as error:
+            print(error)
             continue
     return events
 
@@ -421,7 +424,7 @@ def continuous_info(input_dics):
     :param input_dics:
     :return:
     """
-    print 'start identifying the intervals...',
+    print('start identifying the intervals...', end='')
     m_date = UTCDateTime(input_dics['min_date'])
     M_date = UTCDateTime(input_dics['max_date'])
     t_cont = M_date - m_date
@@ -497,7 +500,7 @@ def continuous_info(input_dics):
              ('t1', m_date),
              ('t2', M_date),
              ]))
-    print 'DONE'
+    print('DONE')
     events_QML = Catalog(events=[])
     return events, events_QML
 
@@ -560,10 +563,10 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
     interval = 30.*24.*60.*60.
 
     num_div = int(dur_event/interval)
-    print '#Divisions: %s' % num_div
+    print('#Divisions: %s' % num_div)
     for i in range(1, num_div+1):
         try:
-            print i,
+            print(i, end='')
             sys.stdout.flush()
             t_start_split = m_date + (i-1)*interval
             t_end_split = m_date + i*interval
@@ -572,7 +575,7 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
 
             url_values = urllib.parse.urlencode(getVars)
             remotefile = link_neic + url_values
-            page = urllib2.urlopen(remotefile)
+            page = urlopen(remotefile)
             page_content = page.read()
 
             if 'quakeml' in page_content:
@@ -584,8 +587,8 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
             else:
                 continue
             page.close()
-        except Exception, error:
-            print "\nWARNING: %s -- %s\n" % (error, remotefile)
+        except Exception as error:
+            print("\nWARNING: %s -- %s\n" % (error, remotefile))
 
     try:
         final_time = m_date + num_div*interval
@@ -597,7 +600,7 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
 
             url_values = urllib.parse.urlencode(getVars)
             remotefile = link_neic + url_values
-            page = urllib2.urlopen(remotefile)
+            page = urlopen(remotefile)
             page_content = page.read()
             if 'quakeml' in page_content:
                 with open(os.path.join(dir_name,
@@ -606,29 +609,29 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
                     fid.write(page_content)
                 fid.close()
             page.close()
-    except Exception, error:
-        print "\nWARNING: %s\n" % error
+    except Exception as error:
+        print("\nWARNING: %s\n" % error)
 
     xml_add = glob.glob(os.path.join(dir_name, 'temp_neic_xml_*.xml'))
     xml_add.sort()
     cat = Catalog()
-    print '\nAssembling %s xml files...' % len(xml_add)
+    print('\nAssembling %s xml files...' % len(xml_add))
     counter = 1
     for x_add in xml_add:
-        print counter,
+        print(counter),
         sys.stdout.flush()
         counter += 1
         try:
             cat.extend(readEvents(x_add, format='QuakeML'))
             os.remove(x_add)
-        except Exception, error:
-            print '[WARNING] %s' % error
+        except Exception as error:
+            print('[WARNING] %s' % error)
             os.remove(x_add)
 
-    print "\ncleaning up the temporary folder."
+    print("\ncleaning up the temporary folder.")
     os.rmdir(dir_name)
     toc = time.clock()
-    print '\n%s sec to retrieve the event info form NEIC.' % (toc-tic)
+    print('\n%s sec to retrieve the event info form NEIC.' % (toc-tic))
     return cat
 
 # ##################### gcmt_catalog ############################
@@ -663,8 +666,8 @@ def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
     try:
         import obspyDMT
         dmt_path = obspyDMT.__path__[0]
-    except Exception, error:
-        print "WARNING: %s" % error
+    except Exception as error:
+        print("WARNING: %s" % error)
         dmt_path = '.'
     gcmt_cat_path = os.path.join(dmt_path, 'gcmt_catalog')
     if not os.path.exists(gcmt_cat_path):
@@ -716,22 +719,22 @@ def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
                 file_to_open = os.path.join(gcmt_cat_path, new_monthly,
                                             '%s.qml' % yy)
             if not os.path.exists(file_to_open) and not new_monthly == 'COMBO':
-                print 'Reading the data from GCMT webpage: %s' % yymmls[i]
-                remotefile = urllib2.urlopen(remotefile_add)
+                print('Reading the data from GCMT webpage: %s' % yymmls[i])
+                remotefile = urlopen(remotefile_add)
                 remotefile_read = remotefile.readlines()
                 search_fio = open(file_to_open, 'w')
                 search_fio.writelines(remotefile_read)
                 search_fio.close()
-            print 'Reading the data from local gcmt_catalog: %s' % yymmls[i]
+            print('Reading the data from local gcmt_catalog: %s' % yymmls[i])
             cat.extend(readEvents(file_to_open))
             yy_ret.append(yy)
             mm_ret.append(mm)
-        except Exception, error:
-            print "ERROR: %s" % error
+        except Exception as error:
+            print("ERROR: %s" % error)
 
-    print 'Done reading the data from GCMT webpage.'
+    print('Done reading the data from GCMT webpage.')
     toc = datetime.now()
-    print '%s sec to retrieve the event info form GCMT.' % (toc-tic)
+    print('%s sec to retrieve the event info form GCMT.' % (toc-tic))
 
     filt1 = 'time >= %s' % t_start
     filt2 = 'time <= %s' % t_end
@@ -822,18 +825,18 @@ def isc_catalog(bot_lat=-90, top_lat=90,
                                req_mag_agcy=req_mag_agcy,
                                rev_comp=rev_comp)
 
-    print "URL:\n%s" % base_url
+    print("URL:\n%s" % base_url)
 
     try_url = 5
     while try_url > 0:
-        print "Try: %s" % try_url
+        print("Try: %s" % try_url)
         try:
-            isc_req = urllib2.urlopen(base_url)
+            isc_req = urlopen(base_url)
             isc_contents = isc_req.read()
             isc_events = readEvents(isc_contents)
             try_url = 0
-        except Exception, e:
-            print "requested content from ISC:\n%s" % e
+        except Exception as e:
+            print("requested content from ISC:\n%s" % e)
         try_url -= 1
 
     isc_events = isc_events.filter("magnitude >= %s" % min_mag,
@@ -955,23 +958,23 @@ def output_shell_event(events, request):
         pass
 
     elif len(events) <= 50:
-        print '\n' + row_format.format(*header)
-        print 80 * '-'
+        print('\n' + row_format.format(*header))
+        print(80 * '-')
         for i in range(len(events2)):
-            print (row_format.format(*events2[i].values())).rstrip()
-        print 80 * '-' + '\n'
+            print((row_format.format(*events2[i].values())).rstrip())
+        print(80 * '-' + '\n')
 
     else:
-        print '\n' + row_format.format(*header)
-        print 80 * '-'
-        print (row_format.format(*events2[0].values())).rstrip()
-        print (row_format.format(*events2[1].values())).rstrip()
-        print (row_format.format(*events2[2].values())).rstrip()
-        print '..'
-        print (row_format.format(*events2[-3].values())).rstrip()
-        print (row_format.format(*events2[-2].values())).rstrip()
-        print (row_format.format(*events2[-1].values())).rstrip()
-        print 80 * '-' + '\n'
+        print('\n' + row_format.format(*header))
+        print(80 * '-')
+        print((row_format.format(*events2[0].values())).rstrip())
+        print((row_format.format(*events2[1].values())).rstrip())
+        print((row_format.format(*events2[2].values())).rstrip())
+        print('..')
+        print((row_format.format(*events2[-3].values())).rstrip())
+        print((row_format.format(*events2[-2].values())).rstrip())
+        print((row_format.format(*events2[-1].values())).rstrip())
+        print(80 * '-' + '\n')
     return events2, row_format, header
 
 # ##################### event_spaces ############################
@@ -991,14 +994,14 @@ def event_spaces(events, request):
                         'focal_mechanism', 'source_duration']:
             try:
                 del events2[i][item_ev]
-            except Exception, error:
-                print 'WARNING: %s' % error
+            except Exception as error:
+                print('WARNING: %s' % error)
                 pass
 
         try:
             events2[i]['datetime'] = str(events2[i]['datetime'])[:-8]
-        except Exception, error:
-            print 'WARNING: %s' % error
+        except Exception as error:
+            print('WARNING: %s' % error)
             pass
 
         try:
@@ -1021,21 +1024,22 @@ def event_spaces(events, request):
                     "{:>8.3f}".format(float(events2[i]['longitude']))
                 events2[i]['depth'] = \
                     int(round(float(events2[i]['depth'])))
-        except Exception, error:
-            print 'WARNING: %s' % error
+        except Exception as error:
+            print('WARNING: %s' % error)
             pass
 
     try:
         k, spaces = [], []
         for i in range(len(events2)):
-            k.append(events2[i].values())
+            # k.append(events2[i].values())
+            k.append(list(events2[i].values()))
 
         for j in range(len(k[0])):
             spaces.append(max([len(str(k[i][j])) for i in range(len(k))]))
 
         return spaces, events2, header
-    except Exception, error:
-        print 'WARNING: %s' % error
+    except Exception as error:
+        print('WARNING: %s' % error)
         pass
 
 # ##################### write_cat_logger ############################
@@ -1064,7 +1068,7 @@ def write_cat_logger(input_dics, eventpath, events, catalog,
 
     # output catalogue as ASCII
     event_cat = \
-        open(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.txt'), 'a+')
+        open(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.txt'), 'at+')
     st_argus = 'Command line:\n-------------\n'
     for item in sys.argv:
         st_argus += item + ' '
@@ -1087,7 +1091,7 @@ def write_cat_logger(input_dics, eventpath, events, catalog,
     event_cat.close()
 
     event_file = open(os.path.join(eventpath, 'EVENTS-INFO',
-                                   'event_list_pickle'), 'w')
+                                   'event_list_pickle'), 'wb')
     pickle.dump(events, event_file)
     event_file.close()
 
@@ -1098,7 +1102,7 @@ def write_cat_logger(input_dics, eventpath, events, catalog,
             st_argus += item + ' '
         st_argus += '\n'
         event_table = open(os.path.join(eventpath, 'EVENTS-INFO',
-                                        'catalog_table.txt'), 'a+')
+                                        'catalog_table.txt'), 'at+')
         event_table.writelines(st_argus)
         event_table.writelines('\n' + row_format.format(*header))
         event_table.writelines('\n' + '-'*80 + '\n')
@@ -1107,22 +1111,22 @@ def write_cat_logger(input_dics, eventpath, events, catalog,
                 (row_format.format(*events2[i].values())).rstrip() + '\n')
         event_table.writelines('-'*80 + '\n')
     except Exception as err:
-        print '\nCouldn\'t write catalog object to ASCII file as:\n %s\n' \
-              'Proceed without ..\n' % err
+        print('\nCouldn\'t write catalog object to ASCII file as:\n %s\n' \
+              'Proceed without ..\n' % err)
 
     # output catalogue as QUAKEML / JSON files
     try:
         catalog.write(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.ml'),
                       format="QUAKEML")
     except Exception as err:
-        print '\nCouldn\'t write catalog object to QuakeML as:\n>>:\t %s\n' \
-              'Proceed without ..\n' % err
+        print('\nCouldn\'t write catalog object to QuakeML as:\n>>:\t %s\n' \
+              'Proceed without ..\n' % err)
     try:
         catalog.write(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.zmap'),
                       format="ZMAP")
     except Exception as err:
-        print '\nCouldn\'t write catalog object to JSON as:\n>>:\t %s\n' \
-              'Proceed without ..\n' % err
+        print('\nCouldn\'t write catalog object to JSON as:\n>>:\t %s\n' \
+              'Proceed without ..\n' % err)
 
 # ##################### sort_catalogue ############################
 
@@ -1182,7 +1186,7 @@ def vtk_generator(events):
         print
         xyz.append("%s %s %s" % (x, y, z))
         counter += 1
-    fio = open('events.vtk', 'w')
+    fio = open('events.vtk', 'wt')
     fio.writelines('# vtk DataFile Version 3.0\n')
     fio.writelines('vtk output\n')
     fio.writelines('ASCII\n')

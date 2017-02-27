@@ -713,19 +713,19 @@ def read_input_command(parser, **kwargs):
     if kwargs:
         # assigning kwargs to entries of OptionParser object
         for arg in kwargs:
-            exec "options.%s = kwargs[arg]" % arg
+            exec("options.%s = kwargs[arg]" % arg)
 
     # ===================== printing the description of all option groups======
     if options.options:
-        print "============="
-        print "option groups"
-        print "=============\n"
+        print("=============")
+        print("option groups")
+        print("=============\n")
         for grp in parser.option_groups:
-            print grp.title
-        print "\n\n==============================================="
-        print "To check the available options in each group:"
-        print "obspyDMT --list_option <group_number>"
-        print "==============================================="
+            print(grp.title)
+        print("\n\n===============================================")
+        print("To check the available options in each group:")
+        print("obspyDMT --list_option <group_number>")
+        print("===============================================")
         sys.exit()
 
     # ==================== printing the available options in each option group=
@@ -733,37 +733,37 @@ def read_input_command(parser, **kwargs):
         if int(options.list_option) > len(parser.option_groups):
             sys.exit('Specified option group: %s does not exist'
                      % options.list_option)
-        print parser.option_groups[int(options.list_option)-1].title
+        print(parser.option_groups[int(options.list_option)-1].title)
         for opt_grp in \
                 parser.option_groups[int(options.list_option)-1].option_list:
-            print "{0:20s}\t{1:20s}\t{2:20s}\t\t{3:20s}".\
+            print("{0:20s}\t{1:20s}\t{2:20s}\t\t{3:20s}".\
                 format(opt_grp.get_opt_string(), opt_grp.dest,
-                       opt_grp.type, opt_grp.help)
+                       opt_grp.type, opt_grp.help))
         sys.exit()
 
     # ==================== obspyDMT version====================================
     if options.version:
-        print '\n\t\t' + '*********************************'
-        print '\t\t' + '*        obspyDMT version:      *'
-        print '\t\t' + '*\t' + 5*' ' + '2.0.0' + '\t\t*'
-        print '\t\t' + '*********************************'
-        print '\n'
+        print('\n\t\t' + '*********************************')
+        print('\t\t' + '*        obspyDMT version:      *')
+        print('\t\t' + '*\t' + 5*' ' + '2.0.0' + '\t\t*')
+        print('\t\t' + '*********************************')
+        print('\n')
         sys.exit(2)
 
     # =================== Check importing the required modules=================
     if options.check:
         descrip = descrip_generator()
-        print "================================="
+        print("=================================")
         for i in range(len(descrip)):
-            print descrip[i]
-        print "=================================\n"
+            print(descrip[i])
+        print("=================================\n")
         sys.exit(2)
 
     # =================== obspyDMT quick tour==================================
     if options.tour:
-        print '\n########################################'
-        print 'obspyDMT Quick Tour will start in 2 sec!'
-        print '########################################\n'
+        print('\n########################################')
+        print('obspyDMT Quick Tour will start in 2 sec!')
+        print('########################################\n')
         time.sleep(2)
         options.datapath = './dmt_tour_dir'
         options.min_date = '2011-03-10'
@@ -787,13 +787,13 @@ def read_input_command(parser, **kwargs):
         # try-except so we don't get an exception if path doesnt exist
         try:
             shutil.rmtree(options.datapath)
-            print '\n================================'
-            print 'Remove the following directory:'
-            print str(options.datapath)
-            print 'obspyDMT is going to re-create it...'
-            print '================================\n'
-        except Exception, e:
-            print "Warning: can not remove the following directory: %s" % e
+            print('\n================================')
+            print('Remove the following directory:')
+            print(str(options.datapath))
+            print('obspyDMT is going to re-create it...')
+            print('================================\n')
+        except Exception as e:
+            print("Warning: can not remove the following directory: %s" % e)
             pass
     input_dics['datapath'] = options.datapath
 
@@ -852,7 +852,7 @@ def read_input_command(parser, **kwargs):
     if input_dics['primary_mode'] == 'meta_data':
         input_dics['pre_process'] = False
 
-    print "\nobspyDMT primary mode: %s\n" % input_dics['primary_mode']
+    print("\nobspyDMT primary mode: %s\n" % input_dics['primary_mode'])
 
     # =================== Print Data sources and Event catalogs
     input_dics['print_data_sources'] = options.print_data_sources
@@ -864,10 +864,10 @@ def read_input_command(parser, **kwargs):
         input_dics['data_source'] = \
             "LMU,GFZ,ETH,INGV,NEIP,IPGP,RESIF,ORFEUS,ODC,BGR,KOERI," \
             "GEONET,USP,NCEDC,SCEDC,IRIS,ARCLINK"
-        print "\n================================="
-        print "Waveforms will be retrieved from:"
-        print input_dics['data_source']
-        print "=================================\n\n"
+        print("\n=================================")
+        print("Waveforms will be retrieved from:")
+        print(input_dics['data_source'])
+        print("=================================\n\n")
     input_dics['data_source'] = \
         [x.strip() for x in input_dics['data_source'].split(',')]
     for cli in range(len(input_dics['data_source'])):
@@ -931,8 +931,8 @@ def read_input_command(parser, **kwargs):
         try:
             options.net, options.sta, options.loc, options.cha = \
                 options.identity.split('.')
-        except Exception, e:
-            print "Erroneous identity code given: %s" % e
+        except Exception as e:
+            print("Erroneous identity code given: %s" % e)
             sys.exit(2)
     input_dics['net'] = options.net
     input_dics['sta'] = options.sta
@@ -950,14 +950,14 @@ def read_input_command(parser, **kwargs):
         try:
             options.station_rect = options.station_rect.split('/')
             if len(options.station_rect) != 4:
-                print "Erroneous rectangle given."
+                print("Erroneous rectangle given.")
                 sys.exit(2)
             options.mlon_rbb = float(options.station_rect[0])
             options.Mlon_rbb = float(options.station_rect[1])
             options.mlat_rbb = float(options.station_rect[2])
             options.Mlat_rbb = float(options.station_rect[3])
-        except Exception, e:
-            print "Erroneous rectangle given: %s" % e
+        except Exception as e:
+            print("Erroneous rectangle given: %s" % e)
             sys.exit(2)
 
     # circular station restriction option parsing
@@ -965,14 +965,14 @@ def read_input_command(parser, **kwargs):
         try:
             options.station_circle = options.station_circle.split('/')
             if len(options.station_circle) != 4:
-                print "Erroneous circle given."
+                print("Erroneous circle given.")
                 sys.exit(2)
             options.lon_cba = float(options.station_circle[0])
             options.lat_cba = float(options.station_circle[1])
             options.mr_cba = float(options.station_circle[2])
             options.Mr_cba = float(options.station_circle[3])
-        except Exception, e:
-            print "Erroneous circle given: %s" % e
+        except Exception as e:
+            print("Erroneous circle given: %s" % e)
             sys.exit(2)
 
     input_dics['lon_cba'] = options.lon_cba
@@ -1012,14 +1012,14 @@ def read_input_command(parser, **kwargs):
         try:
             options.event_rect = options.event_rect.split('/')
             if len(options.event_rect) != 4:
-                print "Erroneous rectangle given."
+                print("Erroneous rectangle given.")
                 sys.exit(2)
             options.evlonmin = float(options.event_rect[0])
             options.evlonmax = float(options.event_rect[1])
             options.evlatmin = float(options.event_rect[2])
             options.evlatmax = float(options.event_rect[3])
-        except Exception, e:
-            print "Erroneous rectangle given: %s" % e
+        except Exception as e:
+            print("Erroneous rectangle given: %s" % e)
             sys.exit(2)
 
     # circular event restriction option parsing
@@ -1027,14 +1027,14 @@ def read_input_command(parser, **kwargs):
         try:
             options.event_circle = options.event_circle.split('/')
             if len(options.event_circle) != 4:
-                print "Erroneous circle given."
+                print("Erroneous circle given.")
                 sys.exit(2)
             options.evlon = float(options.event_circle[0])
             options.evlat = float(options.event_circle[1])
             options.evradmin = float(options.event_circle[2])
             options.evradmax = float(options.event_circle[3])
-        except Exception, e:
-            print "Erroneous circle given: %s" % e
+        except Exception as e:
+            print("Erroneous circle given: %s" % e)
             sys.exit(2)
 
     input_dics['evlonmin'] = options.evlonmin
@@ -1109,10 +1109,10 @@ def read_input_command(parser, **kwargs):
         try:
             import smtplib
         except Exception as error:
-            print "\n********************************************************"
-            print "Unable to import smtplib. Sending email is not possible!"
-            print "Error: %s" % error
-            print "********************************************************\n"
+            print("\n********************************************************")
+            print("Unable to import smtplib. Sending email is not possible!")
+            print("Error: %s" % error)
+            print("********************************************************\n")
             input_dics['email'] = False
     input_dics['arc_avai_timeout'] = float(options.arc_avai_timeout)
     input_dics['arc_wave_timeout'] = float(options.arc_wave_timeout)
@@ -1127,8 +1127,8 @@ def descrip_generator():
     check the basic dependencies!
     :return:
     """
-    print "********************************"
-    print "Check all the BASIC dependencies"
+    print("********************************")
+    print("Check all the BASIC dependencies")
 
     try:
         from obspy import __version__ as obs_ver
@@ -1139,13 +1139,13 @@ def descrip_generator():
     try:
         import numpy as np
         descrip.append('numpy ver: ' + np.__version__)
-    except Exception, error:
+    except Exception as error:
         descrip.append('numpy: not installed\nerror:\n%s\n' % error)
 
     try:
         import scipy
         descrip.append('scipy ver: ' + scipy.__version__)
-    except Exception, error:
+    except Exception as error:
         descrip.append('scipy: not installed\nerror:\n%s\n' % error)
 
     try:
@@ -1162,7 +1162,7 @@ def descrip_generator():
     except Exception as error:
         descrip.append('Basemap: not installed\nerror:\n%s\n'
                        'You can not use all the plot options' % error)
-    print "********************************\n"
+    print("********************************\n")
     return descrip
 
 # ##################### input_logger ###################################
@@ -1187,6 +1187,6 @@ def input_logger(argus, address, inputs):
     items.sort()
     for item in items:
         st_argus += '%s: %s, ' % (item, inputs[item])
-    logger_open = open(address, 'a')
+    logger_open = open(address, 'at')
     logger_open.write(st_argus)
     logger_open.close()

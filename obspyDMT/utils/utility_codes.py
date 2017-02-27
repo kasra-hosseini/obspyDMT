@@ -48,18 +48,18 @@ def header_printer():
     :return:
     """
     os.system('clear')
-    print 80*'-'
-    print '\t\t   obspyDMT (obspy Data Management Tool)\n'
-    print '\tPython Toolbox for Retrieving, Processing and Management of'
-    print '\t\t\tLarge Seismological Datasets\n'
-    print ':copyright:'
-    print 'The ObsPy Development Team (devs@obspy.org)\n'
-    print 'Developed by Kasra Hosseini'
-    print 'email: kasra.hosseinizad@earth.ox.ac.uk\n'
-    print ':license:'
-    print 'GNU General Public License, Version 3'
-    print '(http://www.gnu.org/licenses/gpl-3.0-standalone.html)'
-    print 80*'-' + '\n'
+    print(80*'-')
+    print('\t\t   obspyDMT (obspy Data Management Tool)\n')
+    print('\tPython Toolbox for Retrieving, Processing and Management of')
+    print('\t\t\tLarge Seismological Datasets\n')
+    print(':copyright:')
+    print('The ObsPy Development Team (devs@obspy.org)\n')
+    print('Developed by Kasra Hosseini')
+    print('email: kasra.hosseinizad@earth.ox.ac.uk\n')
+    print(':license:')
+    print('GNU General Public License, Version 3')
+    print('(http://www.gnu.org/licenses/gpl-3.0-standalone.html)')
+    print(80*'-' + '\n')
 
 # ##################### goodbye_printer ##################################
 
@@ -72,20 +72,20 @@ def goodbye_printer(input_dics, t1_pro):
     :param t1_pro:
     :return:
     """
-    print "\n\n=================================================="
-    print "obspyDMT main program has finished!\n"
+    print("\n\n==================================================")
+    print("obspyDMT main program has finished!\n")
     try:
         size = getFolderSize(input_dics['datapath'])
         size /= (1024.**2)
-        print "Info:"
-        print "* The directory contains %s MB of data." \
-              % "{:.3f}".format(float(size))
-        print input_dics['datapath']
-        print "* Total time of execution: %s (h:m:s)" \
-              % str(timedelta(seconds=round(float(time.time() - t1_pro))))
-        print "==================================================\n\n"
+        print("Info:")
+        print("* The directory contains %s MB of data." \
+              % "{:.3f}".format(float(size)))
+        print(input_dics['datapath'])
+        print("* Total time of execution: %s (h:m:s)" \
+              % str(timedelta(seconds=round(float(time.time() - t1_pro)))))
+        print("==================================================\n\n")
     except Exception as error:
-        print 'ERROR: %s' % error
+        print('ERROR: %s' % error)
         pass
 
 # ##################### print_data_sources ##################################
@@ -96,17 +96,17 @@ def print_data_sources():
     Function to print available data providers
     :return:
     """
-    print "\n--------------------------"
-    print "list of all shortcut names"
-    print "--------------------------\n"
+    print("\n--------------------------")
+    print("list of all shortcut names")
+    print("--------------------------\n")
     for key in sorted(URL_MAPPINGS.keys()):
         print("{0:<7} {1}".format(key,  URL_MAPPINGS[key]))
-    print "ARCLINK"
-    print "\n============================================================"
-    print "This is the list of all shortcut names which can be used for"
-    print "--data_source option."
-    print "However, FDSN base URLs can be entered directly as well."
-    print "============================================================"
+    print("ARCLINK")
+    print("\n============================================================")
+    print("This is the list of all shortcut names which can be used for")
+    print("--data_source option.")
+    print("However, FDSN base URLs can be entered directly as well.")
+    print("============================================================")
     sys.exit()
 
 # ##################### print_event_catalogs ##################################
@@ -117,17 +117,17 @@ def print_event_catalogs():
     Function to print available event catalogs
     :return:
     """
-    print "\n------------------------"
-    print "supported event catalogs"
-    print "------------------------\n"
+    print("\n------------------------")
+    print("supported event catalogs")
+    print("------------------------\n")
     for ev_cat in ['LOCAL', 'NEIC_USGS', 'GCMT_COMBO', 'IRIS', 'NCEDC',
                    'USGS', 'INGV', 'ISC', 'NERIES']:
-        print ev_cat
+        print(ev_cat)
 
-    print "\n============================================================"
-    print "This is the list of all available event catalogs that can be"
-    print "used for --event_catalog option."
-    print "============================================================"
+    print("\n============================================================")
+    print("This is the list of all available event catalogs that can be")
+    print("used for --event_catalog option.")
+    print("============================================================")
     sys.exit()
 
 # ##################### create_folders_files ############################
@@ -148,30 +148,30 @@ def create_folders_files(event, eventpath, input_dics):
                 os.makedirs(tar_dir)
 
         inp_file = open(os.path.join(eventpath, event['event_id'],
-                                     'info', 'input_dics.pkl'), 'w')
+                                     'info', 'input_dics.pkl'), 'wb')
         pickle.dump(input_dics, inp_file)
         inp_file.close()
 
         event_file = open(os.path.join(eventpath, event['event_id'],
-		          'info', 'event.pkl'), 'w')
+		          'info', 'event.pkl'), 'wb')
         pickle.dump(event, event_file)
         event_file.close()
 
         report = open(os.path.join(eventpath, event['event_id'],
-                                   'info', 'report_st'), 'a+')
+                                   'info', 'report_st'), 'at+')
         report.close()
 
         exception_file = open(os.path.join(eventpath, event['event_id'],
-                                           'info', 'exception'), 'a+')
+                                           'info', 'exception'), 'at+')
         exception_file.writelines('\n' + event['event_id'] + '\n')
         exception_file.close()
 
         syn_file = open(os.path.join(eventpath, event['event_id'],
-                                     'info', 'station_event'), 'a+')
+                                     'info', 'station_event'), 'at+')
         syn_file.close()
 
     except Exception as error:
-        print 'ERROR: %s' % error
+        print('ERROR: %s' % error)
         pass
 
 # ##################### read_list_stas ##################################
@@ -185,13 +185,13 @@ def read_list_stas(add_list, normal_mode_syn, specfem3D):
     :param specfem3D:
     :return:
     """
-    print '\n---------------------------------------------'
-    print 'INFO:'
-    print 'Format of the station list:'
-    print 'net,sta,loc,cha,lat,lon,ele,depth,data_source'
-    print '---------------------------------------------\n\n'
+    print('\n---------------------------------------------')
+    print('INFO:')
+    print('Format of the station list:')
+    print('net,sta,loc,cha,lat,lon,ele,depth,data_source')
+    print('---------------------------------------------\n\n')
 
-    list_stas_fio = open(add_list)
+    list_stas_fio = open(add_list, 'rt')
     list_stas = list_stas_fio.readlines()
     for sta in range(len(list_stas)):
         if not list_stas[sta].startswith('\n'):
@@ -250,20 +250,20 @@ def read_event_dic(address):
     elif locate(address, 'info'):
         target_add = locate(address, 'info')
     else:
-        print 'Error: There is no "info" directory in %s' % address
+        print('Error: There is no "info" directory in %s' % address)
         target_add = None
 
     if len(target_add) > 1:
-        print "[ERROR] there are more than one directory to " \
-              "read the event info:"
+        print("[ERROR] there are more than one directory to " \
+              "read the event info:")
         for tar_add in target_add:
-            print tar_add
+            print(tar_add)
         sys.exit('\nonly one directory should be specified to proceed!')
 
     event_dic = False
     for t_add in target_add:
         if os.path.isfile(os.path.join(t_add, 'event.pkl')):
-            ev_file_fio = open(os.path.join(t_add, 'event.pkl'), 'r')
+            ev_file_fio = open(os.path.join(t_add, 'event.pkl'), 'rb')
             event_dic = pickle.load(ev_file_fio)
         else:
             sys.exit('[ERROR] event.pkl can not be found in: %s' % t_add)
@@ -286,20 +286,20 @@ def read_station_event(address):
     elif locate(address, 'info'):
         target_add = locate(address, 'info')
     else:
-        print '[ERROR] There is no "info" directory in:\n%s' % address
+        print('[ERROR] There is no "info" directory in:\n%s' % address)
         target_add = None
 
     sta_ev = []
     for t_add in target_add:
         if os.path.isfile(os.path.join(t_add, 'station_event')):
-            sta_file_open = open(os.path.join(t_add, 'station_event'), 'r')
+            sta_file_open = open(os.path.join(t_add, 'station_event'), 'rt')
         else:
-            print '====================================='
-            print 'station_event could not be found'
-            print 'start creating the station_event file'
-            print '====================================='
+            print('=====================================')
+            print('station_event could not be found')
+            print('start creating the station_event file')
+            print('=====================================')
             create_station_event(address=t_add)
-            sta_file_open = open(os.path.join(t_add, 'station_event'), 'r')
+            sta_file_open = open(os.path.join(t_add, 'station_event'), 'rt')
         sta_file = sta_file_open.readlines()
         sta_ev_tmp = []
         for s_file in sta_file:
@@ -328,15 +328,15 @@ def create_station_event(address):
     ls_stas = glob.glob(os.path.join(sta_address, '*'))
     ls_stas.sort()
 
-    print '%s stations found in %s' % (len(ls_stas), sta_address)
+    print('%s stations found in %s' % (len(ls_stas), sta_address))
 
     for i in range(len(ls_stas)):
-        print i,
-        sta_file_open = open(os.path.join(address, 'station_event'), 'a')
+        print(i),
+        sta_file_open = open(os.path.join(address, 'station_event'), 'at')
         try:
             sta = read(ls_stas[i])[0]
         except Exception as e:
-            print '[WARNING] NOT readable: %s\n%s' % (ls_stas[i], e)
+            print('[WARNING] NOT readable: %s\n%s' % (ls_stas[i], e))
             sta = None
         try:
             sta_stats = sta.stats
@@ -355,9 +355,9 @@ def create_station_event(address):
                           sta_stats.sac.evdp,
                           sta_stats.sac.mag)
         except Exception as error:
-            print '\n[WARNING] Can not read all the required information ' \
-                  'from the headers, some of them are presumed!'
-            print error
+            print('\n[WARNING] Can not read all the required information ' \
+                  'from the headers, some of them are presumed!')
+            print(error)
             sta_info = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,iris,\n' \
                        % (sta_stats.network,
                           sta_stats.station,
@@ -368,8 +368,8 @@ def create_station_event(address):
                           -12345.0, -12345.0, -12345.0, -12345.0)
         sta_file_open.writelines(sta_info)
         sta_file_open.close()
-    print 'station_event file is created in %s' \
-          % os.path.join(address, 'station_event')
+    print('station_event file is created in %s' \
+          % os.path.join(address, 'station_event'))
 
 # ##################### locate ##########################################
 
@@ -554,10 +554,10 @@ def send_email(input_dics):
     :param input_dics:
     :return:
     """
-    print '\n*********************************************'
-    print 'Sending email to the following email-address:'
-    print input_dics['email']
-    print '*********************************************'
+    print('\n*********************************************')
+    print('Sending email to the following email-address:')
+    print(input_dics['email'])
+    print('*********************************************')
     t2_str = datetime.now()
 
     fromaddr = 'obspyDMT'
@@ -567,7 +567,7 @@ def send_email(input_dics):
         server = smtplib.SMTP('localhost')
         server.sendmail(fromaddr, toaddrs, msg)
     except Exception as error:
-        print '\ne-mail was not sent, as:\n%s' % error
+        print('\ne-mail was not sent, as:\n%s' % error)
         # err_info = traceback.extract_tb(sys.exc_info()[2])
 
 # ##################### check_par_jobs ######################################
@@ -590,9 +590,9 @@ def check_par_jobs(jobs, sleep_time=1):
             else:
                 pp_flag = False
     if not pp_flag:
-        print '\n\n================================'
-        print 'All %s processes are finished...' % len(jobs)
-        print '================================'
+        print('\n\n================================')
+        print('All %s processes are finished...' % len(jobs))
+        print('================================')
 
 # ##################### spectrum_calc ##################################
 

@@ -2,9 +2,9 @@
 from obspy.core import read
 import os
 
-from utils.instrument_handler import instrument_correction
-from utils.resample_handler import resample_unit
-from utils.utility_codes import convert_to_sac
+from .utils.instrument_handler import instrument_correction
+from .utils.resample_handler import resample_unit
+from .utils.utility_codes import convert_to_sac
 # -----------------------------------------------------------------------------
 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -42,16 +42,16 @@ def process_unit(tr_add, target_path, input_dics, staev_ar):
     # 1. read the waveform and create an obspy Stream object
     try:
         st = read(tr_add)
-    except Exception, error:
-        print 'WARNING: %s' % error
+    except Exception as error:
+        print('WARNING: %s' % error)
         return False
     # 2. in case that there are more than one waveform in a Stream (this can
     # happen due to some gaps in the waveforms) merge them.
     if len(st) > 1:
         try:
             st.merge(method=1, fill_value=0, interpolation_samples=0)
-        except Exception, error:
-            print 'WARNING: %s' % error
+        except Exception as error:
+            print('WARNING: %s' % error)
             return False
     # 3. Now, there is only one waveform, create a Trace
     tr = st[0]
