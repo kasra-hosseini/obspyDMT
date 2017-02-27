@@ -22,13 +22,13 @@ This tutorial has the following sections:
 How to cite obspyDMT
 --------------------
 
-Citing the code:
+Cite the code:
 
 ::
 
     Kasra Hosseini (2017), obspyDMT (Version 2.0.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
 
-Paper published in SRL (Seismological Research Letters) for obspyDMT's predecessor:
+`Paper <http://srl.geoscienceworld.org/content/84/3/525>`_ published in SRL (Seismological Research Letters) for obspyDMT's predecessor:
 
 ::
 
