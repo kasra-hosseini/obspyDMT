@@ -11,10 +11,12 @@ This tutorial has the following sections:
 *  `Supported event catalogs and data-sources`_: available event catalogs and data-sources.
 *  `Quick tour`_: run a quick tour.
 *  `Examples`_: collection of examples
+
    -  `event_info request`_: get info about events without downloading waveforms.
    -  `event_based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
    -  `continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
    -  `processing`_: process the data automatically after the data retrieval and/or on an existing data-set.
+
 *  `Parallel retrieving and processing`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
 * `Explore stationXML file`_: explore and analyze stationXML file(s).
 * `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
