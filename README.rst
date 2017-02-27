@@ -98,8 +98,6 @@ To check the dependencies required for running the code properly:
 
     obspyDMT --check
 
-
-----------
 Quick tour
 ----------
 
@@ -147,13 +145,11 @@ It is also possible to change the map projection in the pop-up menu (same comman
    :scale: 75%
    :align: center
 
--------
 Gallery
 -------
 
 Collection of examples:
 
------------------------------------------
 Supported event catalogs and data sources
 -----------------------------------------
 
@@ -169,7 +165,6 @@ and supported data sources:
 
     obspyDMT --print_data_sources
 
-------------------
 event info request
 ------------------
 
@@ -205,7 +200,6 @@ and again to plot the event information in the local data-set:
    :scale: 75%
    :align: center
 
---------------
 seismicity map
 --------------
 
@@ -219,7 +213,6 @@ To plot a seismicity map for all events with magnitude more than 5.0 that occurr
    :scale: 75%
    :align: center
 
-----------------
 event based mode
 ----------------
 
@@ -283,7 +276,6 @@ To create KML file:
    :scale: 75%
    :align: center
 
----------------
 continuous mode
 ---------------
 
@@ -295,7 +287,6 @@ continuous mode
    :scale: 75%
    :align: center
 
-----------
 processing
 ----------
 
@@ -343,7 +334,6 @@ we need --force_process since we have already processed the data in the previous
    :scale: 75%
    :align: center
 
-----------------------------------
 Parallel retrieving and processing
 ----------------------------------
 
@@ -362,7 +352,6 @@ using the bulkdataselect web service. Since this method returns multiple channel
 
     --bulk
 
------------------------
 Explore stationXML file
 -----------------------
 
@@ -389,7 +378,6 @@ Explore stationXML file
    :scale: 75%
    :align: center
 
--------------------
 Directory structure
 -------------------
 
