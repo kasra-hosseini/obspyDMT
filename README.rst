@@ -4,15 +4,15 @@ obspyDMT: A Python Toolbox for Retrieving, Processing and Management of Large Se
 
 obspyDMT_ (obspy Data Management Tool) is a command line tool for retrieving, processing and management of large seismological datasets in a fully automatic way.
 
-This tutorial has the following sections:
+Table of contents
+-----------------
 
 *  `How to cite obspyDMT`_
 *  `Installation`_: install obspyDMT and check your local machine for required dependencies.
-*  `Supported event catalogs and data-sources`_: available event catalogs and data-sources.
 *  `Quick tour`_: run a quick tour.
 *  `Gallery`_: collection of examples:
 
-   -  `Supported event catalogs and data sources`_
+   -  `Supported event catalogs and data sources`_: available event catalogs and data-sources.
    -  `event info request`_: get info about events without downloading waveforms.
    -  `seismicity map`_
    -  `event based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
