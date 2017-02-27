@@ -43,7 +43,7 @@ Cite the code:
 Installation
 ------------
 
-Once a working *Python* and `ObsPy <https://github.com/obspy/obspy/wiki>`_ environment is available, obspyDMT can be installed:
+Once a working Python and `ObsPy <https://github.com/obspy/obspy/wiki>`_ environment is available, obspyDMT can be installed:
 
 **1. Source code:** The latest version of obspyDMT is available on GitHub. After installing *git* on your machine:
 
