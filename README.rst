@@ -10,7 +10,7 @@ Table of contents
 *  `How to cite obspyDMT`_
 *  `Installation`_: install obspyDMT and check your local machine for required dependencies.
 *  `Quick tour`_: run a quick tour.
-*  `Gallery`_: collection of examples:
+*  `Gallery`_
 
    -  `Supported event catalogs and data sources`_: available event catalogs and data-sources.
    -  `event info request`_: get info about events without downloading waveforms.
@@ -45,7 +45,7 @@ Installation
 
 Once a working *Python* and `ObsPy <https://github.com/obspy/obspy/wiki>`_ environment is available, obspyDMT can be installed:
 
-**1. install obspyDMT from the source code:** The latest version of obspyDMT is available on GitHub. After installing *git* on your machine:
+**1. Source code:** The latest version of obspyDMT is available on GitHub. After installing *git* on your machine:
 
 ::
 
@@ -65,7 +65,7 @@ or
     cd /path/to/my/obspyDMT
     python setup.py install
 
-**2. install obspyDMT package locally (using PyPi):** One simple way to install obspyDMT is via `PyPi <https://pypi.python.org/pypi>`_:
+**2. PyPi:** One simple way to install obspyDMT is via `PyPi <https://pypi.python.org/pypi>`_:
 
 ::
 
