@@ -44,6 +44,7 @@ except ImportError:
 
 from .input_handler import input_logger
 from .utility_codes import locate
+from .local_handler import vtk_generator
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -304,7 +305,8 @@ def event_info(input_dics):
         events[i]['t1'] = events[i]['datetime'] - input_dics['preset']
         events[i]['t2'] = events[i]['datetime'] + input_dics['offset']
 
-    vtk_generator(events)
+    if input_dics['create_event_vtk']:
+        vtk_generator(events, input_dics['create_event_vtk'])
 
     return events, events_QML
 
@@ -1168,40 +1170,3 @@ def mag_duration(mag, type_curve=1):
                  'implemented' % type_curve)
     source_duration = round(half_duration, 3)*2
     return ['triangle', source_duration]
-
-# ##################### vtk_generator ###################################
-
-
-def vtk_generator(events):
-
-    counter = 0
-    xyz = []
-    for i in range(len(events)):
-        elat = events[i]['latitude']*np.pi/180.
-        elon = events[i]['longitude']*np.pi/180.
-        edp = events[i]['depth']
-        x = (6371-edp) * np.cos(elat) * np.cos(elon)
-        y = (6371-edp) * np.cos(elat) * np.sin(elon)
-        z = (6371-edp) * np.sin(elat)
-        print
-        xyz.append("%s %s %s" % (x, y, z))
-        counter += 1
-    fio = open('events.vtk', 'wt')
-    fio.writelines('# vtk DataFile Version 3.0\n')
-    fio.writelines('vtk output\n')
-    fio.writelines('ASCII\n')
-    fio.writelines('DATASET UNSTRUCTURED_GRID\n')
-    fio.writelines('POINTS %i float\n' % counter)
-    for i in range(len(xyz)):
-        fio.writelines('%s\n' % xyz[i])
-
-    fio.writelines('\n')
-    fio.writelines('CELLS %i %i\n' % (counter, counter*2))
-    for i in range(len(xyz)):
-        fio.writelines('1 %s\n' % i)
-
-    fio.writelines('\n')
-    fio.writelines('CELL_TYPES %i\n' % counter)
-    for i in range(len(xyz)):
-        fio.writelines('1\n')
-    fio.close()

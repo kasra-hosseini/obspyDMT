@@ -486,6 +486,12 @@ def command_parse():
     group_plt.add_option("--create_kml", action="store_true",
                          dest="create_kml", help=helpmsg)
 
+    helpmsg = "create a VTK file for events. VTK format is " \
+              "readable by different tools, for example, ParaView. " \
+              "syntax: --create_event_vtk /path/to/my/file [default: False]"
+    group_plt.add_option("--create_event_vtk", action="store",
+                         dest="create_event_vtk", help=helpmsg)
+
     helpmsg = "create a seismicity map and some basic statistics on the " \
               "results."
     group_plt.add_option("--plot_seismicity", action="store_true",
@@ -683,6 +689,7 @@ def read_input_command(parser, **kwargs):
                   'pre_filt': '(0.008, 0.012, 3.0, 4.0)',
                   'water_level': 600.0,
 
+                  'create_event_vtk': False,
                   'depth_bins_seismicity': 10,
                   'plot_dir_name': 'raw',
                   'plot_save': '.', 'plot_format': 'png',
@@ -1066,6 +1073,7 @@ def read_input_command(parser, **kwargs):
     input_dics['plot_focal'] = options.plot_focal
     input_dics['plot_ray'] = options.plot_ray
     input_dics['create_kml'] = options.create_kml
+    input_dics['create_event_vtk'] = options.create_event_vtk
     input_dics['plot_seismicity'] = options.plot_seismicity
     input_dics['depth_bins_seismicity'] = int(options.depth_bins_seismicity)
     input_dics['plot_waveform'] = options.plot_waveform

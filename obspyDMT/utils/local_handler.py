@@ -103,7 +103,7 @@ def select_data(deg_step, sta_ev):
             grd_points[counter, 1] = lon
             counter += 1
 
-    from utils.spherical_nearest import SphericalNearestNeighbour
+    from .utils.spherical_nearest import SphericalNearestNeighbour
     kd = SphericalNearestNeighbour(grd_points[:, 0],
                                    grd_points[:, 1],
                                    np.zeros(len(grd_points[:, 1])),
@@ -755,3 +755,45 @@ def plot_seismicity(input_dics, events):
         plt.grid(True)
 
     plt.show()
+
+# ##################### vtk_generator ###################################
+
+
+def vtk_generator(events, vtk_output='events'):
+    """
+    VTK generator for events
+    :param events:
+    :param vtk_output:
+    :return:
+    """
+    counter = 0
+    xyz = []
+    for i in range(len(events)):
+        elat = events[i]['latitude']*np.pi/180.
+        elon = events[i]['longitude']*np.pi/180.
+        edp = events[i]['depth']
+        x = (6371-edp) * np.cos(elat) * np.cos(elon)
+        y = (6371-edp) * np.cos(elat) * np.sin(elon)
+        z = (6371-edp) * np.sin(elat)
+        print
+        xyz.append("%s %s %s" % (x, y, z))
+        counter += 1
+    fio = open(vtk_output + '.vtk', 'wt')
+    fio.writelines('# vtk DataFile Version 3.0\n')
+    fio.writelines('vtk output\n')
+    fio.writelines('ASCII\n')
+    fio.writelines('DATASET UNSTRUCTURED_GRID\n')
+    fio.writelines('POINTS %i float\n' % counter)
+    for i in range(len(xyz)):
+        fio.writelines('%s\n' % xyz[i])
+
+    fio.writelines('\n')
+    fio.writelines('CELLS %i %i\n' % (counter, counter*2))
+    for i in range(len(xyz)):
+        fio.writelines('1 %s\n' % i)
+
+    fio.writelines('\n')
+    fio.writelines('CELL_TYPES %i\n' % counter)
+    for i in range(len(xyz)):
+        fio.writelines('1\n')
+    fio.close()
