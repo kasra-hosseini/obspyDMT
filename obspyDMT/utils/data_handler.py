@@ -580,7 +580,7 @@ def update_sta_ev_file(target_path, event):
     """
     avail_arr = np.loadtxt(os.path.join(target_path, 'info',
                                         'availability.txt'),
-                           delimiter=',', dtype=bytes).astype(np.str)
+                           delimiter=',', dtype=bytes, ndmin=2).astype(np.str)
     avail_arr = avail_arr.astype(np.object)
     sta_ev_names = avail_arr[:, 0] + '.' + avail_arr[:, 1] + '.' + \
                    avail_arr[:, 2] + '.' + avail_arr[:, 3]

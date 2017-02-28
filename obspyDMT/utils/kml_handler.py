@@ -179,7 +179,7 @@ def create_ev_sta_kml(input_dics, events):
             update_sta_ev_file(target_path, events[ei])
             sta_ev_arr = np.loadtxt(os.path.join(target_path,
                                                  'info', 'station_event'),
-                                    delimiter=',', dtype=bytes).astype(np.str)
+                                    delimiter=',', dtype=bytes, ndmin=2).astype(np.str)
             sta_ev_arr = sta_ev_arr.astype(np.object)
             del_index = []
             for sti in range(len(sta_ev_arr)):
