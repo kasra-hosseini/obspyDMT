@@ -149,12 +149,12 @@ def create_folders_files(event, eventpath, input_dics):
 
         inp_file = open(os.path.join(eventpath, event['event_id'],
                                      'info', 'input_dics.pkl'), 'wb')
-        pickle.dump(input_dics, inp_file)
+        pickle.dump(input_dics, inp_file, protocol=2)
         inp_file.close()
 
         event_file = open(os.path.join(eventpath, event['event_id'],
 		          'info', 'event.pkl'), 'wb')
-        pickle.dump(event, event_file)
+        pickle.dump(event, event_file, protocol=2)
         event_file.close()
 
         report = open(os.path.join(eventpath, event['event_id'],

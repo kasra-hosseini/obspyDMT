@@ -1094,7 +1094,7 @@ def write_cat_logger(input_dics, eventpath, events, catalog,
 
     event_file = open(os.path.join(eventpath, 'EVENTS-INFO',
                                    'event_list_pickle'), 'wb')
-    pickle.dump(events, event_file)
+    pickle.dump(events, event_file, protocol=2)
     event_file.close()
 
     # output catalogue as ASCII but in table form

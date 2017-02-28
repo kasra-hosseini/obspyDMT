@@ -214,7 +214,7 @@ def fdsn_available(input_dics, cl, event, target_path):
             bulk_list_fio = open(os.path.join(
                 target_path, 'info',
                 'bulkdata_list_%s' % input_dics['data_source'][cl]), 'ab+')
-            pickle.dump(bulk_list, bulk_list_fio)
+            pickle.dump(bulk_list, bulk_list_fio, protocol=2)
             bulk_list_fio.close()
 
     except Exception as error:
@@ -339,7 +339,7 @@ def fdsn_create_bulk_list(target_path, input_dics, stas_all, event):
 
     bulk_list_fio = open(os.path.join(target_path, 'info',
                                       'bulkdata_list_local'), 'ab+')
-    pickle.dump(bulk_list, bulk_list_fio)
+    pickle.dump(bulk_list, bulk_list_fio, protocol=2)
     bulk_list_fio.close()
 
 # ##################### rm_duplicate ####################################
