@@ -176,7 +176,7 @@ def create_ev_sta_kml(input_dics, events):
                 target_path = target_path[0]
                 print(target_path)
 
-            update_sta_ev_file(target_path)
+            update_sta_ev_file(target_path, events[ei])
             sta_ev_arr = np.loadtxt(os.path.join(target_path,
                                                  'info', 'station_event'),
                                     delimiter=',', dtype=bytes).astype(np.str)

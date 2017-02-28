@@ -215,7 +215,7 @@ def fdsn_serial_parallel(stas_avail, event, input_dics, target_path,
             fdsn_download_core(st_avail, event, input_dics, target_path,
                                client_fdsn, req_cli, info_station)
 
-    update_sta_ev_file(target_path)
+    update_sta_ev_file(target_path, event)
 
     if input_dics['bulk']:
         input_dics['waveform'] = True
@@ -341,26 +341,6 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
         if identifier in [0, 2, 10, 11, 100]:
             raise Exception("CODE: %s will not be registered! (666)"
                             % identifier)
-
-        dummy = 'meta-data'
-        syn_file = open(os.path.join(target_path, 'info',
-                                     'station_event'), 'at')
-        syn = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,\n' \
-              % (st_avail[0], st_avail[1],
-                 st_avail[2], st_avail[3],
-                 st_avail[4], st_avail[5],
-                 float(st_avail[6]),
-                 float(st_avail[7]),
-                 req_cli,
-                 event['event_id'], event['latitude'],
-                 event['longitude'], event['depth'],
-                 event['magnitude'], identifier)
-        syn_file.writelines(syn)
-        syn_file.close()
-
-        print("%s -- %s -- saving metadata for: %s  ---> DONE" \
-              % (info_station, req_cli, st_id))
-
         t22 = datetime.now()
     except Exception as error:
         t22 = datetime.now()
@@ -575,26 +555,6 @@ def arc_download_core(st_avail, event, input_dics, target_path,
         if identifier in [0, 2, 10, 11, 100]:
             raise Exception("CODE: %s will not be registered! (666)"
                             % identifier)
-
-        dummy = 'meta-data'
-        syn_file = open(os.path.join(target_path, 'info',
-                                     'station_event'), 'at')
-        syn = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,\n' \
-              % (st_avail[0], st_avail[1],
-                 st_avail[2], st_avail[3],
-                 st_avail[4], st_avail[5],
-                 float(st_avail[6]),
-                 float(st_avail[7]),
-                 req_cli,
-                 event['event_id'], event['latitude'],
-                 event['longitude'], event['depth'],
-                 event['magnitude'], identifier)
-        syn_file.writelines(syn)
-        syn_file.close()
-
-        print("%s -- %s -- saving Metadata for: %s  ---> DONE" \
-              % (info_station, req_cli, st_id))
-
         t22 = datetime.now()
     except Exception as error:
         t22 = datetime.now()
@@ -611,53 +571,46 @@ def arc_download_core(st_avail, event, input_dics, target_path,
 # ##################### update_sta_ev_file ##################################
 
 
-def update_sta_ev_file(target_path):
+def update_sta_ev_file(target_path, event):
     """
     update the station_event file based on already stored waveforms
+    :param target_path:
+    :param event:
+    :return:
     """
+    avail_arr = np.loadtxt(os.path.join(target_path, 'info',
+                                        'availability.txt'),
+                           delimiter=',', dtype=bytes).astype(np.str)
+    avail_arr = avail_arr.astype(np.object)
+    sta_ev_names = avail_arr[:, 0] + '.' + avail_arr[:, 1] + '.' + \
+                   avail_arr[:, 2] + '.' + avail_arr[:, 3]
+
+    sta_saved_path = glob.glob(
+        os.path.join(target_path, 'raw', '*.*.*.*'))
+    sta_saved_path.sort()
+    sta_sorted = []
+
+    for sta_sav_abs in sta_saved_path:
+        try:
+            sta_sav = os.path.basename(sta_sav_abs)
+            sta_indx = np.where(sta_ev_names == sta_sav)[0][-1]
+            sta_sorted.append(avail_arr[sta_indx])
+        except:
+            continue
+
     sta_ev_add = os.path.join(target_path, 'info', 'station_event')
-    if os.path.isfile(sta_ev_add):
-        sta_ev_fi = np.loadtxt(sta_ev_add, delimiter=',', dtype=bytes).astype(np.str)
-        sta_ev_fi = sta_ev_fi.astype(np.object)
-        if len(sta_ev_fi) > 0:
-            if len(np.shape(sta_ev_fi)) == 1:
-                sta_ev_fi = np.reshape(sta_ev_fi, [1, len(sta_ev_fi)])
-            sta_ev_names = sta_ev_fi[:, 0] + '.' + sta_ev_fi[:, 1] + '.' + \
-                           sta_ev_fi[:, 2] + '.' + sta_ev_fi[:, 3]
-
-            sta_saved_path = glob.glob(
-                os.path.join(target_path, 'raw', '*.*.*.*'))
-            sta_saved_path.sort()
-            sta_sorted = []
-            for sta_sav_abs in sta_saved_path:
-                try:
-                    sta_sav = os.path.basename(sta_sav_abs)
-                    sta_indx = np.where(sta_ev_names == sta_sav)[0][-1]
-                    sta_sorted.append(sta_ev_fi[sta_indx])
-                except:
-                    continue
-            np.savetxt(sta_ev_add, sta_sorted, delimiter=',', fmt='%s')
-    else:
-        print("[INFO] can not find: %s" % sta_ev_add)
-        avail_arr = np.loadtxt(os.path.join(target_path, 'info',
-                                            'availability.txt'),
-                               delimiter=',', dtype=bytes).astype(np.str)
-        avail_arr = avail_arr.astype(np.object)
-        sta_ev_names = avail_arr[:, 0] + '.' + avail_arr[:, 1] + '.' + \
-                       avail_arr[:, 2] + '.' + avail_arr[:, 3]
-
-        sta_saved_path = glob.glob(
-            os.path.join(target_path, 'raw', '*.*.*.*'))
-        sta_saved_path.sort()
-        sta_sorted = []
-        for sta_sav_abs in sta_saved_path:
-            try:
-                sta_sav = os.path.basename(sta_sav_abs)
-                sta_indx = np.where(sta_ev_names == sta_sav)[0][-1]
-                sta_sorted.append(avail_arr[sta_indx])
-            except:
-                continue
-        np.savetxt(sta_ev_add, sta_sorted[:, :-1], delimiter=',', fmt='%s')
+    sta_ev_fio = open(sta_ev_add, 'wt+')
+    if len(np.shape(sta_sorted)) == 1:
+        sta_sorted = np.reshape(sta_sorted, [1, len(sta_sorted)])
+    for sts in sta_sorted:
+        sta_ev_line = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,\n' \
+                      % (sts[0], sts[1], sts[2], sts[3], sts[4],
+                         sts[5], sts[6], sts[7], sts[8],
+                         event['event_id'], event['latitude'],
+                         event['longitude'], event['depth'],
+                         event['magnitude'], '10')
+        sta_ev_fio.writelines(sta_ev_line)
+    sta_ev_fio.close()
 
 # -------------------------------- TRASH
 

@@ -65,7 +65,7 @@ def process_data(input_dics, event):
         target_path = target_path[0]
         print(target_path)
     print("[INFO] update station_event file...")
-    update_sta_ev_file(target_path)
+    update_sta_ev_file(target_path, event)
     sta_ev_arr = np.loadtxt(os.path.join(target_path, 'info', 'station_event'),
                             delimiter=',', dtype=bytes).astype(np.str)
     sta_ev_arr = sta_ev_arr.astype(np.object)
