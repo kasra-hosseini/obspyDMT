@@ -131,7 +131,7 @@ def process_serial_parallel(sta_ev_arr, input_dics, target_path):
         start = 0
         end = int(len(sta_ev_arr))
         if end < input_dics['process_np']:
-            req_proc = end - 1
+            req_proc = end
         else:
             req_proc = input_dics['process_np']
         step = (end - start) / req_proc + 1

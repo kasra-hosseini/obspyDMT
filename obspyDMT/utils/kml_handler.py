@@ -73,12 +73,16 @@ def create_ev_sta_kml(input_dics, events):
                      )
 
         if input_dics['plot_focal']:
-            focmecs = [float(events[ei]['focal_mechanism'][0]),
-                       float(events[ei]['focal_mechanism'][1]),
-                       float(events[ei]['focal_mechanism'][2]),
-                       float(events[ei]['focal_mechanism'][3]),
-                       float(events[ei]['focal_mechanism'][4]),
-                       float(events[ei]['focal_mechanism'][5])]
+            try:
+                focmecs = [float(events[ei]['focal_mechanism'][0]),
+                           float(events[ei]['focal_mechanism'][1]),
+                           float(events[ei]['focal_mechanism'][2]),
+                           float(events[ei]['focal_mechanism'][3]),
+                           float(events[ei]['focal_mechanism'][4]),
+                           float(events[ei]['focal_mechanism'][5])]
+            except:
+                print("WARNING: 'focal_mechanism' does not exist!")
+                focmecs = [1, 1, 1, 0, 0, 0]
         else:
             focmecs = [1, 1, 1, 0, 0, 0]
 

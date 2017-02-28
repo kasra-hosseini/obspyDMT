@@ -101,7 +101,8 @@ def get_metadata(input_dics, event, info_avail):
     np.savetxt(avail_fi, stas_arr, delimiter=',', fmt='%s')
     avail_fi.close()
 
-    saved_avail = np.loadtxt(avail_add, delimiter=',', dtype=bytes).astype(np.str)
+    saved_avail = np.loadtxt(avail_add, delimiter=',',
+                             dtype=bytes, ndmin=2).astype(np.str)
     saved_avail = saved_avail.astype(np.object)
     unique_avail = []
     if len(saved_avail) > 1:
