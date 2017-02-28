@@ -11,12 +11,14 @@ from .utils.utility_codes import convert_to_sac
 # ===================== YOU CAN CHANGE THE FOLLOWING FUNCTION =================
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # * IMPORTANT *
-# the following function (process_unit) is in waveform level. This means
-# that you can easily write your process unit for one trace. obspyDMT uses
-# this function to pre_process your waveforms, either right after retrieval
-# or as a separate step: obspyDMT --datapath /your/dataset --local
+# The following function (process_unit) is in the waveform level.
+# This means that you can write your process unit for one trace, and
+# obspyDMT uses this function to pre-process all your waveforms,
+# either right after retrieval or as a separate step:
+# obspyDMT --datapath /your/dataset --local
 
 # ========== process_unit has the following arguments:
+# Use the following parameters to write your process_unit:
 # 1. tr_add: address of one trace in your dataset. You can use that to
 # read in the data.
 # 2. target_path: address of the event that should be processed.
@@ -80,16 +82,21 @@ def process_unit(tr_add, target_path, input_dics, staev_ar):
                            resample_method=input_dics['resample_method'])
 
     # * apply instrument correction which consists of:
-    # 1. removing the trend of the trace
-    # 2. remove the mean
-    # 3. taper (5%)
+    # 1. removing the trend of the trace (remove_trend)
+    # 2. remove the mean (zero_mean)
+    # 3. taper (taper, taper_fraction [e.g., 0.05: 5%])
     # 4. apply pre-filter based on input_dics['pre_filt']
     # 5. apply instrument correction
+    # all the above parameters are adjustable
     if input_dics['instrument_correction']:
         tr = instrument_correction(tr, target_path, save_path,
                                    input_dics['corr_unit'],
                                    input_dics['pre_filt'],
-                                   input_dics['water_level'])
+                                   input_dics['water_level'],
+                                   zero_mean=True,
+                                   taper=True,
+                                   taper_fraction=0.05,
+                                   remove_trend=True)
 
     # -------------- OUTPUT ---------------------------------------------------
     if not tr:

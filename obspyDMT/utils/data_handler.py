@@ -582,34 +582,37 @@ def update_sta_ev_file(target_path, event):
                                         'availability.txt'),
                            delimiter=',', dtype=bytes, ndmin=2).astype(np.str)
     avail_arr = avail_arr.astype(np.object)
-    sta_ev_names = avail_arr[:, 0] + '.' + avail_arr[:, 1] + '.' + \
-                   avail_arr[:, 2] + '.' + avail_arr[:, 3]
-
-    sta_saved_path = glob.glob(
-        os.path.join(target_path, 'raw', '*.*.*.*'))
-    sta_saved_path.sort()
-    sta_sorted = []
-
-    for sta_sav_abs in sta_saved_path:
-        try:
-            sta_sav = os.path.basename(sta_sav_abs)
-            sta_indx = np.where(sta_ev_names == sta_sav)[0][-1]
-            sta_sorted.append(avail_arr[sta_indx])
-        except:
-            continue
-
     sta_ev_add = os.path.join(target_path, 'info', 'station_event')
     sta_ev_fio = open(sta_ev_add, 'wt+')
-    if len(np.shape(sta_sorted)) == 1:
-        sta_sorted = np.reshape(sta_sorted, [1, len(sta_sorted)])
-    for sts in sta_sorted:
-        sta_ev_line = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,\n' \
-                      % (sts[0], sts[1], sts[2], sts[3], sts[4],
-                         sts[5], sts[6], sts[7], sts[8],
-                         event['event_id'], event['latitude'],
-                         event['longitude'], event['depth'],
-                         event['magnitude'], '10')
-        sta_ev_fio.writelines(sta_ev_line)
+
+    if not np.shape(avail_arr)[0] < 1:
+        sta_ev_names = avail_arr[:, 0] + '.' + avail_arr[:, 1] + '.' + \
+                       avail_arr[:, 2] + '.' + avail_arr[:, 3]
+
+        sta_saved_path = glob.glob(
+            os.path.join(target_path, 'raw', '*.*.*.*'))
+        sta_saved_path.sort()
+        sta_sorted = []
+
+        for sta_sav_abs in sta_saved_path:
+            try:
+                sta_sav = os.path.basename(sta_sav_abs)
+                sta_indx = np.where(sta_ev_names == sta_sav)[0][-1]
+                sta_sorted.append(avail_arr[sta_indx])
+            except:
+                continue
+
+        if len(np.shape(sta_sorted)) == 1:
+            sta_sorted = np.reshape(sta_sorted, [1, len(sta_sorted)])
+        if not np.shape(sta_sorted)[1] < 1:
+            for sts in sta_sorted:
+                sta_ev_line = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,\n' \
+                              % (sts[0], sts[1], sts[2], sts[3], sts[4],
+                                 sts[5], sts[6], sts[7], sts[8],
+                                 event['event_id'], event['latitude'],
+                                 event['longitude'], event['depth'],
+                                 event['magnitude'], '10')
+                sta_ev_fio.writelines(sta_ev_line)
     sta_ev_fio.close()
 
 # -------------------------------- TRASH

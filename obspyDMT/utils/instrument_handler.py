@@ -23,7 +23,8 @@ import os
 
 
 def instrument_correction(tr, target_path, save_path, corr_unit, pre_filt,
-                          water_level):
+                          water_level, zero_mean=True, taper=True,
+                          taper_fraction=0.05, remove_trend=True):
     """
     find STXML or DATALESS file for one trace and apply instrument correction
     :param tr:
@@ -32,6 +33,10 @@ def instrument_correction(tr, target_path, save_path, corr_unit, pre_filt,
     :param corr_unit:
     :param pre_filt:
     :param water_level:
+    :param zero_mean:
+    :param taper:
+    :param taper_fraction:
+    :param remove_trend:
     :return:
     """
     resp_file = os.path.join(target_path, 'resp', 'DATALESS.%s' % tr.id)
@@ -40,10 +45,14 @@ def instrument_correction(tr, target_path, save_path, corr_unit, pre_filt,
     if os.path.isfile(stxml_file):
         tr_corr = obspy_fullresp_stxml(tr, stxml_file, save_path,
                                        corr_unit, pre_filt, water_level,
+                                       zero_mean, taper, taper_fraction,
+                                       remove_trend,
                                        debug=False)
     elif os.path.isfile(resp_file):
         tr_corr = obspy_fullresp_resp(tr, resp_file, save_path,
                                       corr_unit, pre_filt, water_level,
+                                      zero_mean, taper, taper_fraction,
+                                      remove_trend,
                                       debug=False)
     else:
         print("%s -- StationXML or Response file does not exist!" % tr.id)
@@ -54,7 +63,8 @@ def instrument_correction(tr, target_path, save_path, corr_unit, pre_filt,
 
 
 def obspy_fullresp_stxml(trace, stxml_file, save_path, unit,
-                         bp_filter, water_level, debug=False):
+                         bp_filter, water_level, zero_mean, taper,
+                         taper_fraction, remove_trend, debug=False):
     """
     apply instrument correction using StationXML file
     :param trace:
@@ -63,6 +73,10 @@ def obspy_fullresp_stxml(trace, stxml_file, save_path, unit,
     :param unit:
     :param bp_filter:
     :param water_level:
+    :param zero_mean:
+    :param taper:
+    :param taper_fraction:
+    :param remove_trend:
     :param debug:
     :return:
     """
@@ -82,13 +96,16 @@ def obspy_fullresp_stxml(trace, stxml_file, save_path, unit,
             print('save path: %s' % save_path)
 
         # remove the trend
-        trace.detrend('linear')
+        if remove_trend:
+            trace.detrend('linear')
         inv = read_inventory(stxml_file, format="stationxml")
         trace.attach_response(inv)
         trace.remove_response(output=unit,
                               water_level=water_level,
-                              pre_filt=eval(bp_filter), zero_mean=True,
-                              taper=True, taper_fraction=0.05)
+                              pre_filt=eval(bp_filter),
+                              zero_mean=zero_mean,
+                              taper=taper,
+                              taper_fraction=taper_fraction)
 
         # Remove the following line to keep the units
         # as it is in the stationXML
@@ -114,7 +131,8 @@ def obspy_fullresp_stxml(trace, stxml_file, save_path, unit,
 
 
 def obspy_fullresp_resp(trace, resp_file, save_path, unit,
-                        bp_filter, water_level, debug=False):
+                        bp_filter, water_level, zero_mean, taper,
+                        taper_fraction, remove_trend, debug=False):
     """
     apply instrument correction by using response file
     :param trace:
@@ -123,6 +141,10 @@ def obspy_fullresp_resp(trace, resp_file, save_path, unit,
     :param unit:
     :param bp_filter:
     :param water_level:
+    :param zero_mean:
+    :param taper:
+    :param taper_fraction:
+    :param remove_trend:
     :param debug:
     :return:
     """
@@ -145,13 +167,15 @@ def obspy_fullresp_resp(trace, resp_file, save_path, unit,
         print('save path: %s' % save_path)
 
     # remove the trend
-    trace.detrend('linear')
+    if remove_trend:
+        trace.detrend('linear')
     try:
         trace.simulate(seedresp=seedresp, paz_remove=None, paz_simulate=None,
                        remove_sensitivity=True, simulate_sensitivity=False,
                        water_level=water_level,
-                       zero_mean=True, taper=True,
-                       taper_fraction=0.05, pre_filt=eval(bp_filter),
+                       zero_mean=zero_mean, taper=taper,
+                       taper_fraction=taper_fraction,
+                       pre_filt=eval(bp_filter),
                        pitsasim=False, sacsim=True)
 
         # Remove the following line since we want to keep

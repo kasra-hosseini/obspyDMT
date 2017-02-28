@@ -10,12 +10,14 @@ from .utils.utility_codes import convert_to_sac
 # ===================== YOU CAN CHANGE THE FOLLOWING FUNCTION =================
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # * IMPORTANT *
-# the following function (process_unit) is in waveform level. This means
-# that you can easily write your process unit for one trace. obspyDMT uses
-# this function to pre_process your waveforms, either right after retrieval
-# or as a separate step: obspyDMT --datapath /your/dataset --local
+# The following function (process_unit) is in the waveform level.
+# This means that you can write your process unit for one trace, and
+# obspyDMT uses this function to pre-process all your waveforms,
+# either right after retrieval or as a separate step:
+# obspyDMT --datapath /your/dataset --local
 
 # ========== process_unit has the following arguments:
+# Use the following parameters to write your process_unit:
 # 1. tr_add: address of one trace in your dataset. You can use that to
 # read in the data.
 # 2. target_path: address of the event that should be processed.

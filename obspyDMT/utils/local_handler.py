@@ -281,7 +281,7 @@ def plot_waveform(input_dics, events):
             target_path = target_path[0]
             print(target_path)
 
-        update_sta_ev_file(target_path)
+        update_sta_ev_file(target_path, events[ei])
         sta_ev_arr = np.loadtxt(
             os.path.join(target_path, 'info', 'station_event'),
             delimiter=',', dtype=bytes, ndmin=2).astype(np.str)
@@ -455,7 +455,7 @@ def plot_sta_ev_ray(input_dics, events):
                 target_path = target_path[0]
                 print(target_path)
 
-            update_sta_ev_file(target_path)
+            update_sta_ev_file(target_path, events[ei])
             if not input_dics['plot_availability']:
                 sta_ev_arr = np.loadtxt(os.path.join(target_path,
                                                      'info', 'station_event'),
