@@ -2,6 +2,7 @@
 from obspy.core import read
 import os
 import subprocess
+import sys
 
 from .utils.utility_codes import convert_to_sac
 # -----------------------------------------------------------------------------
@@ -92,5 +93,8 @@ def process_unit(tr_add, target_path, input_dics, staev_ar):
         'saveimg ' + save_path + '.pdf\n' + \
         'quit\n'
 
-    out = p.communicate(s)
+    if sys.version_info > (3, 0):
+        out = p.communicate(bytes(s, "utf-8"))
+    else:
+        out = p.communicate(bytes(s))
     print(out[0])
