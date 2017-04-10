@@ -19,7 +19,10 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 import multiprocessing
 import numpy as np
-from obspy.imaging.beachball import Beach
+try:
+    from obspy.imaging.beachball import beachball as Beach
+except:
+    from obspy.imaging.beachball import Beach
 from obspy import UTCDateTime, read
 try:
     from obspy.geodetics import locations2degrees
@@ -37,7 +40,6 @@ import sys
 
 from .data_handler import update_sta_ev_file
 from .kml_handler import create_ev_sta_kml
-from obspyDMT.process_unit import process_unit
 from .utility_codes import locate, check_par_jobs, plot_filter_station
 
 # ###################### process_data #########################################
@@ -170,6 +172,14 @@ def process_core_iterate(sta_ev_arr, input_dics, target_path, starti, endi):
     :param endi:
     :return:
     """
+    import importlib
+    try:
+        process_unit = importlib.import_module(
+            'obspyDMT.%s' % input_dics['pre_process'])
+    except:
+        from obspyDMT import __path__ as dmt_path
+        sys.exit("\n\n%s.py DOES NOT EXIST at %s!"
+                 % (input_dics['pre_process'], dmt_path))
     for i in range(starti, endi):
         staev_ar = sta_ev_arr[i]
         station_id = '%s.%s.%s.%s' % (staev_ar[0], staev_ar[1],
@@ -179,7 +189,7 @@ def process_core_iterate(sta_ev_arr, input_dics, target_path, starti, endi):
         if input_dics['pre_process']:
             print('[%s/%s] start processing: %s'
                   % (i+1, len(sta_ev_arr), station_id))
-            process_unit(tr_add, target_path, input_dics, staev_ar)
+            process_unit.process_unit(tr_add, target_path, input_dics, staev_ar)
 
 # ###################### plot_unit ############################################
 

@@ -25,7 +25,10 @@ try:
     from obspy.geodetics import locations2degrees
 except:
     from obspy.core.util import locations2degrees
-from obspy.signal.util import nextpow2
+try:
+    from obspy.signal.util import next_pow_2 as nextpow2
+except:
+    from obspy.signal.util import nextpow2
 try:
     from obspy.taup import getTravelTimes
 except:

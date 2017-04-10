@@ -412,7 +412,11 @@ def command_parse():
     # --------------- processing ----------------------------------------------
     group_process = OptionGroup(parser, "11. processing")
     helpmsg = "run the processing unit on the local/retrieved data. " \
-              "[default: True]"
+              "[default: process_unit]"
+    # XXX CHANGE THE MSC
+    # We can select --pre_process <name_process_unit>
+    # currently we have
+    # process_unit_default.py  process_unit.py  process_unit_sac.py
     group_process.add_option("--pre_process", action="store",
                              dest="pre_process", help=helpmsg)
 
@@ -683,7 +687,7 @@ def read_input_command(parser, **kwargs):
 
                   'interval': 3600*24,
 
-                  'pre_process': 'True',
+                  'pre_process': 'process_unit',
                   'select_data': False,
                   'corr_unit': 'DIS',
                   'pre_filt': '(0.008, 0.012, 3.0, 4.0)',
@@ -817,7 +821,9 @@ def read_input_command(parser, **kwargs):
         options.meta_data = False
         options.local = True
 
-    input_dics['pre_process'] = eval(options.pre_process)
+    input_dics['pre_process'] = options.pre_process
+    if input_dics['pre_process'].lower() in ['false']:
+        input_dics['pre_process'] = False
     input_dics['force_process'] = options.force_process
     input_dics['select_data'] = options.select_data
     if input_dics['select_data']:
