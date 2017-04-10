@@ -109,7 +109,7 @@ def test_default_inputs():
     assert input_dics['evradmax'] is None
     assert input_dics['max_result'] == 2500
     assert input_dics['interval'] == 3600*24
-    assert input_dics['pre_process'] == eval('True')
+    assert input_dics['pre_process'] == 'process_unit'
     assert input_dics['select_data'] is False
     assert input_dics['corr_unit'] == 'DIS'
     assert input_dics['pre_filt'] == '(0.008, 0.012, 3.0, 4.0)'
