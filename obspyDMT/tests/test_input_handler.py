@@ -31,6 +31,7 @@ def test_command_parse():
 
 def test_read_input_command():
     (options, args, parser) = command_parse()
+
     assert len(parser.option_groups[0].option_list) == 3
     assert len(parser.option_groups[1].option_list) == 2
     assert len(parser.option_groups[2].option_list) == 4
@@ -79,8 +80,8 @@ def test_default_inputs():
     assert input_dics['sampling_rate'] is False
     assert input_dics['net'] == '*'
     assert input_dics['sta'] == '*'
-    assert input_dics[ 'loc'] == '*'
-    assert input_dics[ 'cha'] == '*'
+    assert input_dics['loc'] == '*'
+    assert input_dics['cha'] == '*'
     assert input_dics['lat_cba'] is None
     assert input_dics['lon_cba'] is None
     assert input_dics['mr_cba'] is None
@@ -128,3 +129,36 @@ def test_default_inputs():
     assert input_dics['email'] is False
     assert input_dics['arc_avai_timeout'] == 40
     assert input_dics['arc_wave_timeout'] == 2
+
+# ##################### test_tour ###############################
+
+
+def test_tour():
+    input_dics = test_read_input_command()
+
+    input_dics['datapath'] = './dmt_tour_dir'
+    input_dics['min_date'] = '2011-03-10'
+    input_dics['max_date'] = '2011-03-12'
+    input_dics['min_mag'] = '8.9'
+    input_dics['identity'] = 'TA.1*.*.BHZ'
+    input_dics['event_catalog'] = 'IRIS'
+    input_dics['req_parallel'] = True
+    input_dics['instrument_correction'] = True
+    input_dics['net'] = 'TA'
+    input_dics['sta'] = '1*'
+    input_dics['loc'] = '*'
+    input_dics['cha'] = 'BHZ'
+
+    from obspyDMT import obspyDMT
+    input_dics = obspyDMT.dmt_core(input_dics)
+
+    from glob import glob
+    assert len(glob('./dmt_tour_dir/*')) == 2
+    assert len(glob('./dmt_tour_dir/20110311_054623.a/processed/*')) == 13
+    assert len(glob('./dmt_tour_dir/20110311_054623.a/raw/*')) == 13
+    assert len(glob('./dmt_tour_dir/20110311_054623.a/resp/*')) == 13
+    assert len(glob('./dmt_tour_dir/20110311_054623.a/info/*')) == 7
+
+    import shutil
+    shutil.rmtree('./dmt_tour_dir')
+    shutil.rmtree('./obspydmt-data')

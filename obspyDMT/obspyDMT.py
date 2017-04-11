@@ -30,19 +30,14 @@ from .utils.utility_codes import send_email
 # =============================================================================
 
 
-def obspyDMT(**kwargs):
+def dmt_core(input_dics, **kwargs):
     """
     Main function of obspyDMT toolbox.
     All the sub-main functions are organized and will be called from here.
+    :param input_dics:
     :param kwargs:
     :return:
     """
-    # printing the header
-    header_printer()
-    # ------------------parsing command-line options---------------------------
-    (options, args, parser) = command_parse()
-    # ------------------create input dictionary--------------------------------
-    input_dics = read_input_command(parser, **kwargs)
     # ------------------print data sources-------------------------------------
     if input_dics['print_data_sources']:
         print_data_sources()
@@ -104,8 +99,14 @@ def obspyDMT(**kwargs):
 
 def main():
     t1_pro = time.time()
+    # printing the header
+    header_printer()
+    # ------------------parsing command-line options---------------------------
+    (options, args, parser) = command_parse()
+    # ------------------create input dictionary--------------------------------
+    input_dics = read_input_command(parser)
     # run the main program
-    input_dics = obspyDMT()
+    input_dics = dmt_core(input_dics)
     # print goodbye message and exit
     goodbye_printer(input_dics, t1_pro)
     # pass the return of main to the command line.
