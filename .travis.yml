@@ -37,7 +37,7 @@ before_install:
 - command -v conda >/dev/null || { wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
    bash miniconda.sh -b -f -p $MINICONDA; }
 - conda update --yes conda
-- conda remove --yes -n condaenv --all
+  #- conda remove --yes -n condaenv --all
 - conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
 - conda install --yes -n condaenv pip
 - source activate condaenv
