@@ -26,6 +26,7 @@ try:
     from obspy.clients.arclink import Client as Client_arclink
 except:
     from obspy.arclink import Client as Client_arclink
+from obspy.clients.syngine import Client as Client_syngine
 try:
     from obspy.geodetics.base import gps2dist_azimuth as gps2DistAzimuth
 except:
@@ -166,6 +167,7 @@ def fdsn_serial_parallel(stas_avail, event, input_dics, target_path,
                               user=input_dics['username'],
                               password=input_dics['password'])
                               #debug=True)
+    client_syngine = Client_syngine()
 
     if input_dics['req_parallel']:
         if input_dics['password']:
@@ -185,7 +187,8 @@ def fdsn_serial_parallel(stas_avail, event, input_dics, target_path,
             p = multiprocessing.Process(target=fdsn_download_core,
                                         args=(st_avail, event,
                                               input_dics, target_path,
-                                              client_fdsn, req_cli,
+                                              client_fdsn, client_syngine,
+                                              req_cli,
                                               info_station))
             par_jobs.append(p)
 
@@ -213,7 +216,8 @@ def fdsn_serial_parallel(stas_avail, event, input_dics, target_path,
             info_station = '[%s-%s/%s]' % (info_event, st_counter,
                                            len(stas_avail))
             fdsn_download_core(st_avail, event, input_dics, target_path,
-                               client_fdsn, req_cli, info_station)
+                               client_fdsn, client_syngine,
+                               req_cli, info_station)
 
     update_sta_ev_file(target_path, event)
 
@@ -247,7 +251,7 @@ def fdsn_serial_parallel(stas_avail, event, input_dics, target_path,
 
 
 def fdsn_download_core(st_avail, event, input_dics, target_path,
-                       client_fdsn, req_cli, info_station):
+                       client_fdsn, client_syngine, req_cli, info_station):
     """
     downloading the waveforms, reponse files (StationXML) and metadata
     this function should be normally called by some higher-level functions
@@ -256,6 +260,7 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
     :param input_dics:
     :param target_path:
     :param client_fdsn:
+    :param client_syngine:
     :param req_cli:
     :param info_station:
     :return:
@@ -338,9 +343,58 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
             else:
                 identifier += 1
 
-        if identifier in [0, 2, 10, 11, 100]:
-            raise Exception("CODE: %s will not be registered! (666)"
-                            % identifier)
+        if input_dics['syngine']:
+            dummy = 'syngine_waveform'
+            syn_dirpath = os.path.join(
+                target_path, 'syngine_%s' % input_dics['syngine_bg_model'])
+            if not os.path.isdir(syn_dirpath):
+                os.makedirs(syn_dirpath)
+            if (not os.path.isfile(os.path.join(syn_dirpath, st_id)))\
+                    or input_dics['force_waveform']:
+
+                # XXX Geocentric?
+                # XXX depth in meters?
+                # sourcedoublecouple=None,
+                # dt=None
+                # kernelwidth=None
+                # sourceforce=None
+                # label=None
+
+                if not event['focal_mechanism']:
+                    syngine_momenttensor = None
+                else:
+                    syngine_momenttensor = event['focal_mechanism']
+
+                syn_st = client_syngine.get_waveforms(
+                    model=input_dics['syngine_bg_model'],
+                    receiverlatitude=float(st_avail[4]),
+                    receiverlongitude=float(st_avail[5]),
+                    networkcode=st_avail[0],
+                    stationcode=st_avail[1],
+                    sourcelatitude=event['latitude'],
+                    sourcelongitude=event['longitude'],
+                    sourcedepthinmeters=float(event['depth'])*1000.,
+                    origintime=event['datetime'],
+                    components=st_avail[3][-1],
+                    units=input_dics['syngine_units'],
+                    sourcemomenttensor=syngine_momenttensor,
+                    starttime=t_start,
+                    endtime=t_end)[0]
+
+                syn_st.stats.location = st_avail[2]
+                syn_st.stats.channel = st_avail[3]
+                syn_st.write(os.path.join(syn_dirpath, st_id),
+                             format='mseed')
+
+                identifier += 1000
+                print('%s -- %s -- saving syngine for: %s  ---> DONE' \
+                      % (info_station, req_cli, st_id))
+            else:
+                identifier += 1
+
+        # if identifier in [0, 2, 3, 10, 11, 100]:
+        #     raise Exception("CODE: %s will not be registered! (666)"
+        #                     % identifier)
         t22 = datetime.now()
     except Exception as error:
         t22 = datetime.now()
@@ -421,6 +475,7 @@ def arc_serial_parallel(stas_avail, event, input_dics, target_path,
 
     client_arclink = Client_arclink(user='test@obspy.org',
                                     timeout=input_dics['arc_wave_timeout'])
+    client_syngine = Client_syngine()
 
     if input_dics['req_parallel']:
         par_jobs = []
@@ -432,7 +487,8 @@ def arc_serial_parallel(stas_avail, event, input_dics, target_path,
             p = multiprocessing.Process(target=arc_download_core,
                                         args=(st_avail, event,
                                               input_dics, target_path,
-                                              client_arclink, req_cli,
+                                              client_arclink, client_syngine,
+                                              req_cli,
                                               info_station))
             par_jobs.append(p)
 
@@ -460,13 +516,14 @@ def arc_serial_parallel(stas_avail, event, input_dics, target_path,
             info_station = '[%s-%s/%s]' % (info_event, st_counter,
                                            len(stas_avail))
             arc_download_core(st_avail, event, input_dics, target_path,
-                              client_arclink, req_cli, info_station)
+                              client_arclink, client_syngine,
+                              req_cli, info_station)
 
 # ##################### arc_download_core ##################################
 
 
 def arc_download_core(st_avail, event, input_dics, target_path,
-                      client_arclink, req_cli, info_station):
+                      client_arclink, client_syngine, req_cli, info_station):
     """
     downloading the waveforms, reponse files (StationXML) and metadata
     this function should be normally called by some higher-level functions
@@ -475,6 +532,7 @@ def arc_download_core(st_avail, event, input_dics, target_path,
     :param input_dics:
     :param target_path:
     :param client_arclink:
+    :param client_syngine:
     :param req_cli:
     :param info_station:
     :return:
@@ -552,9 +610,58 @@ def arc_download_core(st_avail, event, input_dics, target_path,
             else:
                 identifier += 1
 
-        if identifier in [0, 2, 10, 11, 100]:
-            raise Exception("CODE: %s will not be registered! (666)"
-                            % identifier)
+        if input_dics['syngine']:
+            dummy = 'syngine_waveform'
+            syn_dirpath = os.path.join(
+                target_path, 'syngine_%s' % input_dics['syngine_bg_model'])
+            if not os.path.isdir(syn_dirpath):
+                os.makedirs(syn_dirpath)
+            if (not os.path.isfile(os.path.join(syn_dirpath, st_id)))\
+                    or input_dics['force_waveform']:
+
+                # XXX Geocentric?
+                # XXX depth in meters?
+                # sourcedoublecouple=None,
+                # dt=None
+                # kernelwidth=None
+                # sourceforce=None
+                # label=None
+
+                if not event['focal_mechanism']:
+                    syngine_momenttensor = None
+                else:
+                    syngine_momenttensor = event['focal_mechanism']
+
+                syn_st = client_syngine.get_waveforms(
+                    model=input_dics['syngine_bg_model'],
+                    receiverlatitude=float(st_avail[4]),
+                    receiverlongitude=float(st_avail[5]),
+                    networkcode=st_avail[0],
+                    stationcode=st_avail[1],
+                    sourcelatitude=event['latitude'],
+                    sourcelongitude=event['longitude'],
+                    sourcedepthinmeters=float(event['depth'])*1000.,
+                    origintime=event['datetime'],
+                    components=st_avail[3][-1],
+                    units=input_dics['syngine_units'],
+                    sourcemomenttensor=syngine_momenttensor,
+                    starttime=t_start,
+                    endtime=t_end)[0]
+
+                syn_st.stats.location = st_avail[2]
+                syn_st.stats.channel = st_avail[3]
+                syn_st.write(os.path.join(syn_dirpath, st_id),
+                             format='mseed')
+
+                identifier += 1000
+                print('%s -- %s -- saving syngine for: %s  ---> DONE' \
+                      % (info_station, req_cli, st_id))
+            else:
+                identifier += 1
+
+        # if identifier in [0, 2, 10, 11, 100]:
+        #     raise Exception("CODE: %s will not be registered! (666)"
+        #                     % identifier)
         t22 = datetime.now()
     except Exception as error:
         t22 = datetime.now()

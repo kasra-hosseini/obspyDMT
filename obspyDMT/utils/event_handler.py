@@ -565,6 +565,7 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
     interval = 30.*24.*60.*60.
 
     num_div = int(dur_event/interval)
+    num_div = max(1, num_div)
     print('#Divisions: %s' % num_div)
     for i in range(1, num_div+1):
         try:
@@ -594,7 +595,7 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
 
     try:
         final_time = m_date + num_div*interval
-        if not M_date == final_time:
+        if (not M_date == final_time) and (not int(dur_event/interval) == 0):
             t_start_split = m_date + (i-1)*interval
             t_end_split = m_date + i*interval
             getVars['starttime'] = str(t_start_split)

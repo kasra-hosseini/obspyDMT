@@ -108,6 +108,12 @@ def command_parse():
               "arguments to --event_catalog."
     group_general.add_option("--print_event_catalogs", action="store_true",
                              dest="print_event_catalogs", help=helpmsg)
+    # XXX
+    helpmsg = "print available syngine models. " \
+              "These are the models that can be given as " \
+              "arguments to --syngine_bg_model."
+    group_general.add_option("--print_syngine_models", action="store_true",
+                             dest="print_syngine_models", help=helpmsg)
 
     helpmsg = "data source(s) to be used for retrieving " \
               "waveform/response/metadata. To know about all the available " \
@@ -389,6 +395,16 @@ def command_parse():
               "which is reviewed by ISC analysts."
     group_ev_based.add_option("--isc_rev_comp", action="store",
                               dest="isc_rev_comp", help=helpmsg)
+
+    # XXX
+    helpmsg = "retrieve synthetic waveforms from syngine."
+    group_ev_based.add_option("--syngine", action="store_true",
+                              dest="syngine", help=helpmsg)
+
+    # XXX
+    helpmsg = "Syngine background model. [default: iasp91_2s]"
+    group_ev_based.add_option("--syngine_bg_model", action="store",
+                              dest="syngine_bg_model", help=helpmsg)
 
     helpmsg = "retrieve synthetic waveforms calculated by normal mode " \
               "summation code. (ShakeMovie project)"
@@ -684,6 +700,7 @@ def read_input_command(parser, **kwargs):
                   'evradmin': None, 'evradmax': None,
                   'max_result': 2500,
                   'isc_rev_comp': "COMPREHENSIVE",
+                  'syngine_bg_model': 'iasp91_2s',
 
                   'interval': 3600*24,
 
@@ -870,6 +887,7 @@ def read_input_command(parser, **kwargs):
     # =================== Print Data sources and Event catalogs
     input_dics['print_data_sources'] = options.print_data_sources
     input_dics['print_event_catalogs'] = options.print_event_catalogs
+    input_dics['print_syngine_models'] = options.print_syngine_models
 
     # =================== Data sources
     input_dics['data_source'] = options.data_source
@@ -1062,6 +1080,9 @@ def read_input_command(parser, **kwargs):
 
     input_dics['max_result'] = int(options.max_result)
     input_dics['isc_rev_comp'] = options.isc_rev_comp
+    input_dics['syngine'] = options.syngine
+    input_dics['syngine_bg_model'] = options.syngine_bg_model
+
     input_dics['specfem3D'] = options.specfem3D
     input_dics['normal_mode_syn'] = options.normal_mode_syn
 
@@ -1069,6 +1090,15 @@ def read_input_command(parser, **kwargs):
 
     input_dics['instrument_correction'] = options.instrument_correction
     input_dics['corr_unit'] = options.corr_unit
+
+    # XXX
+    if input_dics['corr_unit'].lower() == 'dis':
+        input_dics['syngine_units'] = 'displacement'
+    elif input_dics['corr_unit'].lower() == 'vel':
+        input_dics['syngine_units'] = 'velocity'
+    elif input_dics['corr_unit'].lower() == 'acc':
+        input_dics['syngine_units'] = 'acceleration'
+
     input_dics['pre_filt'] = options.pre_filt
     input_dics['water_level'] = float(options.water_level)
 

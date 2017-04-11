@@ -23,6 +23,7 @@ from .utils.metadata_handler import get_metadata
 from .utils.plotxml_handler import plot_xml_response
 from .utils.utility_codes import header_printer, goodbye_printer
 from .utils.utility_codes import print_event_catalogs, print_data_sources
+from .utils.utility_codes import print_syngine_models
 from .utils.utility_codes import send_email
 
 # =============================================================================
@@ -44,6 +45,9 @@ def dmt_core(input_dics, **kwargs):
     # ------------------print event catalogs-----------------------------------
     if input_dics['print_event_catalogs']:
         print_event_catalogs()
+    # ------------------print available syngine models-------------------------
+    if input_dics['print_syngine_models']:
+        print_syngine_models()
     # ------------------plot stationxml files----------------------------------
     if input_dics['plot_stationxml']:
         plot_xml_response(input_dics)

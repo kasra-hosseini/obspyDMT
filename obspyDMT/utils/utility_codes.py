@@ -133,6 +133,37 @@ def print_event_catalogs():
     print("============================================================")
     sys.exit()
 
+# ##################### print_syngine_models ##################################
+
+
+def print_syngine_models():
+    """
+    Function to print available syngine models
+    :return:
+    """
+    print("\n------------------------")
+    print("Available syngine models")
+    print("------------------------\n")
+
+    from obspy.clients.syngine import Client as Client_syngine
+    client_syngine = Client_syngine()
+    avail_syngine_models = client_syngine.get_available_models()
+
+    for count_mod, avail_mod in enumerate(avail_syngine_models.keys()):
+        print('%s. %s' % (count_mod+1, avail_mod))
+    print('\n')
+    for count_mod, avail_mod in enumerate(avail_syngine_models.keys()):
+        print("------------------------")
+        print('%s. %s' % (count_mod+1, avail_mod))
+        for inf in avail_syngine_models[avail_mod].keys():
+            print("%s: %s" % (inf, avail_syngine_models[avail_mod][inf]))
+
+    print("\n============================================================")
+    print("This is the list of all available syngine models that can be")
+    print("used for --syngine_bg_model option.")
+    print("============================================================")
+    sys.exit()
+
 # ##################### create_folders_files ############################
 
 

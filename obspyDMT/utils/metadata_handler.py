@@ -112,7 +112,7 @@ def get_metadata(input_dics, event, info_avail):
         avail_fi.close()
 
     if (not input_dics['force_waveform']) \
-            or (not input_dics['force_response']):
+            and (not input_dics['force_response']):
         stas_update = rm_duplicate(stas_all, target_path)
         stas_arr_update = np.array(stas_update)
     else:
