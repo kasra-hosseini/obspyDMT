@@ -24,7 +24,7 @@ before_install:
  - sudo ln -s /run/shm /dev/shm
  # These are mostly requirements of instaseis
  - conda install --yes -c obspy nomkl obspy pytest python=$TRAVIS_PYTHON_VERSION
- - conda install --yes -c basemap=1.0.7
+ - conda install -c anaconda basemap=1.0.7
  - travis_retry pip install $PIP_DEPS
 
 install:
