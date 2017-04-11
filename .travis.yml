@@ -28,7 +28,7 @@ before_install:
 - conda install --yes -c obspy nomkl obspy nose pytest flake8 sphinx h5py tornado python=$TRAVIS_PYTHON_VERSION
 - conda install --yes -c conda-forge instaseis python=$TRAVIS_PYTHON_VERSION
 - conda install --yes -c scitools cartopy
-- conda install -c anaconda basemap=1.0.7
+- conda install --yes -c anaconda basemap=1.0.7
 - travis_retry pip install $PIP_DEPS
 - pip install coveralls
 - pip install requests responses
