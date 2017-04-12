@@ -16,6 +16,7 @@ from obspy.core import UTCDateTime
 from optparse import OptionParser, OptionGroup
 import os
 import shutil
+from string import join as string_join
 import sys
 import time
 
@@ -185,15 +186,16 @@ def command_parse():
     # --------------- time window, waveform format and sampling rate ----------
     group_tw = OptionGroup(parser, "05. time window, waveform format and "
                                    "sampling rate (all modes)")
+    # XXX
     helpmsg = "start time, syntax: Y-M-D-H-M-S, " \
               "e.g.: '2010-01-01-00-00-00' or just " \
-              "Y-M-D. [default: 10 days ago]"
+              "Y-M-D. [default: 1970-01-01]"
     group_tw.add_option("--min_date", action="store",
                         dest="min_date", help=helpmsg)
-
+    # XXX
     helpmsg = "end time, syntax: Y-M-D-H-M-S, " \
               "e.g.: '2011-01-01-00-00-00' or just " \
-              "Y-M-D. [default: 5 days ago]"
+              "Y-M-D. [default: today]"
     group_tw.add_option("--max_date", action="store",
                         dest="max_date", help=helpmsg)
 
@@ -351,8 +353,8 @@ def command_parse():
     helpmsg = "maximum depth. [default: +6000.0]"
     group_ev_based.add_option("--max_depth", action="store",
                               dest="max_depth", help=helpmsg)
-
-    helpmsg = "minimum magnitude. [default: 5.5]"
+    # XXX
+    helpmsg = "minimum magnitude. [default: 3.0]"
     group_ev_based.add_option("--min_mag", action="store",
                               dest="min_mag", help=helpmsg)
 
@@ -671,8 +673,10 @@ def read_input_command(parser, **kwargs):
                   'min_azi': False, 'max_azi': False,
                   'test': False,
 
-                  'min_date': str(UTCDateTime() - 60 * 60 * 24 * 10 * 1),
-                  'max_date': str(UTCDateTime() - 60 * 60 * 24 * 5 * 1),
+                  # 'min_date': str(UTCDateTime() - 60 * 60 * 24 * 10 * 1),
+                  # XXX
+                  'min_date': str(UTCDateTime(1970, 1, 1)),
+                  'max_date': str(UTCDateTime()),
                   'preset': 0.0, 'offset': 1800.0,
                   'waveform_format': False,
                   'resample_method': 'lanczos',
@@ -692,7 +696,7 @@ def read_input_command(parser, **kwargs):
 
                   'event_catalog': 'LOCAL',
                   'min_depth': -10.0, 'max_depth': +6000.0,
-                  'min_mag': 5.5, 'max_mag': 9.9,
+                  'min_mag': 3.0, 'max_mag': 9.9,
                   'mag_type': None,
                   'evlatmin': None, 'evlatmax': None,
                   'evlonmin': None, 'evlonmax': None,
@@ -729,6 +733,38 @@ def read_input_command(parser, **kwargs):
                   'arc_wave_timeout': 2,
                   }
 
+    if len(sys.argv) == 1:
+        print("\n")
+        print(60*"#")
+        print("WARNING: No option flags are set!")
+        print("WARNING: --min_date is set to %s"
+              % str(UTCDateTime(input_dics['min_date'])))
+        print("WARNING: --min_mag is set to %s"
+              % (input_dics['min_mag']))
+        print(60*"#")
+        print("\n")
+        time.sleep(2)
+    elif ('--tour' in sys.argv) or \
+            ('--print_data_sources' in sys.argv) or \
+            ('--print_event_catalogs' in sys.argv) or \
+            ('--print_syngine_models' in sys.argv):
+        pass
+    else:
+        warn_msg = []
+        if '--min_date' not in sys.argv:
+            warn_msg.append("WARNING: --min_date is set to %s"
+                            % str(UTCDateTime(input_dics['min_date'])))
+        if '--min_mag' not in sys.argv:
+            warn_msg.append("WARNING: --min_mag is set to %s"
+                            % (input_dics['min_mag']))
+        if warn_msg:
+            warn_msg = string_join(warn_msg, '\n')
+            print("\n")
+            print(60*"#")
+            print(warn_msg)
+            print(60*"#")
+            print("\n")
+            time.sleep(2)
     # feed input_dics dictionary of defaults into parser object
     parser.set_defaults(**input_dics)
 

@@ -111,12 +111,13 @@ def get_metadata(input_dics, event, info_avail):
         np.savetxt(avail_fi, unique_avail, delimiter=',', fmt='%s')
         avail_fi.close()
 
-    if (not input_dics['force_waveform']) \
-            and (not input_dics['force_response']):
-        stas_update = rm_duplicate(stas_all, target_path)
-        stas_arr_update = np.array(stas_update)
-    else:
-        stas_arr_update = np.array(unique_avail)
+    # XXX remove duplications
+    # if (not input_dics['force_waveform']) \
+    #         and (not input_dics['force_response']):
+    #     stas_update = rm_duplicate(stas_all, target_path)
+    #     stas_arr_update = np.array(stas_update)
+    # else:
+    stas_arr_update = np.array(unique_avail)
 
     if not input_dics['bulk']:
         print('\navailability for event: %s ---> DONE' % info_avail)

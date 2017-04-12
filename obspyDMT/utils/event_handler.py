@@ -159,8 +159,6 @@ def read_info(input_dics):
     if input_dics['event_catalog'].lower() == 'local':
         print("\n=========================================================")
         print("use the local files:")
-        print("(all relevant options (time, magnitude, depth, location) " \
-              "will be omitted!)")
         print(os.path.join(ev_info, 'event_list_pickle'))
         print("=========================================================\n")
     return events
@@ -334,19 +332,36 @@ def qml_to_event_list(events_QML):
             continue
         try:
             if not events_QML.events[i].focal_mechanisms == []:
-                focal_mechanism = [
-                    events_QML.events[i].preferred_focal_mechanism()
-                    ['moment_tensor']['tensor']['m_rr'],
-                    events_QML.events[i].preferred_focal_mechanism()
-                    ['moment_tensor']['tensor']['m_tt'],
-                    events_QML.events[i].preferred_focal_mechanism()
-                    ['moment_tensor']['tensor']['m_pp'],
-                    events_QML.events[i].preferred_focal_mechanism()
-                    ['moment_tensor']['tensor']['m_rt'],
-                    events_QML.events[i].preferred_focal_mechanism()
-                    ['moment_tensor']['tensor']['m_rp'],
-                    events_QML.events[i].preferred_focal_mechanism()
-                    ['moment_tensor']['tensor']['m_tp']]
+                if events_QML.events[i].preferred_focal_mechanism()['moment_tensor']['tensor']:
+                    focal_mechanism = [
+                        events_QML.events[i].preferred_focal_mechanism()
+                        ['moment_tensor']['tensor']['m_rr'],
+                        events_QML.events[i].preferred_focal_mechanism()
+                        ['moment_tensor']['tensor']['m_tt'],
+                        events_QML.events[i].preferred_focal_mechanism()
+                        ['moment_tensor']['tensor']['m_pp'],
+                        events_QML.events[i].preferred_focal_mechanism()
+                        ['moment_tensor']['tensor']['m_rt'],
+                        events_QML.events[i].preferred_focal_mechanism()
+                        ['moment_tensor']['tensor']['m_rp'],
+                        events_QML.events[i].preferred_focal_mechanism()
+                        ['moment_tensor']['tensor']['m_tp']]
+                else:
+                    found_foc_mech = False
+                    for foc_mech_qml in events_QML.events[i].focal_mechanisms:
+                        if foc_mech_qml['moment_tensor']['tensor']:
+                            focal_mechanism = [
+                                foc_mech_qml['moment_tensor']['tensor']['m_rr'],
+                                foc_mech_qml['moment_tensor']['tensor']['m_tt'],
+                                foc_mech_qml['moment_tensor']['tensor']['m_pp'],
+                                foc_mech_qml['moment_tensor']['tensor']['m_rt'],
+                                foc_mech_qml['moment_tensor']['tensor']['m_rp'],
+                                foc_mech_qml['moment_tensor']['tensor']['m_tp']
+                            ]
+                            found_foc_mech = True
+                            break
+                    if not found_foc_mech:
+                        focal_mechanism = False
             else:
                 focal_mechanism = False
         except AttributeError:
@@ -569,7 +584,7 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
     print('#Divisions: %s' % num_div)
     for i in range(1, num_div+1):
         try:
-            print(i, end='')
+            print(i, end=',')
             sys.stdout.flush()
             t_start_split = m_date + (i-1)*interval
             t_end_split = m_date + i*interval
@@ -621,7 +636,7 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
     print('\nAssembling %s xml files...' % len(xml_add))
     counter = 1
     for x_add in xml_add:
-        print(counter),
+        print(counter, end=',')
         sys.stdout.flush()
         counter += 1
         try:

@@ -325,8 +325,6 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
             dummy = 'response'
             if (not os.path.isfile(os.path.join(target_path, 'resp',
                                                 'STXML.' + st_id))) \
-                or (not os.path.isfile(os.path.join(target_path, 'resp',
-                                                    'DATALESS.' + st_id))) \
                     or input_dics['force_response']:
                 client_fdsn.get_stations(network=st_avail[0],
                                          station=st_avail[1],
@@ -595,8 +593,6 @@ def arc_download_core(st_avail, event, input_dics, target_path,
         if input_dics['response']:
             dummy = 'response'
             if (not os.path.isfile(os.path.join(target_path, 'resp',
-                                                'STXML.' + st_id))) \
-                or (not os.path.isfile(os.path.join(target_path, 'resp',
                                                     'DATALESS.' + st_id))) \
                     or input_dics['force_response']:
                 client_arclink.saveResponse(

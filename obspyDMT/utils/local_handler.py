@@ -20,9 +20,9 @@ from mpl_toolkits.basemap import Basemap
 import multiprocessing
 import numpy as np
 try:
-    from obspy.imaging.beachball import beachball as Beach
+    from obspy.imaging.beachball import beach as Beach
 except:
-    from obspy.imaging.beachball import Beach
+    from obspy.imaging.beachball import beachball as Beach
 from obspy import UTCDateTime, read
 try:
     from obspy.geodetics import locations2degrees
