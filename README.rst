@@ -225,15 +225,13 @@ To retrieve all stations that:
 1. station code starts with A (--sta "A*" in the following command line)
 2. BHZ channels
 3. GFZ data-center
-4. length: 300 sec before and 3600 sec after origin time of each event
+4. length: 300 sec before and 3600 sec after the origin time of each event
 
 For events with:
 
 1. magnitude more than 7.0
 2. occured 2014-01-01 until 2015-01-01
 3. NEIC_USGS catalog
-
-In this example, the length of the waveforms are defined by --preset 300 --offset 3600, that is, 300 sec before and 3600 after the origin time of each event:
 
 ::
 
