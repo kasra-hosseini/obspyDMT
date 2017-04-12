@@ -16,7 +16,6 @@ from obspy.core import UTCDateTime
 from optparse import OptionParser, OptionGroup
 import os
 import shutil
-from string import join as string_join
 import sys
 import time
 
@@ -758,7 +757,7 @@ def read_input_command(parser, **kwargs):
             warn_msg.append("WARNING: --min_mag is set to %s"
                             % (input_dics['min_mag']))
         if warn_msg:
-            warn_msg = string_join(warn_msg, '\n')
+            warn_msg = str.join('\n', warn_msg)
             print("\n")
             print(60*"#")
             print(warn_msg)
