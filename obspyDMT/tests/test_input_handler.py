@@ -5,7 +5,7 @@
 #   Filename:  test_input_handler.py
 #   Purpose:   testing input_handler
 #   Author:    Kasra Hosseini
-#   Email:     hosseini@geophysik.uni-muenchen.de
+#   Email:     kasra.hosseinizad@earth.ox.ac.uk
 #   License:   GPLv3
 # -------------------------------------------------------------------
 

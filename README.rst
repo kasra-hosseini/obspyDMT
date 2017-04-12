@@ -10,9 +10,9 @@ Table of contents
 *  `How to cite obspyDMT`_
 *  `Installation`_: install obspyDMT and check your local machine for required dependencies.
 *  `Quick tour`_: run a quick tour.
+*  `Supported event catalogs and data sources`_: available event catalogs and data-sources.
 *  `Gallery`_
 
-   -  `Supported event catalogs and data sources`_: available event catalogs and data-sources.
    -  `event info request`_: get info about events without downloading waveforms.
    -  `seismicity map`_
    -  `event based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
@@ -45,13 +45,13 @@ Installation
 
 Once a working Python and `ObsPy <https://github.com/obspy/obspy/wiki>`_ environment is available, obspyDMT can be installed:
 
-**1. Source code:** The latest version of obspyDMT is available on GitHub. After installing *git* on your machine:
+**1. Source code:** The latest version of obspyDMT is available on GitHub. After installing `git <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`_ on your machine:
 
 ::
 
     git clone https://github.com/kasra-hosseini/obspyDMT.git /path/to/my/obspyDMT
 
-obspyDMT can be then installed then by:
+obspyDMT can be then installed by:
 
 ::
 
@@ -65,7 +65,7 @@ or
     cd /path/to/my/obspyDMT
     python setup.py install
 
-**2. PyPi:** One simple way to install obspyDMT is via `PyPi <https://pypi.python.org/pypi>`_:
+**2. PyPi:** One simple way to install obspyDMT is via `PyPi <https://pypi.python.org/pypi>`_ (for the released versions):
 
 ::
 
@@ -86,7 +86,7 @@ To better explore the available options, a list of "option groups" can be genera
 
     obspyDMT --options
 
-And to list the available options in each group: (e.g., if we want to list the options in the group number 2 [path specification])
+And to list the available options in each group: (e.g., if we want to list available options in group number 2 [path specification])
 
 ::
 
@@ -101,19 +101,19 @@ To check the dependencies required for running the code properly:
 Quick tour
 ----------
 
-To run a quick tour, it is enough to:
+To run a quick tour:
 
 ::
 
     obspyDMT --tour
 
-*dmt_tour_dir* directory will be created in the current path, and the retrieved/processed data will be organized there. (Please refer to `Directory structure`_ section for more information)
+*dmt_tour_dir* directory will be created in the current path, and retrieved/processed waveforms and meta-data  will be organized there. (Refer to `Directory structure`_ section for more information)
 
 The retrieved waveforms can be plotted by:
 
 ::
 
-    obspyDMT --datapath dmt_tour_dir --local --plot_waveform --min_date 2011-01-01
+    obspyDMT --datapath dmt_tour_dir --local --plot_waveform
 
 .. image:: figures/epi_time_20110311_1_raw.png
    :scale: 60%
@@ -123,32 +123,30 @@ To plot the processed/corrected waveforms:
 
 ::
 
-    obspyDMT --datapath dmt_tour_dir --local --plot_waveform --min_date 2011-01-01 --plot_dir_name processed
+    obspyDMT --datapath dmt_tour_dir --local --plot_waveform --plot_dir_name processed
 
 .. image:: figures/epi_time_20110311_1.png
    :scale: 60%
    :align: center
 
+XXX: ADD: obspyDMT --tour --syngine
+XXX: ADD: obspyDMT --datapath dmt_tour_dir --local --plot_waveform --plot_dir_name syngine_iasp91_2s
+
 obspyDMT plots the ray coverage (ray path between each source-receiver pair) by:
 
 ::
 
-    obspyDMT --datapath dmt_tour_dir --local --plot_ev --plot_sta --plot_ray --min_date 2011-01-01
+    obspyDMT --datapath dmt_tour_dir --local --plot_ev --plot_sta --plot_ray
 
 .. image:: figures/tour_ray.png
    :scale: 75%
    :align: center
 
-It is also possible to change the map projection in the pop-up menu (same command line as above):
+It is also possible to change the map projection in the pop-up menu (same command-line as above):
 
 .. image:: figures/tour_ray_shaded.png
    :scale: 75%
    :align: center
-
-Gallery
--------
-
-Collection of examples:
 
 Supported event catalogs and data sources
 -----------------------------------------
@@ -165,10 +163,16 @@ and supported data sources:
 
     obspyDMT --print_data_sources
 
+
+Gallery
+-------
+
+Collection of examples: XXX
+
 event info request
 ------------------
 
-Get info about events without downloading/processing waveforms! This method can be used to check the available events before starting the actual waveform retrieval, for example:
+Get info about events without downloading/processing waveforms! This method can be used to check available events before starting an actual waveform retrieval, for example:
 
 ::
 
@@ -178,13 +182,13 @@ To plot the retrieved event information:
 
 ::
 
-    obspyDMT --datapath neic_events_2014_dir --local --plot_ev --plot_focal --min_date 2014-01-01
+    obspyDMT --datapath neic_events_2014_dir --local --plot_ev --plot_focal
 
 .. image:: figures/neic_event_focal.png
    :scale: 75%
    :align: center
 
-The created event-catalog can be updated for all events with magnitude more than 6.0: (no waveform retrieval)
+The above directory can be updated for all events with magnitude more than 6.0: (no waveform retrieval)
 
 ::
 
@@ -194,7 +198,7 @@ and again to plot the event information in the local data-set:
 
 ::
 
-   obspyDMT --datapath neic_events_2014_dir --local --plot_ev --plot_focal --min_date 2014-01-01
+   obspyDMT --datapath neic_events_2014_dir --local --plot_ev --plot_focal
 
 .. image:: figures/neic_event_focal_updated.png
    :scale: 75%
@@ -216,17 +220,27 @@ To plot a seismicity map for all events with magnitude more than 5.0 that occurr
 event based mode
 ----------------
 
-All BHZ and HHZ channels from GFZ data-center:
+To retrieve all stations that:
+1. station code starts with A (--sta "A*" in the following command line)
+2. BHZ channels
+3. GFZ data-center
+4. length: 300 sec before and 3600 sec after origin time of each event
+
+For events with:
+1. magnitude more than 7.0
+2. occured 2014-01-01 until 2015-01-01
+3. NEIC_USGS catalog
+In this example, the length of the waveforms are defined by --preset 300 --offset 3600, that is, 300 sec before and 3600 after the origin time of each event:
 
 ::
 
-    obspyDMT --datapath event_based_dir --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.0 --event_catalog NEIC_USGS --data_source "GFZ" --cha "BHZ,HHZ" --preset 300 --offset 3600
+    obspyDMT --datapath event_based_dir --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.0 --event_catalog NEIC_USGS --data_source "GFZ" --sta "A*" --cha "BHZ" --preset 300 --offset 3600
 
 To plot the ray coverage:
 
 ::
 
-    obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --plot_ray --min_date 2014-01-01
+    obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --plot_ray
 
 .. image:: figures/gfz_event_based.png
    :scale: 75%

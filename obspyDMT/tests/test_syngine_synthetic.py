@@ -5,7 +5,7 @@
 #   Filename:  test_syngine_synthetic.py
 #   Purpose:   testing syngine synthetics 
 #   Author:    Kasra Hosseini
-#   Email:     hosseini@geophysik.uni-muenchen.de
+#   Email:     kasra.hosseinizad@earth.ox.ac.uk
 #   License:   GPLv3
 # -------------------------------------------------------------------
 
@@ -14,9 +14,6 @@
 # -----------------------------------------------------------------------
 
 # Required Python and Obspy modules will be imported in this part.
-import os
-from obspy.core import UTCDateTime
-
 from obspyDMT.utils.input_handler import command_parse, read_input_command
 
 # ##################### test_syngine_tour ###############################
