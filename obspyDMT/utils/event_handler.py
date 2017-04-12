@@ -564,7 +564,7 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
             getVars['minlongitude'] = str(min_longitude)
             getVars['maxlongitude'] = str(max_longitude)
             getVars['minlatitude'] = str(min_latitude)
-            getVars['maxlatitiude'] = str(max_latitude)
+            getVars['maxlatitude'] = str(max_latitude)
     else:
         getVars['latitude'] = str(latitude)
         getVars['longitude'] = str(longitude)
