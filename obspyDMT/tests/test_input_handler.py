@@ -70,9 +70,7 @@ def test_default_inputs():
     assert input_dics['max_azi'] is False
     assert input_dics['test'] is False
     assert (UTCDateTime(input_dics['max_date']) -
-            UTCDateTime(input_dics['min_date']) < (60 * 60 * 24 * 5 + 1))
-    assert (UTCDateTime(input_dics['max_date']) -
-            UTCDateTime(input_dics['min_date']) > (60 * 60 * 24 * 5 - 1))
+            UTCDateTime(input_dics['min_date']) > (60 * 60 * 24 * 365 * 45))
     assert input_dics['preset'] ==  0.0 
     assert input_dics['offset'] == 1800.0
     assert input_dics['waveform_format'] is False
@@ -97,7 +95,7 @@ def test_default_inputs():
     assert input_dics['event_catalog'] == 'LOCAL'
     assert input_dics['min_depth'] == -10.0
     assert input_dics['max_depth'] == +6000.0
-    assert input_dics['min_mag'] == 5.5
+    assert input_dics['min_mag'] == 3.0
     assert input_dics['max_mag'] == 9.9
     assert input_dics['mag_type'] is None
     assert input_dics['evlatmin'] is None
