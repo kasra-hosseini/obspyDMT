@@ -378,28 +378,28 @@ def plot_sta_ev_ray(input_dics, events):
 
     if plt_ray_path:
         # # hammer, kav7, cyl, mbtfpq, moll
-        m = Basemap(projection='robin', lon_0=input_dics['plot_lon0'])
+        m = Basemap(projection='moll', lon_0=input_dics['plot_lon0'])
         parallels = np.arange(-90, 90, 30.)
-        m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=24)
+        m.drawparallels(parallels, fontsize=24)
         meridians = np.arange(-180., 180., 60.)
-        m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=24)
-        width_beach = 10e5
+        m.drawmeridians(meridians, fontsize=24)
+        width_beach = 5e5
         width_station = 50
     elif not glob_map:
         m = Basemap(projection='cyl', llcrnrlat=evlatmin, urcrnrlat=evlatmax,
                     llcrnrlon=evlonmin, urcrnrlon=evlonmax)
         parallels = np.arange(-90, 90, 5.)
-        m.drawparallels(parallels, labels=[1, 0, 0, 1], fontsize=12)
+        m.drawparallels(parallels, fontsize=12)
         meridians = np.arange(-180., 180., 5.)
-        m.drawmeridians(meridians, labels=[1, 0, 0, 1], fontsize=12)
+        m.drawmeridians(meridians, fontsize=12)
         width_beach = 5
         width_station = 10
     elif glob_map:
-        m = Basemap(projection='robin', lon_0=input_dics['plot_lon0'])
+        m = Basemap(projection='moll', lon_0=input_dics['plot_lon0'])
         parallels = np.arange(-90, 90, 30.)
-        m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=24)
+        m.drawparallels(parallels, fontsize=24)
         meridians = np.arange(-180., 180., 60.)
-        m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=24)
+        m.drawmeridians(meridians, fontsize=24)
         width_beach = 5e5
         width_station = 50
     else:
@@ -591,9 +591,9 @@ def plot_seismicity(input_dics, events):
                 resolution='l')
 
     parallels = np.arange(-90, 90, 30.)
-    m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=24)
+    m.drawparallels(parallels, fontsize=24)
     meridians = np.arange(-180., 180., 60.)
-    m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=24)
+    m.drawmeridians(meridians, fontsize=24)
 
     raw_input_resp = raw_input_built('choose the map style:\n'
                                      '1. bluemarble (PIL should be installed)\n'
@@ -702,9 +702,9 @@ def plot_seismicity(input_dics, events):
                     resolution='l')
 
         parallels = np.arange(-90, 90, 30.)
-        m.drawparallels(parallels, labels=[1, 1, 1, 1], fontsize=24)
+        m.drawparallels(parallels, fontsize=24)
         meridians = np.arange(-180., 180., 60.)
-        m.drawmeridians(meridians, labels=[1, 1, 1, 1], fontsize=24)
+        m.drawmeridians(meridians, fontsize=24)
 
         if int(raw_input_resp) == 1:
             m.bluemarble(scale=0.5)

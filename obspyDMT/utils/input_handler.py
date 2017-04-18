@@ -126,8 +126,9 @@ def command_parse():
     group_general.add_option("--data_source", action="store",
                              dest="data_source", help=helpmsg)
 
-    helpmsg = "retrieve waveform(s). [default]"
-    group_general.add_option("--waveform", action="store_true",
+    # XXX
+    helpmsg = "retrieve waveform(s). [default: True]"
+    group_general.add_option("--waveform", action="store",
                              dest="waveform", help=helpmsg)
 
     helpmsg = "force to retrieve waveform(s) even though they might " \
@@ -135,8 +136,9 @@ def command_parse():
     group_general.add_option("--force_waveform", action="store_true",
                              dest="force_waveform", help=helpmsg)
 
-    helpmsg = "retrieve the response file(s). [default]"
-    group_general.add_option("--response", action="store_true",
+    # XXX
+    helpmsg = "retrieve the response file(s). [default: True]"
+    group_general.add_option("--response", action="store",
                              dest="response", help=helpmsg)
 
     helpmsg = "force to retrieve response file(s) even though they might " \
@@ -735,7 +737,7 @@ def read_input_command(parser, **kwargs):
     if len(sys.argv) == 1:
         print("\n")
         print(60*"#")
-        print("WARNING: No option flags are set!")
+        print("WARNING: No option flag is set!")
         print("WARNING: --min_date is set to %s"
               % str(UTCDateTime(input_dics['min_date'])))
         print("WARNING: --min_mag is set to %s"
@@ -745,6 +747,7 @@ def read_input_command(parser, **kwargs):
         time.sleep(2)
     elif ('--tour' in sys.argv) or \
             ('--print_data_sources' in sys.argv) or \
+            ('--version' in sys.argv) or \
             ('--print_event_catalogs' in sys.argv) or \
             ('--print_syngine_models' in sys.argv):
         pass
@@ -939,9 +942,18 @@ def read_input_command(parser, **kwargs):
     for cli in range(len(input_dics['data_source'])):
         input_dics['data_source'][cli] = input_dics['data_source'][cli].upper()
 
-    input_dics['waveform'] = options.waveform
+    if options.waveform.lower() in ['false']:
+        input_dics['waveform'] = False
+    else:
+        input_dics['waveform'] = True
+
     input_dics['force_waveform'] = options.force_waveform
-    input_dics['response'] = options.response
+
+    if options.response.lower() in ['false']:
+        input_dics['response'] = False
+    else:
+        input_dics['response'] = True
+
     input_dics['force_response'] = options.force_response
 
     input_dics['dir_select'] = options.dir_select

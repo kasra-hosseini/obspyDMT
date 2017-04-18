@@ -284,9 +284,14 @@ def event_info(input_dics):
                     events_QML.events[i].magnitudes[0].magnitude_type
 
             if not hasattr(events_QML.events[i], 'preferred_author'):
-                events_QML.events[i].preferred_author = \
-                    events_QML.events[i].preferred_magnitude().creation_info.author or \
-                    events_QML.events[i].magnitudes[0].creation_info.author
+                if events_QML.events[i].preferred_magnitude().creation_info:
+                    events_QML.events[i].preferred_author = \
+                        events_QML.events[i].preferred_magnitude().creation_info.author
+                elif events_QML.events[i].magnitudes[0].creation_info:
+                    events_QML.events[i].preferred_author = \
+                        events_QML.events[i].magnitudes[0].creation_info.author
+                else:
+                    events_QML.events[i].preferred_author = 'None'
         # no matter if list was passed or requested, sort catalogue,
         # plot events and proceed
         events_QML = sort_catalogue(events_QML)
@@ -580,14 +585,37 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
     interval = 30.*24.*60.*60.
 
     num_div = int(dur_event/interval)
-    num_div = max(1, num_div)
     print('#Divisions: %s' % num_div)
-    for i in range(1, num_div+1):
+    if not num_div < 1:
+        for i in range(1, num_div+1):
+            try:
+                print(i, end=',')
+                sys.stdout.flush()
+                t_start_split = m_date + (i-1)*interval
+                t_end_split = m_date + i*interval
+                getVars['starttime'] = str(t_start_split)
+                getVars['endtime'] = str(t_end_split)
+
+                url_values = urllib.parse.urlencode(getVars)
+                remotefile = link_neic + url_values
+                page = urlopen(remotefile)
+                page_content = page.read()
+
+                if 'quakeml' in page_content:
+                    with open(os.path.join(dir_name,
+                                           'temp_neic_xml_%05i.xml' % i), 'w') \
+                            as fid:
+                        fid.write(page_content)
+                    fid.close()
+                else:
+                    continue
+                page.close()
+            except Exception as error:
+                print("\nWARNING: %s -- %s\n" % (error, remotefile))
+    elif num_div == 0:
         try:
-            print(i, end=',')
-            sys.stdout.flush()
-            t_start_split = m_date + (i-1)*interval
-            t_end_split = m_date + i*interval
+            t_start_split = m_date
+            t_end_split = M_date
             getVars['starttime'] = str(t_start_split)
             getVars['endtime'] = str(t_end_split)
 
@@ -598,12 +626,10 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
 
             if 'quakeml' in page_content:
                 with open(os.path.join(dir_name,
-                                       'temp_neic_xml_%05i.xml' % i), 'w') \
+                                       'temp_neic_xml_%05i.xml' % 0), 'w') \
                         as fid:
                     fid.write(page_content)
                 fid.close()
-            else:
-                continue
             page.close()
         except Exception as error:
             print("\nWARNING: %s -- %s\n" % (error, remotefile))
@@ -611,8 +637,8 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
     try:
         final_time = m_date + num_div*interval
         if (not M_date == final_time) and (not int(dur_event/interval) == 0):
-            t_start_split = m_date + (i-1)*interval
-            t_end_split = m_date + i*interval
+            t_start_split = final_time
+            t_end_split = M_date
             getVars['starttime'] = str(t_start_split)
             getVars['endtime'] = str(t_end_split)
 
