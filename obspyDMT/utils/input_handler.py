@@ -942,14 +942,14 @@ def read_input_command(parser, **kwargs):
     for cli in range(len(input_dics['data_source'])):
         input_dics['data_source'][cli] = input_dics['data_source'][cli].upper()
 
-    if options.waveform.lower() in ['false']:
+    if str(options.waveform).lower() in ['false']:
         input_dics['waveform'] = False
     else:
         input_dics['waveform'] = True
 
     input_dics['force_waveform'] = options.force_waveform
 
-    if options.response.lower() in ['false']:
+    if str(options.response).lower() in ['false']:
         input_dics['response'] = False
     else:
         input_dics['response'] = True
