@@ -275,7 +275,7 @@ def plot_waveform(input_dics, events):
     :param events:
     :return:
     """
-    plt.rc('font', family='serif')
+    # plt.rc('font', family='serif')
     for ei in range(len(events)):
         target_path = locate(input_dics['datapath'], events[ei]['event_id'])
         if len(target_path) == 0:
@@ -338,10 +338,10 @@ def plot_waveform(input_dics, events):
             except:
                 continue
 
-    plt.xlabel('Time (sec)', size=24, weight='bold')
-    plt.ylabel('Epicentral Distance (deg)', size=24, weight='bold')
-    plt.xticks(size=18, weight='bold')
-    plt.yticks(size=18, weight='bold')
+    plt.xlabel('Time (sec)', size=24)
+    plt.ylabel('Distance (deg)', size=24)
+    plt.xticks(size=18)
+    plt.yticks(size=18)
     plt.tight_layout()
     plt.savefig(os.path.join(input_dics['plot_save'],
                              'waveforms.%s' % input_dics['plot_format']))
@@ -383,7 +383,7 @@ def plot_sta_ev_ray(input_dics, events):
         m.drawparallels(parallels, fontsize=24)
         meridians = np.arange(-180., 180., 60.)
         m.drawmeridians(meridians, fontsize=24)
-        width_beach = 5e5
+        width_beach = 10e5
         width_station = 50
     elif not glob_map:
         m = Basemap(projection='cyl', llcrnrlat=evlatmin, urcrnrlat=evlatmax,

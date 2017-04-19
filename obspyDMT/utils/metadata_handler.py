@@ -247,6 +247,12 @@ def arc_available(input_dics, event, target_path):
 
     client_arclink = Client_arclink(user='test@obspy.org',
                                     timeout=input_dics['arc_avai_timeout'])
+
+    if hasattr(client_arclink, 'get_inventory'):
+        arclink_get_inventory = client_arclink.get_inventory
+    elif hasattr(client_arclink, 'getInventory'):
+        arclink_get_inventory = client_arclink.getInventory
+
     sta_arc = []
     nets_req = [x.strip() for x in input_dics['net'].split(',')]
     stas_req = [x.strip() for x in input_dics['sta'].split(',')]
@@ -257,7 +263,7 @@ def arc_available(input_dics, event, target_path):
             for loc_req in locs_req:
                 for cha_req in chas_req:
                     try:
-                        inventories = client_arclink.getInventory(
+                        inventories = arclink_get_inventory(
                             network=net_req,
                             station=sta_req,
                             location=loc_req,

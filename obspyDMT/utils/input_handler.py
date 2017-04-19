@@ -408,6 +408,13 @@ def command_parse():
     helpmsg = "Syngine background model. [default: iasp91_2s]"
     group_ev_based.add_option("--syngine_bg_model", action="store",
                               dest="syngine_bg_model", help=helpmsg)
+    
+    # XXX
+    helpmsg = "Calculate geocentric latitudes for both event and " \
+              "station before requesting synthetic waveforms from " \
+              "Syngine webservice [default: True]"
+    group_ev_based.add_option("--syngine_geocentric_lat", action="store",
+                              dest="syngine_geocentric_lat", help=helpmsg)
 
     helpmsg = "retrieve synthetic waveforms calculated by normal mode " \
               "summation code. (ShakeMovie project)"
@@ -706,6 +713,7 @@ def read_input_command(parser, **kwargs):
                   'max_result': 2500,
                   'isc_rev_comp': "COMPREHENSIVE",
                   'syngine_bg_model': 'iasp91_2s',
+                  'syngine_geocentric_lat': True,
 
                   'interval': 3600*24,
 
@@ -747,8 +755,10 @@ def read_input_command(parser, **kwargs):
         time.sleep(2)
     elif ('--tour' in sys.argv) or \
             ('--print_data_sources' in sys.argv) or \
+            ('--print_data_source' in sys.argv) or \
             ('--version' in sys.argv) or \
             ('--print_event_catalogs' in sys.argv) or \
+            ('--print_event_catalog' in sys.argv) or \
             ('--print_syngine_models' in sys.argv):
         pass
     else:
@@ -863,9 +873,17 @@ def read_input_command(parser, **kwargs):
             pass
     input_dics['datapath'] = options.datapath
 
-    if not os.path.isdir(input_dics['datapath']):
-        if not options.plot_stationxml:
-            os.mkdir(input_dics['datapath'])
+    if ('--print_data_sources' in sys.argv) or \
+       ('--print_data_source' in sys.argv) or \
+       ('--version' in sys.argv) or \
+       ('--print_event_catalogs' in sys.argv) or \
+       ('--print_event_catalog' in sys.argv) or \
+       ('--print_syngine_models' in sys.argv):
+        pass
+    else:
+        if not os.path.isdir(input_dics['datapath']):
+            if not options.plot_stationxml:
+                os.mkdir(input_dics['datapath'])
 
     # =================== obspyDMT mode========================================
     # plot_stationxml option always change the mode to local
@@ -1129,6 +1147,10 @@ def read_input_command(parser, **kwargs):
     input_dics['isc_rev_comp'] = options.isc_rev_comp
     input_dics['syngine'] = options.syngine
     input_dics['syngine_bg_model'] = options.syngine_bg_model
+    if str(options.syngine_geocentric_lat).lower() in ['false']:
+        input_dics['syngine_geocentric_lat'] = False
+    else:
+        input_dics['syngine_geocentric_lat'] = True
 
     input_dics['specfem3D'] = options.specfem3D
     input_dics['normal_mode_syn'] = options.normal_mode_syn

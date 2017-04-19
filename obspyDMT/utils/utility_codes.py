@@ -652,6 +652,32 @@ def spectrum_calc(tr):
 
     return freqs, spec_tr
 
+# ------------------ geocen_calc ---------------------------
+
+
+def geocen_calc(geog_lat):
+    """
+    Calculate geocentric latitudes
+    :param geog_lat:
+    :return:
+    """
+    fac = 0.993305621334896
+
+    colat = 90.0 - geog_lat
+    if abs(colat) < 1.0e-5:
+        colat = np.sign(colat)*1.0e-5
+    # arg = colat*rpd
+    colat *= np.pi/180.
+    colat_sin = np.sin(colat)
+    if colat_sin < 1.0e-30:
+        colat_sin = 1.0e-30
+    # geocen=pi2-atan(fac*cos(arg)/(max(1.0e-30,sin(arg))))
+    geocen_colat = np.pi/2. - np.arctan(fac*np.cos(colat)/colat_sin)
+    geocen_colat = geocen_colat*180./np.pi
+    geocen_lat = 90.0 - geocen_colat
+
+    return geocen_lat
+
 # ----------------------------------------------------------------------------
 # process_unit:
 # if len(st) > 1:

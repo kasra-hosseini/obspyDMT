@@ -38,6 +38,7 @@ import os
 import pickle
 
 from .utility_codes import calculate_time_phase, getFolderSize
+from .utility_codes import geocen_calc
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -350,26 +351,31 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
             if (not os.path.isfile(os.path.join(syn_dirpath, st_id)))\
                     or input_dics['force_waveform']:
 
-                # XXX Geocentric?
-                # XXX depth in meters?
-                # sourcedoublecouple=None,
-                # dt=None
-                # kernelwidth=None
-                # sourceforce=None
-                # label=None
+                if input_dics['syngine_geocentric_lat']:
+                    rcvlatitude = geocen_calc(float(st_avail[4]))
+                    evlatitude = geocen_calc(event['latitude'])
+                else:
+                    rcvlatitude = float(st_avail[4])
+                    evlatitude = event['latitude']
 
                 if not event['focal_mechanism']:
                     syngine_momenttensor = None
                 else:
                     syngine_momenttensor = event['focal_mechanism']
 
+                # XXX some other arguments
+                # sourcedoublecouple=None,
+                # dt=None
+                # kernelwidth=None
+                # sourceforce=None
+                # label=None
                 syn_st = client_syngine.get_waveforms(
                     model=input_dics['syngine_bg_model'],
-                    receiverlatitude=float(st_avail[4]),
+                    receiverlatitude=rcvlatitude,
                     receiverlongitude=float(st_avail[5]),
                     networkcode=st_avail[0],
                     stationcode=st_avail[1],
-                    sourcelatitude=event['latitude'],
+                    sourcelatitude=evlatitude,
                     sourcelongitude=event['longitude'],
                     sourcedepthinmeters=float(event['depth'])*1000.,
                     origintime=event['datetime'],
@@ -579,11 +585,19 @@ def arc_download_core(st_avail, event, input_dics, target_path,
             dummy = 'waveform'
             if (not os.path.isfile(os.path.join(target_path, 'raw', st_id))) \
                     or input_dics['force_waveform']:
-                client_arclink.saveWaveform(os.path.join(target_path,
-                                                         'raw', st_id),
-                                            st_avail[0], st_avail[1],
-                                            st_avail[2], st_avail[3],
-                                            t_start, t_end)
+
+                if hasattr(client_arclink, 'save_waveforms'):
+                    client_arclink.save_waveforms(os.path.join(target_path,
+                                                               'raw', st_id),
+                                                  st_avail[0], st_avail[1],
+                                                  st_avail[2], st_avail[3],
+                                                  t_start, t_end)
+                elif hasattr(client_arclink, 'saveWaveform'):
+                    client_arclink.saveWaveform(os.path.join(target_path,
+                                                             'raw', st_id),
+                                                st_avail[0], st_avail[1],
+                                                st_avail[2], st_avail[3],
+                                                t_start, t_end)
                 identifier += 10
                 print('%s -- %s -- saving waveform for: %s  ---> DONE' \
                       % (info_station, req_cli, st_id))
@@ -595,11 +609,18 @@ def arc_download_core(st_avail, event, input_dics, target_path,
             if (not os.path.isfile(os.path.join(target_path, 'resp',
                                                     'DATALESS.' + st_id))) \
                     or input_dics['force_response']:
-                client_arclink.saveResponse(
-                    os.path.join(target_path, 'resp',
-                                 'DATALESS.%s' % st_id),
-                    st_avail[0], st_avail[1], st_avail[2], st_avail[3],
-                    t_start, t_end)
+                if hasattr(client_arclink, 'save_response'):
+                    client_arclink.save_response(
+                        os.path.join(target_path, 'resp',
+                                     'DATALESS.%s' % st_id),
+                        st_avail[0], st_avail[1], st_avail[2], st_avail[3],
+                        t_start, t_end)
+                if hasattr(client_arclink, 'saveResponse'):
+                    client_arclink.saveResponse(
+                        os.path.join(target_path, 'resp',
+                                     'DATALESS.%s' % st_id),
+                        st_avail[0], st_avail[1], st_avail[2], st_avail[3],
+                        t_start, t_end)
                 identifier += 100
                 print("%s -- %s -- saving response for: %s  ---> DONE" \
                       % (info_station, req_cli, st_id))
@@ -615,26 +636,31 @@ def arc_download_core(st_avail, event, input_dics, target_path,
             if (not os.path.isfile(os.path.join(syn_dirpath, st_id)))\
                     or input_dics['force_waveform']:
 
-                # XXX Geocentric?
-                # XXX depth in meters?
-                # sourcedoublecouple=None,
-                # dt=None
-                # kernelwidth=None
-                # sourceforce=None
-                # label=None
+                if input_dics['syngine_geocentric_lat']:
+                    rcvlatitude = geocen_calc(float(st_avail[4]))
+                    evlatitude = geocen_calc(event['latitude'])
+                else:
+                    rcvlatitude = float(st_avail[4])
+                    evlatitude = event['latitude']
 
                 if not event['focal_mechanism']:
                     syngine_momenttensor = None
                 else:
                     syngine_momenttensor = event['focal_mechanism']
 
+                # XXX some other arguments
+                # sourcedoublecouple=None,
+                # dt=None
+                # kernelwidth=None
+                # sourceforce=None
+                # label=None
                 syn_st = client_syngine.get_waveforms(
                     model=input_dics['syngine_bg_model'],
-                    receiverlatitude=float(st_avail[4]),
+                    receiverlatitude=rcvlatitude,
                     receiverlongitude=float(st_avail[5]),
                     networkcode=st_avail[0],
                     stationcode=st_avail[1],
-                    sourcelatitude=event['latitude'],
+                    sourcelatitude=evlatitude,
                     sourcelongitude=event['longitude'],
                     sourcedepthinmeters=float(event['depth'])*1000.,
                     origintime=event['datetime'],
