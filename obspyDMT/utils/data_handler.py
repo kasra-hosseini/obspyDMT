@@ -60,7 +60,7 @@ def get_data(stas_avail, event, input_dics, info_event):
     req_clients = np.unique(stas_avail[:, 8])
     print("[INFO] requested data sources:")
     for req_c in req_clients:
-        print(req_c, end='')
+        print(req_c, end=' ')
     print('\n')
 
     if input_dics['test']:

@@ -759,6 +759,8 @@ def read_input_command(parser, **kwargs):
             ('--version' in sys.argv) or \
             ('--print_event_catalogs' in sys.argv) or \
             ('--print_event_catalog' in sys.argv) or \
+            ('--list_option' in sys.argv) or \
+            ('--options' in sys.argv) or \
             ('--print_syngine_models' in sys.argv):
         pass
     else:
@@ -949,8 +951,9 @@ def read_input_command(parser, **kwargs):
     input_dics['data_source'] = options.data_source
     if input_dics['data_source'].lower() == 'all':
         input_dics['data_source'] = \
-            "LMU,GFZ,ETH,INGV,NEIP,IPGP,RESIF,ORFEUS,ODC,BGR,KOERI," \
-            "GEONET,USP,NCEDC,SCEDC,IRIS,ARCLINK"
+                "BGR,EMSC,ETH,GEONET,GFZ,INGV,IPGP,IRIS," \
+                "ISC,KOERI,LMU,NCEDC,NIEP,NOA,ODC,ORFEUS," \
+                "RESIF,SCEDC,USGS,USP,ARCLINK"
         print("\n=================================")
         print("Waveforms will be retrieved from:")
         print(input_dics['data_source'])
