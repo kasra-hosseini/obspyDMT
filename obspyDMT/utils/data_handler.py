@@ -608,6 +608,8 @@ def arc_download_core(st_avail, event, input_dics, target_path,
             dummy = 'response'
             if (not os.path.isfile(os.path.join(target_path, 'resp',
                                                     'DATALESS.' + st_id))) \
+                    or (not os.path.isfile(os.path.join(target_path, 'resp',
+                                                    'STXML.' + st_id))) \
                     or input_dics['force_response']:
                 if hasattr(client_arclink, 'save_response'):
                     client_arclink.save_response(
