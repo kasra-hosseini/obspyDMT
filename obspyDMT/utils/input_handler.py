@@ -768,9 +768,10 @@ def read_input_command(parser, **kwargs):
         if '--min_date' not in sys.argv:
             warn_msg.append("WARNING: --min_date is set to %s"
                             % str(UTCDateTime(input_dics['min_date'])))
-        if '--min_mag' not in sys.argv:
-            warn_msg.append("WARNING: --min_mag is set to %s"
-                            % (input_dics['min_mag']))
+        if '--continuous' not in sys.argv:
+            if '--min_mag' not in sys.argv:
+                warn_msg.append("WARNING: --min_mag is set to %s"
+                                % (input_dics['min_mag']))
         if warn_msg:
             warn_msg = str.join('\n', warn_msg)
             print("\n")

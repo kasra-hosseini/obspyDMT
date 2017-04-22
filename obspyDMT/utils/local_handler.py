@@ -686,7 +686,7 @@ def plot_seismicity(input_dics, events):
 
     for ev in ev_info_ar:
         m.scatter(float(ev[1]), float(ev[2]), float(ev[3]),
-                  color=ev[4], marker="o", edgecolor=None, zorder=10)
+                  color=ev[4], marker="o", edgecolor='k', zorder=10)
 
     plt.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0.)
 
