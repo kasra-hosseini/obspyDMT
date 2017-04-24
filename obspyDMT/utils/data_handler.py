@@ -607,25 +607,28 @@ def arc_download_core(st_avail, event, input_dics, target_path,
         if input_dics['response']:
             dummy = 'response'
             if (not os.path.isfile(os.path.join(target_path, 'resp',
-                                                    'DATALESS.' + st_id))) \
-                    or (not os.path.isfile(os.path.join(target_path, 'resp',
-                                                    'STXML.' + st_id))) \
+                                                'STXML.' + st_id))) \
                     or input_dics['force_response']:
-                if hasattr(client_arclink, 'save_response'):
-                    client_arclink.save_response(
-                        os.path.join(target_path, 'resp',
-                                     'DATALESS.%s' % st_id),
-                        st_avail[0], st_avail[1], st_avail[2], st_avail[3],
-                        t_start, t_end)
-                if hasattr(client_arclink, 'saveResponse'):
-                    client_arclink.saveResponse(
-                        os.path.join(target_path, 'resp',
-                                     'DATALESS.%s' % st_id),
-                        st_avail[0], st_avail[1], st_avail[2], st_avail[3],
-                        t_start, t_end)
-                identifier += 100
-                print("%s -- %s -- saving response for: %s  ---> DONE" \
-                      % (info_station, req_cli, st_id))
+                if (not os.path.isfile(os.path.join(target_path, 'resp',
+                                                    'DATALESS.' + st_id))) \
+                        or input_dics['force_response']:
+                    if hasattr(client_arclink, 'save_response'):
+                        client_arclink.save_response(
+                            os.path.join(target_path, 'resp',
+                                         'DATALESS.%s' % st_id),
+                            st_avail[0], st_avail[1], st_avail[2], st_avail[3],
+                            t_start, t_end)
+                    if hasattr(client_arclink, 'saveResponse'):
+                        client_arclink.saveResponse(
+                            os.path.join(target_path, 'resp',
+                                         'DATALESS.%s' % st_id),
+                            st_avail[0], st_avail[1], st_avail[2], st_avail[3],
+                            t_start, t_end)
+                    identifier += 100
+                    print("%s -- %s -- saving response for: %s  ---> DONE" \
+                          % (info_station, req_cli, st_id))
+                else:
+                    identifier += 1
             else:
                 identifier += 1
 

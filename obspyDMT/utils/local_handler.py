@@ -566,7 +566,7 @@ def plot_seismicity(input_dics, events):
     print('Seismicity map')
     print('==============\n')
 
-    plt.rc('font', family='serif')
+    # plt.rc('font', family='serif')
     if not len(events) > 0:
         print("[WARNING] no event passed the given criteria!")
         print("[WARNING] can not create any seismicity map.")
@@ -735,14 +735,14 @@ def plot_seismicity(input_dics, events):
         plt.figure()
         hn, hbins, hpatches = \
             plt.hist(ev_dp_all, input_dics['depth_bins_seismicity'],
-                     facecolor='g', alpha=0.5, log=True)
+                     facecolor='g', edgecolor='k', lw=3, alpha=0.5, log=True)
 
-        plt.xlabel('Depth', size=24, weight='bold')
-        plt.ylabel('#Events (log)', size=24, weight='bold')
+        plt.xlabel('Depth', size=32, weight='bold')
+        plt.ylabel('#Events (log)', size=32, weight='bold')
         plt.yscale('log')
         plt.ylim(ymin=0.2)
-        plt.xticks(size=18, weight='bold')
-        plt.yticks(size=18, weight='bold')
+        plt.xticks(size=24, weight='bold')
+        plt.yticks(size=24, weight='bold')
         plt.tight_layout()
         plt.grid(True)
 
@@ -753,14 +753,14 @@ def plot_seismicity(input_dics, events):
                                       int(float(input_dics['max_mag'])),
                                       (int(float(input_dics['max_mag'])) -
                                        int(float(input_dics['min_mag'])))*2+1),
-                     facecolor='g', alpha=0.5, log=True)
+                     facecolor='g', edgecolor='k', lw=3, alpha=0.5, log=True)
 
-        plt.xlabel('Magnitude', size=24, weight='bold')
-        plt.ylabel('#Events (log)', size=24, weight='bold')
+        plt.xlabel('Magnitude', size=32, weight='bold')
+        plt.ylabel('#Events (log)', size=32, weight='bold')
         plt.yscale('log')
         plt.ylim(ymin=0.2)
-        plt.xticks(size=18, weight='bold')
-        plt.yticks(size=18, weight='bold')
+        plt.xticks(size=24, weight='bold')
+        plt.yticks(size=24, weight='bold')
         plt.tight_layout()
         plt.grid(True)
 

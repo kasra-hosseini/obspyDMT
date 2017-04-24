@@ -475,7 +475,7 @@ def continuous_info(input_dics):
                  ('focal_mechanism', False),
                  ('source_duration', False),
                  ('flynn_region', 'NAN'),
-                 ('t1', m_date + (i-1)*input_dics['interval'] +
+                 ('t1', m_date + (i-1)*input_dics['interval'] -
                   input_dics['preset']),
                  ('t2', m_date + i*input_dics['interval'] +
                   input_dics['offset']),
@@ -500,9 +500,9 @@ def continuous_info(input_dics):
                  ('focal_mechanism', False),
                  ('source_duration', False),
                  ('flynn_region', 'NAN'),
-                 ('t1', m_date + num_div*input_dics['interval'] +
+                 ('t1', m_date + num_div*input_dics['interval'] -
                   input_dics['preset']),
-                 ('t2', M_date),
+                 ('t2', M_date + input_dics['offset']),
                  ]))
     else:
         events.append(OrderedDict(
@@ -519,8 +519,8 @@ def continuous_info(input_dics):
              ('focal_mechanism', False),
              ('source_duration', False),
              ('flynn_region', 'NAN'),
-             ('t1', m_date),
-             ('t2', M_date),
+             ('t1', m_date - input_dics['preset']),
+             ('t2', M_date + input_dics['offset']),
              ]))
     print('DONE')
     events_QML = Catalog(events=[])

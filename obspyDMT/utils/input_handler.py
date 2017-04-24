@@ -46,137 +46,116 @@ def command_parse():
     parser.add_option("--list_option", action="store", default=False,
                       dest="list_option", help=helpmsg)
 
-    # --------------- check the installation and obspyDMT version -------------
-    group_check = OptionGroup(parser, "01. check the installation and "
-                                      "obspyDMT version")
-    helpmsg = "run a quick tour!"
+    # --------------- check installation -------------
+    group_check = OptionGroup(parser, "01. check installation")
+    helpmsg = "Run a quick tour."
     group_check.add_option("--tour", action="store_true",
                            dest="tour", help=helpmsg)
 
-    helpmsg = "check all the basic dependencies and " \
-              "their installed versions on " \
-              "the local machine and exit!"
+    helpmsg = "Check all basic dependencies and their installed versions " \
+              "on the local machine and exit."
     group_check.add_option("--check", action="store_true",
                            dest="check", help=helpmsg)
 
-    helpmsg = "show the obspyDMT version and exit!"
+    helpmsg = "Show the obspyDMT version and exit."
     group_check.add_option("--version", action="store_true",
                            dest="version", help=helpmsg)
     parser.add_option_group(group_check)
 
-    # --------------- path specification --------------------------------------
-    group_path = OptionGroup(parser, "02. path specification")
-    helpmsg = "the path where obspyDMT will store/process/plot data " \
-              "[default: './obspydmt-data']"
+    # --------------- local path specification --------------------------------
+    group_path = OptionGroup(parser, "02. local path specification")
+    helpmsg = "Path where obspyDMT will store/process/plot data " \
+              "(default: './obspydmt-data')."
     group_path.add_option("--datapath", action="store",
                           dest="datapath", help=helpmsg)
 
-    helpmsg = "if the datapath is found deleting it before running obspyDMT."
+    helpmsg = "If the datapath is found, delet it before running obspyDMT."
     group_path.add_option("--reset", action="store_true",
                           dest="reset", help=helpmsg)
     parser.add_option_group(group_path)
 
-    # --------------- obspyDMT modes ------------------------------------------
-    group_mode = OptionGroup(parser, "03. obspyDMT modes")
-    helpmsg = "event-based request mode. [default]"
+    # --------------- data retrieval modes ------------------------------------
+    group_mode = OptionGroup(parser, "03. data retrieval modes")
+    helpmsg = "Event-based request mode (default)."
     group_mode.add_option("--event_based", action="store_true",
                           dest="event_based", help=helpmsg)
 
-    helpmsg = "continuous request mode."
+    helpmsg = "Continuous time series request mode."
     group_mode.add_option("--continuous", action="store_true",
                           dest="continuous", help=helpmsg)
 
-    helpmsg = "meta_data request mode."
+    helpmsg = "Metadata request mode."
     group_mode.add_option("--meta_data", action="store_true",
                           dest="meta_data", help=helpmsg)
 
-    helpmsg = "local mode for processing/plotting."
+    helpmsg = "Local mode for processing/plotting (no data retrieval)."
     group_mode.add_option("--local", action="store_true",
                           dest="local", help=helpmsg)
     parser.add_option_group(group_mode)
 
-    # --------------- General options (all modes) -----------------------------
+    # --------------- general options (all modes) -------------------
     group_general = OptionGroup(parser, "04. general options (all modes)")
-    helpmsg = "print available data sources. " \
-              "These are the data-centers that can be given as " \
+    helpmsg = "Data source(s) for retrieving waveform/response/metadata " \
+              "(default: 'IRIS'). Examples: 'IRIS' or 'IRIS,ORFEUS' or 'all'"
+    group_general.add_option("--data_source", action="store",
+                             dest="data_source", help=helpmsg)
+
+    helpmsg = "Print supported data centers that can be passed as " \
               "arguments to --data_source."
     group_general.add_option("--print_data_sources", action="store_true",
                              dest="print_data_sources", help=helpmsg)
 
-    helpmsg = "print available event catalogs. " \
-              "These are the event-catalogs that can be given as " \
+    helpmsg = "Print supported earthquake catalogs that can be passed as " \
               "arguments to --event_catalog."
     group_general.add_option("--print_event_catalogs", action="store_true",
                              dest="print_event_catalogs", help=helpmsg)
-    # XXX
-    helpmsg = "print available syngine models. " \
-              "These are the models that can be given as " \
-              "arguments to --syngine_bg_model."
-    group_general.add_option("--print_syngine_models", action="store_true",
-                             dest="print_syngine_models", help=helpmsg)
 
-    helpmsg = "data source(s) to be used for retrieving " \
-              "waveform/response/metadata. To know about all the available " \
-              "data sources: --print_data_sources. " \
-              "syntax: --data_source 'IRIS' or --data_source 'IRIS,LMU' for " \
-              "which all the stations of IRIS and LMU will be downloaded. " \
-              "It is also possible to '--data_source all' which will " \
-              "download waveforms from all available data sources. " \
-              "[default: 'IRIS']"
-    group_general.add_option("--data_source", action="store",
-                             dest="data_source", help=helpmsg)
-
-    # XXX
-    helpmsg = "retrieve waveform(s). [default: True]"
+    helpmsg = "Retrieve waveform(s) (default: True)."
     group_general.add_option("--waveform", action="store",
                              dest="waveform", help=helpmsg)
 
-    helpmsg = "force to retrieve waveform(s) even though they might " \
-              "already exist in the directory."
+    helpmsg = "Retrieve waveform(s), force override of any pre-existing " \
+              "waveforms in local datapath directory."
     group_general.add_option("--force_waveform", action="store_true",
                              dest="force_waveform", help=helpmsg)
 
-    # XXX
-    helpmsg = "retrieve the response file(s). [default: True]"
+    helpmsg = "Retrieve response file(s) (default: True)."
     group_general.add_option("--response", action="store",
                              dest="response", help=helpmsg)
 
-    helpmsg = "force to retrieve response file(s) even though they might " \
-              "already exist in the directory."
+    helpmsg = "Retrieve response file(s), force override of any pre-existing " \
+              "response files in local datapath directory."
     group_general.add_option("--force_response", action="store_true",
                              dest="force_response", help=helpmsg)
 
-    helpmsg = "set of selected directory names to update/process/plot. " \
+    helpmsg = "Set of selected directory names to update/process/plot. " \
               "If it is not specified, all available directories " \
-              "in the dataset will be used."
+              "in the dataset will be used. Examples: 'dir1,dir2'"
     group_general.add_option("--dir_select", action="store",
                              dest="dir_select", help=helpmsg)
 
-    helpmsg = "use a station list instead of checking the availability. " \
-              "[default: False]"
-    group_general.add_option("--list_stas", action="store",
-                             dest="list_stas", help=helpmsg)
-
-    helpmsg = "retrieve/plot all the stations with " \
-              "epicentral-distance >= min_epi."
+    helpmsg = "Retrieve/plot all stations with epicentral distance >= min epi."
     group_general.add_option("--min_epi", action="store",
                              dest="min_epi", help=helpmsg)
 
-    helpmsg = "retrieve/plot all the stations with " \
-              "epicentral-distance <= max_epi."
+    helpmsg = "Retrieve/plot all stations with epicentral distance <= max epi."
     group_general.add_option("--max_epi", action="store",
                              dest="max_epi", help=helpmsg)
 
-    helpmsg = "retrieve/plot all the stations with " \
-              "azimuth >= min_azi."
+    helpmsg = "Retrieve/plot all stations with azimuth >= min azi."
     group_general.add_option("--min_azi", action="store",
                              dest="min_azi", help=helpmsg)
 
-    helpmsg = "retrieve/plot all the stations with " \
-              "azimuth <= max_azi."
+    helpmsg = "Retrieve/plot all stations with azimuth <= max azi."
     group_general.add_option("--max_azi", action="store",
                              dest="max_azi", help=helpmsg)
 
+    helpmsg = "User-provided station list instead of querying availability " \
+              "with a data center (default: False)."
+    group_general.add_option("--list_stas", action="store",
+                             dest="list_stas", help=helpmsg)
+
+    # XXXXXX
     helpmsg = "test the program for the desired number of requests, " \
               "e.g.: '--test 10' will test the program for 10 " \
               "requests. [default: False]"
@@ -184,469 +163,500 @@ def command_parse():
                              dest="test", help=helpmsg)
     parser.add_option_group(group_general)
 
-    # --------------- time window, waveform format and sampling rate ----------
-    group_tw = OptionGroup(parser, "05. time window, waveform format and "
+    # ---------------  time window, waveform format, and sampling rate
+    # ---------------  (all modes)
+    group_tw = OptionGroup(parser, "05. time window, waveform format, and "
                                    "sampling rate (all modes)")
-    # XXX
-    helpmsg = "start time, syntax: Y-M-D-H-M-S, " \
-              "e.g.: '2010-01-01-00-00-00' or just " \
-              "Y-M-D. [default: 1970-01-01]"
+    helpmsg = "Start time, syntax: 'YYYY-MM-DD-HH-MM-SS' or 'YYYY-MM-DD' " \
+              "(default: '1970-01-01')."
     group_tw.add_option("--min_date", action="store",
                         dest="min_date", help=helpmsg)
-    # XXX
-    helpmsg = "end time, syntax: Y-M-D-H-M-S, " \
-              "e.g.: '2011-01-01-00-00-00' or just " \
-              "Y-M-D. [default: today]"
+
+    helpmsg = "End time, syntax: 'YYYY-MM-DD-HH-MM-SS' or " \
+              "'YYYY-MM-DD' (default: Today)."
     group_tw.add_option("--max_date", action="store",
                         dest="max_date", help=helpmsg)
 
-    helpmsg = "time parameter in seconds which determines " \
-              "how close the time series data (waveform) will be cropped " \
-              "before the origin time of the event (event-based mode) or " \
-              "time before EACH interval (refer to '--interval' option) in " \
-              "continuous mode. [default: 0.0s]"
+    helpmsg = "Time interval in seconds to add to the retrieved time series " \
+              "before its reference time. In event_based mode, " \
+              "the reference time is the earthquake origin time " \
+              "by default but can be modified by --cut_time_phase. " \
+              "In continuous mode, the reference time(s) are specified by " \
+              "--interval option, and --preset prepends " \
+              "the specified lead to each interval (default: 0). " \
+              "Example: 300"
     group_tw.add_option("--preset", action="store",
                         dest="preset", help=helpmsg)
 
-    helpmsg = "time parameter in seconds which determines " \
-              "how close the time series data (waveform) will be cropped " \
-              "after the origin time of the event (event-based mode) or " \
-              "time after EACH interval (refer to '--interval' option) in " \
-              "continuous mode. [default: 1800.0 seconds]"
+    helpmsg = "Time interval in seconds to include to the retrieved " \
+              "time series after the time(s) reference. " \
+              "In event based mode, the reference time is " \
+              "the earthquake origin time by default but can be modified " \
+              "by --cut_time_phase. " \
+              "In continuous mode, the reference time(s) are specified by " \
+              "--interval option, and --offset appends " \
+              "the specified offset to each interval (default: 1800). " \
+              "Example: 3600"
     group_tw.add_option("--offset", action="store",
                         dest="offset", help=helpmsg)
 
-    helpmsg = "consider the first phase arrival (P, Pdiff, PKIKP) to use " \
-              "as the reference time, i.e. --preset and --offset will " \
-              "be calculated from the first phase arrival."
+    helpmsg = "In event based mode, use as reference time " \
+              "the first-arriving phase " \
+              "(i.e., P, Pdiff or PKIKP, determined automatically). " \
+              "Overrides the use of origin time as default reference time."
     group_tw.add_option("--cut_time_phase", action="store_true",
                         dest="cut_time_phase", help=helpmsg)
 
-    helpmsg = "format of the waveforms. the retrieved waveforms are in " \
-              "mseed format, but it is possible to convert them to SAC. " \
-              "This will fill in some basic header information as well. " \
-              "syntax: --waveform_format 'sac'"
+    helpmsg = "Format of retrieved waveforms. " \
+              "Default is miniseed ('mseed'), alternative option is 'sac'. " \
+              "This fills in some basic header information as well."
     group_tw.add_option("--waveform_format", action="store",
                         dest="waveform_format", help=helpmsg)
-
-    helpmsg = "resampling method: decimate, lanczos. " \
-              "Both methods use sharp low pass filter before resampling " \
-              "to avoid any aliasing effects. If the desired sampling rate " \
-              "is 5 times lower than the original one, it will be " \
-              "automatically done in several stages. [default: lanczos]"
-    group_tw.add_option("--resample_method", action="store",
-                        dest="resample_method", help=helpmsg)
 
     helpmsg = "desired sampling rate (in Hz). Resampling is done using " \
               "either lanczos or decimation with sharp low pass filter. " \
               "If not specified, the sampling rate of the waveforms " \
               "will not be changed."
+    helpmsg = "Desired sampling rate (in Hz). If not specified, " \
+              "the sampling rate of the waveforms will not be changed. " \
+              "Example: 10"
     group_tw.add_option("--sampling_rate", action="store",
                         dest="sampling_rate", help=helpmsg)
+
+    helpmsg = "Resampling method: 'decimate' or 'lanczos'. " \
+              "Both methods use sharp low pass filters before resampling " \
+              "in order to avoid aliasing. " \
+              "If the desired sampling rate is 5 times lower " \
+              "than the original one, resampling will be done " \
+              "in several stages (default: 'lanczos'). " \
+              "Example: 'decimate'"
+    group_tw.add_option("--resample_method", action="store",
+                        dest="resample_method", help=helpmsg)
     parser.add_option_group(group_tw)
 
-    # --------------- stations ------------------------------------------------
+    # --------------- stations (all modes) ------------------------------------
     group_sta = OptionGroup(parser, "06. stations (all modes)")
-    helpmsg = "identity code restriction, syntax: " \
-              "net.sta.loc.cha (e.g.: TA.*.*.BHZ to search for " \
-              "all BHZ channels in TA network). [default: *.*.*.*]"
-    group_sta.add_option("--identity", action="store",
-                         dest="identity", help=helpmsg)
-
-    helpmsg = "network code. [default: *]"
+    helpmsg = "Network code (default: *). Example: 'TA' or 'TA,G' or 'T*'"
     group_sta.add_option("--net", action="store",
                          dest="net", help=helpmsg)
 
-    helpmsg = "station code. [default: *]"
+    helpmsg = "Station code (default: *). Example: 'R*' or " \
+              "'RR01' or 'RR01,RR02'"
     group_sta.add_option("--sta", action="store",
                          dest="sta", help=helpmsg)
 
-    helpmsg = "location code. [default: *]"
+    helpmsg = "Location code (default: *). Example: '00' or '*'"
     group_sta.add_option("--loc", action="store",
                          dest="loc", help=helpmsg)
 
-    helpmsg = "channel code. [default: *]"
+    helpmsg = "Channel code (default: *). Example: 'BHZ' or 'BHZ,BHE' or " \
+              "'BH*'"
     group_sta.add_option("--cha", action="store",
                          dest="cha", help=helpmsg)
 
-    helpmsg = "search for all the stations within the defined rectangle, " \
+    helpmsg = "Identity code restriction, syntax: net.sta.loc.cha, " \
+              "e.g.: IU.*.*.BHZ to search for all BHZ channels " \
+              "in IU network (default: *.*.*.*)."
+    group_sta.add_option("--identity", action="store",
+                         dest="identity", help=helpmsg)
+
+    helpmsg = "Include all stations within the defined rectangle, " \
               "syntax: <lonmin>/<lonmax>/<latmin>/<latmax>. " \
-              "May not be used together with circular bounding box station " \
-              "restrictions (--station_circle). " \
-              "[default: -180.0/+180.0/-90.0/+90.0]"
+              "Cannot be combined with " \
+              "circular bounding box (--station_circle) " \
+              "(default: -180.0/+180.0/-90.0/+90.0). " \
+              "Example: '20/30/-15/35'"
     group_sta.add_option("--station_rect", action="store",
                          dest="station_rect", help=helpmsg)
 
-    helpmsg = "search for all the stations within the defined circle, " \
+    helpmsg = "Include all stations within the defined circle, " \
               "syntax: <lon>/<lat>/<rmin>/<rmax>. " \
-              "May not be used together with rectangular bounding box " \
-              "station restrictions (--station_rect)."
+              "Cannnot be combined with rectangular bounding box " \
+              "(--station_rect) (default: 0/0/0/180). " \
+              "Example: '20/30/10/80'"
     group_sta.add_option("--station_circle", action="store",
                          dest="station_circle", help=helpmsg)
     parser.add_option_group(group_sta)
 
-    # --------------- parallel request/process and bulk request ---------------
-    group_parallel = OptionGroup(parser, "07. parallel request/process and "
-                                         "bulk request (all modes)")
-    helpmsg = "enable parallel waveform/response request."
+    # --------------- speed up options (all modes) ---------------
+    group_parallel = OptionGroup(parser, "07. speed up options (all modes)")
+    helpmsg = "Enable parallel waveform/response request. " \
+              "Retrieve several waveforms/metadata in parallel."
     group_parallel.add_option("--req_parallel", action="store_true",
                               dest="req_parallel", help=helpmsg)
 
-    helpmsg = "number of threads to be used in --req_parallel. [default: 4]"
+    helpmsg = "Number of thread to be used in --req_parallel (default: 4). " \
+              "Example: 8"
     group_parallel.add_option("--req_np", action="store",
                               dest="req_np", help=helpmsg)
 
-    helpmsg = "using the bulkdataselect web service. " \
-              "Since this method returns multiple channels of " \
-              "time series data for specified time ranges in one request, " \
-              "it speeds up the waveform retrieving approximately by " \
-              "a factor of two."
+    helpmsg = "Use the bulkdataselect web service. This method returns " \
+              "multiple channels of time series data for specified time " \
+              "ranges in a single request, speeding up waveform " \
+              "retrieval by approximately a factor of two."
     group_parallel.add_option("--bulk", action="store_true",
                               dest="bulk", help=helpmsg)
 
-    helpmsg = "enable parallel processing on the waveforms."
+    helpmsg = "Enable parallel local processing of the waveforms, " \
+              "useful on multicore hardware."
     group_parallel.add_option("--parallel_process", action="store_true",
                               dest="parallel_process", help=helpmsg)
 
-    helpmsg = "number of threads to be used in --parallel_process. " \
-              "[default: 4]"
+    helpmsg = "Number of threads to be used in --parallel_process " \
+              "(default: 4)."
     group_parallel.add_option("--process_np", action="store",
                               dest="process_np", help=helpmsg)
     parser.add_option_group(group_parallel)
 
-    # --------------- restricted data request ---------------------------------
-    group_restrict = OptionGroup(parser, "08. restricted data request "
-                                         "(all modes)")
-    helpmsg = "username for restricted data requests (waveform/response). " \
-              "[default: None]"
+    # --------------- restricted data ---------------------------------
+    group_restrict = OptionGroup(parser, "08. restricted data")
+    helpmsg = "Username for restricted data requests, " \
+              "waveform/response modes (default: None)."
     group_restrict.add_option("--user", action="store",
                               dest="username", help=helpmsg)
 
-    helpmsg = "password for restricted data requests (waveform/response). " \
-              "[default: None]"
+    helpmsg = "Password for restricted data requests, " \
+              "waveform/response modes (default: None)."
     group_restrict.add_option("--pass", action="store",
                               dest="password", help=helpmsg)
     parser.add_option_group(group_restrict)
 
     # --------------- event_based mode ----------------------------------------
     group_ev_based = OptionGroup(parser, "09. event-based mode")
-    helpmsg = "event catalog (LOCAL, NEIC_USGS, GCMT_COMBO, IRIS, NCEDC, " \
-              "USGS, INGV, ISC, NERIES). [default: LOCAL]"
+    helpmsg = "Event catalog, currently supports LOCAL, NEIC_USGS, " \
+              "GCMT_COMBO, IRIS, NCEDC, USGS, " \
+              "INGV, ISC, NERIES (default: LOCAL). " \
+              "Example: IRIS"
     group_ev_based.add_option("--event_catalog", action="store",
                               dest="event_catalog", help=helpmsg)
 
-    helpmsg = "retrieve event information without downloading actual " \
-              "waveform data."
+    helpmsg = "Retrieve event information (meta-data) without " \
+              "downloading actual waveforms."
     group_ev_based.add_option("--event_info", action="store_true",
                               dest="event_info", help=helpmsg)
 
-    helpmsg = "read in an existing event catalog and proceed. " \
-              "Currently supported data formats: " \
-              "'QUAKEML', 'ZMAP', 'MCHEDR', 'NDK', " \
-              "e.g.: --read_catalog 'path/to/file'"
+    helpmsg = "Read in an existing local event catalog and proceed. " \
+              "Currently supported catalogue metadata formats: " \
+              "'QUAKEML', 'ZMAP', 'MCHEDR', 'NDK. " \
+              "Example: /path/to/file.qml"
     group_ev_based.add_option("--read_catalog", action="store",
                               dest="read_catalog", help=helpmsg)
 
-    helpmsg = "minimum depth. [default: -10.0 (above the surface!)]"
+    helpmsg = "Minimum event depth (default: -10.0 (above the surface!))."
     group_ev_based.add_option("--min_depth", action="store",
                               dest="min_depth", help=helpmsg)
 
-    helpmsg = "maximum depth. [default: +6000.0]"
+    helpmsg = "Maximum event depth (default: +6000.0)."
     group_ev_based.add_option("--max_depth", action="store",
                               dest="max_depth", help=helpmsg)
-    # XXX
-    helpmsg = "minimum magnitude. [default: 3.0]"
+
+    helpmsg = "Minimum magnitude (default: 3.0)."
     group_ev_based.add_option("--min_mag", action="store",
                               dest="min_mag", help=helpmsg)
 
-    helpmsg = "maximum magnitude. [default: 9.9]"
+    helpmsg = "Maximum magnitude (default: 10.0)."
     group_ev_based.add_option("--max_mag", action="store",
                               dest="max_mag", help=helpmsg)
 
-    helpmsg = "magnitude type. " \
-              "Some common types (there are many) include " \
+    helpmsg = "Magnitude type. Common types include " \
               "'Ml' (local/Richter magnitude), " \
-              "'Ms' (surface magnitude), " \
+              "'Ms' (surface wave magnitude), " \
               "'mb' (body wave magnitude), " \
-              "'Mw' (moment magnitude). " \
-              "[default: None, i.e. all magnitude types]"
+              "'Mw' (moment magnitude), " \
+              "(default: None, i.e., consider all magnitude types " \
+              "in a given catalogue). " \
+              "Example: 'Mw'"
     group_ev_based.add_option("--mag_type", action="store",
                               dest="mag_type", help=helpmsg)
 
-    helpmsg = "search for all the events within the defined rectangle, " \
+    helpmsg = "Include all events within the defined rectangle, " \
               "syntax: <lonmin>/<lonmax>/<latmin>/<latmax>. " \
-              "May not be used together with circular bounding box event " \
-              "restrictions (--event_circle). " \
-              "[default: -180.0/+180.0/-90.0/+90.0]"
+              "Cannot be combined with " \
+              "circular bounding box (--event_circle) " \
+              "(default: -180.0/+180.0/-90.0/+90.0). " \
+              "Example: '80/135/-15/35'"
     group_ev_based.add_option("--event_rect", action="store",
                               dest="event_rect", help=helpmsg)
 
-    helpmsg = "search for all the events within the defined circle, " \
+    helpmsg = "Search for all the events within the defined circle, " \
               "syntax: <lon>/<lat>/<rmin>/<rmax>. " \
-              "May not be used together with rectangular bounding box " \
-              "event restrictions (--event_rect)."
+              "Cannot be combined with " \
+              "rectangular bounding box (--event_rect) " \
+              "(default: 0/0/0/180). " \
+              "Example: '20/30/10/80'"
     group_ev_based.add_option("--event_circle", action="store",
                               dest="event_circle", help=helpmsg)
 
-    helpmsg = "maximum number of events to be requested. [default: 2500]"
+    helpmsg = "Maximum number of events to retrieve (default: 2500)."
     group_ev_based.add_option("--max_result", action="store",
                               dest="max_result", help=helpmsg)
 
+    # XXXXXX
     helpmsg = "searches the ISC Bulletin (COMPREHENSIVE) or " \
               "searches the Reviewed ISC Bulletin (REVIEWED) - " \
               "a subset of the ISC Bulletin, " \
               "which is reviewed by ISC analysts."
     group_ev_based.add_option("--isc_rev_comp", action="store",
                               dest="isc_rev_comp", help=helpmsg)
-
-    # XXX
-    helpmsg = "retrieve synthetic waveforms from syngine."
-    group_ev_based.add_option("--syngine", action="store_true",
-                              dest="syngine", help=helpmsg)
-
-    # XXX
-    helpmsg = "Syngine background model. [default: iasp91_2s]"
-    group_ev_based.add_option("--syngine_bg_model", action="store",
-                              dest="syngine_bg_model", help=helpmsg)
-    
-    # XXX
-    helpmsg = "Calculate geocentric latitudes for both event and " \
-              "station before requesting synthetic waveforms from " \
-              "Syngine webservice [default: True]"
-    group_ev_based.add_option("--syngine_geocentric_lat", action="store",
-                              dest="syngine_geocentric_lat", help=helpmsg)
-
-    helpmsg = "retrieve synthetic waveforms calculated by normal mode " \
-              "summation code. (ShakeMovie project)"
-    group_ev_based.add_option("--normal_mode_syn", action="store_true",
-                              dest="normal_mode_syn", help=helpmsg)
-
-    helpmsg = "retrieve synthetic waveforms calculated by SPECFEM3D. " \
-              "(ShakeMovie project)"
-    group_ev_based.add_option("--specfem3D", action="store_true",
-                              dest="specfem3D", help=helpmsg)
     parser.add_option_group(group_ev_based)
 
-    # --------------- continuous request --------------------------------------
-    group_cont = OptionGroup(parser, "10. continuous request")
-    helpmsg = "time interval for dividing the continuous request. " \
-              "[default: 86400 sec (1 day)]"
+    # --------------- continuous time series mode
+    group_cont = OptionGroup(parser, "10. continuous time series mode")
+    helpmsg = "Specify time interval for subdividing " \
+              "long continuous time series (default: 86400 sec). " \
+              "Example: '3600'"
     group_cont.add_option("--interval", action="store",
                           dest="interval", help=helpmsg)
     parser.add_option_group(group_cont)
 
-    # --------------- processing ----------------------------------------------
-    group_process = OptionGroup(parser, "11. processing")
-    helpmsg = "run the processing unit on the local/retrieved data. " \
-              "[default: process_unit]"
-    # XXX CHANGE THE MSC
-    # We can select --pre_process <name_process_unit>
-    # currently we have
-    # process_unit_default.py  process_unit.py  process_unit_sac.py
+    # --------------- local processing ----------------------------------------
+    group_process = OptionGroup(parser, "11. local processing")
+    helpmsg = "Process retrieved/local data based on processing " \
+              "instructions in the selected processing unit " \
+              "(default: 'process_unit'). " \
+              "Example: process_unit_sac"
     group_process.add_option("--pre_process", action="store",
                              dest="pre_process", help=helpmsg)
 
-    helpmsg = "force to run the processing unit on the local/retrieved " \
-              "data. Although the processed data might exist."
+    helpmsg = "Forces to run the processing unit on " \
+              "the local/retrieved data, overwriting any previously " \
+              "processed data in local datapath directory."
     group_process.add_option("--force_process", action="store_true",
                              dest="force_process", help=helpmsg)
 
+    helpmsg = "Apply instrument correction in the process unit."
+    group_process.add_option("--instrument_correction", action="store_true",
+                             dest="instrument_correction", help=helpmsg)
+
+    helpmsg = "Correct the raw waveforms for displacement in m (DIS), " \
+              "velocity in m/s (VEL) or accelaration in m/s2 (ACC) " \
+              "(default: DIS). " \
+              "Example: 'VEL'"
+    group_process.add_option("--corr_unit", action="store",
+                             dest="corr_unit", help=helpmsg)
+
+    helpmsg = "Apply a bandpass filter to the seismograms " \
+              "before deconvolution, " \
+              "syntax: 'None' or '(f1,f2,f3,f4)' " \
+              "which are the four corner frequencies of a cosine taper, " \
+              "default: '(0.008, 0.012, 3.0, 4.0)'."
+    group_process.add_option("--pre_filt", action="store",
+                             dest="pre_filt", help=helpmsg)
+
+    helpmsg = "Water level in dB for instrument response deconvolution " \
+              "(default: 600.0)."
+    group_process.add_option("--water_level", action="store",
+                             dest="water_level", help=helpmsg)
+
+    # XXXXXX
     helpmsg = "before processing, select one waveform every X degree(s). " \
               "syntax: --select_data 5, i.e. select one waveform every 5 " \
               "degrees. [default: False]"
     group_process.add_option("--select_data", action="store",
                              dest="select_data", help=helpmsg)
-
-    helpmsg = "apply instrument correction in the process unit."
-    group_process.add_option("--instrument_correction", action="store_true",
-                             dest="instrument_correction", help=helpmsg)
-
-    helpmsg = "correct the raw waveforms for DIS (m), VEL (m/s) or " \
-              "ACC (m/s^2). [default: DIS]"
-    group_process.add_option("--corr_unit", action="store",
-                             dest="corr_unit", help=helpmsg)
-
-    helpmsg = "apply a bandpass filter to the data trace before " \
-              "deconvolution ('None' if you do not need pre_filter), " \
-              "syntax: '(f1,f2,f3,f4)' which " \
-              "are the four corner frequencies " \
-              "of a cosine taper, one between f2 and f3 and tapers to zero " \
-              "for f1 < f < f2 and f3 < f < f4. " \
-              "[default: '(0.008, 0.012, 3.0, 4.0)']"
-    group_process.add_option("--pre_filt", action="store",
-                             dest="pre_filt", help=helpmsg)
-
-    helpmsg = "water level for spectrum. [default: 600.0]"
-    group_process.add_option("--water_level", action="store",
-                             dest="water_level", help=helpmsg)
     parser.add_option_group(group_process)
 
+    # --------------- Synthetic seismograms -----------------------------------
+    group_synthetic = OptionGroup(parser, "12. synthetic seismograms")
+    helpmsg = "Retrieve synthetic waveforms using IRIS/syngine webservice."
+    group_synthetic.add_option("--syngine", action="store_true",
+                               dest="syngine", help=helpmsg)
+
+    helpmsg = "Syngine background model (default: 'iasp91_2s')."
+    group_synthetic.add_option("--syngine_bg_model", action="store",
+                               dest="syngine_bg_model", help=helpmsg)
+
+    helpmsg = "Print supported syngine models that can be passed as " \
+              "arguments to --syngine_bg_model."
+    group_synthetic.add_option("--print_syngine_models", action="store_true",
+                               dest="print_syngine_models", help=helpmsg)
+
+    helpmsg = "Requesting synthetic seismograms based on geocentric " \
+              "latitudes of events/stations (default: True)."
+    group_synthetic.add_option("--syngine_geocentric_lat", action="store",
+                               dest="syngine_geocentric_lat", help=helpmsg)
+
+    # XXXXXX
+    helpmsg = "retrieve synthetic waveforms calculated by normal mode " \
+              "summation code. (ShakeMovie project)"
+    group_synthetic.add_option("--normal_mode_syn", action="store_true",
+                               dest="normal_mode_syn", help=helpmsg)
+
+    # XXXXXX
+    helpmsg = "retrieve synthetic waveforms calculated by SPECFEM3D. " \
+              "(ShakeMovie project)"
+    group_synthetic.add_option("--specfem3D", action="store_true",
+                               dest="specfem3D", help=helpmsg)
+    parser.add_option_group(group_synthetic)
+
     # --------------- plotting ------------------------------------------------
-    group_plt = OptionGroup(parser, "12. plotting")
-    helpmsg = "activating the plotting functionality."
+    group_plt = OptionGroup(parser, "13. plotting")
+    helpmsg = "Activates plotting functionality."
     group_plt.add_option("--plot", action="store_true",
                          dest="plot", help=helpmsg)
 
-    helpmsg = "plot all the stations found " \
-              "in the specified directory (--datapath)."
+    helpmsg = "Plot all stations found in the specified directory " \
+              "(--datapath)."
     group_plt.add_option("--plot_sta", action="store_true",
                          dest="plot_sta", help=helpmsg)
 
-    helpmsg = "plot all the availabilities (potential seismometers) found " \
-              "in the specified directory (--datapath)."
+    helpmsg = "Plot all availabilities (potential seismometers) found in " \
+              "the specified directory (--datapath)."
     group_plt.add_option("--plot_availability", action="store_true",
                          dest="plot_availability", help=helpmsg)
 
-    helpmsg = "plot all the events found " \
-              "in the specified directory (--datapath)."
+    helpmsg = "Plot all events found in the specified directory (--datapath)."
     group_plt.add_option("--plot_ev", action="store_true",
                          dest="plot_ev", help=helpmsg)
 
-    helpmsg = "plot Beachballs instead of dots for the event location."
+    helpmsg = "Plot beachballs instead of dots for event locations."
     group_plt.add_option("--plot_focal", action="store_true",
                          dest="plot_focal", help=helpmsg)
 
-    helpmsg = "plot the ray coverage for all the station-event pairs " \
-              "found in the specified directory (--datapath)."
+    helpmsg = "Plot the ray coverage for all station-event pairs found in " \
+              "the specified directory (--datapath)."
     group_plt.add_option("--plot_ray", action="store_true",
                          dest="plot_ray", help=helpmsg)
 
-    helpmsg = "create KML file(s) for event/station/ray. KML format is " \
-              "readable by Google-Earth."
+    helpmsg = "Create KML file(s) for event/station/ray. " \
+              "KML format is readable by Google-Earth."
     group_plt.add_option("--create_kml", action="store_true",
                          dest="create_kml", help=helpmsg)
 
+    helpmsg = "Create a seismicity map and " \
+              "some basic statistics on the results."
+    group_plt.add_option("--plot_seismicity", action="store_true",
+                         dest="plot_seismicity", help=helpmsg)
+
+    helpmsg = "Depth bins for plotting the seismicity histogram " \
+              "(default: 10 km)."
+    group_plt.add_option("--depth_bins_seismicity", action="store",
+                         dest="depth_bins_seismicity", help=helpmsg)
+
+    helpmsg = "Plot waveforms arranged by epicentral distance."
+    group_plt.add_option("--plot_waveform", action="store_true",
+                         dest="plot_waveform", help=helpmsg)
+
+    helpmsg = "Directory name that contains the waveforms for " \
+              "--plot_waveform option flag, " \
+              "e.g.: --plot_waveform 'processed' (default: raw)."
+    group_plt.add_option("--plot_dir_name", action="store",
+                         dest="plot_dir_name", help=helpmsg)
+
+    helpmsg = "Path where plots will be store " \
+              "(default: '.', i.e., the current directory)."
+    group_plt.add_option("--plot_save", action="store",
+                         dest="plot_save", help=helpmsg)
+
+    helpmsg = "Image format of plots (default: 'png')."
+    group_plt.add_option("--plot_format", action="store",
+                         dest="plot_format", help=helpmsg)
+
+    helpmsg = "Central meridian (x-axis origin) for projection (default: 180)."
+    group_plt.add_option("--plot_lon0", action="store",
+                         dest="plot_lon0", help=helpmsg)
+    parser.add_option_group(group_plt)
+
+    # XXX
     helpmsg = "create a VTK file for events. VTK format is " \
               "readable by different tools, for example, ParaView. " \
               "syntax: --create_event_vtk /path/to/my/file [default: False]"
     group_plt.add_option("--create_event_vtk", action="store",
                          dest="create_event_vtk", help=helpmsg)
 
-    helpmsg = "create a seismicity map and some basic statistics on the " \
-              "results."
-    group_plt.add_option("--plot_seismicity", action="store_true",
-                         dest="plot_seismicity", help=helpmsg)
-
-    helpmsg = "depth bins for plotting the seismicity histrogram. " \
-              "[default: 10]"
-    group_plt.add_option("--depth_bins_seismicity", action="store",
-                         dest="depth_bins_seismicity", help=helpmsg)
-
-    helpmsg = "plot waveforms arranged by the epicentral distance."
-    group_plt.add_option("--plot_waveform", action="store_true",
-                         dest="plot_waveform", help=helpmsg)
-
-    helpmsg = "directory name that contains the waveforms for " \
-              "--plot_waveform option flag, e.g.: " \
-              "--plot_waveform 'processed' [default: raw]"
-    group_plt.add_option("--plot_dir_name", action="store",
-                         dest="plot_dir_name", help=helpmsg)
-
-    helpmsg = "the path where obspyDMT will store the plots " \
-              "[default: '.', i.e. current directory]"
-    group_plt.add_option("--plot_save", action="store",
-                         dest="plot_save", help=helpmsg)
-
-    helpmsg = "format of the plots to be saved on the local machine. " \
-              "[default: 'png']"
-    group_plt.add_option("--plot_format", action="store",
-                         dest="plot_format", help=helpmsg)
-
-    helpmsg = "central meridian (x-axis origin) for projection. " \
-              "[default: 180]"
-    group_plt.add_option("--plot_lon0", action="store",
-                         dest="plot_lon0", help=helpmsg)
-    parser.add_option_group(group_plt)
-
-    # --------------- explore stationXML --------------------------------------
-    group_pltxml = OptionGroup(parser, "13. explore stationXML")
-    helpmsg = "plot the contents of stationXML file(s)."
+    # --------------- explore instrument responses (stationXML files)
+    group_pltxml = OptionGroup(parser, "14. explore instrument "
+                                       "responses (stationXML files)")
+    helpmsg = "Plot the contents of stationXML file(s), " \
+              "i.e. transfer function of filter stages, " \
+              "specified by --datapath."
     group_pltxml.add_option("--plot_stationxml", action="store_true",
                             dest="plot_stationxml", help=helpmsg)
 
-    helpmsg = "datetime to be used for plotting the transfer function, " \
-              "syntax: Y-M-D-H-M-S, e.g.: '2011-01-01-00-00-00' or just " \
-              "Y-M-D. If this is not set, the starting date of the last " \
-              "channel in the stationXML will be used!"
+    helpmsg = "Datetime to be used for plotting the transfer function, " \
+              "syntax: 'YYYY-MM-DD-HH-MM-SS' or 'YYYY-MM-DD'. " \
+              "If not specified, the starting date of the last channel in " \
+              "the stationXML will be used. " \
+              "Example: '2010-01-01'"
     group_pltxml.add_option("--plotxml_date", action="store",
                             dest="plotxml_date", help=helpmsg)
 
-    helpmsg = "plot all the stages available in the response file."
+    helpmsg = "Type of transfer function to plot: DIS/VEL/ACC (default: VEL)."
+    group_pltxml.add_option("--plotxml_output", action="store",
+                            dest="plotxml_output", help=helpmsg)
+
+    helpmsg = "Plot all filter stages specified in response file."
     group_pltxml.add_option("--plotxml_allstages", action="store_true",
                             dest="plotxml_allstages", help=helpmsg)
 
-    helpmsg = "plot Poles And Zeros (PAZ) of the response file."
+    helpmsg = "Plot only Poles And Zeros (PAZ) of the response file, " \
+              "i.e. the analog stage."
     group_pltxml.add_option("--plotxml_paz", action="store_true",
                             dest="plotxml_paz", help=helpmsg)
 
-    helpmsg = "plot only stage 1 and 2 of full response file."
+    helpmsg = "Plot only stages 1 and 2 of full response file."
     group_pltxml.add_option("--plotxml_plotstage12", action="store_true",
                             dest="plotxml_plotstage12", help=helpmsg)
 
-    helpmsg = "start stage in response file to be considered for plotting " \
-              "the transfer function. [default: 1]"
+    helpmsg = "First stage in response file to be considered for " \
+              "plotting the transfer function (default: 1)."
     group_pltxml.add_option("--plotxml_start_stage", action="store",
                             dest="plotxml_start_stage", help=helpmsg)
 
-    helpmsg = "final stage in response file to be considered for plotting " \
-              "the transfer function. " \
-              "[default: 100, in normal cases this is order of magnitude " \
-              "more than the available stages; " \
-              "however, obspyDMT will adjust itself with the number of " \
-              "available stages at each stationXML file " \
-              "if there are less than 100 stages!]"
+    helpmsg = "Final stage in response file to be considered for " \
+              "plotting the transfer function, " \
+              "(default: last stage given in response file or " \
+              "the 100th stage, whichever number is smaller)."
     group_pltxml.add_option("--plotxml_end_stage", action="store",
                             dest="plotxml_end_stage", help=helpmsg)
 
-    helpmsg = "minimum frequency to be used for plotting the transfer " \
-              "function. [default: 0.01]"
+    helpmsg = "Minimum frequency in Hz to be used in " \
+              "transfer function plots (default: 0.01)."
     group_pltxml.add_option("--plotxml_min_freq", action="store",
                             dest="plotxml_min_freq", help=helpmsg)
 
-    helpmsg = "plot all the stations that their instrument responses have " \
-              "been compared (PAZ against full response)."
+    helpmsg = "Plot all stations for which instrument responses have been " \
+              "compared (PAZ against full response)."
     group_pltxml.add_option("--plotxml_map_compare", action="store_true",
                             dest="plotxml_map_compare", help=helpmsg)
 
-    helpmsg = "percentage of the phase transfer function length to be used " \
-              "for checking the difference between different methods, " \
-              "e.g. 100 will be the whole transfer function, " \
-              "80 means compare the transfer function from " \
-              "min_freq (determined by --plotxml_min_freq) up to " \
-              "20 percent before the Nyquist frequency. [default: 80]"
+    helpmsg = "Percentage of the phase transfer function's frequency range " \
+              "to be used for checking the difference between methods. " \
+              "'100' will compare transfer functions across their " \
+              "entire spectral range, i.e. from min freq " \
+              "(set by --plotxml_min_freq) to Nyquist frequency; " \
+              "'80' compares from min freq to 0.8 times Nyquist frequency " \
+              "(default: 80)."
     group_pltxml.add_option("--plotxml_percentage", action="store",
                             dest="plotxml_percentage", help=helpmsg)
 
+    # XXX
     helpmsg = "maximum allowable length (in percentage) to differ between " \
               "two different methods of instrument correction. " \
               "This only applies to phase difference. [default: 10]"
     group_pltxml.add_option("--plotxml_phase_threshold", action="store",
                             dest="plotxml_phase_threshold", help=helpmsg)
 
-    helpmsg = "output of the transfer function: DIS/VEL/ACC. [default: VEL]"
-    group_pltxml.add_option("--plotxml_output", action="store",
-                            dest="plotxml_output", help=helpmsg)
-
+    # XXX
     helpmsg = "do not plot the full response file."
     group_pltxml.add_option("--plotxml_no_response", action="store_true",
                             dest="plotxml_no_response", help=helpmsg)
     parser.add_option_group(group_pltxml)
 
     # --------------- others --------------------------------------------------
-    group_others = OptionGroup(parser, "14. others (email, time-out)")
-    helpmsg = "send an email to the specified email-address after " \
-              "completing the job, syntax: --email email_address. " \
-              "[default: False]"
+    group_others = OptionGroup(parser, "15. others")
+    helpmsg = "Send an email to the specified address after " \
+              "completing the job (default: False)."
     group_others.add_option("--email", action="store",
                             dest="email", help=helpmsg)
 
-    helpmsg = "timeout (in sec) for sending request (availability) to " \
-              "ArcLink. [default: 40]"
+    helpmsg = "Timeout (in sec) for sending a data availability " \
+              "query via ArcLink (default: 40)."
     group_others.add_option("--arc_avai_timeout", action="store",
                             dest="arc_avai_timeout", help=helpmsg)
 
-    helpmsg = "timeout for sending request (waveform/response) to ArcLink. " \
-              "[default: 2]"
+    helpmsg = "Timeout (in sec) for sending a waveform data or " \
+              "metadata request via ArcLink (default: 2)."
     group_others.add_option("--arc_wave_timeout", action="store",
                             dest="arc_wave_timeout", help=helpmsg)
 
@@ -682,7 +692,6 @@ def read_input_command(parser, **kwargs):
                   'test': False,
 
                   # 'min_date': str(UTCDateTime() - 60 * 60 * 24 * 10 * 1),
-                  # XXX
                   'min_date': str(UTCDateTime(1970, 1, 1)),
                   'max_date': str(UTCDateTime()),
                   'preset': 0.0, 'offset': 1800.0,
@@ -704,7 +713,7 @@ def read_input_command(parser, **kwargs):
 
                   'event_catalog': 'LOCAL',
                   'min_depth': -10.0, 'max_depth': +6000.0,
-                  'min_mag': 3.0, 'max_mag': 9.9,
+                  'min_mag': 3.0, 'max_mag': 10.,
                   'mag_type': None,
                   'evlatmin': None, 'evlatmax': None,
                   'evlonmin': None, 'evlonmax': None,

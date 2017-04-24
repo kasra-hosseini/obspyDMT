@@ -24,7 +24,7 @@ from obspyDMT.utils.input_handler import command_parse, read_input_command
 
 def test_command_parse():
     (options, args, parser) = command_parse()
-    assert len(parser.option_groups) == 14
+    assert len(parser.option_groups) == 15
 
 # ##################### test_read_input_command ###############################
 
@@ -35,17 +35,18 @@ def test_read_input_command():
     assert len(parser.option_groups[0].option_list) == 3
     assert len(parser.option_groups[1].option_list) == 2
     assert len(parser.option_groups[2].option_list) == 4
-    assert len(parser.option_groups[3].option_list) == 15
+    assert len(parser.option_groups[3].option_list) == 14
     assert len(parser.option_groups[4].option_list) == 8
     assert len(parser.option_groups[5].option_list) == 7
     assert len(parser.option_groups[6].option_list) == 5
     assert len(parser.option_groups[7].option_list) == 2
-    assert len(parser.option_groups[8].option_list) == 17
+    assert len(parser.option_groups[8].option_list) == 12
     assert len(parser.option_groups[9].option_list) == 1
     assert len(parser.option_groups[10].option_list) == 7
-    assert len(parser.option_groups[11].option_list) == 15
-    assert len(parser.option_groups[12].option_list) == 13
-    assert len(parser.option_groups[13].option_list) == 3
+    assert len(parser.option_groups[11].option_list) == 6
+    assert len(parser.option_groups[12].option_list) == 15
+    assert len(parser.option_groups[13].option_list) == 13
+    assert len(parser.option_groups[14].option_list) == 3
 
     input_dics = read_input_command(parser)
 
@@ -96,7 +97,7 @@ def test_default_inputs():
     assert input_dics['min_depth'] == -10.0
     assert input_dics['max_depth'] == +6000.0
     assert input_dics['min_mag'] == 3.0
-    assert input_dics['max_mag'] == 9.9
+    assert input_dics['max_mag'] == 10.
     assert input_dics['mag_type'] is None
     assert input_dics['evlatmin'] is None
     assert input_dics['evlatmax'] is None
