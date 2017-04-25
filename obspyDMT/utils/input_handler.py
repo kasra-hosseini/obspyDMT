@@ -128,9 +128,10 @@ def command_parse():
     group_general.add_option("--force_response", action="store_true",
                              dest="force_response", help=helpmsg)
 
-    helpmsg = "Set of selected directory names to update/process/plot. " \
-              "If it is not specified, all available directories " \
-              "in the dataset will be used. Examples: 'dir1,dir2'"
+    helpmsg = "Update/process/plot contents of the selected directories " \
+              "in one data set " \
+              "(default: False, i.e., all directories will be used). " \
+              "Example: 'dir1,dir2'"
     group_general.add_option("--dir_select", action="store",
                              dest="dir_select", help=helpmsg)
 
@@ -151,7 +152,8 @@ def command_parse():
                              dest="max_azi", help=helpmsg)
 
     helpmsg = "User-provided station list instead of querying availability " \
-              "with a data center (default: False)."
+              "with a data center (default: False). " \
+              "Example: /path/list-stations"
     group_general.add_option("--list_stas", action="store",
                              dest="list_stas", help=helpmsg)
 
@@ -337,8 +339,8 @@ def command_parse():
 
     helpmsg = "Read in an existing local event catalog and proceed. " \
               "Currently supported catalogue metadata formats: " \
-              "'QUAKEML', 'ZMAP', 'MCHEDR', 'NDK. " \
-              "Example: /path/to/file.qml"
+              "'QUAKEML', 'NDK, 'ZMAP'." \
+              "Example: /path/to/file.ml"
     group_ev_based.add_option("--read_catalog", action="store",
                               dest="read_catalog", help=helpmsg)
 

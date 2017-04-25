@@ -148,14 +148,6 @@ def read_info(input_dics):
 
     fio = open(os.path.join(ev_info, 'event_list_pickle'), 'rb')
     events = pickle.load(fio)
-    remove_index = []
-    if input_dics['dir_select']:
-        for ei in range(len(events)):
-            if events[ei]['event_id'] not in input_dics['dir_select']:
-                remove_index.append(ei)
-        remove_index.sort(reverse=True)
-        for ri in remove_index:
-            del events[ri]
     if input_dics['event_catalog'].lower() == 'local':
         print("\n=========================================================")
         print("use the local files:")

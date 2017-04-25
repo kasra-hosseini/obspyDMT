@@ -429,7 +429,7 @@ def fdsn_bulk_request(target_path, req_cli, input_dics):
                               password=input_dics['password'])
 
     bulk_list_fio = open(os.path.join(target_path, 'info',
-                                      'bulkdata_list_%s' % req_cli), 'wb')
+                                      'bulkdata_list_%s' % req_cli), 'rb')
     bulk_list = pickle.load(bulk_list_fio)
     bulk_smgrs = client_fdsn.get_waveforms_bulk(bulk_list)
     print('[INFO] saving the retrieved waveforms from %s...' % req_cli)

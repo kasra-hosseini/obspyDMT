@@ -124,7 +124,7 @@ def print_event_catalogs():
     print("supported event catalogs")
     print("------------------------\n")
     for ev_cat in ['LOCAL', 'NEIC_USGS', 'GCMT_COMBO', 'IRIS', 'NCEDC',
-                   'USGS', 'INGV', 'ISC', 'NERIES']:
+                   'USGS', 'INGV', 'ISC']:
         print(ev_cat)
 
     print("\n============================================================")

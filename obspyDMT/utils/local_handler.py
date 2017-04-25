@@ -224,6 +224,10 @@ def event_filter(events, input_dics):
     """
     del_index = []
     for ev in range(len(events)):
+        if input_dics['dir_select']:
+            if events[ev]['event_id'] not in input_dics['dir_select']:
+                del_index.append(ev)
+                continue
         if not plot_filter_event(input_dics, events[ev]):
             del_index.append(ev)
     del_index.sort(reverse=True)
