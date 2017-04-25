@@ -157,7 +157,7 @@ def command_parse():
     group_general.add_option("--list_stas", action="store",
                              dest="list_stas", help=helpmsg)
 
-    # XXXXXX
+    # XXX NOT in Table-2
     helpmsg = "test the program for the desired number of requests, " \
               "e.g.: '--test 10' will test the program for 10 " \
               "requests. [default: False]"
@@ -450,7 +450,7 @@ def command_parse():
     group_process.add_option("--water_level", action="store",
                              dest="water_level", help=helpmsg)
 
-    # XXXXXX
+    # XXX NOT in Table-2
     helpmsg = "before processing, select one waveform every X degree(s). " \
               "syntax: --select_data 5, i.e. select one waveform every 5 " \
               "degrees. [default: False]"
@@ -478,13 +478,13 @@ def command_parse():
     group_synthetic.add_option("--syngine_geocentric_lat", action="store",
                                dest="syngine_geocentric_lat", help=helpmsg)
 
-    # XXXXXX
+    # XXX NOT in Table-2
     helpmsg = "retrieve synthetic waveforms calculated by normal mode " \
               "summation code. (ShakeMovie project)"
     group_synthetic.add_option("--normal_mode_syn", action="store_true",
                                dest="normal_mode_syn", help=helpmsg)
 
-    # XXXXXX
+    # XXX NOT in Table-2
     helpmsg = "retrieve synthetic waveforms calculated by SPECFEM3D. " \
               "(ShakeMovie project)"
     group_synthetic.add_option("--specfem3D", action="store_true",
@@ -525,6 +525,11 @@ def command_parse():
     group_plt.add_option("--create_kml", action="store_true",
                          dest="create_kml", help=helpmsg)
 
+    helpmsg = "Create a VTK file for event(s). " \
+              "VTK format is readable by Paraview."
+    group_plt.add_option("--create_event_vtk", action="store_true",
+                         dest="create_event_vtk", help=helpmsg)
+
     helpmsg = "Create a seismicity map and " \
               "some basic statistics on the results."
     group_plt.add_option("--plot_seismicity", action="store_true",
@@ -557,14 +562,8 @@ def command_parse():
     helpmsg = "Central meridian (x-axis origin) for projection (default: 180)."
     group_plt.add_option("--plot_lon0", action="store",
                          dest="plot_lon0", help=helpmsg)
-    parser.add_option_group(group_plt)
 
-    # XXX
-    helpmsg = "create a VTK file for events. VTK format is " \
-              "readable by different tools, for example, ParaView. " \
-              "syntax: --create_event_vtk /path/to/my/file [default: False]"
-    group_plt.add_option("--create_event_vtk", action="store",
-                         dest="create_event_vtk", help=helpmsg)
+    parser.add_option_group(group_plt)
 
     # --------------- explore instrument responses (stationXML files)
     group_pltxml = OptionGroup(parser, "14. explore instrument "
@@ -632,14 +631,14 @@ def command_parse():
     group_pltxml.add_option("--plotxml_percentage", action="store",
                             dest="plotxml_percentage", help=helpmsg)
 
-    # XXX
+    # XXX NOT in Table-2
     helpmsg = "maximum allowable length (in percentage) to differ between " \
               "two different methods of instrument correction. " \
               "This only applies to phase difference. [default: 10]"
     group_pltxml.add_option("--plotxml_phase_threshold", action="store",
                             dest="plotxml_phase_threshold", help=helpmsg)
 
-    # XXX
+    # XXX NOT in Table-2
     helpmsg = "do not plot the full response file."
     group_pltxml.add_option("--plotxml_no_response", action="store_true",
                             dest="plotxml_no_response", help=helpmsg)
@@ -734,7 +733,6 @@ def read_input_command(parser, **kwargs):
                   'pre_filt': '(0.008, 0.012, 3.0, 4.0)',
                   'water_level': 600.0,
 
-                  'create_event_vtk': False,
                   'depth_bins_seismicity': 10,
                   'plot_dir_name': 'raw',
                   'plot_save': '.', 'plot_format': 'png',
@@ -1201,7 +1199,8 @@ def read_input_command(parser, **kwargs):
     if input_dics['plot_sta'] or input_dics['plot_availability'] or \
             input_dics['plot_ev'] or input_dics['plot_focal'] or \
             input_dics['plot_ray'] or input_dics['create_kml'] or \
-            input_dics['plot_seismicity'] or input_dics['plot_waveform']:
+            input_dics['plot_seismicity'] or input_dics['plot_waveform'] or \
+            input_dics['create_event_vtk']:
         input_dics['plot'] = True
 
     input_dics['plot_dir_name'] = options.plot_dir_name

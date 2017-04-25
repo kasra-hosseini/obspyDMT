@@ -44,7 +44,6 @@ except ImportError:
 
 from .input_handler import input_logger
 from .utility_codes import locate
-from .local_handler import vtk_generator
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -299,9 +298,6 @@ def event_info(input_dics):
     for i in range(len(events)):
         events[i]['t1'] = events[i]['datetime'] - input_dics['preset']
         events[i]['t2'] = events[i]['datetime'] + input_dics['offset']
-
-    if input_dics['create_event_vtk']:
-        vtk_generator(events, input_dics['create_event_vtk'])
 
     return events, events_QML
 

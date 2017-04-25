@@ -202,6 +202,8 @@ def plot_unit(input_dics, events):
     :return:
     """
     events = event_filter(events, input_dics)
+    if input_dics['create_event_vtk']:
+        vtk_generator(events)
     if input_dics['create_kml']:
         create_ev_sta_kml(input_dics, events)
     if input_dics['plot_seismicity']:
