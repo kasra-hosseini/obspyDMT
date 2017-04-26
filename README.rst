@@ -17,7 +17,7 @@ Table of contents
    -  `Time-continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
    -  `processing`_: process the data automatically after the data retrieval and/or on an existing data-set.
    -  `Parallel retrieving and processing`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
-   -  `Explore stationXML file`_: explore and analyze stationXML file(s).
+   -  `Explore station meta-data (StationXML files, filterstages)`_:
 
 *  `Supported event catalogs and data centers`_: available event catalogs and data centers.
 *  `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
@@ -27,37 +27,37 @@ Table of contents
 Gallery
 -------
 
-+-----------------------------------------------------------------+----------------------------------------------------+
-| **Quick tour**                                                  | **Earthquake meta-data**                           |
-|                                                                 |                                                    |
-| .. image:: figures/quick_tour_ray.png                           | .. image:: figures/neic_event_focal_2014_2015.png  |
-|    :target: `Quick tour`_                                       |    :target: `Earthquake meta-data`_                |
-+-----------------------------------------------------------------+----------------------------------------------------+
-| **Seismicity map**                                              | **Event-based mode**                               |
-|                                                                 |                                                    |
-| .. image:: figures/japan_seismicity.png                         | .. image:: figures/iris_ev_based_mode.png          |
-|    :target: `Seismicity map`_                                   |    :target: `Event-based mode`_                    |
-+-----------------------------------------------------------------+----------------------------------------------------+
-| **Update an existing data set**                                 | **Time-continuous mode**                           |
-|                                                                 |                                                    |
-| .. image:: figures/iris_gfz_ipgp_ev_based.png                   | .. image:: figures/continuous_example.png          |
-|    :target: `Update an existing data set`_                      |    :target: `Time-continuous mode`_                |
-+-----------------------------------------------------------------+----------------------------------------------------+
-| **Processing and instrument correction**                        | **Synthetic seismograms**                          |
-|                                                                 |                                                    |
-| .. image:: XXX.png                                              | .. image:: XXX.png                                 |
-|    :target: XXX.html                                            |    :target: XXX.html                               |
-+-----------------------------------------------------------------+----------------------------------------------------+
-| **Explore station meta-data (StationXML files, filterstages)**  | **Speeding up data retrieval by parallelization**  |
-|                                                                 |                                                    |
-| .. image:: XXX.png                                              | .. image:: XXX.png                                 |
-|    :target: XXX.html                                            |    :target: XXX.html                               |
-+-----------------------------------------------------------------+----------------------------------------------------+
-| **KML**                                                         | **VTK**                                            |
-|                                                                 |                                                    |
-| .. image:: XXX.png                                              | .. image:: XXX.png                                 |
-|    :target: XXX.html                                            |    :target: XXX.html                               |
-+-----------------------------------------------------------------+----------------------------------------------------+
++----------------------------------------------------------------------------+----------------------------------------------------+
+| **Quick tour**                                                             | **Earthquake meta-data**                           |
+|                                                                            |                                                    |
+| .. image:: figures/quick_tour_ray.png                                      | .. image:: figures/neic_event_focal_2014_2015.png  |
+|    :target: `Quick tour`_                                                  |    :target: `Earthquake meta-data`_                |
++----------------------------------------------------------------------------+----------------------------------------------------+
+| **Seismicity map**                                                         | **Event-based mode**                               |
+|                                                                            |                                                    |
+| .. image:: figures/japan_seismicity.png                                    | .. image:: figures/iris_ev_based_mode.png          |
+|    :target: `Seismicity map`_                                              |    :target: `Event-based mode`_                    |
++----------------------------------------------------------------------------+----------------------------------------------------+
+| **Update an existing data set**                                            | **Time-continuous mode**                           |
+|                                                                            |                                                    |
+| .. image:: figures/iris_gfz_ipgp_ev_based.png                              | .. image:: figures/continuous_example.png          |
+|    :target: `Update an existing data set`_                                 |    :target: `Time-continuous mode`_                |
++----------------------------------------------------------------------------+----------------------------------------------------+
+| **Processing and instrument correction**                                   | **Synthetic seismograms**                          |
+|                                                                            |                                                    |
+| .. image:: XXX.png                                                         | .. image:: XXX.png                                 |
+|    :target: XXX.html                                                       |    :target: XXX.html                               |
++----------------------------------------------------------------------------+----------------------------------------------------+
+| **Explore station meta-data (StationXML files, filterstages)**             | **Speeding up data retrieval by parallelization**  |
+|                                                                            |                                                    |
+| .. image:: figures/ic_LBTB.png                                             | .. image:: XXX.png                                 |
+|    :target: `Explore station meta-data (StationXML files, filterstages)`_  |    :target: XXX.html                               |
++----------------------------------------------------------------------------+----------------------------------------------------+
+| **KML**                                                                    | **VTK**                                            |
+|                                                                            |                                                    |
+| .. image:: XXX.png                                                         | .. image:: XXX.png                                 |
+|    :target: XXX.html                                                       |    :target: XXX.html                               |
++----------------------------------------------------------------------------+----------------------------------------------------+
 
 
 
@@ -308,14 +308,14 @@ using the bulkdataselect web service. Since this method returns multiple channel
 
     --bulk
 
-Explore stationXML file
------------------------
+Explore station meta-data (StationXML files, filterstages)
+----------------------------------------------------------
 
 ::
 
     obspyDMT --datapath /path/to/STXML.IC.XAN.00.BHZ --plot_stationxml --plotxml_paz --plotxml_min_freq 0.0001
 
-.. image:: figures/IC.XAN.00.BHZ.png
+.. image:: figures/ic_XAN.png
    :scale: 75%
    :align: center
 
@@ -323,14 +323,14 @@ Explore stationXML file
 
     obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot_stationxml --plotxml_paz --plotxml_min_freq 0.0001
 
-.. image:: figures/GT.LBTB.00.BHZ.png
+.. image:: figures/ic_LBTB.png
    :scale: 75%
    :align: center
 ::
 
     obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot_stationxml --plotxml_min_freq 0.0001 --plotxml_allstages
 
-.. image:: figures/GT.LBTB.00.BHZ_stages.png
+.. image:: figures/ic_LBTB_stages.png
    :scale: 75%
    :align: center
 
