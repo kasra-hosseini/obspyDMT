@@ -33,7 +33,7 @@ Gallery
 |    :target: `Quick tour`_              |    :target: `Earthquake meta-data`_                            |    :target: XXX.html                              |
 |    :width: 30%                         |    :width: 30%                                                 |    :width: 30%                                    |
 +----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
-| **KML**                                | **VTK**                                                        | **Event-based mode**                              |
+| **Event-based mode**                   | **KML**                                                        | **VTK**                                           |
 |                                        |                                                                |                                                   |
 | .. image:: XXX.png                     | .. image:: XXX.png                                             | .. image:: XXX.png                                |
 |    :target: XXX.html                   |    :target: XXX.html                                           |    :target: XXX.html                              |
