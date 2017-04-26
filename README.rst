@@ -9,18 +9,17 @@ Table of contents
 
 *  `How to cite obspyDMT`_
 *  `Installation`_: install obspyDMT and check your local machine for required dependencies.
-*  `Quick tour`_: run a quick tour.
 *  `Supported event catalogs and data sources`_: available event catalogs and data-sources.
 *  `Gallery`_
 
+   -  `Quick tour`_: run a quick tour.
    -  `event info request`_: get info about events without downloading waveforms.
    -  `seismicity map`_
    -  `event based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
    -  `continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
    -  `processing`_: process the data automatically after the data retrieval and/or on an existing data-set.
-
-*  `Parallel retrieving and processing`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
-* `Explore stationXML file`_: explore and analyze stationXML file(s).
+   - `Parallel retrieving and processing`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
+   - `Explore stationXML file`_: explore and analyze stationXML file(s).
 * `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
 
 How to cite obspyDMT
@@ -32,13 +31,6 @@ Cite the code:
 
     Kasra Hosseini (2017), obspyDMT (Version 2.0.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
 
-`Paper published in SRL <http://srl.geoscienceworld.org/content/84/3/525>`_ (Seismological Research Letters) for obspyDMT's predecessor:
-
-::
-
-    C. Scheingraber, K. Hosseini, R. Barsch, and K. Sigloch (2013), ObsPyLoad - a tool for fully automated retrieval of seismological waveform data, Seismological Research Letters, 84(3), 525-531, DOI:10.1785/0220120103.
-
-.. _obspyDMT: https://github.com/kasra-hosseini/obspyDMT
 
 Installation
 ------------
@@ -98,6 +90,27 @@ To check the dependencies required for running the code properly:
 
     obspyDMT --check
 
+
+Supported event catalogs and data sources
+-----------------------------------------
+
+Available event catalogs:
+
+::
+
+    obspyDMT --print_event_catalogs
+
+and supported data sources:
+
+::
+
+    obspyDMT --print_data_sources
+
+Gallery
+-------
+
+Collection of examples: XXX
+
 Quick tour
 ----------
 
@@ -147,27 +160,6 @@ It is also possible to change the map projection in the pop-up menu (same comman
 .. image:: figures/tour_ray_shaded.png
    :scale: 75%
    :align: center
-
-Supported event catalogs and data sources
------------------------------------------
-
-Available event catalogs:
-
-::
-
-    obspyDMT --print_event_catalogs
-
-and supported data sources:
-
-::
-
-    obspyDMT --print_data_sources
-
-
-Gallery
--------
-
-Collection of examples: XXX
 
 event info request
 ------------------
@@ -401,3 +393,5 @@ obspyDMT organizes the data in a simple and efficient way. For each request, it 
 .. image:: figures/dmt_dir_structure.png
    :scale: 80%
    :align: center
+
+.. _obspyDMT: https://github.com/kasra-hosseini/obspyDMT
