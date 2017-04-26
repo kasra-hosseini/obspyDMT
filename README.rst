@@ -31,7 +31,7 @@ Gallery
 |                                        |                                                                |                                                   |
 | .. figure:: figures/quick_tour_ray.png | .. figure:: figures/neic_event_focal_2014_2015.png             | .. figure:: figures/japan_seismicity.png          |
 |    :target: `Quick tour`_              |    :target: `Earthquake meta-data`_                            |    :target: `Seismicity map`_                     |
-|    :figheight: 100px                   |    :figheight: 100px                                           |    :figheight: 100px                              |
+|    :figwidth: 100px                    |    :figwidth: 100px                                            |    :figwidth: 100px                               |
 +----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
 | **Event-based mode**                   | **KML**                                                        | **VTK**                                           |
 |                                        |                                                                |                                                   |
