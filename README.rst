@@ -109,44 +109,42 @@ Print supported earthquake catalogs that can be passed as arguments to ``--event
 Gallery
 -------
 
-+-------------------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
-| **Quick tour**                                  | **Earthquake meta-data**                                       | **Seismicity**                                    |
-|                                                 |                                                                |                                                   |
-| .. image:: figures/epi_time_20110311_1_raw.png  | .. image:: figures/epi_time_20110311_1_raw.png                 | .. image:: figures/epi_time_20110311_1_raw.png    |
-|    :target: XXX.html                            |    :target: XXX.html                                           |    :target: XXX.html                              |
-|    :width: 30%                                  |    :width: 30%                                                 |    :width: 30%                                    |
-+-------------------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
-| **KML**                                         | **VTK**                                                        | **Event-based mode**                              |
-|                                                 |                                                                |                                                   |
-| .. image:: XXX.png                              | .. image:: XXX.png                                             | .. image:: XXX.png                                |
-|    :target: XXX.html                            |    :target: XXX.html                                           |    :target: XXX.html                              |
-|    :width: 30%                                  |    :width: 30%                                                 |    :width: 30%                                    |
-+-------------------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
-| **Update an existing data set**                 | **Time-continuous mode**                                       | **Processing and instrument correction**          |
-|                                                 |                                                                |                                                   |
-| .. image:: XXX.png                              | .. image:: XXX.png                                             | .. image:: XXX.png                                |
-|    :target: XXX.html                            |    :target: XXX.html                                           |    :target: XXX.html                              |
-|    :width: 30%                                  |    :width: 30%                                                 |    :width: 30%                                    |
-+-------------------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
-| **Synthetic seismograms**                       | **Explore station meta-data (StationXML files, filterstages)** | **Speeding up data retrieval by parallelization** |
-|                                                 |                                                                |                                                   |
-| .. image:: XXX.png                              | .. image:: XXX.png                                             | .. image:: XXX.png                                |
-|    :target: XXX.html                            |    :target: XXX.html                                           |    :target: XXX.html                              |
-|    :width: 30%                                  |    :width: 30%                                                 |    :width: 30%                                    |
-+-------------------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
-
-
++----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
+| **Quick tour**                         | **Earthquake meta-data**                                       | **Seismicity**                                    |
+|                                        |                                                                |                                                   |
+| .. image:: figures/quick_tour_ray.png  | .. image:: figures/epi_time_20110311_1_raw.png                 | .. image:: figures/epi_time_20110311_1_raw.png    |
+|    :target: `Quick tour`_              |    :target: XXX.html                                           |    :target: XXX.html                              |
+|    :width: 30%                         |    :width: 30%                                                 |    :width: 30%                                    |
++----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
+| **KML**                                | **VTK**                                                        | **Event-based mode**                              |
+|                                        |                                                                |                                                   |
+| .. image:: XXX.png                     | .. image:: XXX.png                                             | .. image:: XXX.png                                |
+|    :target: XXX.html                   |    :target: XXX.html                                           |    :target: XXX.html                              |
+|    :width: 30%                         |    :width: 30%                                                 |    :width: 30%                                    |
++----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
+| **Update an existing data set**        | **Time-continuous mode**                                       | **Processing and instrument correction**          |
+|                                        |                                                                |                                                   |
+| .. image:: XXX.png                     | .. image:: XXX.png                                             | .. image:: XXX.png                                |
+|    :target: XXX.html                   |    :target: XXX.html                                           |    :target: XXX.html                              |
+|    :width: 30%                         |    :width: 30%                                                 |    :width: 30%                                    |
++----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
+| **Synthetic seismograms**              | **Explore station meta-data (StationXML files, filterstages)** | **Speeding up data retrieval by parallelization** |
+|                                        |                                                                |                                                   |
+| .. image:: XXX.png                     | .. image:: XXX.png                                             | .. image:: XXX.png                                |
+|    :target: XXX.html                   |    :target: XXX.html                                           |    :target: XXX.html                              |
+|    :width: 30%                         |    :width: 30%                                                 |    :width: 30%                                    |
++----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
 
 Quick tour
 ----------
 
-To run a quick tour:
+Run a quick tour:
 
 ::
 
     obspyDMT --tour
 
-*dmt_tour_dir* directory will be created in the current path, and retrieved/processed waveforms and meta-data  will be organized there. (Refer to `Directory structure`_ section for more information)
+*dmt_tour_dir* directory will be created in the current path, and retrieved/processed waveforms as well as meta-data will be organized there (Refer to `Directory structure`_ section for more information).
 
 The retrieved waveforms can be plotted by:
 
@@ -158,7 +156,7 @@ The retrieved waveforms can be plotted by:
    :scale: 60%
    :align: center
 
-To plot the processed/corrected waveforms:
+To plot the processed/corrected waveforms, ``--plot_dir_name processed`` can be added to the previous command line:
 
 ::
 
@@ -168,22 +166,13 @@ To plot the processed/corrected waveforms:
    :scale: 60%
    :align: center
 
-XXX: ADD: obspyDMT --tour --syngine
-XXX: ADD: obspyDMT --datapath dmt_tour_dir --local --plot_waveform --plot_dir_name syngine_iasp91_2s
-
-obspyDMT plots the ray coverage (ray path between each source-receiver pair) by:
+obspyDMT has several tools to plot the contents of a data set. As an example, the following command line plots the ray coverage (ray path between each source-receiver pair) of ``dmt_tour_dir``:
 
 ::
 
     obspyDMT --datapath dmt_tour_dir --local --plot_ev --plot_sta --plot_ray
 
 .. image:: figures/tour_ray.png
-   :scale: 75%
-   :align: center
-
-It is also possible to change the map projection in the pop-up menu (same command-line as above):
-
-.. image:: figures/tour_ray_shaded.png
    :scale: 75%
    :align: center
 
