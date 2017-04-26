@@ -35,7 +35,7 @@ Gallery
 +-----------------------------------------------------------------+----------------------------------------------------+
 | **Seismicity map**                                              | **Event-based mode**                               |
 |                                                                 |                                                    |
-| .. image:: figures/japan_seismicity.png                         | .. image:: figures/iris_event_based.png            |
+| .. image:: figures/japan_seismicity.png                         | .. image:: figures/iris_event_based_mode.png       |
 |    :target: `Seismicity map`_                                   |    :target: `Event-based mode`_                    |
 +-----------------------------------------------------------------+----------------------------------------------------+
 | **Update an existing data set**                                 | **Time-continuous mode**                           |
@@ -183,7 +183,7 @@ To plot the stations/events/rays:
 
     obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --plot_ray
 
-.. image:: figures/iris_event_based.png
+.. image:: figures/iris_event_based_mode.png
    :scale: 75%
    :align: center
 
