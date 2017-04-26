@@ -31,25 +31,25 @@ Gallery
 |                                        |                                                                |                                                   |
 | .. image:: figures/quick_tour_ray.png  | .. image:: figures/epi_time_20110311_1_raw.png                 | .. image:: figures/epi_time_20110311_1_raw.png    |
 |    :target: `Quick tour`_              |    :target: XXX.html                                           |    :target: XXX.html                              |
-|    :width: 20%                         |    :width: 20%                                                 |    :width: 20%                                    |
+|    :width: 10%                         |    :width: 10%                                                 |    :width: 10%                                    |
 +----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
 | **KML**                                | **VTK**                                                        | **Event-based mode**                              |
 |                                        |                                                                |                                                   |
 | .. image:: XXX.png                     | .. image:: XXX.png                                             | .. image:: XXX.png                                |
 |    :target: XXX.html                   |    :target: XXX.html                                           |    :target: XXX.html                              |
-|    :width: 20%                         |    :width: 20%                                                 |    :width: 20%                                    |
+|    :width: 10%                         |    :width: 10%                                                 |    :width: 10%                                    |
 +----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
 | **Update an existing data set**        | **Time-continuous mode**                                       | **Processing and instrument correction**          |
 |                                        |                                                                |                                                   |
 | .. image:: XXX.png                     | .. image:: XXX.png                                             | .. image:: XXX.png                                |
 |    :target: XXX.html                   |    :target: XXX.html                                           |    :target: XXX.html                              |
-|    :width: 20%                         |    :width: 20%                                                 |    :width: 20%                                    |
+|    :width: 10%                         |    :width: 10%                                                 |    :width: 10%                                    |
 +----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
 | **Synthetic seismograms**              | **Explore station meta-data (StationXML files, filterstages)** | **Speeding up data retrieval by parallelization** |
 |                                        |                                                                |                                                   |
 | .. image:: XXX.png                     | .. image:: XXX.png                                             | .. image:: XXX.png                                |
 |    :target: XXX.html                   |    :target: XXX.html                                           |    :target: XXX.html                              |
-|    :width: 20%                         |    :width: 20%                                                 |    :width: 20%                                    |
+|    :width: 10%                         |    :width: 10%                                                 |    :width: 10%                                    |
 +----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
 
 Quick tour
