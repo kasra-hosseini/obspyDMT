@@ -29,7 +29,7 @@ Gallery
 +----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
 | **Quick tour**                         | **Earthquake meta-data**                                       | **Seismicity**                                    |
 |                                        |                                                                |                                                   |
-| .. image:: figures/quick_tour_ray.png  | .. image:: figures/neic_event_focal.png                        | .. image:: figures/quick_tour_ray.png             |
+| .. image:: figures/quick_tour_ray.png  | .. image:: figures/neic_event_focal_2014_2015.png              | .. image:: figures/quick_tour_ray.png             |
 |    :target: `Quick tour`_              |    :target: XXX.html                                           |    :target: XXX.html                              |
 |    :width: 30%                         |    :width: 30%                                                 |    :width: 30%                                    |
 +----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
