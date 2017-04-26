@@ -11,7 +11,7 @@ Table of contents
 
    -  `Quick tour`_: run a quick tour.
    -  `Earthquake meta-data`_: get info about events without downloading waveforms.
-   -  `seismicity map`_
+   -  `Seismicity map`_
    -  `event based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
    -  `continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
    -  `processing`_: process the data automatically after the data retrieval and/or on an existing data-set.
@@ -27,10 +27,10 @@ Gallery
 -------
 
 +----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
-| **Quick tour**                         | **Earthquake meta-data**                                       | **Seismicity**                                    |
+| **Quick tour**                         | **Earthquake meta-data**                                       | **Seismicity map**                                |
 |                                        |                                                                |                                                   |
 | .. image:: figures/quick_tour_ray.png  | .. image:: figures/neic_event_focal_2014_2015.png              | .. image:: figures/quick_tour_ray.png             |
-|    :target: `Quick tour`_              |    :target: XXX.html                                           |    :target: XXX.html                              |
+|    :target: `Quick tour`_              |    :target: `Earthquake meta-data`_                            |    :target: XXX.html                              |
 |    :width: 30%                         |    :width: 30%                                                 |    :width: 30%                                    |
 +----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
 | **KML**                                | **VTK**                                                        | **Event-based mode**                              |
@@ -116,22 +116,31 @@ To plot the content of local data set (neic_event_metadata):
 
     obspyDMT --datapath neic_event_metadata --local --plot_ev --plot_focal
 
-.. image:: figures/neic_event_focal.png
+.. image:: figures/neic_event_focal_2014_2015.png
    :scale: 75%
    :align: center
 
-seismicity map
+Seismicity map
 --------------
 
-To plot a seismicity map for all events with magnitude more than 5.0 that occurred between 2000-2017 from NEIC catalog:
+Seismicity map of japan region based on earthquakes of magnitude more than 5.0 that occured from 2000-01-01 until 2017-01-01:
+
+Global seismicity map of archived earthquakes in NEIC catalogue with magnitude more than 5.0 that occurred between 1990 and 2016.
+One command queried the NEIC catalogue, stored and organised the retrieved information and generated the seismicity map.
+(No actual waveform data were queried in this example):
 
 ::
 
-   obspyDMT --datapath neic_events_dir --min_date 2000-01-01 --max_date 2017-01-01 --min_mag 5.0 --event_catalog NEIC_USGS --event_info --plot_seismicity
+   obspyDMT --datapath neic_event_dir --min_date 1990-01-01 --max_date 2017-01-01 --min_mag 5.0 --event_catalog NEIC_USGS --event_info --plot_seismicity
 
-.. image:: figures/neic_catalog_assembled.png
+.. image:: figures/neic_catalog_1990.png
    :scale: 75%
    :align: center
+
+The results of some basic statistics (magnitude and depth histograms) are also generated and plotted automatically (top-left panel).
+Note the rendering of coloured beach balls in the map inset (deepest seismicity in the foreground).
+The global map also contains beach balls rather than just simple black dots, but they do not become apparent at this zoom level.
+
 
 event based mode
 ----------------
