@@ -29,8 +29,8 @@ Gallery
 +----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
 | **Quick tour**                         | **Earthquake meta-data**                                       | **Seismicity map**                                |
 |                                        |                                                                |                                                   |
-| .. image:: figures/quick_tour_ray.png  | .. image:: figures/neic_event_focal_2014_2015.png              | .. image:: figures/quick_tour_ray.png             |
-|    :target: `Quick tour`_              |    :target: `Earthquake meta-data`_                            |    :target: XXX.html                              |
+| .. image:: figures/quick_tour_ray.png  | .. image:: figures/neic_event_focal_2014_2015.png              | .. image:: figures/japan_seismicity.png           |
+|    :target: `Quick tour`_              |    :target: `Earthquake meta-data`_                            |    :target: `Seismicity map`_                     |
 |    :width: 30%                         |    :width: 30%                                                 |    :width: 30%                                    |
 +----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
 | **Event-based mode**                   | **KML**                                                        | **VTK**                                           |
@@ -123,7 +123,16 @@ To plot the content of local data set (neic_event_metadata):
 Seismicity map
 --------------
 
-Seismicity map of japan region based on earthquakes of magnitude more than 5.0 that occured from 2000-01-01 until 2017-01-01:
+Seismicity map (``--plot_seismicity`` option flag) of Japan region based on earthquakes of magnitude more than 5.0 that occured from 2000-01-01 until 2017-01-01 from NEIC event catalog.
+Note ``--event_rect`` option flag to define a region around Japan:
+
+::
+
+   obspyDMT --datapath japan_seismicity --min_mag 5.0 --min_date 2000-01-01 --max_date 2017-01-01 --event_catalog NEIC_USGS --event_rect 110./175./15/60 --plot_seismicity --event_info
+
+.. image:: figures/japan_seismicity.png
+   :scale: 75%
+   :align: center
 
 Global seismicity map of archived earthquakes in NEIC catalogue with magnitude more than 5.0 that occurred between 1990 and 2016.
 One command queried the NEIC catalogue, stored and organised the retrieved information and generated the seismicity map.
