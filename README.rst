@@ -40,7 +40,7 @@ Gallery
 +-----------------------------------------------------------------+----------------------------------------------------+
 | **Update an existing data set**                                 | **Time-continuous mode**                           |
 |                                                                 |                                                    |
-| .. image:: figures/iris_gfz_ipgp_ev_based.png                   | .. image:: continuous_example.png                  |
+| .. image:: figures/iris_gfz_ipgp_ev_based.png                   | .. image:: figures/continuous_example.png          |
 |    :target: `Update an existing data set`_                      |    :target: `Time-continuous mode`_                |
 +-----------------------------------------------------------------+----------------------------------------------------+
 | **Processing and instrument correction**                        | **Synthetic seismograms**                          |
@@ -236,6 +236,7 @@ Time-continuous mode
 --------------------
 
 ::
+
     obspyDMT --continuous --datapath continuous_example --min_date 2011-03-03 --max_date 2011-04-03 --sta "BFO,RER" --loc '00' --cha "BHZ" --data_source IRIS
 
 .. image:: figures/continuous_example.png
