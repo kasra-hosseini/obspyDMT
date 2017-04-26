@@ -40,7 +40,7 @@ Gallery
 +-----------------------------------------------------------------+----------------------------------------------------+
 | **Update an existing data set**                                 | **Time-continuous mode**                           |
 |                                                                 |                                                    |
-| .. image:: figures/iris_gfz_event_based.png                     | .. image:: XXX.png                                 |
+| .. image:: figures/iris_gfz_ipgp_ev_based.png                   | .. image:: XXX.png                                 |
 |    :target: `Update an existing data set`_                      |    :target: XXX.html                               |
 +-----------------------------------------------------------------+----------------------------------------------------+
 | **Processing and instrument correction**                        | **Synthetic seismograms**                          |
@@ -195,11 +195,24 @@ from the ``GFZ`` data center:
 
 ::
 
-    obspyDMT --datapath event_based_dir --data_source "GFZ" --net "C*" --cha "BHZ" --preset 100 --offset 1800
+    obspyDMT --datapath event_based_dir --data_source "GFZ" --net "AW,E*" --cha "BHZ" --preset 100 --offset 1800
 
-.. image:: figures/iris_gfz_event_based.png
+Additionally, we can update the data set with ``BHZ`` channels of ``G*`` networks (i.e., all stations that their network codes start with G)
+from the ``IPGP`` data center:
+::
+
+    obspyDMT --datapath event_based_dir --data_source "IPGP" --net "G*" --cha "BHZ" --preset 100 --offset 1800
+
+To plot the stations/events/rays:
+
+::
+
+    obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --plot_ray
+
+.. image:: figures/iris_gfz_ipgp_ev_based.png
    :scale: 75%
    :align: center
+
 
 To create KML file:
 
