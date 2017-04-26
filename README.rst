@@ -50,7 +50,7 @@ Gallery
 +----------------------------------------------------------------------------+----------------------------------------------------+
 | **Explore station meta-data (StationXML files, filterstages)**             | **Speeding up data retrieval by parallelization**  |
 |                                                                            |                                                    |
-| .. image:: figures/ic_LBTB.png                                             | .. image:: XXX.png                                 |
+| .. image:: figures/ic_LBTB_gallery.png                                     | .. image:: XXX.png                                 |
 |    :target: `Explore station meta-data (StationXML files, filterstages)`_  |    :target: XXX.html                               |
 +----------------------------------------------------------------------------+----------------------------------------------------+
 | **KML**                                                                    | **VTK**                                            |
