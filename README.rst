@@ -1,15 +1,15 @@
-====================================================================================================
-obspyDMT: A Python Toolbox for Retrieving, Processing and Management of Large Seismological Datasets
-====================================================================================================
+==============================================================================================
+obspyDMT: A Python Toolbox for Retrieving, Processing and Management of Seismological Datasets
+==============================================================================================
 
-obspyDMT_ (obspy Data Management Tool) is a command line tool for retrieving, processing and management of large seismological datasets in a fully automatic way.
+obspyDMT_ (obspy Data Management Tool) is a command line tool for retrieving, processing and management of seismological datasets in a fully automatic way.
 
 Table of contents
 -----------------
 
 *  `How to cite obspyDMT`_
-*  `Installation`_: install obspyDMT and check your local machine for required dependencies.
-*  `Supported event catalogs and data sources`_: available event catalogs and data-sources.
+*  `Installation`_: install obspyDMT and check the installation on your local machine.
+*  `Supported event catalogs and data sources`_: available event catalogs and data centers.
 *  `Gallery`_
 
    -  `Quick tour`_: run a quick tour.
@@ -94,17 +94,17 @@ To check the dependencies required for running the code properly:
 Supported event catalogs and data sources
 -----------------------------------------
 
-Available event catalogs:
-
-::
-
-    obspyDMT --print_event_catalogs
-
-and supported data sources:
+Print supported data centers that can be passed as arguments to --data_source:
 
 ::
 
     obspyDMT --print_data_sources
+
+Print supported earthquake catalogs that can be passed as arguments to --event_catalog:
+
+::
+
+    obspyDMT --print_event_catalogs
 
 Gallery
 -------
