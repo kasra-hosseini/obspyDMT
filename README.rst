@@ -29,7 +29,7 @@ Gallery
 +----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
 | **Quick tour**                         | **Earthquake meta-data**                                       | **Seismicity**                                    |
 |                                        |                                                                |                                                   |
-| .. image:: figures/quick_tour_ray.png  | .. image:: figures/quick_tour_ray.png                          | .. image:: figures/quick_tour_ray.png             |
+| .. image:: figures/quick_tour_ray.png  | .. image:: figures/neic_event_focal.png                        | .. image:: figures/quick_tour_ray.png             |
 |    :target: `Quick tour`_              |    :target: XXX.html                                           |    :target: XXX.html                              |
 |    :width: 30%                         |    :width: 30%                                                 |    :width: 30%                                    |
 +----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
@@ -100,31 +100,23 @@ Get info about events without downloading/processing waveforms! This method can 
 
 ::
 
-    obspyDMT --datapath neic_events_2014_dir --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.0 --event_catalog NEIC_USGS --event_info
+    obspyDMT --datapath neic_event_metadata --min_mag 5.5 --min_date 2014-01-01 --max_date 2015-01-01 --event_catalog NEIC_USGS --event_info
 
-To plot the retrieved event information:
+
+The above directory (neic_event_metadata) can be updated for events that occured in 2015 of magnitude more than 5.5: (no waveform retrieval)
 
 ::
 
-    obspyDMT --datapath neic_events_2014_dir --local --plot_ev --plot_focal
+    obspyDMT --datapath neic_event_metadata --min_mag 5.5 --min_date 2015-01-01 --max_date 2016-01-01 --event_catalog NEIC_USGS --event_info
+
+
+To plot the content of local data set (neic_event_metadata):
+
+::
+
+    obspyDMT --datapath neic_event_metadata --local --plot_ev --plot_focal
 
 .. image:: figures/neic_event_focal.png
-   :scale: 75%
-   :align: center
-
-The above directory can be updated for all events with magnitude more than 6.0: (no waveform retrieval)
-
-::
-
-    obspyDMT --datapath neic_events_2014_dir --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 6.0 --event_catalog NEIC_USGS --event_info
-
-and again to plot the event information in the local data-set:
-
-::
-
-   obspyDMT --datapath neic_events_2014_dir --local --plot_ev --plot_focal
-
-.. image:: figures/neic_event_focal_updated.png
    :scale: 75%
    :align: center
 
