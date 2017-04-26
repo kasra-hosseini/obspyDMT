@@ -9,7 +9,7 @@ Table of contents
 
 *  `How to cite obspyDMT`_
 *  `Installation`_: install obspyDMT and check the installation on your local machine.
-*  `Supported event catalogs and data sources`_: available event catalogs and data centers.
+*  `Supported event catalogs and data centers`_: available event catalogs and data centers.
 *  `Gallery`_
 
    -  `Quick tour`_: run a quick tour.
@@ -91,7 +91,7 @@ To check the dependencies required for running the code properly:
     obspyDMT --check
 
 
-Supported event catalogs and data sources
+Supported event catalogs and data centers
 -----------------------------------------
 
 Print supported data centers that can be passed as arguments to --data_source:
