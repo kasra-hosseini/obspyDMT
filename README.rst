@@ -94,7 +94,7 @@ To check the dependencies required for running the code properly:
 Supported event catalogs and data centers
 -----------------------------------------
 
-Print supported data centers that can be passed as arguments to --data_source:
+Print supported data centers that can be passed as arguments to :bash:`--data_source`:
 
 ::
 
