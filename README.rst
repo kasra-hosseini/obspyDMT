@@ -31,7 +31,7 @@ Gallery
 |                                        |                                                                |                                                   |
 | .. image:: figures/quick_tour_ray.png  | .. image:: figures/epi_time_20110311_1_raw.png                 | .. image:: figures/epi_time_20110311_1_raw.png    |
 |    :target: `Quick tour`_              |    :target: XXX.html                                           |    :target: XXX.html                              |
-|    :width: 30%                         |    :width: 30%                                                 |    :width: 30%                                    |
+|    :width: 20%                         |    :width: 20%                                                 |    :width: 20%                                    |
 +----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
 | **KML**                                | **VTK**                                                        | **Event-based mode**                              |
 |                                        |                                                                |                                                   |
@@ -69,7 +69,7 @@ The retrieved waveforms can be plotted by:
 
     obspyDMT --datapath dmt_tour_dir --local --plot_waveform
 
-.. image:: figures/epi_time_20110311_1_raw.png
+.. image:: figures/quick_tour_raw.png
    :scale: 60%
    :align: center
 
@@ -79,7 +79,7 @@ To plot the processed/corrected waveforms, ``--plot_dir_name processed`` can be 
 
     obspyDMT --datapath dmt_tour_dir --local --plot_waveform --plot_dir_name processed
 
-.. image:: figures/epi_time_20110311_1.png
+.. image:: figures/quick_tour_corrected.png
    :scale: 60%
    :align: center
 
@@ -89,7 +89,7 @@ obspyDMT has several tools to plot the contents of a data set. As an example, th
 
     obspyDMT --datapath dmt_tour_dir --local --plot_ev --plot_sta --plot_ray
 
-.. image:: figures/tour_ray.png
+.. image:: figures/quick_tour_ray.png
    :scale: 75%
    :align: center
 
