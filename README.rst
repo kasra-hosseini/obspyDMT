@@ -14,7 +14,7 @@ Table of contents
    -  `Seismicity map`_
    -  `Event-based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
    -  `Update an existing data set`_
-   -  `continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
+   -  `Time-continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
    -  `processing`_: process the data automatically after the data retrieval and/or on an existing data-set.
    -  `Parallel retrieving and processing`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
    -  `Explore stationXML file`_: explore and analyze stationXML file(s).
@@ -40,8 +40,8 @@ Gallery
 +-----------------------------------------------------------------+----------------------------------------------------+
 | **Update an existing data set**                                 | **Time-continuous mode**                           |
 |                                                                 |                                                    |
-| .. image:: figures/iris_gfz_ipgp_ev_based.png                   | .. image:: XXX.png                                 |
-|    :target: `Update an existing data set`_                      |    :target: XXX.html                               |
+| .. image:: figures/iris_gfz_ipgp_ev_based.png                   | .. image:: continuous_example.png                  |
+|    :target: `Update an existing data set`_                      |    :target: `Time-continuous mode`_                |
 +-----------------------------------------------------------------+----------------------------------------------------+
 | **Processing and instrument correction**                        | **Synthetic seismograms**                          |
 |                                                                 |                                                    |
@@ -232,12 +232,11 @@ To create KML file:
    :scale: 75%
    :align: center
 
-continuous mode
----------------
+Time-continuous mode
+--------------------
 
 ::
-
-    obspyDMT --datapath continuous_dir --min_date 2014-01-01 --max_date 2014-02-01 --net TA --sta "1*" --cha BHZ --continuous
+    obspyDMT --continuous --datapath continuous_example --min_date 2011-03-03 --max_date 2011-04-03 --sta "BFO,RER" --loc '00' --cha "BHZ" --data_source IRIS
 
 .. image:: figures/continuous_example.png
    :scale: 75%
