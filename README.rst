@@ -40,8 +40,8 @@ Gallery
 +-----------------------------------------------------------------+----------------------------------------------------+
 | **Update an existing data set**                                 | **Time-continuous mode**                           |
 |                                                                 |                                                    |
-| .. image:: XXX.png                                              | .. image:: XXX.png                                 |
-|    :target: XXX.html                                            |    :target: XXX.html                               |
+| .. image:: figures/iris_gfz_event_based.png                     | .. image:: XXX.png                                 |
+|    :target: `Update an existing data set`_                      |    :target: XXX.html                               |
 +-----------------------------------------------------------------+----------------------------------------------------+
 | **Processing and instrument correction**                        | **Synthetic seismograms**                          |
 |                                                                 |                                                    |
@@ -190,11 +190,12 @@ To plot the stations/events/rays:
 Update an existing data set
 ---------------------------
 
-The following command updates the data-set that we created in the previous section with ``BHZ`` channels from the ``GFZ`` data center:
+The following command updates the data-set that we created in the previous section with ``BHZ`` channels of ``C*`` networks (i.e., all stations that their network codes start with C)
+from the ``GFZ`` data center:
 
 ::
 
-    obspyDMT --datapath event_based_dir --data_source "GFZ" --cha "BHZ" --preset 100 --offset 1800
+    obspyDMT --datapath event_based_dir --data_source "GFZ" --net "C*" --cha "BHZ" --preset 100 --offset 1800
 
 .. image:: figures/iris_gfz_event_based.png
    :scale: 75%
