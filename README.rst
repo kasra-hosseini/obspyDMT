@@ -10,7 +10,7 @@ Table of contents
 *  `Gallery`_
 
    -  `Quick tour`_: run a quick tour.
-   -  `event info request`_: get info about events without downloading waveforms.
+   -  `Earthquake meta-data`_: get info about events without downloading waveforms.
    -  `seismicity map`_
    -  `event based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
    -  `continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
@@ -61,7 +61,7 @@ Run a quick tour:
 
     obspyDMT --tour
 
-*dmt_tour_dir* directory will be created in the current path, and retrieved/processed waveforms as well as meta-data will be organized there (Refer to `Directory structure`_ section for more information).
+*dmt_tour_dir* directory will be created in the current path, and retrieved/processed waveforms as well as meta-data will be organized there (refer to `Directory structure`_ section for more information).
 
 The retrieved waveforms can be plotted by:
 
@@ -83,7 +83,7 @@ To plot the processed/corrected waveforms, ``--plot_dir_name processed`` can be 
    :scale: 60%
    :align: center
 
-obspyDMT has several tools to plot the contents of a data set. As an example, the following command line plots the ray coverage (ray path between each source-receiver pair) of ``dmt_tour_dir``:
+obspyDMT has several tools to plot the contents of a data set. As an example, the following command line plots the ray coverage (ray path between each source-receiver pair) of ``dmt_tour_dir`` directory:
 
 ::
 
@@ -93,8 +93,8 @@ obspyDMT has several tools to plot the contents of a data set. As an example, th
    :scale: 75%
    :align: center
 
-event info request
-------------------
+Earthquake meta-data
+--------------------
 
 Get info about events without downloading/processing waveforms! This method can be used to check available events before starting an actual waveform retrieval, for example:
 
