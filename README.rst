@@ -31,7 +31,7 @@ Gallery
 |                                        |                                                                |                                                   |
 | .. image:: figures/quick_tour_ray.png  | .. image:: figures/quick_tour_ray.png                          | .. image:: figures/quick_tour_ray.png             |
 |    :target: `Quick tour`_              |    :target: XXX.html                                           |    :target: XXX.html                              |
-|    :width: 10%                         |    :width: 10%                                                 |    :width: 10%                                    |
+|    :width: 30%                         |    :width: 30%                                                 |    :width: 30%                                    |
 +----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
 | **KML**                                | **VTK**                                                        | **Event-based mode**                              |
 |                                        |                                                                |                                                   |
