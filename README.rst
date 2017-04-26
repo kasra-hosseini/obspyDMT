@@ -26,32 +26,45 @@ Table of contents
 Gallery
 -------
 
-+----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
-| **Quick tour**                         | **Earthquake meta-data**                                       | **Seismicity map**                                |
-|                                        |                                                                |                                                   |
-| .. figure:: figures/quick_tour_ray.png | .. figure:: figures/neic_event_focal_2014_2015.png             | .. figure:: figures/japan_seismicity.png          |
-|    :target: `Quick tour`_              |    :target: `Earthquake meta-data`_                            |    :target: `Seismicity map`_                     |
-|    :figwidth: 30 %                     |    :figwidth: 30 %                                             |    :figwidth: 30 %                                |
-|                                        |                                                                |    :scale: 120 %                                  |
-+----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
-| **Event-based mode**                   | **KML**                                                        | **VTK**                                           |
-|                                        |                                                                |                                                   |
-| .. image:: XXX.png                     | .. image:: XXX.png                                             | .. image:: XXX.png                                |
-|    :target: XXX.html                   |    :target: XXX.html                                           |    :target: XXX.html                              |
-|    :width: 10%                         |    :width: 10%                                                 |    :width: 10%                                    |
-+----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
-| **Update an existing data set**        | **Time-continuous mode**                                       | **Processing and instrument correction**          |
-|                                        |                                                                |                                                   |
-| .. image:: XXX.png                     | .. image:: XXX.png                                             | .. image:: XXX.png                                |
-|    :target: XXX.html                   |    :target: XXX.html                                           |    :target: XXX.html                              |
-|    :width: 10%                         |    :width: 10%                                                 |    :width: 10%                                    |
-+----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
-| **Synthetic seismograms**              | **Explore station meta-data (StationXML files, filterstages)** | **Speeding up data retrieval by parallelization** |
-|                                        |                                                                |                                                   |
-| .. image:: XXX.png                     | .. image:: XXX.png                                             | .. image:: XXX.png                                |
-|    :target: XXX.html                   |    :target: XXX.html                                           |    :target: XXX.html                              |
-|    :width: 10%                         |    :width: 10%                                                 |    :width: 10%                                    |
-+----------------------------------------+----------------------------------------------------------------+---------------------------------------------------+
++-----------------------------------------------------------------+----------------------------------------------------+
+| **Quick tour**                                                  | **Earthquake meta-data**                           |
+|                                                                 |                                                    |
+| .. image:: figures/quick_tour_ray.png                           | .. image:: figures/neic_event_focal_2014_2015.png  |
+|    :target: `Quick tour`_                                       |    :target: `Earthquake meta-data`_                |
+|    :width: 30%                                                  |    :width: 30%                                     |
++-----------------------------------------------------------------+----------------------------------------------------+
+| **Seismicity map**                                              | **Event-based mode**                               |
+|                                                                 |                                                    |
+| .. image:: figures/japan_seismicity.png                         | .. image:: XXX.png                                 |
+|    :target: `Seismicity map`_                                   |    :target: XXX.html                               |
+|    :width: 30%                                                  |    :width: 30%                                     |
++-----------------------------------------------------------------+----------------------------------------------------+
+| **Update an existing data set**                                 | **Time-continuous mode**                           |
+|                                                                 |                                                    |
+| .. image:: XXX.png                                              | .. image:: XXX.png                                 |
+|    :target: XXX.html                                            |    :target: XXX.html                               |
+|    :width: 30%                                                  |    :width: 30%                                     |
++-----------------------------------------------------------------+----------------------------------------------------+
+| **Processing and instrument correction**                        | **Synthetic seismograms**                          |
+|                                                                 |                                                    |
+| .. image:: XXX.png                                              | .. image:: XXX.png                                 |
+|    :target: XXX.html                                            |    :target: XXX.html                               |
+|    :width: 30%                                                  |    :width: 30%                                     |
++-----------------------------------------------------------------+----------------------------------------------------+
+| **Explore station meta-data (StationXML files, filterstages)**  | **Speeding up data retrieval by parallelization**  |
+|                                                                 |                                                    |
+| .. image:: XXX.png                                              | .. image:: XXX.png                                 |
+|    :target: XXX.html                                            |    :target: XXX.html                               |
+|    :width: 30%                                                  |    :width: 30%                                     |
++-----------------------------------------------------------------+----------------------------------------------------+
+| **KML**                                                         | **VTK**                                            |
+|                                                                 |                                                    |
+| .. image:: XXX.png                                              | .. image:: XXX.png                                 |
+|    :target: XXX.html                                            |    :target: XXX.html                               |
+|    :width: 30%                                                  |    :width: 30%                                     |
++-----------------------------------------------------------------+----------------------------------------------------+
+
+
 
 Quick tour
 ----------
