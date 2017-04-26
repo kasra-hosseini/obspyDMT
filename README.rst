@@ -12,11 +12,12 @@ Table of contents
    -  `Quick tour`_: run a quick tour.
    -  `Earthquake meta-data`_: get info about events without downloading waveforms.
    -  `Seismicity map`_
-   -  `event based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
+   -  `Event-based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
+   -  `Update an existing data set`_
    -  `continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
    -  `processing`_: process the data automatically after the data retrieval and/or on an existing data-set.
-   - `Parallel retrieving and processing`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
-   - `Explore stationXML file`_: explore and analyze stationXML file(s).
+   -  `Parallel retrieving and processing`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
+   -  `Explore stationXML file`_: explore and analyze stationXML file(s).
 
 *  `Supported event catalogs and data centers`_: available event catalogs and data centers.
 *  `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
@@ -34,8 +35,8 @@ Gallery
 +-----------------------------------------------------------------+----------------------------------------------------+
 | **Seismicity map**                                              | **Event-based mode**                               |
 |                                                                 |                                                    |
-| .. image:: figures/japan_seismicity.png                         | .. image:: XXX.png                                 |
-|    :target: `Seismicity map`_                                   |    :target: XXX.html                               |
+| .. image:: figures/japan_seismicity.png                         | .. image:: figures/iris_event_based.png            |
+|    :target: `Seismicity map`_                                   |    :target: `Event-based mode`_                    |
 +-----------------------------------------------------------------+----------------------------------------------------+
 | **Update an existing data set**                                 | **Time-continuous mode**                           |
 |                                                                 |                                                    |
@@ -159,59 +160,53 @@ Note the rendering of coloured beach balls in the map inset (deepest seismicity 
 The global map also contains beach balls rather than just simple black dots, but they do not become apparent at this zoom level.
 
 
-event based mode
+Event-based mode
 ----------------
 
-To retrieve all stations that:
-
-1. station code starts with A (--sta "A*" in the following command line)
-2. BHZ channels
-3. GFZ data-center
-4. length: 300 sec before and 3600 sec after the origin time of each event
-
-For events with:
-
-1. magnitude more than 7.0
-2. occured 2014-01-01 until 2015-01-01
-3. NEIC_USGS catalog
+The following command retrieves actual BHZ and HHZ seismograms from the IRIS data center that recorded earthquakes of magnitude more than 7.0 that occured from 2014-01-01 until
+2015-01-01 (NEIC catalog). For this example, we only retrieve stations with station code ``G*``, location code ``00`` and channel codes ``BHZ,HHZ``.
 
 ::
 
-    obspyDMT --datapath event_based_dir --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.0 --event_catalog NEIC_USGS --data_source "GFZ" --sta "A*" --cha "BHZ" --preset 300 --offset 3600
+    obspyDMT --datapath event_based_dir --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.0 --event_catalog NEIC_USGS --data_source IRIS --net "G*" --loc '00' --cha "BHZ,HHZ" --preset 300 --offset 3600
 
-To plot the ray coverage:
+``--data_source`` specifies that the waveform data center of IRIS should be contacted for seismograms.
+Omitting this flag would trigger the default ``--data_source IRIS``.
+``--preset 300`` and ``--offset 3600`` specify the retrieval of waveform time windows of 300 s before to 3600 s after the reference time.
+Since we are downloading in event-based mode, i.e., centered around earthquake occurrences, the reference time defaults to the event origin time.
+This could be changed to the time of P-wave arrival by invoking ``--cut_time_phase``,
+in which case each seismogram would have a different absolute start time.
+
+To plot the stations/events/rays:
 
 ::
 
     obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --plot_ray
 
-.. image:: figures/gfz_event_based.png
+.. image:: figures/iris_event_based.png
    :scale: 75%
    :align: center
 
-It is possible to update the above data-set with other event/stations:
+Update an existing data set
+---------------------------
+
+The following command updates the data-set that we created in the previous section with ``BHZ,HHZ`` channels from ``GEONET`` data center:
 
 ::
 
     obspyDMT --datapath event_based_dir --data_source "GEONET" --cha "BHZ,HHZ" --preset 300 --offset 3600
 
-.. image:: figures/gfz_geonet_event_based.png
+.. image:: figures/iris_geonet_event_based.png
    :scale: 75%
    :align: center
 
-In fact, it could have been also possible to request GFZ and GEONET at the same time:
+Similarly, it is possible to update the data-set for the GSN network:
 
 ::
 
-    obspyDMT --datapath event_based_dir --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.0 --event_catalog NEIC_USGS --data_source "GFZ,GEONET" --cha "BHZ,HHZ" --preset 300 --offset 3600
+    obspyDMT --datapath event_based_dir --net _GSN --cha "BHZ" --preset 300 --offset 3600
 
-Similarly, it is possible to update the data-set for TA network and * stations: (--data_source is omitted as IRIS is the default data source, i.e. --data_source IRIS would give the same result)
-
-::
-
-    obspyDMT --datapath event_based_dir --net TA --cha "BHZ,HHZ" --preset 300 --offset 3600
-
-.. image:: figures/gfz_geonet_iris_event_based.png
+.. image:: figures/iris_geonet_gsn_event_based.png
    :scale: 75%
    :align: center
 
