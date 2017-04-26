@@ -100,7 +100,7 @@ Print supported data centers that can be passed as arguments to ``--data_source`
 
     obspyDMT --print_data_sources
 
-Print supported earthquake catalogs that can be passed as arguments to --event_catalog:
+Print supported earthquake catalogs that can be passed as arguments to ``--event_catalog``:
 
 ::
 
@@ -109,7 +109,18 @@ Print supported earthquake catalogs that can be passed as arguments to --event_c
 Gallery
 -------
 
-Collection of examples: XXX
++--------------------------------------------------+----------------------+----------------------+
+| .. image:: figures/epi_time_20110311_1_raw.png   | .. image:: XXX.png   | .. image:: XXX.png   |
+|    :target: `Quick Tour`_                        |    :target: XXX.html |    :target: XXX.html |
++--------------------------------------------------+----------------------+----------------------+
+| .. image:: XXX.png                               | .. image:: XXX.png   | .. image:: XXX.png   |
+|    :target: XXX.html                             |    :target: XXX.html |    :target: XXX.html |
++--------------------------------------------------+----------------------+----------------------+
+| .. image:: XXX.png                               | .. image:: XXX.png   | .. image:: XXX.png   |
+|    :target: XXX.html                             |    :target: XXX.html |    :target: XXX.html |
++--------------------------------------------------+----------------------+----------------------+
+|                                                  |                      |                      |
++--------------------------------------------------+----------------------+----------------------+
 
 Quick tour
 ----------
