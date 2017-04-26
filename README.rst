@@ -35,7 +35,7 @@ Gallery
 +-----------------------------------------------------------------+----------------------------------------------------+
 | **Seismicity map**                                              | **Event-based mode**                               |
 |                                                                 |                                                    |
-| .. image:: figures/japan_seismicity.png                         | .. image:: figures/iris_event_based_mode.png       |
+| .. image:: figures/japan_seismicity.png                         | .. image:: figures/iris_ev_based_mode.png          |
 |    :target: `Seismicity map`_                                   |    :target: `Event-based mode`_                    |
 +-----------------------------------------------------------------+----------------------------------------------------+
 | **Update an existing data set**                                 | **Time-continuous mode**                           |
@@ -163,16 +163,16 @@ The global map also contains beach balls rather than just simple black dots, but
 Event-based mode
 ----------------
 
-The following command retrieves actual BHZ and HHZ seismograms from the IRIS data center that recorded earthquakes of magnitude more than 7.0 that occured from 2014-01-01 until
-2015-01-01 (NEIC catalog). For this example, we only retrieve stations with station code ``G*``, location code ``00`` and channel codes ``BHZ,HHZ``.
+The following command retrieves actual BHZ seismograms from the IRIS data center that recorded earthquakes of magnitude more than 7.5 that occured from 2014-01-01 until
+2015-01-01 (NEIC catalog). For this example, we only retrieve stations with station code ``II``, location code ``00`` and channel codes ``BHZ``.
 
 ::
 
-    obspyDMT --datapath event_based_dir --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.0 --event_catalog NEIC_USGS --data_source IRIS --net "G*" --loc '00' --cha "BHZ,HHZ" --preset 300 --offset 3600
+    obspyDMT --datapath event_based_dir --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.5 --event_catalog NEIC_USGS --data_source IRIS --net "II" --loc "00" --cha "BHZ" --preset 100 --offset 1800
 
 ``--data_source`` specifies that the waveform data center of IRIS should be contacted for seismograms.
 Omitting this flag would trigger the default ``--data_source IRIS``.
-``--preset 300`` and ``--offset 3600`` specify the retrieval of waveform time windows of 300 s before to 3600 s after the reference time.
+``--preset 100`` and ``--offset 1800`` specify the retrieval of waveform time windows of 100 s before to 1800 s after the reference time.
 Since we are downloading in event-based mode, i.e., centered around earthquake occurrences, the reference time defaults to the event origin time.
 This could be changed to the time of P-wave arrival by invoking ``--cut_time_phase``,
 in which case each seismogram would have a different absolute start time.
@@ -183,30 +183,20 @@ To plot the stations/events/rays:
 
     obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --plot_ray
 
-.. image:: figures/iris_event_based_mode.png
+.. image:: figures/iris_ev_based_mode.png
    :scale: 75%
    :align: center
 
 Update an existing data set
 ---------------------------
 
-The following command updates the data-set that we created in the previous section with ``BHZ,HHZ`` channels from ``GEONET`` data center:
+The following command updates the data-set that we created in the previous section with ``BHZ`` channels from the ``GFZ`` data center:
 
 ::
 
-    obspyDMT --datapath event_based_dir --data_source "GEONET" --cha "BHZ,HHZ" --preset 300 --offset 3600
+    obspyDMT --datapath event_based_dir --data_source "GFZ" --cha "BHZ" --preset 100 --offset 1800
 
-.. image:: figures/iris_geonet_event_based.png
-   :scale: 75%
-   :align: center
-
-Similarly, it is possible to update the data-set for the GSN network:
-
-::
-
-    obspyDMT --datapath event_based_dir --net _GSN --cha "BHZ" --preset 300 --offset 3600
-
-.. image:: figures/iris_geonet_gsn_event_based.png
+.. image:: figures/iris_gfz_event_based.png
    :scale: 75%
    :align: center
 
