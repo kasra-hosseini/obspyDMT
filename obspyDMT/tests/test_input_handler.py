@@ -156,7 +156,7 @@ def test_tour():
     assert len(glob('./dmt_tour_dir/20110311_054623.a/processed/*')) == 13
     assert len(glob('./dmt_tour_dir/20110311_054623.a/raw/*')) == 13
     assert len(glob('./dmt_tour_dir/20110311_054623.a/resp/*')) == 13
-    assert len(glob('./dmt_tour_dir/20110311_054623.a/info/*')) == 7
+    assert len(glob('./dmt_tour_dir/20110311_054623.a/info/*')) == 8
 
     import shutil
     shutil.rmtree('./dmt_tour_dir')
