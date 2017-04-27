@@ -44,7 +44,7 @@ Run a quick tour:
 obspyDMT --tour
 ```
 
-*dmt_tour_dir* directory will be created in the current path, and retrieved/processed waveforms as well as meta-data will be organized there (refer to `Directory structure`_ section for more information).
+``dmt_tour_dir`` directory will be created in the current path, and retrieved/processed waveforms as well as meta-data will be organized there (refer to [Directory structure](#directory-structure) section for more information).
 
 The retrieved waveforms can be plotted by:
 
@@ -327,7 +327,7 @@ Cite the code:
 
 Once a working Python and `ObsPy <https://github.com/obspy/obspy/wiki>`_ environment is available, obspyDMT can be installed:
 
-**1. Source code:** The latest version of obspyDMT is available on GitHub. After installing `git <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`_ on your machine:
+**1. Source code:** The latest version of obspyDMT is available on GitHub. After installing [git](<https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>) on your machine:
 
 ```bash
 git clone https://github.com/kasra-hosseini/obspyDMT.git /path/to/my/obspyDMT
@@ -347,7 +347,7 @@ cd /path/to/my/obspyDMT
 python setup.py install
 ```
 
-**2. PyPi:** One simple way to install obspyDMT is via `PyPi <https://pypi.python.org/pypi>`_ (for the released versions):
+**2. PyPi:** One simple way to install obspyDMT is via [PyPi](<https://pypi.python.org/pypi>) (for the released versions):
 
 ```bash
 pip install obspyDMT
