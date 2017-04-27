@@ -301,7 +301,7 @@ Explore station meta-data (StationXML files, filterstages)
     obspyDMT --datapath /path/to/STXML.IC.XAN.00.BHZ --plot_stationxml --plotxml_paz --plotxml_min_freq 0.0001
 
 .. image:: figures/ic_XAN.png
-   :scale: 30%
+   :width: 30%
    :align: center
 
 ::
