@@ -15,6 +15,7 @@
 from __future__ import print_function
 import copy
 from datetime import datetime
+from glob import glob
 import numpy as np
 from obspy import UTCDateTime
 try:
@@ -96,18 +97,38 @@ def get_metadata(input_dics, event, info_avail):
 
     stas_arr = np.array(stas_all)
     np.save(os.path.join(target_path, 'info', 'availability'), stas_arr)
-    avail_add = os.path.join(target_path, 'info', 'availability.txt')
-    avail_fi = open(avail_add, 'ab')
+
+    avail_add_all = os.path.join(target_path, 'info', 'availability.txt')
+    avail_fi = open(avail_add_all, 'ab')
     np.savetxt(avail_fi, stas_arr, delimiter=',', fmt='%s')
     avail_fi.close()
 
-    saved_avail = np.loadtxt(avail_add, delimiter=',',
+    saved_avail = np.loadtxt(avail_add_all, delimiter=',',
                              dtype=bytes, ndmin=2).astype(np.str)
     saved_avail = saved_avail.astype(np.object)
     unique_avail = []
-    if len(saved_avail) > 1:
+    if len(saved_avail) >= 1:
         unique_avail = unique_rows_avail(saved_avail)
-        avail_fi = open(avail_add, 'wb')
+        avail_fi = open(avail_add_all, 'wb')
+        np.savetxt(avail_fi, unique_avail, delimiter=',', fmt='%s')
+        avail_fi.close()
+
+    avail_add_cur = os.path.join(
+        target_path, 'info', 'availability_%05i.txt'
+                             % len(glob(os.path.join(target_path,
+                                                     'info',
+                                                     'availab*.txt'))))
+    avail_fi = open(avail_add_cur, 'wb')
+    np.savetxt(avail_fi, stas_arr, delimiter=',', fmt='%s')
+    avail_fi.close()
+
+    saved_avail = np.loadtxt(avail_add_cur, delimiter=',',
+                             dtype=bytes, ndmin=2).astype(np.str)
+    saved_avail = saved_avail.astype(np.object)
+    unique_avail = []
+    if len(saved_avail) >= 1:
+        unique_avail = unique_rows_avail(saved_avail)
+        avail_fi = open(avail_add_cur, 'wb')
         np.savetxt(avail_fi, unique_avail, delimiter=',', fmt='%s')
         avail_fi.close()
 
