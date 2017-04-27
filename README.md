@@ -52,7 +52,10 @@ The retrieved waveforms can be plotted by:
 ```bash
 obspyDMT --datapath dmt_tour_dir --local --plot_waveform
 ```
+
+<p align="center">
 <img src="figures/quick_tour_raw.png" width="70%" align="middle">
+</p>
 
 To plot the processed/corrected waveforms, ``--plot_dir_name processed`` can be added to the previous command line:
 
@@ -111,7 +114,7 @@ One command queried the NEIC catalogue, stored and organised the retrieved infor
 obspyDMT --datapath neic_event_dir --min_date 1990-01-01 --max_date 2017-01-01 --min_mag 5.0 --event_catalog NEIC_USGS --event_info --plot_seismicity
 ```
 
-<img src="figures/neic_catalog_1990.png" width="70%" align="middle">
+<img src="figures/neic_catalog_1990.png" width="100%" align="middle">
 
 The results of some basic statistics (magnitude and depth histograms) are also generated and plotted automatically (top-left panel).
 Note the rendering of coloured beach balls in the map inset (deepest seismicity in the foreground).
@@ -172,7 +175,7 @@ obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --
 obspyDMT --continuous --datapath continuous_example --min_date 2011-03-03 --max_date 2011-04-03 --sta "BFO,RER" --loc '00' --cha "BHZ" --data_source IRIS
 ```
 
-<img src="figures/continuous_example.png" width="70%" align="middle">
+<img src="figures/continuous_example.png" width="100%" align="middle">
 
 ## Processing and instrument correction
 
@@ -220,19 +223,19 @@ obspyDMT --datapath data_fiji_island --local --data_source IRIS --min_azi 50 --m
 obspyDMT --datapath /path/to/STXML.IC.XAN.00.BHZ --plot_stationxml --plotxml_paz --plotxml_min_freq 0.0001
 ```
 
-<img src="figures/ic_XAN.png" width="70%" align="middle">
+<img src="figures/ic_XAN.png" width="50%" align="middle">
 
 ```bash
 obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot_stationxml --plotxml_paz --plotxml_min_freq 0.0001
 ```
 
-<img src="figures/ic_LBTB.png" width="70%" align="middle">
+<img src="figures/ic_LBTB.png" width="50%" align="middle">
 
 ```bash
 obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot_stationxml --plotxml_min_freq 0.0001 --plotxml_allstages
 ```
 
-<img src="figures/ic_LBTB_stages.png" width="70%" align="middle">
+<img src="figures/ic_LBTB_stages.png" width="100%" align="middle">
 
 ## Speeding up data retrieval by parallelization
 
@@ -282,7 +285,7 @@ obspyDMT --print_event_catalogs
 
 obspyDMT organizes the data in a simple and efficient way. For each request, it creates a parent directory at *datapath* and arranges the retrieved data either in different event directories (*event-based request*) or in chronologically named directories (*continuous request*). It also creates a directory in which a catalog of all requested events/time spans are stored. Raw waveforms, StationXML/response files and corrected waveforms are collected in sub-directories. While retrieving the data, obspyDMT creates metadata files such as station/event location files, and they are all stored in *info* directory of each event.
 
-<img src="figures/dmt_dir_structure.png" width="70%" align="middle">
+<img src="figures/dmt_dir_structure.png" width="100%" align="middle">
 
 ## How to cite obspyDMT
 
