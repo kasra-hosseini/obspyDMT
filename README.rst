@@ -16,6 +16,7 @@ Table of contents
    -  `Update an existing data set`_
    -  `Time-continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
    -  `Processing and instrument correction`_: process the data automatically after the data retrieval and/or on an existing data-set.
+   -  `Synthetic seismograms`_
    -  `Parallel retrieving and processing`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
    -  `Explore station meta-data (StationXML files, filterstages)`_:
 
@@ -45,8 +46,8 @@ Gallery
 +----------------------------------------------------------------------------+----------------------------------------------------+
 | **Processing and instrument correction**                                   | **Synthetic seismograms**                          |
 |                                                                            |                                                    |
-| .. image:: figures/fiji_processed.png                                      | .. image:: XXX.png                                 |
-|    :target: `Processing and instrument correction`_                        |    :target: XXX.html                               |
+| .. image:: figures/fiji_processed.png                                      | .. image:: figures/fiji_iasp91_2s.png              |
+|    :target: `Processing and instrument correction`_                        |    :target: `Synthetic seismograms`_               |
 +----------------------------------------------------------------------------+----------------------------------------------------+
 | **Explore station meta-data (StationXML files, filterstages)**             | **Speeding up data retrieval by parallelization**  |
 |                                                                            |                                                    |
@@ -271,33 +272,26 @@ To plot the processed/corrected waveforms (Note ``--plot_dir_name processed``, o
    :scale: 75%
    :align: center
 
-::
+Synthetic seismograms
+---------------------
 
-    obspyDMT --datapath lmu_process_dir --local --plot --plot_waveform --plot_dir_name processed --min_date 2014-01-01
-
-.. .. image:: figures/lmu_processed.png
-..    :scale: 75%
-..    :align: center
-
-.. image:: figures/lmu_not_resampled_zoomed.png
-   :scale: 75%
-   :align: center
-
-Resample the already archived waveforms to (1Hz) and apply instrument correction:
 
 ::
 
-    obspyDMT --datapath lmu_process_dir --local --instrument_correction --sampling_rate 1. --force_process
+    obspyDMT --datapath data_fiji_island --min_mag 6.8 --min_date 2014-07-21 --max_date 2014-07-22 --event_catalog NEIC_USGS --data_source IRIS --min_azi 50 --max_azi 55 --min_epi 94 --max_epi 100 --cha BHZ --instrument_correction --syngine --syngine_bg_model iasp91_2s
 
-we need --force_process since we have already processed the data in the previous step.
+::
 
-.. .. image:: figures/lmu_resampled.png
-..    :scale: 75%
-..    :align: center
+   obspyDMT --datapath data_fiji_island --local --plot_waveform --plot_dir syngine_iasp91_2s
 
-.. image:: figures/lmu_resampled_zoomed.png
+.. image:: figures/fiji_iasp91_2s.png
    :scale: 75%
    :align: center
+
+::
+
+    obspyDMT --datapath data_fiji_island --local --data_source IRIS --min_azi 50 --max_azi 55 --min_epi 94 --max_epi 100 --cha BHZ --pre_process False --syngine --syngine_bg_model iasp91_2s
+
 
 Parallel retrieving and processing
 ----------------------------------
