@@ -5,7 +5,7 @@
 Table of contents
 -----------------
 
-* [Gallery](#gallery)
+- [Gallery](#gallery)
    *  [Quick tour](#quick-tour): run a quick tour.
    *  [Earthquake meta-data](#earthquake-meta-data): get info about events without downloading waveforms.
    *  [Seismicity map](#seismicity-map)
@@ -17,11 +17,10 @@ Table of contents
    *  [Explore station meta-data (StationXML files, filterstages)](#explore-station-meta-data-stationxml-files-filterstages):
    *  [Speeding up data retrieval by parallelization](#speeding-up-data-retrieval-by-parallelization): send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
    *  [KML](#KML)
-
-*  [Supported event catalogs and data centers](#supported-event-catalogs-and-data-centers): available event catalogs and data centers.
-*  [Directory structure](#directory-structure): the way that obspyDMT organizes your retrieved and processed data.
-*  [How to cite obspyDMT](#how-to-cite-obspydmt)
-*  [Installation](#installation): install obspyDMT and check the installation on your local machine.
+-  [Supported event catalogs and data centers](#supported-event-catalogs-and-data-centers): available event catalogs and data centers.
+-  [Directory structure](#directory-structure): the way that obspyDMT organizes your retrieved and processed data.
+-  [How to cite obspyDMT](#how-to-cite-obspydmt)
+-  [Installation](#installation): install obspyDMT and check the installation on your local machine.
 
 ## Gallery
 
