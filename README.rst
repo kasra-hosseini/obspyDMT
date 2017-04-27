@@ -17,8 +17,9 @@ Table of contents
    -  `Time-continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
    -  `Processing and instrument correction`_: process the data automatically after the data retrieval and/or on an existing data-set.
    -  `Synthetic seismograms`_
-   -  `Parallel retrieving and processing`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
    -  `Explore station meta-data (StationXML files, filterstages)`_:
+   -  `Parallel retrieving and processing`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
+   -  `KML`_
 
 *  `Supported event catalogs and data centers`_: available event catalogs and data centers.
 *  `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
@@ -56,8 +57,8 @@ Gallery
 +----------------------------------------------------------------------------+----------------------------------------------------+
 | **KML**                                                                    | **VTK**                                            |
 |                                                                            |                                                    |
-| .. image:: XXX.png                                                         | .. image:: XXX.png                                 |
-|    :target: XXX.html                                                       |    :target: XXX.html                               |
+| .. image:: figures/KML_event_based_example.png                             | .. image:: XXX.png                                 |
+|    :target: `KML`_                                                         |    :target: XXX.html                               |
 +----------------------------------------------------------------------------+----------------------------------------------------+
 
 
@@ -292,25 +293,6 @@ Synthetic seismograms
 
     obspyDMT --datapath data_fiji_island --local --data_source IRIS --min_azi 50 --max_azi 55 --min_epi 94 --max_epi 100 --cha BHZ --pre_process False --syngine --syngine_bg_model iasp91_2s
 
-
-Parallel retrieving and processing
-----------------------------------
-
-enable parallel waveform/response request with X threads.
-::
-
-    --req_parallel --req_np X
-
-enable parallel processing with X threads.
-::
-
-    --parallel_process --process_np X
-
-using the bulkdataselect web service. Since this method returns multiple channels of time series data for specified time ranges in one request, it speeds up the waveform retrieving.
-::
-
-    --bulk
-
 Explore station meta-data (StationXML files, filterstages)
 ----------------------------------------------------------
 
@@ -334,6 +316,37 @@ Explore station meta-data (StationXML files, filterstages)
     obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot_stationxml --plotxml_min_freq 0.0001 --plotxml_allstages
 
 .. image:: figures/ic_LBTB_stages.png
+   :scale: 75%
+   :align: center
+
+Parallel retrieving and processing
+----------------------------------
+
+enable parallel waveform/response request with X threads.
+::
+
+    --req_parallel --req_np X
+
+enable parallel processing with X threads.
+::
+
+    --parallel_process --process_np X
+
+using the bulkdataselect web service. Since this method returns multiple channels of time series data for specified time ranges in one request, it speeds up the waveform retrieving.
+::
+
+    --bulk
+
+KML
+----
+
+Take the example of `Event-based mode` section. To create a KML file (readable by Google-Earth) for each event in that data set:
+
+::
+
+    obspyDMT --datapath event_based_dir --local --plot_ev --plot_sta --plot_focal --plot_ray --create_kml
+
+.. image:: figures/KML_event_based_example.png
    :scale: 75%
    :align: center
 
