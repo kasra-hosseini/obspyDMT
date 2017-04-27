@@ -52,9 +52,6 @@ The retrieved waveforms can be plotted by:
 ```bash
 obspyDMT --datapath dmt_tour_dir --local --plot_waveform
 ```
-
-![](figures/quick_tour_raw.png)
-
 <img src="figures/quick_tour_raw.png" width="70%" align="middle">
 
 To plot the processed/corrected waveforms, ``--plot_dir_name processed`` can be added to the previous command line:
@@ -63,9 +60,7 @@ To plot the processed/corrected waveforms, ``--plot_dir_name processed`` can be 
 obspyDMT --datapath dmt_tour_dir --local --plot_waveform --plot_dir_name processed
 ```
 
-.. image:: figures/quick_tour_corrected.png
-   :scale: 60%
-   :align: center
+<img src="figures/quick_tour_corrected.png" width="70%" align="middle">
 
 obspyDMT has several tools to plot the contents of a data set. As an example, the following command line plots the ray coverage (ray path between each source-receiver pair) of ``dmt_tour_dir`` directory:
 
@@ -73,9 +68,7 @@ obspyDMT has several tools to plot the contents of a data set. As an example, th
 obspyDMT --datapath dmt_tour_dir --local --plot_ev --plot_sta --plot_ray
 ```
 
-.. image:: figures/quick_tour_ray.png
-   :scale: 75%
-   :align: center
+<img src="figures/quick_tour_ray.png" width="70%" align="middle">
 
 ## Earthquake meta-data
 
@@ -84,7 +77,6 @@ Get info about events without downloading/processing waveforms! This method can 
 ```bash
 obspyDMT --datapath neic_event_metadata --min_mag 5.5 --min_date 2014-01-01 --max_date 2015-01-01 --event_catalog NEIC_USGS --event_info
 ```
-
 
 The above directory (neic_event_metadata) can be updated for events that occured in 2015 of magnitude more than 5.5: (no waveform retrieval)
 
@@ -98,10 +90,7 @@ To plot the content of local data set (neic_event_metadata):
 obspyDMT --datapath neic_event_metadata --local --plot_ev --plot_focal
 ```
 
-
-.. image:: figures/neic_event_focal_2014_2015.png
-   :scale: 75%
-   :align: center
+<img src="figures/neic_event_focal_2014_2015.png" width="70%" align="middle">
 
 ## Seismicity map
 
@@ -112,9 +101,7 @@ Note ``--event_rect`` option flag to define a region around Japan:
 obspyDMT --datapath japan_seismicity --min_mag 5.0 --min_date 2000-01-01 --max_date 2017-01-01 --event_catalog NEIC_USGS --event_rect 110./175./15/60 --plot_seismicity --event_info
 ```
 
-.. image:: figures/japan_seismicity.png
-   :scale: 75%
-   :align: center
+<img src="figures/japan_seismicity.png" width="70%" align="middle">
 
 Global seismicity map of archived earthquakes in NEIC catalogue with magnitude more than 5.0 that occurred between 1990 and 2016.
 One command queried the NEIC catalogue, stored and organised the retrieved information and generated the seismicity map.
@@ -124,9 +111,7 @@ One command queried the NEIC catalogue, stored and organised the retrieved infor
 obspyDMT --datapath neic_event_dir --min_date 1990-01-01 --max_date 2017-01-01 --min_mag 5.0 --event_catalog NEIC_USGS --event_info --plot_seismicity
 ```
 
-.. image:: figures/neic_catalog_1990.png
-   :scale: 75%
-   :align: center
+<img src="figures/neic_catalog_1990.png" width="70%" align="middle">
 
 The results of some basic statistics (magnitude and depth histograms) are also generated and plotted automatically (top-left panel).
 Note the rendering of coloured beach balls in the map inset (deepest seismicity in the foreground).
@@ -155,9 +140,7 @@ To plot the stations/events/rays:
 obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --plot_ray
 ```
 
-.. image:: figures/iris_ev_based_mode.png
-   :scale: 75%
-   :align: center
+<img src="figures/iris_ev_based_mode.png" width="70%" align="middle">
 
 ## Update an existing data set
 
@@ -181,28 +164,7 @@ To plot the stations/events/rays:
 obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --plot_ray
 ```
 
-.. image:: figures/iris_gfz_ipgp_ev_based.png
-   :scale: 75%
-   :align: center
-
-
-To create KML file:
-
-```bash
-obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --plot_ray  --create_kml --min_date 2014-01-01
-```
-
-.. image:: figures/google_earth_us.jpg
-   :scale: 75%
-   :align: center
-
-.. image:: figures/google_earth_indo.jpg
-   :scale: 75%
-   :align: center
-
-.. image:: figures/google_earth_zoom.png
-   :scale: 75%
-   :align: center
+<img src="figures/iris_gfz_ipgp_ev_based.png" width="70%" align="middle">
 
 ## Time-continuous mode
 
@@ -210,9 +172,7 @@ obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --
 obspyDMT --continuous --datapath continuous_example --min_date 2011-03-03 --max_date 2011-04-03 --sta "BFO,RER" --loc '00' --cha "BHZ" --data_source IRIS
 ```
 
-.. image:: figures/continuous_example.png
-   :scale: 75%
-   :align: center
+<img src="figures/continuous_example.png" width="70%" align="middle">
 
 ## Processing and instrument correction
 
@@ -236,9 +196,7 @@ To plot the processed/corrected waveforms (Note ``--plot_dir_name processed``, o
 obspyDMT --datapath data_fiji_island --local --plot_waveform --plot_dir processed
 ```
 
-.. image:: figures/fiji_processed.png
-   :scale: 75%
-   :align: center
+<img src="figures/fiji_processed.png" width="70%" align="middle">
 
 ## Synthetic seismograms
 
@@ -250,9 +208,7 @@ obspyDMT --datapath data_fiji_island --min_mag 6.8 --min_date 2014-07-21 --max_d
 obspyDMT --datapath data_fiji_island --local --plot_waveform --plot_dir syngine_iasp91_2s
 ```
 
-.. image:: figures/fiji_iasp91_2s.png
-   :scale: 75%
-   :align: center
+<img src="figures/fiji_iasp91_2s.png" width="70%" align="middle">
 
 ```bash
 obspyDMT --datapath data_fiji_island --local --data_source IRIS --min_azi 50 --max_azi 55 --min_epi 94 --max_epi 100 --cha BHZ --pre_process False --syngine --syngine_bg_model iasp91_2s
@@ -264,25 +220,19 @@ obspyDMT --datapath data_fiji_island --local --data_source IRIS --min_azi 50 --m
 obspyDMT --datapath /path/to/STXML.IC.XAN.00.BHZ --plot_stationxml --plotxml_paz --plotxml_min_freq 0.0001
 ```
 
-.. figure:: figures/ic_XAN.png
-   :width: 30%
-   :align: center
+<img src="figures/ic_XAN.png" width="70%" align="middle">
 
 ```bash
 obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot_stationxml --plotxml_paz --plotxml_min_freq 0.0001
 ```
 
-.. image:: figures/ic_LBTB.png
-   :scale: 75%
-   :align: center
+<img src="figures/ic_LBTB.png" width="70%" align="middle">
 
 ```bash
 obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot_stationxml --plotxml_min_freq 0.0001 --plotxml_allstages
 ```
 
-.. image:: figures/ic_LBTB_stages.png
-   :scale: 75%
-   :align: center
+<img src="figures/ic_LBTB_stages.png" width="70%" align="middle">
 
 ## Speeding up data retrieval by parallelization
 
@@ -312,9 +262,7 @@ Take the example of `Event-based mode` section. To create a KML file (readable b
 obspyDMT --datapath event_based_dir --local --plot_ev --plot_sta --plot_focal --plot_ray --create_kml
 ```
 
-.. image:: figures/KML_event_based_example.png
-   :scale: 75%
-   :align: center
+<img src="figures/KML_event_based_example.png" width="70%" align="middle">
 
 ## Supported event catalogs and data centers
 
@@ -334,9 +282,7 @@ obspyDMT --print_event_catalogs
 
 obspyDMT organizes the data in a simple and efficient way. For each request, it creates a parent directory at *datapath* and arranges the retrieved data either in different event directories (*event-based request*) or in chronologically named directories (*continuous request*). It also creates a directory in which a catalog of all requested events/time spans are stored. Raw waveforms, StationXML/response files and corrected waveforms are collected in sub-directories. While retrieving the data, obspyDMT creates metadata files such as station/event location files, and they are all stored in *info* directory of each event.
 
-.. image:: figures/dmt_dir_structure.png
-   :scale: 80%
-   :align: center
+<img src="figures/dmt_dir_structure.png" width="70%" align="middle">
 
 ## How to cite obspyDMT
 
