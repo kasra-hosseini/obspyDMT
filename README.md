@@ -55,7 +55,7 @@ obspyDMT --datapath dmt_tour_dir --local --plot_waveform
 
 ![](figures/quick_tour_raw.png)
 
-<img src="figures/quick_tour_raw.png" width="70%" align="center">
+<img src="figures/quick_tour_raw.png" width="70%" align="middle">
 
 To plot the processed/corrected waveforms, ``--plot_dir_name processed`` can be added to the previous command line:
 
