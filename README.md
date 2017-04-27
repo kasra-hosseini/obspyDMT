@@ -9,58 +9,35 @@ Table of contents
    *  [Quick tour](#quick-tour): run a quick tour.
    *  [Earthquake meta-data](#earthquake-meta-data): get info about events without downloading waveforms.
    *  [Seismicity map](#seismicity-map)
-   *  [Event-based mode](event-based-mode):  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
-   *  [Update an existing data set](update-an-existing-data-set)
-   *  [Time-continuous mode](time-continuous-mode): retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
-   *  [Processing and instrument correction](processing-and-instrument-correction): process the data automatically after the data retrieval and/or on an existing data-set.
-   *  [Synthetic seismograms](synthetic-seismograms)
-   *  [Explore station meta-data (StationXML files, filterstages)](explore-station-meta-data-(StationXML-files,-filterstages)):
-   *  [Speeding up data retrieval by parallelization]: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
-   *  [KML]
+   *  [Event-based mode](#event-based-mode):  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
+   *  [Update an existing data set](#update-an-existing-data-set)
+   *  [Time-continuous mode](#time-continuous-mode): retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
+   *  [Processing and instrument correction](#processing-and-instrument-correction): process the data automatically after the data retrieval and/or on an existing data-set.
+   *  [Synthetic seismograms](#synthetic-seismograms)
+   *  [Explore station meta-data (StationXML files, filterstages)](#explore-station-meta-data-stationxml-files-filterstages):
+   *  [Speeding up data retrieval by parallelization](#speeding-up-data-retrieval-by-parallelization): send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
+   *  [KML](#KML)
 
-*  `Supported event catalogs and data centers`_: available event catalogs and data centers.
-*  `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
-*  `How to cite obspyDMT`_
-*  `Installation`_: install obspyDMT and check the installation on your local machine.
+*  [Supported event catalogs and data centers](#supported-event-catalogs-and-data-centers): available event catalogs and data centers.
+*  [Directory structure](#directory-structure): the way that obspyDMT organizes your retrieved and processed data.
+*  [How to cite obspyDMT](#how-to-cite-obspydmt)
+*  [Installation](#installation): install obspyDMT and check the installation on your local machine.
 
-Gallery
--------
+##Gallery
 
-+----------------------------------------------------------------------------+------------------------------------------------------------------+
-| **Quick tour**                                                             | **Earthquake meta-data**                                         |
-|                                                                            |                                                                  |
-| .. image:: figures/quick_tour_ray.png                                      | .. image:: figures/neic_event_focal_2014_2015.png                |
-|    :target: `Quick tour`_                                                  |    :target: `Earthquake meta-data`_                              |
-+----------------------------------------------------------------------------+------------------------------------------------------------------+
-| **Seismicity map**                                                         | **Event-based mode**                                             |
-|                                                                            |                                                                  |
-| .. image:: figures/japan_seismicity.png                                    | .. image:: figures/iris_ev_based_mode.png                        |
-|    :target: `Seismicity map`_                                              |    :target: `Event-based mode`_                                  |
-+----------------------------------------------------------------------------+------------------------------------------------------------------+
-| **Update an existing data set**                                            | **Time-continuous mode**                                         |
-|                                                                            |                                                                  |
-| .. image:: figures/iris_gfz_ipgp_ev_based.png                              | .. image:: figures/continuous_example.png                        |
-|    :target: `Update an existing data set`_                                 |    :target: `Time-continuous mode`_                              |
-+----------------------------------------------------------------------------+------------------------------------------------------------------+
-| **Processing and instrument correction**                                   | **Synthetic seismograms**                                        |
-|                                                                            |                                                                  |
-| .. image:: figures/fiji_processed.png                                      | .. image:: figures/fiji_iasp91_2s.png                            |
-|    :target: `Processing and instrument correction`_                        |    :target: `Synthetic seismograms`_                             |
-+----------------------------------------------------------------------------+------------------------------------------------------------------+
-| **Explore station meta-data (StationXML files, filterstages)**             | **Speeding up data retrieval by parallelization**                |
-|                                                                            |                                                                  |
-| .. image:: figures/ic_LBTB_gallery.png                                     | .. image:: figures/gallery_parallel.png                          |
-|    :target: `Explore station meta-data (StationXML files, filterstages)`_  |    :target: `Speeding up data retrieval by parallelization`_     |
-+----------------------------------------------------------------------------+------------------------------------------------------------------+
-| **KML**                                                                    | **VTK**                                                          |
-|                                                                            |                                                                  |
-| .. image:: figures/KML_event_based_example.png                             | .. image:: XXX.png                                               |
-|    :target: `KML`_                                                         |    :target: XXX.html                                             |
-+----------------------------------------------------------------------------+------------------------------------------------------------------+
+
+| **Quick tour**                                                 <a href="#quick-tour">![](figures/quick_tour_ray.png)             | **Earthquake meta-data**                            ![](figures/neic_event_focal_2014_2015.png)      |
+| ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Seismicity map**                                             ![](figures/japan_seismicity.png)            | **Event-based mode**                                ![](figures/iris_ev_based_mode.png)              |
+| **Update an existing data set**                                ![](figures/iris_gfz_ipgp_ev_based.png)      | **Time-continuous mode**                            ![](figures/continuous_example.png)              |
+| **Processing and instrument correction**                       ![](figures/fiji_processed.png)              | **Synthetic seismograms**                           ![](figures/fiji_iasp91_2s.png)                  |
+| **Explore station meta-data (StationXML files, filterstages)** ![](figures/ic_LBTB_gallery.png)             | **Speeding up data retrieval by parallelization**   ![](figures/gallery_parallel.png)                |
+| **KML**                                                        ![](figures/KML_event_based_example.png)     | **VTK**                                                                                              |
 
 
 
-## Quick tour
+
+##Quick tour
 
 Run a quick tour:
 
@@ -100,8 +77,7 @@ obspyDMT has several tools to plot the contents of a data set. As an example, th
    :scale: 75%
    :align: center
 
-Earthquake meta-data
---------------------
+##Earthquake meta-data
 
 Get info about events without downloading/processing waveforms! This method can be used to check available events before starting an actual waveform retrieval, for example:
 
@@ -127,8 +103,7 @@ To plot the content of local data set (neic_event_metadata):
    :scale: 75%
    :align: center
 
-Seismicity map
---------------
+##Seismicity map
 
 Seismicity map (``--plot_seismicity`` option flag) of Japan region based on earthquakes of magnitude more than 5.0 that occured from 2000-01-01 until 2017-01-01 from NEIC event catalog.
 Note ``--event_rect`` option flag to define a region around Japan:
@@ -158,8 +133,7 @@ Note the rendering of coloured beach balls in the map inset (deepest seismicity 
 The global map also contains beach balls rather than just simple black dots, but they do not become apparent at this zoom level.
 
 
-Event-based mode
-----------------
+##Event-based mode
 
 The following command retrieves actual BHZ seismograms from the IRIS data center that recorded earthquakes of magnitude more than 7.5 that occured from 2014-01-01 until
 2015-01-01 (NEIC catalog). For this example, we only retrieve stations with station code ``II``, location code ``00`` and channel codes ``BHZ``.
@@ -185,8 +159,7 @@ To plot the stations/events/rays:
    :scale: 75%
    :align: center
 
-Update an existing data set
----------------------------
+##Update an existing data set
 
 The following command updates the data-set that we created in the previous section with ``BHZ`` channels of ``C*`` networks (i.e., all stations that their network codes start with C)
 from the ``GFZ`` data center:
@@ -230,8 +203,7 @@ To create KML file:
    :scale: 75%
    :align: center
 
-Time-continuous mode
---------------------
+##Time-continuous mode
 
 ::
 
@@ -241,8 +213,7 @@ Time-continuous mode
    :scale: 75%
    :align: center
 
-Processing and instrument correction
-------------------------------------
+##Processing and instrument correction
 
 obspyDMT can process the waveforms directly after retrieving the data, or it can process an existing data set in a separate step (local mode).
 By default, obspyDMT follows processing instructions described in the ``process_unit.py`` located at ``/path/to/my/obspyDMT/obspyDMT`` directory.
@@ -269,8 +240,7 @@ To plot the processed/corrected waveforms (Note ``--plot_dir_name processed``, o
    :scale: 75%
    :align: center
 
-Synthetic seismograms
----------------------
+##Synthetic seismograms
 
 
 ::
@@ -289,8 +259,7 @@ Synthetic seismograms
 
     obspyDMT --datapath data_fiji_island --local --data_source IRIS --min_azi 50 --max_azi 55 --min_epi 94 --max_epi 100 --cha BHZ --pre_process False --syngine --syngine_bg_model iasp91_2s
 
-Explore station meta-data (StationXML files, filterstages)
-----------------------------------------------------------
+##Explore station meta-data (StationXML files, filterstages)
 
 ::
 
@@ -315,8 +284,7 @@ Explore station meta-data (StationXML files, filterstages)
    :scale: 75%
    :align: center
 
-Speeding up data retrieval by parallelization
----------------------------------------------
+##Speeding up data retrieval by parallelization
 
 enable parallel waveform/response request with X threads.
 ::
@@ -333,8 +301,7 @@ using the bulkdataselect web service. Since this method returns multiple channel
 
     --bulk
 
-KML
-----
+##KML
 
 Take the example of `Event-based mode` section. To create a KML file (readable by Google-Earth) for each event in that data set:
 
@@ -346,8 +313,7 @@ Take the example of `Event-based mode` section. To create a KML file (readable b
    :scale: 75%
    :align: center
 
-Supported event catalogs and data centers
------------------------------------------
+##Supported event catalogs and data centers
 
 Print supported data centers that can be passed as arguments to ``--data_source``:
 
@@ -361,8 +327,7 @@ Print supported earthquake catalogs that can be passed as arguments to ``--event
 
     obspyDMT --print_event_catalogs
 
-Directory structure
--------------------
+##Directory structure
 
 obspyDMT organizes the data in a simple and efficient way. For each request, it creates a parent directory at *datapath* and arranges the retrieved data either in different event directories (*event-based request*) or in chronologically named directories (*continuous request*). It also creates a directory in which a catalog of all requested events/time spans are stored. Raw waveforms, StationXML/response files and corrected waveforms are collected in sub-directories. While retrieving the data, obspyDMT creates metadata files such as station/event location files, and they are all stored in *info* directory of each event.
 
@@ -370,8 +335,7 @@ obspyDMT organizes the data in a simple and efficient way. For each request, it 
    :scale: 80%
    :align: center
 
-How to cite obspyDMT
---------------------
+##How to cite obspyDMT
 
 Cite the code:
 
@@ -380,8 +344,7 @@ Cite the code:
     Kasra Hosseini (2017), obspyDMT (Version 2.0.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
 
 
-Installation
-------------
+##Installation
 
 Once a working Python and `ObsPy <https://github.com/obspy/obspy/wiki>`_ environment is available, obspyDMT can be installed:
 
