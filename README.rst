@@ -18,7 +18,7 @@ Table of contents
    -  `Processing and instrument correction`_: process the data automatically after the data retrieval and/or on an existing data-set.
    -  `Synthetic seismograms`_
    -  `Explore station meta-data (StationXML files, filterstages)`_:
-   -  `Parallel retrieving and processing`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
+   -  `Speeding up data retrieval by parallelization`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
    -  `KML`_
 
 *  `Supported event catalogs and data centers`_: available event catalogs and data centers.
@@ -29,37 +29,37 @@ Table of contents
 Gallery
 -------
 
-+----------------------------------------------------------------------------+----------------------------------------------------+
-| **Quick tour**                                                             | **Earthquake meta-data**                           |
-|                                                                            |                                                    |
-| .. image:: figures/quick_tour_ray.png                                      | .. image:: figures/neic_event_focal_2014_2015.png  |
-|    :target: `Quick tour`_                                                  |    :target: `Earthquake meta-data`_                |
-+----------------------------------------------------------------------------+----------------------------------------------------+
-| **Seismicity map**                                                         | **Event-based mode**                               |
-|                                                                            |                                                    |
-| .. image:: figures/japan_seismicity.png                                    | .. image:: figures/iris_ev_based_mode.png          |
-|    :target: `Seismicity map`_                                              |    :target: `Event-based mode`_                    |
-+----------------------------------------------------------------------------+----------------------------------------------------+
-| **Update an existing data set**                                            | **Time-continuous mode**                           |
-|                                                                            |                                                    |
-| .. image:: figures/iris_gfz_ipgp_ev_based.png                              | .. image:: figures/continuous_example.png          |
-|    :target: `Update an existing data set`_                                 |    :target: `Time-continuous mode`_                |
-+----------------------------------------------------------------------------+----------------------------------------------------+
-| **Processing and instrument correction**                                   | **Synthetic seismograms**                          |
-|                                                                            |                                                    |
-| .. image:: figures/fiji_processed.png                                      | .. image:: figures/fiji_iasp91_2s.png              |
-|    :target: `Processing and instrument correction`_                        |    :target: `Synthetic seismograms`_               |
-+----------------------------------------------------------------------------+----------------------------------------------------+
-| **Explore station meta-data (StationXML files, filterstages)**             | **Speeding up data retrieval by parallelization**  |
-|                                                                            |                                                    |
-| .. image:: figures/ic_LBTB_gallery.png                                     | .. image:: XXX.png                                 |
-|    :target: `Explore station meta-data (StationXML files, filterstages)`_  |    :target: XXX.html                               |
-+----------------------------------------------------------------------------+----------------------------------------------------+
-| **KML**                                                                    | **VTK**                                            |
-|                                                                            |                                                    |
-| .. image:: figures/KML_event_based_example.png                             | .. image:: XXX.png                                 |
-|    :target: `KML`_                                                         |    :target: XXX.html                               |
-+----------------------------------------------------------------------------+----------------------------------------------------+
++----------------------------------------------------------------------------+------------------------------------------------------------------+
+| **Quick tour**                                                             | **Earthquake meta-data**                                         |
+|                                                                            |                                                                  |
+| .. image:: figures/quick_tour_ray.png                                      | .. image:: figures/neic_event_focal_2014_2015.png                |
+|    :target: `Quick tour`_                                                  |    :target: `Earthquake meta-data`_                              |
++----------------------------------------------------------------------------+------------------------------------------------------------------+
+| **Seismicity map**                                                         | **Event-based mode**                                             |
+|                                                                            |                                                                  |
+| .. image:: figures/japan_seismicity.png                                    | .. image:: figures/iris_ev_based_mode.png                        |
+|    :target: `Seismicity map`_                                              |    :target: `Event-based mode`_                                  |
++----------------------------------------------------------------------------+------------------------------------------------------------------+
+| **Update an existing data set**                                            | **Time-continuous mode**                                         |
+|                                                                            |                                                                  |
+| .. image:: figures/iris_gfz_ipgp_ev_based.png                              | .. image:: figures/continuous_example.png                        |
+|    :target: `Update an existing data set`_                                 |    :target: `Time-continuous mode`_                              |
++----------------------------------------------------------------------------+------------------------------------------------------------------+
+| **Processing and instrument correction**                                   | **Synthetic seismograms**                                        |
+|                                                                            |                                                                  |
+| .. image:: figures/fiji_processed.png                                      | .. image:: figures/fiji_iasp91_2s.png                            |
+|    :target: `Processing and instrument correction`_                        |    :target: `Synthetic seismograms`_                             |
++----------------------------------------------------------------------------+------------------------------------------------------------------+
+| **Explore station meta-data (StationXML files, filterstages)**             | **Speeding up data retrieval by parallelization**                |
+|                                                                            |                                                                  |
+| .. image:: figures/ic_LBTB_gallery.png                                     | .. image:: figures/gallery_parallel.png                          |
+|    :target: `Explore station meta-data (StationXML files, filterstages)`_  |    :target: `Speeding up data retrieval by parallelization`_     |
++----------------------------------------------------------------------------+------------------------------------------------------------------+
+| **KML**                                                                    | **VTK**                                                          |
+|                                                                            |                                                                  |
+| .. image:: figures/KML_event_based_example.png                             | .. image:: XXX.png                                               |
+|    :target: `KML`_                                                         |    :target: XXX.html                                             |
++----------------------------------------------------------------------------+------------------------------------------------------------------+
 
 
 
@@ -319,8 +319,8 @@ Explore station meta-data (StationXML files, filterstages)
    :scale: 75%
    :align: center
 
-Parallel retrieving and processing
-----------------------------------
+Speeding up data retrieval by parallelization
+---------------------------------------------
 
 enable parallel waveform/response request with X threads.
 ::
