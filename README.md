@@ -23,7 +23,7 @@ Table of contents
 *  [How to cite obspyDMT](#how-to-cite-obspydmt)
 *  [Installation](#installation): install obspyDMT and check the installation on your local machine.
 
-##Gallery
+## Gallery
 
 
 | **Quick tour**                                                 <a href="#quick-tour">![](figures/quick_tour_ray.png)             | **Earthquake meta-data**                            ![](figures/neic_event_focal_2014_2015.png)      |
@@ -37,7 +37,7 @@ Table of contents
 
 
 
-##Quick tour
+## Quick tour
 
 Run a quick tour:
 
@@ -77,7 +77,7 @@ obspyDMT has several tools to plot the contents of a data set. As an example, th
    :scale: 75%
    :align: center
 
-##Earthquake meta-data
+## Earthquake meta-data
 
 Get info about events without downloading/processing waveforms! This method can be used to check available events before starting an actual waveform retrieval, for example:
 
@@ -103,7 +103,7 @@ To plot the content of local data set (neic_event_metadata):
    :scale: 75%
    :align: center
 
-##Seismicity map
+## Seismicity map
 
 Seismicity map (``--plot_seismicity`` option flag) of Japan region based on earthquakes of magnitude more than 5.0 that occured from 2000-01-01 until 2017-01-01 from NEIC event catalog.
 Note ``--event_rect`` option flag to define a region around Japan:
@@ -133,7 +133,7 @@ Note the rendering of coloured beach balls in the map inset (deepest seismicity 
 The global map also contains beach balls rather than just simple black dots, but they do not become apparent at this zoom level.
 
 
-##Event-based mode
+## Event-based mode
 
 The following command retrieves actual BHZ seismograms from the IRIS data center that recorded earthquakes of magnitude more than 7.5 that occured from 2014-01-01 until
 2015-01-01 (NEIC catalog). For this example, we only retrieve stations with station code ``II``, location code ``00`` and channel codes ``BHZ``.
@@ -159,7 +159,7 @@ To plot the stations/events/rays:
    :scale: 75%
    :align: center
 
-##Update an existing data set
+## Update an existing data set
 
 The following command updates the data-set that we created in the previous section with ``BHZ`` channels of ``C*`` networks (i.e., all stations that their network codes start with C)
 from the ``GFZ`` data center:
@@ -203,7 +203,7 @@ To create KML file:
    :scale: 75%
    :align: center
 
-##Time-continuous mode
+## Time-continuous mode
 
 ::
 
@@ -213,7 +213,7 @@ To create KML file:
    :scale: 75%
    :align: center
 
-##Processing and instrument correction
+## Processing and instrument correction
 
 obspyDMT can process the waveforms directly after retrieving the data, or it can process an existing data set in a separate step (local mode).
 By default, obspyDMT follows processing instructions described in the ``process_unit.py`` located at ``/path/to/my/obspyDMT/obspyDMT`` directory.
@@ -240,7 +240,7 @@ To plot the processed/corrected waveforms (Note ``--plot_dir_name processed``, o
    :scale: 75%
    :align: center
 
-##Synthetic seismograms
+## Synthetic seismograms
 
 
 ::
@@ -259,7 +259,7 @@ To plot the processed/corrected waveforms (Note ``--plot_dir_name processed``, o
 
     obspyDMT --datapath data_fiji_island --local --data_source IRIS --min_azi 50 --max_azi 55 --min_epi 94 --max_epi 100 --cha BHZ --pre_process False --syngine --syngine_bg_model iasp91_2s
 
-##Explore station meta-data (StationXML files, filterstages)
+## Explore station meta-data (StationXML files, filterstages)
 
 ::
 
@@ -284,7 +284,7 @@ To plot the processed/corrected waveforms (Note ``--plot_dir_name processed``, o
    :scale: 75%
    :align: center
 
-##Speeding up data retrieval by parallelization
+## Speeding up data retrieval by parallelization
 
 enable parallel waveform/response request with X threads.
 ::
@@ -301,7 +301,7 @@ using the bulkdataselect web service. Since this method returns multiple channel
 
     --bulk
 
-##KML
+## KML
 
 Take the example of `Event-based mode` section. To create a KML file (readable by Google-Earth) for each event in that data set:
 
@@ -313,7 +313,7 @@ Take the example of `Event-based mode` section. To create a KML file (readable b
    :scale: 75%
    :align: center
 
-##Supported event catalogs and data centers
+## Supported event catalogs and data centers
 
 Print supported data centers that can be passed as arguments to ``--data_source``:
 
@@ -327,7 +327,7 @@ Print supported earthquake catalogs that can be passed as arguments to ``--event
 
     obspyDMT --print_event_catalogs
 
-##Directory structure
+## Directory structure
 
 obspyDMT organizes the data in a simple and efficient way. For each request, it creates a parent directory at *datapath* and arranges the retrieved data either in different event directories (*event-based request*) or in chronologically named directories (*continuous request*). It also creates a directory in which a catalog of all requested events/time spans are stored. Raw waveforms, StationXML/response files and corrected waveforms are collected in sub-directories. While retrieving the data, obspyDMT creates metadata files such as station/event location files, and they are all stored in *info* directory of each event.
 
@@ -335,7 +335,7 @@ obspyDMT organizes the data in a simple and efficient way. For each request, it 
    :scale: 80%
    :align: center
 
-##How to cite obspyDMT
+## How to cite obspyDMT
 
 Cite the code:
 
@@ -344,7 +344,7 @@ Cite the code:
     Kasra Hosseini (2017), obspyDMT (Version 2.0.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
 
 
-##Installation
+## Installation
 
 Once a working Python and `ObsPy <https://github.com/obspy/obspy/wiki>`_ environment is available, obspyDMT can be installed:
 
