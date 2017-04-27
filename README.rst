@@ -45,7 +45,7 @@ Gallery
 +----------------------------------------------------------------------------+----------------------------------------------------+
 | **Processing and instrument correction**                                   | **Synthetic seismograms**                          |
 |                                                                            |                                                    |
-| .. image:: fiji_processed.png                                              | .. image:: XXX.png                                 |
+| .. image:: figures/fiji_processed.png                                      | .. image:: XXX.png                                 |
 |    :target: `Processing and instrument correction`_                        |    :target: XXX.html                               |
 +----------------------------------------------------------------------------+----------------------------------------------------+
 | **Explore station meta-data (StationXML files, filterstages)**             | **Speeding up data retrieval by parallelization**  |
