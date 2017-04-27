@@ -15,7 +15,7 @@ Table of contents
    -  `Event-based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
    -  `Update an existing data set`_
    -  `Time-continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
-   -  `processing`_: process the data automatically after the data retrieval and/or on an existing data-set.
+   -  `Processing and instrument correction`_: process the data automatically after the data retrieval and/or on an existing data-set.
    -  `Parallel retrieving and processing`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
    -  `Explore station meta-data (StationXML files, filterstages)`_:
 
@@ -45,8 +45,8 @@ Gallery
 +----------------------------------------------------------------------------+----------------------------------------------------+
 | **Processing and instrument correction**                                   | **Synthetic seismograms**                          |
 |                                                                            |                                                    |
-| .. image:: XXX.png                                                         | .. image:: XXX.png                                 |
-|    :target: XXX.html                                                       |    :target: XXX.html                               |
+| .. image:: fiji_processed.png                                              | .. image:: XXX.png                                 |
+|    :target: `Processing and instrument correction`_                        |    :target: XXX.html                               |
 +----------------------------------------------------------------------------+----------------------------------------------------+
 | **Explore station meta-data (StationXML files, filterstages)**             | **Speeding up data retrieval by parallelization**  |
 |                                                                            |                                                    |
@@ -243,22 +243,31 @@ Time-continuous mode
    :scale: 75%
    :align: center
 
-processing
-----------
+Processing and instrument correction
+------------------------------------
 
-Processing of the data set using default or user defined processing function; user can customize the processing unit by writing a script in obspy, SAC and/or any other processing tool on the waveform level; Application to the whole data set directly after data-retrieval or as a separate step. Support for parallelized processing.
+obspyDMT can process the waveforms directly after retrieving the data, or it can process an existing data set in a separate step (local mode).
+By default, obspyDMT follows processing instructions described in the ``process_unit.py`` located at ``/path/to/my/obspyDMT/obspyDMT`` directory.
+Although this file is fully customizable, several common processing steps can be done via options flags (without changing/writing new processing instructions).
 
-Only apply instrument correction:
+The following command retrieves all BHZ channels from the IRIS data center that:
+
+- 50 <= Azimuth <= 55 (specified by ``--min_azi`` and ``--max_azi``)
+- 94 <= Distance <= 100 (specified by ``--min_epi`` and ``max_epi``)
+- recorded events of magnitude more than 6.8 that occured on ``2014-07-21``.
 
 ::
 
-    obspyDMT --datapath lmu_process_dir --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 8.0 --event_catalog NEIC_USGS --data_source "LMU" --cha "BHZ,HHZ" --preset 300 --offset 3600 --instrument_correction
+    obspyDMT --datapath data_fiji_island --min_mag 6.8 --min_date 2014-07-21 --max_date 2014-07-22 --event_catalog NEIC_USGS --data_source IRIS --min_azi 50 --max_azi 55 --min_epi 94 --max_epi 100 --cha BHZ --instrument_correction
+
+
+To plot the processed/corrected waveforms (Note ``--plot_dir_name processed``, omitting this option would result in plotting raw counts, i.e., ``--plot_dir_name raw``):
 
 ::
 
-    obspyDMT --datapath lmu_process_dir --local --plot --plot_waveform --min_date 2014-01-01
+   obspyDMT --datapath data_fiji_island --local --plot_waveform --plot_dir processed
 
-.. image:: figures/lmu_raw_counts.png
+.. image:: figures/fiji_processed.png
    :scale: 75%
    :align: center
 
