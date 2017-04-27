@@ -1,15 +1,13 @@
-==============================================================================================
-obspyDMT: A Python Toolbox for Retrieving, Processing and Management of Seismological Datasets
-==============================================================================================
+# obspyDMT: A Python Toolbox for Retrieving, Processing and Management of Seismological Datasets
 
-obspyDMT_ (obspy Data Management Tool) is a command line tool for retrieving, processing and management of seismological datasets in a fully automatic way.
+[obspyDMT][dmt] (obspy Data Management Tool) is a command line tool for retrieving, processing and management of seismological datasets in a fully automatic way.
 
 Table of contents
 -----------------
 
 *  `Gallery`_
 
-   -  `Quick tour`_: run a quick tour.
+   -  [Quick tour](#quick-tour): run a quick tour.
    -  `Earthquake meta-data`_: get info about events without downloading waveforms.
    -  `Seismicity map`_
    -  `Event-based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
@@ -63,8 +61,7 @@ Gallery
 
 
 
-Quick tour
-----------
+## Quick tour
 
 Run a quick tour:
 
@@ -443,4 +440,4 @@ To check the dependencies required for running the code properly:
     obspyDMT --check
 
 
-.. _obspyDMT: https://github.com/kasra-hosseini/obspyDMT
+[dmt]: https://github.com/kasra-hosseini/obspyDMT
