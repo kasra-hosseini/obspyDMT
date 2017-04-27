@@ -5,19 +5,18 @@
 Table of contents
 -----------------
 
-*  `Gallery`_
-
-   -  [Quick tour](#quick-tour): run a quick tour.
-   -  `Earthquake meta-data`_: get info about events without downloading waveforms.
-   -  `Seismicity map`_
-   -  `Event-based mode`_:  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
-   -  `Update an existing data set`_
-   -  `Time-continuous mode`_: retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
-   -  `Processing and instrument correction`_: process the data automatically after the data retrieval and/or on an existing data-set.
-   -  `Synthetic seismograms`_
-   -  `Explore station meta-data (StationXML files, filterstages)`_:
-   -  `Speeding up data retrieval by parallelization`_: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
-   -  `KML`_
+* [Gallery](#gallery)
+   *  [Quick tour](#quick-tour): run a quick tour.
+   *  [Earthquake meta-data](#earthquake-meta-data): get info about events without downloading waveforms.
+   *  [Seismicity map](#seismicity-map)
+   *  [Event-based mode](event-based-mode):  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
+   *  [Update an existing data set](update-an-existing-data-set)
+   *  [Time-continuous mode](time-continuous-mode): retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
+   *  [Processing and instrument correction](processing-and-instrument-correction): process the data automatically after the data retrieval and/or on an existing data-set.
+   *  [Synthetic seismograms](synthetic-seismograms)
+   *  [Explore station meta-data (StationXML files, filterstages)](explore-station-meta-data-(StationXML-files,-filterstages)):
+   *  [Speeding up data retrieval by parallelization]: send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
+   *  [KML]
 
 *  `Supported event catalogs and data centers`_: available event catalogs and data centers.
 *  `Directory structure`_: the way that obspyDMT organizes your retrieved and processed data.
