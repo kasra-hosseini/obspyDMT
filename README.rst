@@ -302,6 +302,7 @@ Explore station meta-data (StationXML files, filterstages)
 
 .. image:: figures/ic_XAN.png
    :scale: 75%
+   :figwidth: 40%
    :align: center
 
 ::
