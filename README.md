@@ -31,7 +31,7 @@ Table of contents
 | **Update an existing data set**                                <a href="#update-an-existing-data-set">![](figures/iris_gfz_ipgp_ev_based.png)                        | **Time-continuous mode**                            <a href="#time-continuous-mode">![](figures/continuous_example.png)                            |
 | **Processing and instrument correction**                       <a href="#processing-and-instrument-correction">![](figures/fiji_processed.png)                       | **Synthetic seismograms**                           <a href="#synthetic-seismograms">![](figures/fiji_iasp91_2s.png)                               |
 | **Explore station meta-data (StationXML files, filterstages)** <a href="#explore-station-meta-data-stationxml-files-filterstages">![](figures/ic_LBTB_gallery.png)   | **Speeding up data retrieval by parallelization**   <a href="#speeding-up-data-retrieval-by-parallelization">![](figures/gallery_parallel.png)     |
-| **KML**                                                        <a href="#kml">![](figures/KML_event_based_example.png)                                               | **VTK**                                             <a href="#vtk">![](figures/vtk_neic.png)                                                       |
+| **KML**                                                        <a href="#kml">![](figures/KML_event_based_example.png)                                               | **VTK**                                             <a href="#vtk">![](figures/events_neic_vtk.png)                                                       |
 
 
 
@@ -292,6 +292,18 @@ obspyDMT --datapath event_based_dir --local --plot_ev --plot_sta --plot_focal --
 
 <p align="center">
 <img src="figures/KML_event_based_example.png" width="70%" align="middle">
+</p>
+
+## VTK
+
+XXX neic_seismicity_dir from where?
+
+```bash
+obspyDMT --datapath neic_seismicity_dir --local --create_event_vtk
+```
+
+<p align="center">
+<img src="figures/events_neic_vtk.png" width="70%" align="middle">
 </p>
 
 ## Supported event catalogs and data centers
