@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name="obspyDMT",
-    version="2.0.0",
+    version="1.9.9",
     keywords=["obspyDMT", "obspy", "seismology", "geophysics"],
     requires=['matplotlib', 'numpy'],
     description="obspyDMT: A Python Toolbox for Retrieving, Processing and "
@@ -21,7 +21,7 @@ processing and management of seismological datasets in a fully automatic way.
     platforms="OS Independent",
     packages=["obspyDMT", "obspyDMT.utils"],
     # this is needed for "pip install instaseis==dev"
-    download_url="https://github.com/kasra-hosseini/obspyDMT.git",
+    download_url="https://github.com/kasra-hosseini/obspyDMT/archive/master.zip",
     classifiers=[
         "Programming Language :: Python",
         "Development Status :: 4 - Beta",
