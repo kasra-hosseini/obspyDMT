@@ -7,10 +7,10 @@ Table of contents
 
 - [Gallery](#gallery)
    *  [Quick tour](#quick-tour): run a quick tour.
-   *  [Earthquake meta-data](#earthquake-meta-data): request event information without doanloading any waveforms.
+   *  [Earthquake meta-data](#earthquake-meta-data): request event information without downloading any waveforms.
    *  [Seismicity map](#seismicity-map)
    *  [Event-based mode](#event-based-mode): retrieve waveform data, stationXML/response files and meta-data from several different data centers.
-   *  [Update an existing data set](#update-an-existing-data-set): request the same data again (in case that part of the earlier request failed), or expanding the number of earthquakes, stations, or seismograms.
+   *  [Update an existing data set](#update-an-existing-data-set): request the same data again (in case that part of the earlier request failed), or expand the number of earthquakes, stations, or seismograms.
    *  [Time-continuous mode](#time-continuous-mode): retrieve waveforms, stationXML/response files and meta-data of waveforms that are not relative to or centered on specific earthquake occurances.
    *  [Processing and instrument correction](#processing-and-instrument-correction): process the data automatically after the data retrieval and/or on an existing data-set.
    *  [Synthetic seismograms](#synthetic-seismograms)
@@ -79,13 +79,13 @@ obspyDMT --datapath dmt_tour_dir --local --plot_ev --plot_sta --plot_ray
 
 ## Earthquake meta-data
 
-First, werequest event information from one of several supported seismicity catalogs, without downloading any waveforms yet:
+First, we request event information from one of several supported seismicity catalogs, without downloading any waveforms yet:
 
 ```bash
 obspyDMT --datapath neic_event_metadata --min_mag 5.5 --min_date 2014-01-01 --max_date 2015-01-01 --event_catalog NEIC_USGS --event_info
 ```
 
-`neic_event_metadata/` directory created with the above command can be updated for events that occured in 2015 of magnitude more than 5.5: (no waveform retrieval)
+`neic_event_metadata/` directory - created with the above command - can be updated for events that occured in 2015 of magnitude more than 5.5: (no waveform retrieval)
 
 ```bash
 obspyDMT --datapath neic_event_metadata --min_mag 5.5 --min_date 2015-01-01 --max_date 2016-01-01 --event_catalog NEIC_USGS --event_info
@@ -162,7 +162,7 @@ obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --
 In the course of working with a waveform data set, it often becomes necessary to update.
 This could mean requesting the same data again (because part of the earlier request failed for some reason), 
 or expanding the number of earthquakes, stations, or seismograms. 
-The following command updates the data-set that we created in the previous [Event-based mode section](#event-based-mode) with ``BHZ`` channels of ``AW and E*`` networks (i.e., all stations that their network codes start with E)
+The following command updates the data-set that we created in the previous [Event-based mode section](#event-based-mode) with ``BHZ`` channels of ``AW and E*`` networks (`E*`: all stations that their network codes start with E)
 from the ``GFZ`` data center:
 
 ```bash
@@ -230,8 +230,8 @@ obspyDMT --datapath data_fiji_island --local --plot_waveform --plot_dir processe
 
 ## Synthetic seismograms
 
-obspyDMT can retrieve synthetic waveforms matching the real data using [Syngine](http://ds.iris.edu/ds/products/syngine/).
-The following example command retrieves not only observed waveforms but also their synthetic counterparts, computed on an IASP91 background model:
+obspyDMT can retrieve synthetic waveforms matching the real data using [Syngine](http://ds.iris.edu/ds/products/syngine/) webservice.
+The following example command retrieves not only observed waveforms but also their synthetic counterparts, computed on an IASP91 background model (note `--syngine --syngine_bg_model iasp91_2s`):
 
 ```bash
 obspyDMT --datapath data_fiji_island --min_mag 6.8 --min_date 2014-07-21 --max_date 2014-07-22 --event_catalog NEIC_USGS --data_source IRIS --min_azi 50 --max_azi 55 --min_epi 94 --max_epi 100 --cha BHZ --instrument_correction --syngine --syngine_bg_model iasp91_2s
@@ -251,7 +251,9 @@ obspyDMT --datapath data_fiji_island --local --plot_waveform --plot_dir_name syn
 ## Explore station meta-data (StationXML files, filterstages)
 
 obspyDMT implements several plotting options to explore station meta-data.
-For example, the following command generates a visual representation of transfer function spectra (amplitude and phase) of `IC.XAN` station in China:
+For example, the following command generates a visual representation of transfer function spectra (amplitude and phase) of `IC.XAN` station in China.
+Blue lines show transfer function components computed for all filter stages in the StationXML file;
+red lines are for the analogue part.
 
 ```bash
 obspyDMT --datapath /path/to/STXML.IC.XAN.00.BHZ --plot_stationxml --plotxml_paz --plotxml_min_freq 0.0001
@@ -260,9 +262,6 @@ obspyDMT --datapath /path/to/STXML.IC.XAN.00.BHZ --plot_stationxml --plotxml_paz
 <p align="center">
 <img src="figures/ic_XAN.png" width="50%" align="middle">
 </p>
-
-Blue lines show transfer function components computed for all filter stages in the StationXML file;
-red lines are for the analogue part.
 
 To plot transfer function spectra (amplitude and phase) of `GT.LBTB` station in Botswana:
 
@@ -288,22 +287,26 @@ In the phase response, two stages (1 and 5) have non-zero values.
 
 ## Speeding up data retrieval and processing by parallelization
 
-enable parallel waveform/response request with X threads.
+To increase the efficiency in retrieving waveform data, a functionality for parallelized data retrieval can be enabled as follows:
 
 ```bash
---req_parallel --req_np X
+--req_parallel --req_np 4
 ```
 
-enable parallel processing with X threads.
+The second flag (`--req_np 4`) specifies the number of parallel requests.
 
-```bash
---parallel_process --process_np X
-```
-
-using the bulkdataselect web service. Since this method returns multiple channels of time series data for specified time ranges in one request, it speeds up the waveform retrieving.
+A further speed-up can be achieved by specifying a bulk request.
+Instead of requesting individual items, this will send a list of items (time series or meta data) 
+to the data center:
 
 ```bash
 --bulk
+```
+
+To enable parallel processing with, for example, 10 threads:
+
+```bash
+--parallel_process --process_np 10
 ```
 
 ## KML
