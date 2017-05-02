@@ -15,9 +15,9 @@ Table of contents
    *  [Processing and instrument correction](#processing-and-instrument-correction): process the data automatically after the data retrieval and/or on an existing data-set.
    *  [Synthetic seismograms](#synthetic-seismograms)
    *  [Explore station meta-data (StationXML files, filterstages)](#explore-station-meta-data-stationxml-files-filterstages):
-   *  [Speeding up data retrieval and processing by parallelization](#speeding-up-data-retrieval-by-parallelization): This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the data retrieval and processing.
-   *  [KML format](#kml): Create a KML file for event/station/ray. KML format is readable by Google-Earth.
-   *  [VTK format](#vtk): Create a VTK file for event(s). VTK format is readable by Paraview.
+   *  [Speeding up data retrieval and processing by parallelization](#speeding-up-data-retrieval-and-processing-by-parallelization): this section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the data retrieval and processing.
+   *  [KML format](#kml): create a KML file for event/station/ray. KML format is readable by Google-Earth.
+   *  [VTK format](#vtk): create a VTK file for event(s). VTK format is readable by Paraview.
 -  [Supported event catalogs and data centers](#supported-event-catalogs-and-data-centers): supported data centers and earthquake catalogs.
 -  [Directory structure](#directory-structure): standardized directory structure where obspyDMT organizes retrieved seismograms and metadata.
 -  [How to cite obspyDMT](#how-to-cite-obspydmt)
@@ -26,13 +26,13 @@ Table of contents
 ## Gallery
 
 
-| **Quick tour**                                                 <a href="#quick-tour">![](figures/quick_tour_ray.png)                                                 | **Earthquake meta-data**                            <a href="#earthquake-meta-data">![](figures/neic_event_focal_2014_2015.png)                    |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Seismicity map**                                             <a href="#seismicity-map">![](figures/japan_seismicity.png)                                           | **Event-based mode**                                <a href="#event-based-mode">![](figures/iris_ev_based_mode.png)                                |
-| **Update of an existing waveform data set**                    <a href="#update-an-existing-data-set">![](figures/iris_gfz_ipgp_ev_based.png)                        | **Time-continuous mode**                            <a href="#time-continuous-mode">![](figures/continuous_example.png)                            |
-| **Processing and instrument correction**                       <a href="#processing-and-instrument-correction">![](figures/fiji_processed.png)                       | **Synthetic seismograms**                           <a href="#synthetic-seismograms">![](figures/fiji_iasp91_2s.png)                               |
-| **Explore station meta-data (StationXML files, filterstages)** <a href="#explore-station-meta-data-stationxml-files-filterstages">![](figures/ic_LBTB_gallery.png)   | **Speeding up data retrieval by parallelization**   <a href="#speeding-up-data-retrieval-by-parallelization">![](figures/gallery_parallel.png)     |
-| **KML format (e.g., Google-Earth)**                            <a href="#kml">![](figures/KML_event_based_example.png)                                               | **VTK format (e.g., Paraview)**                     <a href="#vtk">![](figures/events_neic_vtk.png)                                                       |
+| **Quick tour**                                                 <a href="#quick-tour">![](figures/quick_tour_ray.png)                                                 | **Earthquake meta-data**                                           <a href="#earthquake-meta-data">![](figures/neic_event_focal_2014_2015.png)                                   |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Seismicity map**                                             <a href="#seismicity-map">![](figures/japan_seismicity.png)                                           | **Event-based mode**                                               <a href="#event-based-mode">![](figures/iris_ev_based_mode.png)                                               |
+| **Update of an existing waveform data set**                    <a href="#update-an-existing-data-set">![](figures/iris_gfz_ipgp_ev_based.png)                        | **Time-continuous mode**                                           <a href="#time-continuous-mode">![](figures/continuous_example.png)                                           |
+| **Processing and instrument correction**                       <a href="#processing-and-instrument-correction">![](figures/fiji_processed.png)                       | **Synthetic seismograms**                                          <a href="#synthetic-seismograms">![](figures/fiji_iasp91_2s.png)                                              |
+| **Explore station meta-data (StationXML files, filterstages)** <a href="#explore-station-meta-data-stationxml-files-filterstages">![](figures/ic_LBTB_gallery.png)   | **Speeding up data retrieval and processing by parallelization**   <a href="#speeding-up-data-retrieval-and-processing-by-parallelization">![](figures/gallery_parallel.png)     |
+| **KML format (e.g., Google-Earth)**                            <a href="#kml">![](figures/KML_event_based_example.png)                                               | **VTK format (e.g., Paraview)**                                    <a href="#vtk">![](figures/events_neic_vtk.png)                                                               |
 
 
 
@@ -286,7 +286,7 @@ obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot_stationxml --plotxml_mi
 
 In the phase response, two stages (1 and 5) have non-zero values.
 
-## Speeding up data retrieval by parallelization
+## Speeding up data retrieval and processing by parallelization
 
 enable parallel waveform/response request with X threads.
 
@@ -356,7 +356,7 @@ obspyDMT --print_event_catalogs
 
 ## Directory structure
 
-obspyDMT organizes the data in a simple and efficient way. For each request, it creates a parent directory at *datapath* and arranges the retrieved data either in different event directories (*event-based request*) or in chronologically named directories (*continuous request*). It also creates a directory in which a catalog of all requested events/time spans are stored. Raw waveforms, StationXML/response files and corrected waveforms are collected in sub-directories. While retrieving the data, obspyDMT creates metadata files such as station/event location files, and they are all stored in *info* directory of each event.
+For each request, obspyDMT creates the depicted directory tree inside the user-specified directory `datapath/`, and arranges the retrieved data either in different event directories (for event-based requests) or in chronologically named directories (for continuous requests). It also creates a directory in which a catalog of all requested events/time spans is stored. Raw waveforms, StationXML/response files and corrected waveforms are collected in sub-directories. While retrieving the data, obspyDMT creates metadata files such as station/event location files, stored in the `info/` directory of each event.
 
 <p align="center">
 <img src="figures/dmt_dir_structure.png" width="100%" align="middle">
