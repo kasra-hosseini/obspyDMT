@@ -247,29 +247,32 @@ def plot_filter_event(input_dics, event_dic):
     :param event_dic:
     :return:
     """
-    if not event_dic['datetime'] <= UTCDateTime(input_dics['max_date']):
+    try:
+        if not event_dic['datetime'] <= UTCDateTime(input_dics['max_date']):
+            return False
+        if not event_dic['datetime'] >= UTCDateTime(input_dics['min_date']):
+            return False
+        if not event_dic['magnitude'] < 0:
+            if not event_dic['magnitude'] <= float(input_dics['max_mag']):
+                return False
+            if not event_dic['magnitude'] >= float(input_dics['min_mag']):
+                return False
+            if not event_dic['depth'] <= float(input_dics['max_depth']):
+                return False
+            if not event_dic['depth'] >= float(input_dics['min_depth']):
+                return False
+            if isinstance(input_dics['evlatmin'], float):
+                if not event_dic['latitude'] <= float(input_dics['evlatmax']):
+                    return False
+                if not event_dic['longitude'] <= float(input_dics['evlonmax']):
+                    return False
+                if not event_dic['latitude'] >= float(input_dics['evlatmin']):
+                    return False
+                if not event_dic['longitude'] >= float(input_dics['evlonmin']):
+                    return False
+        return True
+    except Exception as error:
         return False
-    if not event_dic['datetime'] >= UTCDateTime(input_dics['min_date']):
-        return False
-    if not event_dic['magnitude'] < 0:
-        if not event_dic['magnitude'] <= float(input_dics['max_mag']):
-            return False
-        if not event_dic['magnitude'] >= float(input_dics['min_mag']):
-            return False
-        if not event_dic['depth'] <= float(input_dics['max_depth']):
-            return False
-        if not event_dic['depth'] >= float(input_dics['min_depth']):
-            return False
-        if isinstance(input_dics['evlatmin'], float):
-            if not event_dic['latitude'] <= float(input_dics['evlatmax']):
-                return False
-            if not event_dic['longitude'] <= float(input_dics['evlonmax']):
-                return False
-            if not event_dic['latitude'] >= float(input_dics['evlatmin']):
-                return False
-            if not event_dic['longitude'] >= float(input_dics['evlonmin']):
-                return False
-    return True
 
 # ##################### plot_waveform #########################################
 
@@ -414,7 +417,7 @@ def plot_sta_ev_ray(input_dics, events):
     raw_input_resp = raw_input_built('choose the map style:\n'
                                      '1. bluemarble (PIL should be installed)\n'
                                      '2. etopo (PIL should be installed)\n'
-                                     '3. shaderelief (PIL should be installed)\n'
+                                     '3. shadedrelief (PIL should be installed)\n'
                                      '4. simple\n')
     if int(raw_input_resp) == 1:
         m.bluemarble(scale=0.5)
@@ -604,7 +607,7 @@ def plot_seismicity(input_dics, events):
     raw_input_resp = raw_input_built('choose the map style:\n'
                                      '1. bluemarble (PIL should be installed)\n'
                                      '2. etopo (PIL should be installed)\n'
-                                     '3. shaderelief (PIL should be installed)\n'
+                                     '3. shadedrelief (PIL should be installed)\n'
                                      '4. simple\n')
     if int(raw_input_resp) == 1:
         m.bluemarble(scale=0.5)

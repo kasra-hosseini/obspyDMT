@@ -58,13 +58,12 @@ def create_ev_sta_kml(input_dics, events):
     else:
         print('[INFO] kml_dir already exists!')
 
+    # create a document element with multiple label style
+    kmlobj = KML.kml(KML.Document())
     counter = 0
     for ei in range(len(events)):
         print(events[ei]['event_id'])
         counter += 1
-
-        # create a document element with multiple label style
-        kmlobj = KML.kml(KML.Document())
 
         ev_date = '%04i/%02i/%02i-%02i:%02i:%02i' \
                   % (events[ei]['datetime'].year,
@@ -309,9 +308,8 @@ def create_ev_sta_kml(input_dics, events):
                                 KML.tessellate(1)),
                         ),
                     )
-        kml_outfile = file(os.path.join(
-            'kml_dir',
-            'kml_output_%04i_%s.kml'
-            % (int(events[ei]['depth']), events[ei]['event_id'])), 'w')
-        kml_outfile.write(etree.tostring(kmlobj, pretty_print=True))
-    sys.exit('[INFO] KML file(s) are stored in ./kml_dir!')
+    kml_outfile = file(os.path.join(
+        'kml_dir',
+        'kml_output.kml'), 'w')
+    kml_outfile.write(etree.tostring(kmlobj, pretty_print=True))
+    sys.exit('[INFO] KML file is stored in ./kml_dir!')

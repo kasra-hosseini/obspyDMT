@@ -128,9 +128,9 @@ def command_parse():
     group_general.add_option("--force_response", action="store_true",
                              dest="force_response", help=helpmsg)
 
-    helpmsg = "Update/process/plot contents of the selected directories " \
-              "in one data set " \
-              "(default: False, i.e., all directories will be used). " \
+    helpmsg = "Selects a subset of data directories for which to " \
+              "update/process/plot the contents " \
+              "(default False, i.e., all subdirectories will be considered). " \
               "Example: 'dir1,dir2'"
     group_general.add_option("--dir_select", action="store",
                              dest="dir_select", help=helpmsg)
@@ -292,10 +292,9 @@ def command_parse():
     group_parallel.add_option("--req_np", action="store",
                               dest="req_np", help=helpmsg)
 
-    helpmsg = "Use the bulkdataselect web service. This method returns " \
-              "multiple channels of time series data for specified time " \
-              "ranges in a single request, speeding up waveform " \
-              "retrieval by approximately a factor of two."
+    helpmsg = "Send a bulk request to a FDSN data center. " \
+              "Returns multiple seismogram channels in a single request. " \
+              "Can be combined with --req_parallel."
     group_parallel.add_option("--bulk", action="store_true",
                               dest="bulk", help=helpmsg)
 
@@ -388,10 +387,6 @@ def command_parse():
               "Example: '20/30/10/80'"
     group_ev_based.add_option("--event_circle", action="store",
                               dest="event_circle", help=helpmsg)
-
-    helpmsg = "Maximum number of events to retrieve (default: 2500)."
-    group_ev_based.add_option("--max_result", action="store",
-                              dest="max_result", help=helpmsg)
 
     # XXXXXX
     helpmsg = "searches the ISC Bulletin (COMPREHENSIVE) or " \
@@ -720,7 +715,6 @@ def read_input_command(parser, **kwargs):
                   'evlonmin': None, 'evlonmax': None,
                   'evlat': None, 'evlon': None,
                   'evradmin': None, 'evradmax': None,
-                  'max_result': 2500,
                   'isc_rev_comp': "COMPREHENSIVE",
                   'syngine_bg_model': 'iasp91_2s',
                   'syngine_geocentric_lat': True,
@@ -1156,7 +1150,6 @@ def read_input_command(parser, **kwargs):
     input_dics['evradmax'] = options.evradmax
     input_dics['evradmin'] = options.evradmin
 
-    input_dics['max_result'] = int(options.max_result)
     input_dics['isc_rev_comp'] = options.isc_rev_comp
     input_dics['syngine'] = options.syngine
     input_dics['syngine_bg_model'] = options.syngine_bg_model

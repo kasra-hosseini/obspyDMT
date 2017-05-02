@@ -90,9 +90,9 @@ def plot_xml_response(input_dics):
     latlon_color = []
     report_fio = open(os.path.join('stationxml_plots',
                                    'report_stationxml'), 'wt')
-    report_fio.writelines('channel_id\t\t\t\t%(Phase)\t\t'
-                          'Max diff(abs) \tLat\t\t\tLon\t\t\tDatetime\t'
-                          'decimation delay\tdecimation correction\n')
+    report_fio.writelines('channel_id\t\t\t\t%(phase_diff)\t\t'
+                          'abs(max_diff)\tlat\t\t\tlon\t\t\tdatetime\t'
+                          'decimation delay\tdecimation corr\n')
     report_fio.close()
 
     add_counter = 0
@@ -320,7 +320,7 @@ def plot_xml_response(input_dics):
 
         x, y = m(sta_lon, sta_lat)
         m.scatter(x, y, 100, c=latlon_color, marker="v",
-                  edgecolor='none', zorder=10, cmap='hot_r')
+                  edgecolor='none', zorder=10, cmap='rainbow')
         plt.colorbar(orientation='horizontal')
         plt.savefig(os.path.join('stationxml_plots', 'compare_plots.png'))
         plt.show()

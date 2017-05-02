@@ -266,23 +266,18 @@ def event_info(input_dics):
         for i in range(len(events_QML)):
             if not hasattr(events_QML.events[i], 'preferred_mag'):
                 events_QML.events[i].preferred_mag = \
-                    events_QML.events[i].preferred_magnitude().mag or \
                     events_QML.events[i].magnitudes[0].mag
-
-            if not hasattr(events_QML.events[i], 'preferred_mag_type'):
                 events_QML.events[i].preferred_mag_type = \
-                    events_QML.events[i].preferred_magnitude().magnitude_type or \
                     events_QML.events[i].magnitudes[0].magnitude_type
-
-            if not hasattr(events_QML.events[i], 'preferred_author'):
-                if events_QML.events[i].preferred_magnitude().creation_info:
-                    events_QML.events[i].preferred_author = \
-                        events_QML.events[i].preferred_magnitude().creation_info.author
-                elif events_QML.events[i].magnitudes[0].creation_info:
-                    events_QML.events[i].preferred_author = \
-                        events_QML.events[i].magnitudes[0].creation_info.author
-                else:
-                    events_QML.events[i].preferred_author = 'None'
+                events_QML.events[i].preferred_author = 'None'
+            else:
+                if not hasattr(events_QML.events[i], 'preferred_author'):
+                    if events_QML.events[i].preferred_magnitude().creation_info:
+                        events_QML.events[i].preferred_author = \
+                            events_QML.events[i].preferred_magnitude().creation_info.author
+                    elif events_QML.events[i].magnitudes[0].creation_info:
+                        events_QML.events[i].preferred_author = \
+                            events_QML.events[i].magnitudes[0].creation_info.author
         # no matter if list was passed or requested, sort catalogue,
         # plot events and proceed
         events_QML = sort_catalogue(events_QML)

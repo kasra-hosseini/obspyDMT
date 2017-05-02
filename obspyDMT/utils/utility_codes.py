@@ -588,10 +588,6 @@ def send_email(input_dics):
     :param input_dics:
     :return:
     """
-    print('\n*********************************************')
-    print('Sending email to the following email-address:')
-    print(input_dics['email'])
-    print('*********************************************')
     t2_str = datetime.now()
 
     fromaddr = 'obspyDMT'
@@ -600,8 +596,15 @@ def send_email(input_dics):
     try:
         server = smtplib.SMTP('localhost')
         server.sendmail(fromaddr, toaddrs, msg)
+        print('\n*********************************************')
+        print('Sending email to the following email-address:')
+        print(input_dics['email'])
+        print('*********************************************')
     except Exception as error:
-        print('\ne-mail was not sent, as:\n%s' % error)
+        print('\n**************************')
+        print('Email was not sent, ERROR:')
+        print(error)
+        print('**************************')
         # err_info = traceback.extract_tb(sys.exc_info()[2])
 
 # ##################### check_par_jobs ######################################
