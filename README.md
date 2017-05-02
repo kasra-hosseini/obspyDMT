@@ -16,7 +16,8 @@ Table of contents
    *  [Synthetic seismograms](#synthetic-seismograms)
    *  [Explore station meta-data (StationXML files, filterstages)](#explore-station-meta-data-stationxml-files-filterstages):
    *  [Speeding up data retrieval by parallelization](#speeding-up-data-retrieval-by-parallelization): send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
-   *  [KML](#kml)
+   *  [KML](#kml): Create a KML file for event/station/ray. KML format is readable by Google-Earth.
+   *  [VTK](#vtk): Create a VTK file for event(s). VTK format is readable by Paraview.
 -  [Supported event catalogs and data centers](#supported-event-catalogs-and-data-centers): available event catalogs and data centers.
 -  [Directory structure](#directory-structure): the way that obspyDMT organizes your retrieved and processed data.
 -  [How to cite obspyDMT](#how-to-cite-obspydmt)
@@ -284,7 +285,7 @@ using the bulkdataselect web service. Since this method returns multiple channel
 
 ## KML
 
-Take the example of `Event-based mode` section. To create a KML file (readable by Google-Earth) for each event in that data set:
+Take the example of [Event-based mode](#event-based-mode) section. To create a KML file (readable by Google-Earth) based on that data set:
 
 ```bash
 obspyDMT --datapath event_based_dir --local --plot_ev --plot_sta --plot_focal --plot_ray --create_kml
@@ -294,12 +295,22 @@ obspyDMT --datapath event_based_dir --local --plot_ev --plot_sta --plot_focal --
 <img src="figures/KML_event_based_example.png" width="70%" align="middle">
 </p>
 
-## VTK
-
-XXX neic_seismicity_dir from where?
+or to plot events of magnitude more than 7.0 in the global example of [Seismicity map](#seismicity-map) section:
 
 ```bash
-obspyDMT --datapath neic_seismicity_dir --local --create_event_vtk
+obspyDMT --datapath neic_event_dir --local --plot_ev --plot_focal --min_mag 7.0 --create_kml
+```
+
+<p align="center">
+<img src="figures/KML_neic_event_catalog_more_7" width="70%" align="middle">
+</p>
+
+## VTK
+
+Take the global example of [Seismicity map](#seismicity-map) section. To create a VTK file (readable by Paraview) for all events in that data set:
+
+```bash
+obspyDMT --datapath neic_event_dir --local --create_event_vtk
 ```
 
 <p align="center">
