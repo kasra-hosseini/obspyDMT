@@ -9,14 +9,13 @@ setup(
     keywords=["obspyDMT", "obspy", "seismology", "geophysics"],
     requires=['matplotlib', 'numpy'],
     description="obspyDMT: A Python Toolbox for Retrieving, Processing and "
-                "Management of Large Seismological Datasets",
+                 "Management of Seismological Datasets",
     long_description="""\
 obspyDMT (obspy Data Management Tool) is a command line tool for retrieving,
-processing and management of large seismological datasets in a fully automatic
-way which can be run in serial or in parallel.
+processing and management of seismological datasets in a fully automatic way.
 """,
     author=u"Kasra Hosseini",
-    author_email="hosseini@geophysik.uni-muenchen.de",
+    author_email="kasra.hosseinizad@earth.ox.ac.uk",
     url="https://github.com/kasra-hosseini/obspyDMT",
     license="GNU Lesser General Public License, Version 3",
     platforms="OS Independent",
@@ -28,10 +27,10 @@ way which can be run in serial or in parallel.
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
         "Operating System :: Unix",
-        "Operating System :: POSIX",
+        "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS",
-        "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
         "Operating System :: OS Independent",
+        "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Physics"],
