@@ -302,7 +302,7 @@ obspyDMT --datapath neic_event_dir --local --plot_ev --plot_focal --min_mag 7.0 
 ```
 
 <p align="center">
-<img src="figures/KML_neic_event_catalog_more_7" width="70%" align="middle">
+<img src="figures/KML_neic_event_catalog_more_7.png" width="70%" align="middle">
 </p>
 
 ## VTK
