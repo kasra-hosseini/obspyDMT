@@ -7,21 +7,21 @@ Table of contents
 
 - [Gallery](#gallery)
    *  [Quick tour](#quick-tour): run a quick tour.
-   *  [Earthquake meta-data](#earthquake-meta-data): get info about events without downloading waveforms.
+   *  [Earthquake meta-data](#earthquake-meta-data): request event information without doanloading any waveforms.
    *  [Seismicity map](#seismicity-map)
-   *  [Event-based mode](#event-based-mode):  retrieve waveforms, stationXML/response files and meta-data of all the requested stations for all the events found in the archive.
-   *  [Update an existing data set](#update-an-existing-data-set)
-   *  [Time-continuous mode](#time-continuous-mode): retrieve waveforms, stationXML/response files and meta-data of all the requested stations for the requested time window.
+   *  [Event-based mode](#event-based-mode): retrieve waveform data, stationXML/response files and meta-data from several different data centers.
+   *  [Update an existing data set](#update-an-existing-data-set): request the same data again (in case that part of the earlier request failed), or expanding the number of earthquakes, stations, or seismograms.
+   *  [Time-continuous mode](#time-continuous-mode): retrieve waveforms, stationXML/response files and meta-data of waveforms that are not relative to or centered on specific earthquake occurances.
    *  [Processing and instrument correction](#processing-and-instrument-correction): process the data automatically after the data retrieval and/or on an existing data-set.
    *  [Synthetic seismograms](#synthetic-seismograms)
    *  [Explore station meta-data (StationXML files, filterstages)](#explore-station-meta-data-stationxml-files-filterstages):
-   *  [Speeding up data retrieval by parallelization](#speeding-up-data-retrieval-by-parallelization): send the requests and/or process the data in parallel. This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the whole procedure.
-   *  [KML](#kml): Create a KML file for event/station/ray. KML format is readable by Google-Earth.
-   *  [VTK](#vtk): Create a VTK file for event(s). VTK format is readable by Paraview.
--  [Supported event catalogs and data centers](#supported-event-catalogs-and-data-centers): available event catalogs and data centers.
--  [Directory structure](#directory-structure): the way that obspyDMT organizes your retrieved and processed data.
+   *  [Speeding up data retrieval and processing by parallelization](#speeding-up-data-retrieval-by-parallelization): This section introduces some options (*bulk* and *parallel retrieving and processing*) to speed-up the data retrieval and processing.
+   *  [KML format](#kml): Create a KML file for event/station/ray. KML format is readable by Google-Earth.
+   *  [VTK format](#vtk): Create a VTK file for event(s). VTK format is readable by Paraview.
+-  [Supported event catalogs and data centers](#supported-event-catalogs-and-data-centers): supported data centers and earthquake catalogs.
+-  [Directory structure](#directory-structure): standardized directory structure where obspyDMT organizes retrieved seismograms and metadata.
 -  [How to cite obspyDMT](#how-to-cite-obspydmt)
--  [Installation](#installation): install obspyDMT and check the installation on your local machine.
+-  [Installation](#installation): installation and system requirements.
 
 ## Gallery
 
@@ -29,10 +29,10 @@ Table of contents
 | **Quick tour**                                                 <a href="#quick-tour">![](figures/quick_tour_ray.png)                                                 | **Earthquake meta-data**                            <a href="#earthquake-meta-data">![](figures/neic_event_focal_2014_2015.png)                    |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Seismicity map**                                             <a href="#seismicity-map">![](figures/japan_seismicity.png)                                           | **Event-based mode**                                <a href="#event-based-mode">![](figures/iris_ev_based_mode.png)                                |
-| **Update an existing data set**                                <a href="#update-an-existing-data-set">![](figures/iris_gfz_ipgp_ev_based.png)                        | **Time-continuous mode**                            <a href="#time-continuous-mode">![](figures/continuous_example.png)                            |
+| **Update of an existing waveform data set**                    <a href="#update-an-existing-data-set">![](figures/iris_gfz_ipgp_ev_based.png)                        | **Time-continuous mode**                            <a href="#time-continuous-mode">![](figures/continuous_example.png)                            |
 | **Processing and instrument correction**                       <a href="#processing-and-instrument-correction">![](figures/fiji_processed.png)                       | **Synthetic seismograms**                           <a href="#synthetic-seismograms">![](figures/fiji_iasp91_2s.png)                               |
 | **Explore station meta-data (StationXML files, filterstages)** <a href="#explore-station-meta-data-stationxml-files-filterstages">![](figures/ic_LBTB_gallery.png)   | **Speeding up data retrieval by parallelization**   <a href="#speeding-up-data-retrieval-by-parallelization">![](figures/gallery_parallel.png)     |
-| **KML**                                                        <a href="#kml">![](figures/KML_event_based_example.png)                                               | **VTK**                                             <a href="#vtk">![](figures/events_neic_vtk.png)                                                       |
+| **KML format (e.g., Google-Earth)**                            <a href="#kml">![](figures/KML_event_based_example.png)                                               | **VTK format (e.g., Paraview)**                     <a href="#vtk">![](figures/events_neic_vtk.png)                                                       |
 
 
 
@@ -67,7 +67,7 @@ obspyDMT --datapath dmt_tour_dir --local --plot_waveform --plot_dir_name process
 <img src="figures/quick_tour_corrected.png" width="70%" align="middle">
 </p>
 
-obspyDMT has several tools to plot the contents of a data set. As an example, the following command line plots the ray coverage (ray path between each source-receiver pair) of ``dmt_tour_dir`` directory:
+obspyDMT has many tools to plot the contents of a data set. As an example, the following command line plots the ray coverage (ray path between each source-receiver pair) of ``dmt_tour_dir`` directory:
 
 ```bash
 obspyDMT --datapath dmt_tour_dir --local --plot_ev --plot_sta --plot_ray
@@ -79,19 +79,19 @@ obspyDMT --datapath dmt_tour_dir --local --plot_ev --plot_sta --plot_ray
 
 ## Earthquake meta-data
 
-Get info about events without downloading/processing waveforms! This method can be used to check available events before starting an actual waveform retrieval, for example:
+First, werequest event information from one of several supported seismicity catalogs, without downloading any waveforms yet:
 
 ```bash
 obspyDMT --datapath neic_event_metadata --min_mag 5.5 --min_date 2014-01-01 --max_date 2015-01-01 --event_catalog NEIC_USGS --event_info
 ```
 
-The above directory (neic_event_metadata) can be updated for events that occured in 2015 of magnitude more than 5.5: (no waveform retrieval)
+`neic_event_metadata/` directory created with the above command can be updated for events that occured in 2015 of magnitude more than 5.5: (no waveform retrieval)
 
 ```bash
 obspyDMT --datapath neic_event_metadata --min_mag 5.5 --min_date 2015-01-01 --max_date 2016-01-01 --event_catalog NEIC_USGS --event_info
 ```
 
-To plot the content of local data set (neic_event_metadata):
+To plot the content of local data set (`neic_event_metadata/`):
 
 ```bash
 obspyDMT --datapath neic_event_metadata --local --plot_ev --plot_focal
@@ -133,8 +133,8 @@ The global map also contains beach balls rather than just simple black dots, but
 
 ## Event-based mode
 
-The following command retrieves actual BHZ seismograms from the IRIS data center that recorded earthquakes of magnitude more than 7.5 that occured from 2014-01-01 until
-2015-01-01 (NEIC catalog). For this example, we only retrieve stations with station code ``II``, location code ``00`` and channel codes ``BHZ``.
+Here, we retrieve actual BHZ seismograms from `II` network that recorded earthquakes of magnitude more than 7.5 that occured from 2014-01-01 until
+2015-01-01 (NEIC catalog). For this example, only stations with network code ``II``, location code ``00`` and channel codes ``BHZ`` are retrieved:
 
 ```bash
 obspyDMT --datapath event_based_dir --min_date 2014-01-01 --max_date 2015-01-01 --min_mag 7.5 --event_catalog NEIC_USGS --data_source IRIS --net "II" --loc "00" --cha "BHZ" --preset 100 --offset 1800
@@ -159,7 +159,10 @@ obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --
 
 ## Update an existing data set
 
-The following command updates the data-set that we created in the previous section with ``BHZ`` channels of ``C*`` networks (i.e., all stations that their network codes start with C)
+In the course of working with a waveform data set, it often becomes necessary to update.
+This could mean requesting the same data again (because part of the earlier request failed for some reason), 
+or expanding the number of earthquakes, stations, or seismograms. 
+The following command updates the data-set that we created in the previous [Event-based mode section](#event-based-mode) with ``BHZ`` channels of ``AW and E*`` networks (i.e., all stations that their network codes start with E)
 from the ``GFZ`` data center:
 
 ```bash
@@ -185,6 +188,12 @@ obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --
 
 ## Time-continuous mode
 
+In contrast to the examples of [Event-based mode section](#event-based-mode) and [Update of an existing waveform data set](#update-an-existing-data-set),
+some usage cases require waveforms that are not relative to or centered on specific earthquake occurances.
+We refer to this usage mode as "time-continuous" `--continuous`.
+
+For example, the following command retrieves one-month long time series (from 2011-03-03 until 2011-04-03) recorded by two stations (`--sta "BFO,RER" --loc "00" --cha "BHZ"`) from the IRIS data center:
+ 
 ```bash
 obspyDMT --continuous --datapath continuous_example --min_date 2011-03-03 --max_date 2011-04-03 --sta "BFO,RER" --loc '00' --cha "BHZ" --data_source IRIS
 ```
@@ -221,23 +230,28 @@ obspyDMT --datapath data_fiji_island --local --plot_waveform --plot_dir processe
 
 ## Synthetic seismograms
 
+obspyDMT can retrieve synthetic waveforms matching the real data using [Syngine](http://ds.iris.edu/ds/products/syngine/).
+The following example command retrieves not only observed waveforms but also their synthetic counterparts, computed on an IASP91 background model:
+
 ```bash
 obspyDMT --datapath data_fiji_island --min_mag 6.8 --min_date 2014-07-21 --max_date 2014-07-22 --event_catalog NEIC_USGS --data_source IRIS --min_azi 50 --max_azi 55 --min_epi 94 --max_epi 100 --cha BHZ --instrument_correction --syngine --syngine_bg_model iasp91_2s
 ```
 
+To plot the synthetic waveforms (note ``--plot_dir_name syngine_iasp91_2s``):
+
 ```bash
-obspyDMT --datapath data_fiji_island --local --plot_waveform --plot_dir syngine_iasp91_2s
+obspyDMT --datapath data_fiji_island --local --plot_waveform --plot_dir_name syngine_iasp91_2s
 ```
 
 <p align="center">
 <img src="figures/fiji_iasp91_2s.png" width="70%" align="middle">
 </p>
 
-```bash
-obspyDMT --datapath data_fiji_island --local --data_source IRIS --min_azi 50 --max_azi 55 --min_epi 94 --max_epi 100 --cha BHZ --pre_process False --syngine --syngine_bg_model iasp91_2s
-```
 
 ## Explore station meta-data (StationXML files, filterstages)
+
+obspyDMT implements several plotting options to explore station meta-data.
+For example, the following command generates a visual representation of transfer function spectra (amplitude and phase) of `IC.XAN` station in China:
 
 ```bash
 obspyDMT --datapath /path/to/STXML.IC.XAN.00.BHZ --plot_stationxml --plotxml_paz --plotxml_min_freq 0.0001
@@ -247,6 +261,11 @@ obspyDMT --datapath /path/to/STXML.IC.XAN.00.BHZ --plot_stationxml --plotxml_paz
 <img src="figures/ic_XAN.png" width="50%" align="middle">
 </p>
 
+Blue lines show transfer function components computed for all filter stages in the StationXML file;
+red lines are for the analogue part.
+
+To plot transfer function spectra (amplitude and phase) of `GT.LBTB` station in Botswana:
+
 ```bash
 obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot_stationxml --plotxml_paz --plotxml_min_freq 0.0001
 ```
@@ -255,6 +274,8 @@ obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot_stationxml --plotxml_pa
 <img src="figures/ic_LBTB.png" width="50%" align="middle">
 </p>
 
+Transfer function spectra (amplitude and phase) of each stage in the StationXML file can be also plotted by (note `--plotxml_allstages`): 
+
 ```bash
 obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot_stationxml --plotxml_min_freq 0.0001 --plotxml_allstages
 ```
@@ -262,6 +283,8 @@ obspyDMT --datapath /path/to/STXML.GT.LBTB.00.BHZ --plot_stationxml --plotxml_mi
 <p align="center">
 <img src="figures/ic_LBTB_stages.png" width="100%" align="middle">
 </p>
+
+In the phase response, two stages (1 and 5) have non-zero values.
 
 ## Speeding up data retrieval by parallelization
 
