@@ -1,6 +1,6 @@
 # obspyDMT: A Python Toolbox for Retrieving, Processing and Management of Seismological Datasets
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.570929.svg)](https://doi.org/10.5281/zenodo.570929)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.571469.svg)](https://doi.org/10.5281/zenodo.571469)
 
 [obspyDMT][dmt] (obspy Data Management Tool) is a command line tool for retrieving, processing and management of seismological datasets in a fully automatic way.
 
@@ -371,7 +371,7 @@ For each request, obspyDMT creates the depicted directory tree inside the user-s
 
 Cite the code:
 
-    Kasra Hosseini (2017), obspyDMT (Version 2.0.0) [software] [https://github.com/kasra-hosseini/obspyDMT]
+    Kasra Hosseini. (2017). obspyDMT: v2.0.1 [Data set]. Zenodo. http://doi.org/10.5281/zenodo.571469
 
 
 ## Installation
