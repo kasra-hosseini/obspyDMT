@@ -1093,9 +1093,9 @@ def write_cat_logger(input_dics, eventpath, events, catalog,
                                       'logger_command.txt'),
                  inputs=input_dics)
 
-    # output catalogue as ASCII
+    # output catalogue creation info as ASCII
     event_cat = \
-        open(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.txt'), 'at+')
+        open(os.path.join(eventpath, 'EVENTS-INFO', 'catalog_info.txt'), 'at+')
     st_argus = 'Command line:\n-------------\n'
     for item in sys.argv:
         st_argus += item + ' '
@@ -1115,6 +1115,54 @@ def write_cat_logger(input_dics, eventpath, events, catalog,
     event_cat.writelines('min depth: %s\n' % input_dics['min_depth'])
     event_cat.writelines('max depth: %s\n' % input_dics['max_depth'])
     event_cat.writelines('\n\n=====================================\n')
+    event_cat.close()
+
+    # output catalogue as ASCII
+    event_cat = \
+        open(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.txt'), 'at+')
+    st_argus = 'Command line:\n-------------\n'
+    for item in sys.argv:
+        st_argus += item + ' '
+    st_argus += '\n'
+    event_cat.writelines(st_argus)
+    event_cat.writelines('\n')
+    event_cat.writelines('#number,event_id,datetime,latitude,longitude,'
+                         'depth,magnitude,magnitude_type,author,'
+                         'flynn_region,mrr,mtt,mpp,mrt,mrp,mtp,'
+                         'stf_func,stf_duration,t1,t2\n')
+    for ev in events:
+        if ev['focal_mechanism']:
+            mrr = ev['focal_mechanism'][0]
+            mtt = ev['focal_mechanism'][1]
+            mpp = ev['focal_mechanism'][2]
+            mrt = ev['focal_mechanism'][3]
+            mrp = ev['focal_mechanism'][4]
+            mtp = ev['focal_mechanism'][5]
+        else:
+            mrr = None
+            mtt = None
+            mpp = None
+            mrt = None
+            mrp = None
+            mtp = None
+        if ev['source_duration']:
+            stf_shape = ev['source_duration'][0]
+            stf_dur = ev['source_duration'][1]
+        else:
+            stf_shape = None
+            stf_dur = None
+        event_cat.writelines('%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'
+                             '%s,%s,%s,%s,%s,%s,%s\n'
+                             % (ev['number'], ev['event_id'], ev['datetime'],
+                                ev['latitude'], ev['longitude'],
+                                ev['depth'], ev['magnitude'],
+                                ev['magnitude_type'], ev['author'],
+                                ev['flynn_region'],
+                                mrr, mtt, mpp, mrt, mrp, mtp,
+                                stf_shape, stf_dur,
+                                ev['t1'],
+                                ev['t2']))
+    event_cat.writelines('\n')
     event_cat.close()
 
     event_file = open(os.path.join(eventpath, 'EVENTS-INFO',
