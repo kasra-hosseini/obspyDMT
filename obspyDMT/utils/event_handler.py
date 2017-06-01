@@ -67,15 +67,30 @@ def get_time_window(input_dics, request):
     events = []
     events_qml = Catalog(events=[])
     try:
-        events_local = read_info(input_dics)
-        if input_dics['event_catalog'].lower() == 'local':
-            if events_local == 'no_local':
-                print("[WARNING] no local event was found!")
-                if request == 'event_based':
-                    print("[WARNING] use IRIS catalog instead!")
-                    input_dics['event_catalog'] = 'IRIS'
+        if not input_dics['read_catalog']:
+            events_local = read_info(input_dics)
+            if input_dics['event_catalog'].lower() == 'local':
+                if events_local == 'no_local':
+                    print("[WARNING] no local event was found!")
+                    if request == 'event_based':
+                        print("[WARNING] use IRIS catalog instead!")
+                        input_dics['event_catalog'] = 'IRIS'
+                else:
+                    events = copy.deepcopy(events_local)
+        else:
+            events_QML, ev_already_list = \
+                read_local_events(input_dics['read_catalog'])
+            if not ev_already_list:
+                # no matter if list was passed or requested, sort catalogue,
+                # plot events and proceed
+                events_QML = sort_catalogue(events_QML)
+                events = qml_to_event_list(events_QML)
             else:
-                events = copy.deepcopy(events_local)
+                events = copy.deepcopy(events_QML)
+                events_QML = False
+            for i in range(len(events)):
+                events[i]['t1'] = events[i]['datetime'] - input_dics['preset']
+                events[i]['t2'] = events[i]['datetime'] + input_dics['offset']
 
         if events == 'no_local' or events == []:
             if request.lower() == 'event_based':
@@ -254,7 +269,7 @@ def event_info(input_dics):
                             max_mag=input_dics['max_mag'],
                             mag_type=input_dics['mag_type'],
                             req_mag_agcy='Any',
-                            rev_comp=input_dics['isc_rev_comp'])
+                            rev_comp=input_dics['isc_catalog'])
 
         elif event_switch == 'local':
             events_QML = readEvents(input_dics['read_catalog'])
@@ -296,6 +311,51 @@ def event_info(input_dics):
 
     return events, events_QML
 
+# ##################### read_local_events #####################################
+
+
+def read_local_events(catalog_add):
+    """
+    read local events
+    :param catalog_add:
+    :return:
+    """
+    try:
+        events_QML = readEvents(catalog_add)
+        return events_QML, False
+    except Exception as error:
+        try:
+            ev_csv = np.loadtxt(catalog_add, delimiter=',',
+                                comments='#', ndmin=2, dtype='object')
+            events = []
+            for i in range(np.shape(ev_csv)[0]):
+                events.append(OrderedDict(
+                    [('number', i+1),
+                     ('latitude', eval(ev_csv[i][3])),
+                     ('longitude', eval(ev_csv[i][4])),
+                     ('depth', eval(ev_csv[i][5])),
+                     ('datetime', UTCDateTime(ev_csv[i][2])),
+                     ('magnitude', eval(ev_csv[i][6])),
+                     ('magnitude_type', ev_csv[i][7]),
+                     ('author', ev_csv[i][8]),
+                     ('event_id', ev_csv[i][1]),
+                     ('origin_id', -12345),
+                     ('focal_mechanism', [eval(ev_csv[i][10]),
+                                          eval(ev_csv[i][11]),
+                                          eval(ev_csv[i][12]),
+                                          eval(ev_csv[i][13]),
+                                          eval(ev_csv[i][14]),
+                                          eval(ev_csv[i][15])
+                                          ]),
+                     ('source_duration', [ev_csv[i][16], eval(ev_csv[i][17])]),
+                     ('flynn_region', ev_csv[i][9])]))
+            return events, True
+        except Exception as error:
+            print(60*'-')
+            print('[WARNING] %s' % error)
+            print(60*'-')
+            return Catalog(events=[]), False
+
 # ##################### qml_to_event_list #####################################
 
 
@@ -315,6 +375,21 @@ def qml_to_event_list(events_QML):
             event_time_hour = '%02i' % int(event_time.hour)
             event_time_minute = '%02i' % int(event_time.minute)
             event_time_second = '%02i' % int(event_time.second)
+
+            if not hasattr(events_QML.events[i], 'preferred_mag'):
+                events_QML.events[i].preferred_mag = \
+                    events_QML.events[i].magnitudes[0].mag
+                events_QML.events[i].preferred_mag_type = \
+                    events_QML.events[i].magnitudes[0].magnitude_type
+                events_QML.events[i].preferred_author = 'None'
+            else:
+                if not hasattr(events_QML.events[i], 'preferred_author'):
+                    if events_QML.events[i].preferred_magnitude().creation_info:
+                        events_QML.events[i].preferred_author = \
+                            events_QML.events[i].preferred_magnitude().creation_info.author
+                    elif events_QML.events[i].magnitudes[0].creation_info:
+                        events_QML.events[i].preferred_author = \
+                            events_QML.events[i].magnitudes[0].creation_info.author
         except Exception as error:
             print(error)
             continue
@@ -852,22 +927,20 @@ def isc_catalog(bot_lat=-90, top_lat=90,
                                req_mag_agcy=req_mag_agcy,
                                rev_comp=rev_comp)
 
-    print("URL:\n%s" % base_url)
+    print("\nURL:\n%s\n" % base_url)
 
-    try_url = 5
-    while try_url > 0:
-        print("Try: %s" % try_url)
+    try_url = 1
+    isc_events = Catalog(events=[]) 
+    while try_url < 6:
+        print("---> Send event request (Try: %s)" % try_url)
         try:
             isc_req = urlopen(base_url)
             isc_contents = isc_req.read()
             isc_events = readEvents(isc_contents)
-            try_url = 0
+            try_url = 100
         except Exception as e:
             print("requested content from ISC:\n%s" % e)
-        try_url -= 1
-
-    isc_events = isc_events.filter("magnitude >= %s" % min_mag,
-                                   "magnitude <= %s" % max_mag)
+        try_url += 1
 
     remove_index = []
     for i in range(len(isc_events)):
@@ -881,7 +954,8 @@ def isc_catalog(bot_lat=-90, top_lat=90,
                     isc_events.events[i].magnitudes[j].magnitude_type
                 isc_events.events[i].preferred_author = \
                     isc_events.events[i].magnitudes[j].creation_info.author
-                found_mag_type = True
+                if (min_mag <= isc_events.events[i].preferred_mag <= max_mag):
+                    found_mag_type = True
                 break
         if not found_mag_type:
             remove_index.append(i)
@@ -926,7 +1000,7 @@ def isc_url_builder(search_domain='rectangular', bot_lat=-90, top_lat=90,
     """
     base_url = 'http://www.isc.ac.uk/cgi-bin/web-db-v4?'
     base_url += 'request=%s' % rev_comp
-    base_url += '&out_format=CATQuakeML'
+    base_url += '&out_format=QuakeML'
     if search_domain == 'rectangular':
         base_url += '&searchshape=RECT'
         base_url += '&bot_lat=%s' % bot_lat
@@ -957,13 +1031,17 @@ def isc_url_builder(search_domain='rectangular', bot_lat=-90, top_lat=90,
                                             end_time.second)
     base_url += '&min_dep=%s' % min_dep
     base_url += '&max_dep=%s' % max_dep
-    base_url += '&null_dep=off'
     base_url += '&min_mag=%s' % min_mag
     base_url += '&max_mag=%s' % max_mag
-    base_url += '&null_mag=off'
     base_url += '&req_mag_type=%s' % mag_type
     base_url += '&req_mag_agcy=%s' % req_mag_agcy
+    
+    base_url += '&min_def='
+    base_url += '&max_def='
     base_url += '&include_links=on'
+    base_url += '&include_magnitudes=on'
+    base_url += '&include_headers=on'
+    base_url += '&include_comments=on'
     return base_url
 
 # ##################### output_shell_event ####################################

@@ -327,6 +327,10 @@ def command_parse():
     helpmsg = "Event catalog, currently supports LOCAL, NEIC_USGS, " \
               "GCMT_COMBO, IRIS, NCEDC, USGS, " \
               "INGV, ISC, NERIES (default: LOCAL). " \
+              "'--event_catalog LOCAL' searches for an existing " \
+              "event catalog on the user's local machine, " \
+              "in the EVENTS-INFO subdirectory of --datapath <PATH>. " \
+              "This is usually a previously retrieved catalog. " \
               "Example: IRIS"
     group_ev_based.add_option("--event_catalog", action="store",
                               dest="event_catalog", help=helpmsg)
@@ -337,8 +341,12 @@ def command_parse():
                               dest="event_info", help=helpmsg)
 
     helpmsg = "Read in an existing local event catalog and proceed. " \
-              "Currently supported catalogue metadata formats: " \
-              "'QUAKEML', 'NDK, 'ZMAP'." \
+              "Currently supported catalog metadata formats: " \
+              "'CSV', 'QUAKEML', 'NDK', 'ZMAP'. " \
+              "Format of the plain text CSV (comma-separated values) is " \
+              "explained in the obspyDMT tutorial. " \
+              "Refer to obspy documentation for details on " \
+              "QuakeML, NDK and ZMAP formats. " \
               "Example: /path/to/file.ml"
     group_ev_based.add_option("--read_catalog", action="store",
                               dest="read_catalog", help=helpmsg)
@@ -388,13 +396,15 @@ def command_parse():
     group_ev_based.add_option("--event_circle", action="store",
                               dest="event_circle", help=helpmsg)
 
-    # XXXXXX
-    helpmsg = "searches the ISC Bulletin (COMPREHENSIVE) or " \
-              "searches the Reviewed ISC Bulletin (REVIEWED) - " \
-              "a subset of the ISC Bulletin, " \
-              "which is reviewed by ISC analysts."
-    group_ev_based.add_option("--isc_rev_comp", action="store",
-                              dest="isc_rev_comp", help=helpmsg)
+    helpmsg = "Search either the COMPREHENSIVE or the REVIEWED bulletin " \
+              "of the International Seismological Centre (ISC). " \
+              "COMPREHENSIVE: all events collected by the ISC, " \
+              "including most recent events that are awaiting review. " \
+              "REVIEWED: includes only events that have been " \
+              "relocated by ISC analysts. " \
+              "(default: COMPREHENSIVE). Example: 'REVIEWED'"
+    group_ev_based.add_option("--isc_catalog", action="store",
+                              dest="isc_catalog", help=helpmsg)
     parser.add_option_group(group_ev_based)
 
     # --------------- continuous time series mode
@@ -715,7 +725,7 @@ def read_input_command(parser, **kwargs):
                   'evlonmin': None, 'evlonmax': None,
                   'evlat': None, 'evlon': None,
                   'evradmin': None, 'evradmax': None,
-                  'isc_rev_comp': "COMPREHENSIVE",
+                  'isc_catalog': "COMPREHENSIVE",
                   'syngine_bg_model': 'iasp91_2s',
                   'syngine_geocentric_lat': True,
 
@@ -827,7 +837,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print('\n\t\t' + '*********************************')
         print('\t\t' + '*        obspyDMT version:      *')
-        print('\t\t' + '*\t' + 5*' ' + '2.0.1' + '\t\t*')
+        print('\t\t' + '*\t' + 5*' ' + '2.0.2' + '\t\t*')
         print('\t\t' + '*********************************')
         print('\n')
         sys.exit(2)
@@ -1150,7 +1160,10 @@ def read_input_command(parser, **kwargs):
     input_dics['evradmax'] = options.evradmax
     input_dics['evradmin'] = options.evradmin
 
-    input_dics['isc_rev_comp'] = options.isc_rev_comp
+    if 'rev' in options.isc_catalog.lower():
+        input_dics['isc_catalog'] = 'REVIEWED'
+    else:
+        input_dics['isc_catalog'] = 'COMPREHENSIVE'
     input_dics['syngine'] = options.syngine
     input_dics['syngine_bg_model'] = options.syngine_bg_model
     if str(options.syngine_geocentric_lat).lower() in ['false']:
