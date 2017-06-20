@@ -36,12 +36,14 @@ import os
 import pickle
 import sys
 import time
-import urllib
 try:
     from urllib2 import urlopen 
 except ImportError:
-    from urllib.request import urlopen 
-
+    from urllib.request import urlopen
+try:
+    from urllib import urlencode as urlencodeparse
+except ImportError:
+    from urllib.parse import urlencode as urlencodeparse
 from .input_handler import input_logger
 from .utility_codes import locate
 
@@ -644,6 +646,7 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
 
     num_div = int(dur_event/interval)
     print('#Divisions: %s' % num_div)
+    remotefile = False
     if not num_div < 1:
         for i in range(1, num_div+1):
             try:
@@ -654,7 +657,7 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
                 getVars['starttime'] = str(t_start_split)
                 getVars['endtime'] = str(t_end_split)
 
-                url_values = urllib.parse.urlencode(getVars)
+                url_values = urlencodeparse(getVars)
                 remotefile = link_neic + url_values
                 page = urlopen(remotefile)
                 page_content = page.read()
@@ -677,7 +680,7 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
             getVars['starttime'] = str(t_start_split)
             getVars['endtime'] = str(t_end_split)
 
-            url_values = urllib.parse.urlencode(getVars)
+            url_values = urlencodeparse(getVars)
             remotefile = link_neic + url_values
             page = urlopen(remotefile)
             page_content = page.read()
@@ -700,7 +703,7 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
             getVars['starttime'] = str(t_start_split)
             getVars['endtime'] = str(t_end_split)
 
-            url_values = urllib.parse.urlencode(getVars)
+            url_values = urlencodeparse(getVars)
             remotefile = link_neic + url_values
             page = urlopen(remotefile)
             page_content = page.read()
