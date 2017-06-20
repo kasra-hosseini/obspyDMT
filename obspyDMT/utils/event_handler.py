@@ -661,6 +661,7 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
                 remotefile = link_neic + url_values
                 page = urlopen(remotefile)
                 page_content = page.read()
+                page_content = page_content.decode("utf-8")
 
                 if 'quakeml' in page_content:
                     with open(os.path.join(dir_name,
@@ -684,6 +685,7 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
             remotefile = link_neic + url_values
             page = urlopen(remotefile)
             page_content = page.read()
+            page_content = page_content.decode("utf-8")
 
             if 'quakeml' in page_content:
                 with open(os.path.join(dir_name,
@@ -707,6 +709,8 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
             remotefile = link_neic + url_values
             page = urlopen(remotefile)
             page_content = page.read()
+            page_content = page_content.decode("utf-8")
+
             if 'quakeml' in page_content:
                 with open(os.path.join(dir_name,
                                        'temp_neic_xml_%05i.xml' % (num_div+1)),
