@@ -422,10 +422,9 @@ For each request, obspyDMT creates the depicted directory tree inside the user-s
 
 ## How to cite obspyDMT
 
-Cite the code:
+Please consider acknowledging obspyDMT if it helps you to obtain results and figures for publication or presentation, by citing:
 
-    Kasra Hosseini. (2017, June 1). obspyDMT: v2.0.2. Zenodo. http://doi.org/10.5281/zenodo.801778
-
+    Hosseini, K. and Sigloch, K.: ObspyDMT: a Python toolbox for retrieving and processing large seismological data sets, Solid Earth, 8, 1047-1070, https://doi.org/10.5194/se-8-1047-2017, 2017.
 
 ## Installation
 
