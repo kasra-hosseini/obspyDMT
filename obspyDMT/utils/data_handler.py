@@ -369,6 +369,15 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
                 # kernelwidth=None
                 # sourceforce=None
                 # label=None
+                req_syngine_component = st_avail[3][-1]
+                if req_syngine_component == '1':
+                    req_syngine_component = 'E'
+                elif req_syngine_component == '2':
+                    req_syngine_component = 'N'
+                st_id = '%s.%s.%s.%s' % (st_avail[0],
+                                         st_avail[1],
+                                         st_avail[2],
+                                         st_avail[3][:-1] + req_syngine_component)
                 syn_st = client_syngine.get_waveforms(
                     model=input_dics['syngine_bg_model'],
                     receiverlatitude=rcvlatitude,
@@ -379,14 +388,14 @@ def fdsn_download_core(st_avail, event, input_dics, target_path,
                     sourcelongitude=event['longitude'],
                     sourcedepthinmeters=float(event['depth'])*1000.,
                     origintime=event['datetime'],
-                    components=st_avail[3][-1],
+                    components=req_syngine_component,
                     units=input_dics['syngine_units'],
                     sourcemomenttensor=syngine_momenttensor,
                     starttime=t_start,
                     endtime=t_end)[0]
 
                 syn_st.stats.location = st_avail[2]
-                syn_st.stats.channel = st_avail[3]
+                syn_st.stats.channel = st_avail[3][:-1] + req_syngine_component
                 syn_st.write(os.path.join(syn_dirpath, st_id),
                              format='mseed')
 
