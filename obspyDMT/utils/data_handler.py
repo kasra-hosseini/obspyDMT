@@ -749,12 +749,12 @@ def update_sta_ev_file(target_path, event):
             sta_sorted = np.reshape(sta_sorted, [1, len(sta_sorted)])
         if not np.shape(sta_sorted)[1] < 1:
             for sts in sta_sorted:
-                sta_ev_line = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,\n' \
+                sta_ev_line = '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,\n' \
                               % (sts[0], sts[1], sts[2], sts[3], sts[4],
                                  sts[5], sts[6], sts[7], sts[8],
                                  event['event_id'], event['latitude'],
                                  event['longitude'], event['depth'],
-                                 event['magnitude'], '10')
+                                 event['magnitude'], sts[10], sts[11], '10')
                 sta_ev_fio.writelines(sta_ev_line)
     sta_ev_fio.close()
 

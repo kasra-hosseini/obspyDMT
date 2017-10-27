@@ -469,6 +469,14 @@ def convert_to_sac(tr, save_path, sta_ev_arr):
         tr.stats.sac.mag = float(sta_ev_arr[13])
     except:
         pass
+    try:
+        tr.stats.sac.cmpaz = float(sta_ev_arr[14])
+    except:
+        pass
+    try:
+        tr.stats.sac.cmpinc = float(sta_ev_arr[15])
+    except:
+        pass
     return tr
 
 # ##################### calculate_time_phase ##################################
