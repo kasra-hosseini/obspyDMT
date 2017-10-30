@@ -29,10 +29,7 @@ try:
     from obspy.signal.util import next_pow_2 as nextpow2
 except:
     from obspy.signal.util import nextpow2
-try:
-    from obspy.taup import getTravelTimes
-except:
-    from obspy.taup.taup import getTravelTimes
+
 import os
 import pickle
 import smtplib
@@ -508,6 +505,10 @@ def calculate_time_phase(event, sta, bg_model='iasp91'):
 
     if not tau_bg:
         try:
+            try:
+                from obspy.taup import getTravelTimes
+            except:
+                from obspy.taup.taup import getTravelTimes
             tt = getTravelTimes(dist, evdp)
             flag = False
             for ph in phase_list:
