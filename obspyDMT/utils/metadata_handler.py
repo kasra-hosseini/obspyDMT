@@ -219,7 +219,8 @@ def fdsn_available(input_dics, cl, event, target_path):
                                      channel.location_code, channel.code,
                                      channel.latitude, channel.longitude,
                                      channel.elevation, channel.depth,
-                                     input_dics['data_source'][cl], st_id])
+                                     input_dics['data_source'][cl], st_id,
+                                     channel.azimuth, channel.dip])
 
         if input_dics['bulk']:
             print('creating a list for bulk request...')
