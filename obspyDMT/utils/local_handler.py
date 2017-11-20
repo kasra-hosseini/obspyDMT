@@ -140,7 +140,7 @@ def process_serial_parallel(sta_ev_arr, input_dics, target_path):
         step = int(step)
 
         jobs = []
-        for index in xrange(req_proc):
+        for index in range(req_proc):
             starti = start + index * step
             endi = min(start + (index + 1) * step, end)
             if starti == endi:
