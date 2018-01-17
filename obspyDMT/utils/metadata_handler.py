@@ -313,7 +313,7 @@ def arc_available(input_dics, event, target_path):
                                                 inventories[sta]['longitude'],
                                                 inventories[sta]['elevation'],
                                                 inventories[sta]['depth'],
-                                                'ARCLINK', st_id])
+                                                'ARCLINK', st_id, 'NA', 'NA'])
                         if input_dics['lon_cba'] and input_dics['lat_cba']:
                             index_rm = []
                             lat1 = float(input_dics['lat_cba'])

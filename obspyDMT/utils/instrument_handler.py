@@ -17,7 +17,9 @@ try:
     from obspy.io.xseed import Parser
 except:
     from obspy.xseed import Parser
+from obspy import __version__ as obspy_ver
 import os
+from pkg_resources import parse_version
 
 # ##################### instrument_correction #################################
 
@@ -47,6 +49,12 @@ def instrument_correction(tr, target_path, save_path, corr_unit, pre_filt,
                                        corr_unit, pre_filt, water_level,
                                        zero_mean, taper, taper_fraction,
                                        remove_trend,
+                                       debug=False, inv_format='stationxml')
+    elif os.path.isfile(resp_file) and (parse_version(obspy_ver) >= parse_version('1.1.0')):
+        tr_corr = obspy_fullresp_stxml(tr, resp_file, save_path,
+                                       corr_unit, pre_filt, water_level,
+                                       zero_mean, taper, taper_fraction,
+                                       remove_trend,
                                        debug=False)
     elif os.path.isfile(resp_file):
         tr_corr = obspy_fullresp_resp(tr, resp_file, save_path,
@@ -64,7 +72,7 @@ def instrument_correction(tr, target_path, save_path, corr_unit, pre_filt,
 
 def obspy_fullresp_stxml(trace, stxml_file, save_path, unit,
                          bp_filter, water_level, zero_mean, taper,
-                         taper_fraction, remove_trend, debug=False):
+                         taper_fraction, remove_trend, debug=False, inv_format=False):
     """
     apply instrument correction using StationXML file
     :param trace:
@@ -98,7 +106,10 @@ def obspy_fullresp_stxml(trace, stxml_file, save_path, unit,
         # remove the trend
         if remove_trend:
             trace.detrend('linear')
-        inv = read_inventory(stxml_file, format="stationxml")
+        if inv_format == 'stationxml':
+            inv = read_inventory(stxml_file, format="stationxml")
+        else:
+            inv = read_inventory(stxml_file)
         trace.attach_response(inv)
         trace.remove_response(output=unit,
                               water_level=water_level,
