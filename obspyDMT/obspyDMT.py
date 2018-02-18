@@ -52,8 +52,7 @@ def dmt_core(input_dics, **kwargs):
     if input_dics['plot_stationxml']:
         plot_xml_response(input_dics)
     # ------------------getting list of events/continuous requests-------------
-    if input_dics['primary_mode'] in ['meta_data', 'event_based',
-                                      'continuous', 'local']:
+    if input_dics['primary_mode'] in ['meta_data', 'event_based', 'continuous', 'local']:
         # events contains all the information for requested time-window
         # Although we do not have any events in continuous requests,
         # it is still called as events.

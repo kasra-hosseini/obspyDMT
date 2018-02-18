@@ -152,15 +152,34 @@ def read_info(input_dics):
     if len(evs_info) == 0:
         return "no_local"
     if len(evs_info) > 1:
-        print("[WARNING] Found two directories that have EVENTS-INFO. " \
-              "Continue with:")
+        print("[WARNING] Found two directories that have EVENTS-INFO. Continue with:")
         print(evs_info[0])
         print('\n')
 
     ev_info = evs_info[0]
 
     if not os.path.isfile(os.path.join(ev_info, 'event_list_pickle')):
-        return "no_local"
+        print("[WARNING] no 'event_list_pickle' was found at %s, "
+              "try to re-generate it..." % ev_info)
+        info_dirs = locate(input_dics['datapath'], 'info')
+        event_list_regen = []
+        for info_d in info_dirs:
+            if os.path.isfile(os.path.join(info_d, 'event.pkl')):
+                try:
+                    ev_pkl_tmp = pickle.load(open(os.path.join(info_d, 'event.pkl'), 'r'))
+                    # to check whether t1 and t2 variables are there:
+                    test_t1 = ev_pkl_tmp['t1']
+                    test_t2 = ev_pkl_tmp['t2']
+                    event_list_regen.append(ev_pkl_tmp)
+                except Exception, e:
+                    print("ERROR: %s" % e)
+        if len(event_list_regen) > 0:
+            print("[WARNING] a new 'event_list_pickle' was generated with %s events." % len(event_list_regen))
+            fio = open(os.path.join(ev_info, 'event_list_pickle'), 'w')
+            pickle.dump(event_list_regen, fio, protocol=2)
+        else:
+            print("[WARNING] a new 'event_list_pickle' could NOT be generated.")
+            return "no_local"
 
     fio = open(os.path.join(ev_info, 'event_list_pickle'), 'rb')
     events = pickle.load(fio)
@@ -1303,7 +1322,7 @@ def sort_catalogue(cat):
     cat = Catalog(events=events)
     return cat
 
-# ##################### mag_halfduration ###################################
+# ##################### mag_duration ###################################
 
 
 def mag_duration(mag, type_curve=1):
