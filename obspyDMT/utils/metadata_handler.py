@@ -267,8 +267,9 @@ def arc_available(input_dics, event, target_path):
     """
     print("check the availability: ArcLink")
 
-    client_arclink = Client_arclink(user='test@obspy.org',
-                                    timeout=input_dics['arc_avai_timeout'])
+    client_arclink = Client_arclink(user=input_dics['username'],
+                                    password=input_dics['password'],
+                                    timeout=input_dics['arc_avai_timeout'])    
 
     if hasattr(client_arclink, 'get_inventory'):
         arclink_get_inventory = client_arclink.get_inventory
