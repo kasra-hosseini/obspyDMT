@@ -171,7 +171,7 @@ def read_info(input_dics):
                     test_t1 = ev_pkl_tmp['t1']
                     test_t2 = ev_pkl_tmp['t2']
                     event_list_regen.append(ev_pkl_tmp)
-                except Exception, e:
+                except Exception as e:
                     print("ERROR: %s" % e)
         if len(event_list_regen) > 0:
             print("[WARNING] a new 'event_list_pickle' was generated with %s events." % len(event_list_regen))
