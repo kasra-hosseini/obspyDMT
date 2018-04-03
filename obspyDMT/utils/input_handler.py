@@ -828,7 +828,7 @@ def read_input_command(parser, **kwargs):
         print(parser.option_groups[int(options.list_option)-1].title)
         for opt_grp in \
                 parser.option_groups[int(options.list_option)-1].option_list:
-            print("{0:20s}\t{1:20s}\t{2:20s}\t\t{3:20s}".\
+            print("{0:20s}\t{1:20s}\t{2!s:20}\t\t{3:20s}".\
                 format(opt_grp.get_opt_string(), opt_grp.dest,
                        opt_grp.type, opt_grp.help))
         sys.exit()
@@ -837,7 +837,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print('\n\t\t' + '*********************************')
         print('\t\t' + '*        obspyDMT version:      *')
-        print('\t\t' + '*\t' + 5*' ' + '2.0.8' + '\t\t*')
+        print('\t\t' + '*\t' + 5*' ' + '2.0.9' + '\t\t*')
         print('\t\t' + '*********************************')
         print('\n')
         sys.exit(2)
