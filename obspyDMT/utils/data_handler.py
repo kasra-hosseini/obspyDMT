@@ -488,7 +488,7 @@ def arc_serial_parallel(stas_avail, event, input_dics, target_path,
 
     client_arclink = Client_arclink(user=input_dics['username'],
                                     password=input_dics['password'],
-                                    timeout=input_dics['arc_avai_timeout'])
+                                    timeout=input_dics['arc_wave_timeout'])
 
     client_syngine = Client_syngine()
 
