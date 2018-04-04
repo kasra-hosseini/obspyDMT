@@ -197,7 +197,8 @@ def command_parse():
               "by --cut_time_phase. " \
               "In continuous mode, the reference time(s) are specified by " \
               "--interval option, and --offset appends " \
-              "the specified offset to each interval (default: 1800). " \
+              "the specified offset to each interval "\
+              "(default: 1800 for event-based mode and 0 for continuous mode). " \
               "Example: 3600"
     group_tw.add_option("--offset", action="store",
                         dest="offset", help=helpmsg)
@@ -700,7 +701,7 @@ def read_input_command(parser, **kwargs):
                   # 'min_date': str(UTCDateTime() - 60 * 60 * 24 * 10 * 1),
                   'min_date': str(UTCDateTime(1970, 1, 1)),
                   'max_date': str(UTCDateTime()),
-                  'preset': 0.0, 'offset': 1800.0,
+                  'preset': 0.0, 'offset': False,
                   'waveform_format': False,
                   'resample_method': 'lanczos',
                   'sampling_rate': False,
@@ -837,7 +838,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print('\n\t\t' + '*********************************')
         print('\t\t' + '*        obspyDMT version:      *')
-        print('\t\t' + '*\t' + 5*' ' + '2.0.9' + '\t\t*')
+        print('\t\t' + '*\t' + 5*' ' + '2.0.10' + '\t\t*')
         print('\t\t' + '*********************************')
         print('\n')
         sys.exit(2)
@@ -1025,7 +1026,12 @@ def read_input_command(parser, **kwargs):
     input_dics['min_date'] = str(UTCDateTime(options.min_date))
     input_dics['max_date'] = str(UTCDateTime(options.max_date))
     input_dics['preset'] = float(options.preset)
-    input_dics['offset'] = float(options.offset)
+    if options.offset: 
+        input_dics['offset'] = float(options.offset)
+    elif options.continuous: 
+        input_dics['offset'] = 0.
+    else:
+        input_dics['offset'] = 1800.
 
     input_dics['cut_time_phase'] = options.cut_time_phase
 
