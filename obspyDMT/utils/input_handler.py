@@ -69,7 +69,7 @@ def command_parse():
     group_path.add_option("--datapath", action="store",
                           dest="datapath", help=helpmsg)
 
-    helpmsg = "If the datapath is found, delet it before running obspyDMT."
+    helpmsg = "If the datapath is found, delete it before running obspyDMT."
     group_path.add_option("--reset", action="store_true",
                           dest="reset", help=helpmsg)
     parser.add_option_group(group_path)
