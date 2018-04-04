@@ -79,7 +79,7 @@ def resample_trace(tr, dt, method, lanczos_a=20):
             if method == 'decimate':
                 tr.decimate(factor=decimation_factor, no_filter=True)
             elif method == 'lanczos':
-                current_sr = tr.stats.sampling_rate
+                current_sr = float(tr.stats.sampling_rate)
                 tr.interpolate(method='lanczos',
                                sampling_rate=current_sr/decimation_factor,
                                a=lanczos_a)
