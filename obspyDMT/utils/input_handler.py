@@ -1019,16 +1019,18 @@ def read_input_command(parser, **kwargs):
     else:
         input_dics['max_azi'] = False
 
-    if options.test:
+    if options.test.lower() in ['false']:
+        pass
+    else:
         input_dics['test'] = True
         input_dics['test_num'] = int(options.test)
 
     input_dics['min_date'] = str(UTCDateTime(options.min_date))
     input_dics['max_date'] = str(UTCDateTime(options.max_date))
     input_dics['preset'] = float(options.preset)
-    if options.offset: 
+    if options.offset:
         input_dics['offset'] = float(options.offset)
-    elif options.continuous: 
+    elif options.continuous:
         input_dics['offset'] = 0.
     else:
         input_dics['offset'] = 1800.
