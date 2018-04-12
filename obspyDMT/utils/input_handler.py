@@ -838,7 +838,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print('\n\t\t' + '*********************************')
         print('\t\t' + '*        obspyDMT version:      *')
-        print('\t\t' + '*\t' + 5*' ' + '2.0.10' + '\t\t*')
+        print('\t\t' + '*\t' + 5*' ' + '2.0.11' + '\t\t*')
         print('\t\t' + '*********************************')
         print('\n')
         sys.exit(2)
@@ -1019,7 +1019,7 @@ def read_input_command(parser, **kwargs):
     else:
         input_dics['max_azi'] = False
 
-    if not options.test or options.test.lower() in ['false']:
+    if (not options.test) or (options.test.lower() in ['false']):
         pass
     else:
         input_dics['test'] = True
