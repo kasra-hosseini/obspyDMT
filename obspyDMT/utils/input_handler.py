@@ -1019,7 +1019,7 @@ def read_input_command(parser, **kwargs):
     else:
         input_dics['max_azi'] = False
 
-    if options.test.lower() in ['false']:
+    if not options.test or options.test.lower() in ['false']:
         pass
     else:
         input_dics['test'] = True
