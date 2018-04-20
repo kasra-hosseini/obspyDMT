@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name="obspyDMT",
-    version="2.0.11",
+    version="2.0.12",
     keywords=["obspyDMT", "obspy", "seismology", "geophysics"],
     requires=['matplotlib', 'numpy'],
     description="obspyDMT: A Python Toolbox for Retrieving, Processing and "

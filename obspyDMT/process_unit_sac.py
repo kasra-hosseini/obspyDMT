@@ -3,6 +3,7 @@ from obspy.core import read
 import os
 import subprocess
 import sys
+import errno
 
 from .utils.utility_codes import convert_to_sac
 # -----------------------------------------------------------------------------
@@ -62,9 +63,14 @@ def process_unit(tr_add, target_path, input_dics, staev_ar):
     # Before entering to the actual processing part of the code,
     # we define some paths to be used later:
     # you can adjust it as you want, here is just one example
-
-    if not os.path.isdir(os.path.join(target_path, 'processed')):
+    
+    # If pathlib is installed, one can use: (suggested by ghraecakter)
+    # pathlib.Path(os.path.join(target_path, 'processed')).mkdir(exist_ok=True)
+    try:
         os.mkdir(os.path.join(target_path, 'processed'))
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
     # save_path is the address that will be used to save the processed data
     save_path = os.path.join(target_path, 'processed', tr.id)
     if os.path.isfile(save_path) and (not input_dics['force_process']):

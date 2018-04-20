@@ -42,10 +42,10 @@ def test_syngine_tour():
 
     from glob import glob
     assert len(glob('./dmt_tour_dir/*')) == 2
-    assert len(glob('./dmt_tour_dir/20110311_054623.a/processed/*')) == 13
-    assert len(glob('./dmt_tour_dir/20110311_054623.a/raw/*')) == 13
-    assert len(glob('./dmt_tour_dir/20110311_054623.a/syngine_iasp91_2s/*')) == 13
-    assert len(glob('./dmt_tour_dir/20110311_054623.a/resp/*')) == 13
+    assert len(glob('./dmt_tour_dir/20110311_054623.a/raw/*')) > 10
+    assert len(glob('./dmt_tour_dir/20110311_054623.a/processed/*')) == len(glob('./dmt_tour_dir/20110311_054623.a/raw/*'))
+    assert len(glob('./dmt_tour_dir/20110311_054623.a/syngine_iasp91_2s/*')) > 10
+    assert len(glob('./dmt_tour_dir/20110311_054623.a/resp/*')) == len(glob('./dmt_tour_dir/20110311_054623.a/raw/*'))
     assert len(glob('./dmt_tour_dir/20110311_054623.a/info/*')) == 8
 
     import shutil
