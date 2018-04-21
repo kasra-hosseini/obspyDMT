@@ -40,7 +40,7 @@ def test_process_unit():
     input_dics['offset'] = 1800
     input_dics['process_np'] = 4
     input_dics['resample_method'] = 'lanczos'
-    input_dics['sampling_rate'] = 1.5
+    input_dics['sampling_rate'] = 2.0
 
     from obspyDMT import obspyDMT
     input_dics = obspyDMT.dmt_core(input_dics)
