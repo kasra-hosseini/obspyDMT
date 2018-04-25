@@ -16,7 +16,7 @@
 # Required Python and Obspy modules will be imported in this part.
 from obspyDMT.utils.input_handler import command_parse, read_input_command
 
-# ##################### test_syngine_tour ###############################
+# ##################### test_process_unit ###############################
 
 
 def test_process_unit():

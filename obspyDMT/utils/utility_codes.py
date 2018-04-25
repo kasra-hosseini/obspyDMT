@@ -75,11 +75,11 @@ def goodbye_printer(input_dics, t1_pro):
     print("\n\n==================================================")
     print("obspyDMT main program has finished!\n")
     try:
-        size = getFolderSize(input_dics['datapath'])
-        size /= (1024.**2)
-        print("Info:")
-        print("* The directory contains %s MB of data." \
-              % "{:.3f}".format(float(size)))
+        #size = getFolderSize(input_dics['datapath'])
+        #size /= (1024.**2)
+        #print("Info:")
+        #print("* The directory contains %s MB of data." \
+        #      % "{:.3f}".format(float(size)))
         print(input_dics['datapath'])
         print("* Total time of execution: %s (h:m:s)" \
               % str(timedelta(seconds=round(float(time.time() - t1_pro)))))
