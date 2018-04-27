@@ -168,7 +168,7 @@ def create_ev_sta_kml(input_dics, events):
 
         if input_dics['plot_sta'] or input_dics['plot_ray']:
             target_path = locate(input_dics['datapath'],
-                                 events[ei]['event_id'])
+                                 events[ei]['event_id'], num_matches=1)
             if len(target_path) < 1:
                 continue
             if len(target_path) > 1:

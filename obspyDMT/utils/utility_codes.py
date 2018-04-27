@@ -405,17 +405,21 @@ def create_station_event(address):
 # ##################### locate ##########################################
 
 
-def locate(root='.', target='info'):
+def locate(root='.', target='info', num_matches=-1):
     """
     locates a subdirectory within a directory
     :param root:
     :param target:
+    :param num_matches:
     :return:
     """
     matches = []
     for root, dirnames, filenames in os.walk(root):
         for dirname in fnmatch.filter(dirnames, target):
             matches.append(os.path.join(root, dirname))
+        if num_matches > 0:
+            if len(matches) >= num_matches:
+                break
 
     return matches
 

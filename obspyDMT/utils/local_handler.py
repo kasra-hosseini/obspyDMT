@@ -52,7 +52,7 @@ def process_data(input_dics, event):
     :param event:
     :return:
     """
-    target_path = locate(input_dics['datapath'], event['event_id'])
+    target_path = locate(input_dics['datapath'], event['event_id'], num_matches=1)
 
     if len(target_path) == 0:
         return
@@ -302,7 +302,7 @@ def plot_waveform(input_dics, events):
     """
     # plt.rc('font', family='serif')
     for ei in range(len(events)):
-        target_path = locate(input_dics['datapath'], events[ei]['event_id'])
+        target_path = locate(input_dics['datapath'], events[ei]['event_id'], num_matches=1)
         if len(target_path) == 0:
             continue
         if len(target_path) > 1:
@@ -476,7 +476,7 @@ def plot_sta_ev_ray(input_dics, events):
                           zorder=5, alpha=0.65)
         if plt_stations or plt_availability or plt_ray_path:
             target_path = locate(input_dics['datapath'],
-                                 events[ei]['event_id'])
+                                 events[ei]['event_id'], num_matches=1)
             if len(target_path) == 0:
                 continue
             if len(target_path) > 1:

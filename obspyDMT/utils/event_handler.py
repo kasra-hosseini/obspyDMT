@@ -148,7 +148,7 @@ def read_info(input_dics):
     :param input_dics:
     :return:
     """
-    evs_info = locate(input_dics['datapath'], 'EVENTS-INFO')
+    evs_info = locate(input_dics['datapath'], 'EVENTS-INFO', num_matches=1)
     if len(evs_info) == 0:
         return "no_local"
     if len(evs_info) > 1:
