@@ -103,9 +103,9 @@ def obspy_fullresp_stxml(trace, stxml_file, save_path, unit,
             print('tarce: %s' % trace.id)
             print('save path: %s' % save_path)
 
-        # remove the trend
-        if remove_trend:
-            trace.detrend('linear')
+        # # remove the trend
+        # if remove_trend:
+        #     trace.detrend('linear')
         if inv_format == 'stationxml':
             inv = read_inventory(stxml_file, format="stationxml")
         else:
@@ -177,9 +177,9 @@ def obspy_fullresp_resp(trace, resp_file, save_path, unit,
         print('tarce: %s' % trace.id)
         print('save path: %s' % save_path)
 
-    # remove the trend
-    if remove_trend:
-        trace.detrend('linear')
+    # # remove the trend
+    # if remove_trend:
+    #     trace.detrend('linear')
     try:
         trace.simulate(seedresp=seedresp, paz_remove=None, paz_simulate=None,
                        remove_sensitivity=True, simulate_sensitivity=False,
