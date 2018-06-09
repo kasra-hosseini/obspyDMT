@@ -805,7 +805,7 @@ def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
 
     # creating a time list
     t_list = []
-    delta_t = int(UTCDateTime(t_end)-UTCDateTime(t_start)+1)/86400
+    delta_t = int(int(UTCDateTime(t_end)-UTCDateTime(t_start)+1)/86400)
 
     yymm = []
     for i in range(delta_t + 1):
@@ -848,13 +848,26 @@ def gcmt_catalog(t_start, t_end, min_latitude, max_latitude, min_longitude,
                                             '%s.qml' % yy)
             if not os.path.exists(file_to_open) and not new_monthly == 'COMBO':
                 print('Reading the data from GCMT webpage: %s' % yymmls[i])
+                if not os.path.isdir(os.path.join(gcmt_cat_path, new_monthly)):
+                    print('Create: %s' % os.path.join(gcmt_cat_path, new_monthly))
+                    os.makedirs(os.path.join(gcmt_cat_path, new_monthly))
                 remotefile = urlopen(remotefile_add)
                 remotefile_read = remotefile.readlines()
-                search_fio = open(file_to_open, 'w')
+                search_fio = open(file_to_open, 'wb')
                 search_fio.writelines(remotefile_read)
                 search_fio.close()
-            print('Reading the data from local gcmt_catalog: %s' % yymmls[i])
-            cat.extend(readEvents(file_to_open))
+            if (not os.path.exists(file_to_open)) and (new_monthly == 'COMBO'):
+                if not os.path.isdir(os.path.join(gcmt_cat_path, new_monthly)):
+                    print('Create: %s' % os.path.join(gcmt_cat_path, new_monthly))
+                    os.makedirs(os.path.join(gcmt_cat_path, new_monthly))
+                print('WARNING: The following file does not exist: %s' % file_to_open)
+                print('WARNING: Reading data from GCMT webpage: %s' % ('http://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/COMBO/combo.ndk'))
+                print('WARNING: This will take a very long time, refer to:')
+                print('https://github.com/kasra-hosseini/obspyDMT/tree/master/obspyDMT/gcmt_catalog/COMBO')
+                cat = readEvents('http://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/COMBO/combo.ndk')
+            else:
+                print('Reading the data from local gcmt_catalog: %s' % yymmls[i])
+                cat.extend(readEvents(file_to_open))
             yy_ret.append(yy)
             mm_ret.append(mm)
         except Exception as error:
