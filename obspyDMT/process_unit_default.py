@@ -111,4 +111,7 @@ def process_unit(tr_add, target_path, input_dics, staev_ar):
         tr = convert_to_sac(tr, save_path, staev_ar)
         tr.write(save_path, format='SAC')
     else:
-        tr.write(save_path, format='mseed')
+        try:
+            tr.write(save_path, format='mseed')
+        except Exception as e:
+            print('ERROR: %s -- %s' % (save_path, e))

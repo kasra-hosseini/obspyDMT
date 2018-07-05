@@ -838,7 +838,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print('\n\t\t' + '*********************************')
         print('\t\t' + '*        obspyDMT version:      *')
-        print('\t\t' + '*\t' + 5*' ' + '2.1.2' + '\t\t*')
+        print('\t\t' + '*\t' + 5*' ' + '2.1.3' + '\t\t*')
         print('\t\t' + '*********************************')
         print('\n')
         sys.exit(2)
@@ -965,10 +965,14 @@ def read_input_command(parser, **kwargs):
     # =================== Data sources
     input_dics['data_source'] = options.data_source
     if input_dics['data_source'].lower() == 'all':
-        input_dics['data_source'] = \
-                "BGR,EMSC,ETH,GEONET,GFZ,INGV,IPGP,IRIS," \
-                "ISC,KOERI,LMU,NCEDC,NIEP,NOA,ODC,ORFEUS," \
-                "RESIF,SCEDC,USGS,USP,ARCLINK"
+        try:
+            from obspy.clients.fdsn import URL_MAPPINGS
+        except:
+            from obspy.fdsn.header import URL_MAPPINGS
+        input_dics['data_source'] = ''
+        for umap in URL_MAPPINGS.keys():
+            input_dics['data_source'] += str(umap) + ','
+        input_dics['data_source'] = input_dics['data_source'][:-1]
         print("\n=================================")
         print("Waveforms will be retrieved from:")
         print(input_dics['data_source'])
