@@ -44,7 +44,7 @@ def test_read_input_command():
     assert len(parser.option_groups[9].option_list) == 1
     assert len(parser.option_groups[10].option_list) == 7
     assert len(parser.option_groups[11].option_list) == 6
-    assert len(parser.option_groups[12].option_list) == 15
+    assert len(parser.option_groups[12].option_list) == 17
     assert len(parser.option_groups[13].option_list) == 13
     assert len(parser.option_groups[14].option_list) == 3
 
@@ -114,9 +114,11 @@ def test_default_inputs():
     assert input_dics['pre_filt'] == '(0.008, 0.012, 3.0, 4.0)'
     assert input_dics['water_level'] == 600.0
     assert input_dics['plot_dir_name'] == 'raw'
-    assert input_dics['plot_save'] == '.' 
-    assert input_dics['plot_format'] == 'png'
+    assert input_dics['plot_save'] is False 
+    assert input_dics['plot_format'] is False
+    assert input_dics['show_no_plot'] is None
     assert input_dics['plot_lon0'] == 180
+    assert input_dics['plot_style'] == 'simple'
     assert input_dics['plotxml_date'] is False
     assert input_dics['plotxml_start_stage'] == 1
     assert input_dics['plotxml_end_stage'] == 100

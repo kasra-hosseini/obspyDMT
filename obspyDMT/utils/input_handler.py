@@ -556,18 +556,30 @@ def command_parse():
     group_plt.add_option("--plot_dir_name", action="store",
                          dest="plot_dir_name", help=helpmsg)
 
-    helpmsg = "Path where plots will be store " \
-              "(default: '.', i.e., the current directory)."
+    helpmsg = "Path and filename.format of a plot " \
+              "(default: './waveforms.png' for --plot_waveform, " \
+              "'./seismicity.png' for seismicity maps, " \
+              "'./event_station.png' for event/station/ray/... plots)."
     group_plt.add_option("--plot_save", action="store",
                          dest="plot_save", help=helpmsg)
 
-    helpmsg = "Image format of plots (default: 'png')."
+    helpmsg = "Image format of plots (default: 'png'). " \
+              "Note: DEPRECATED, specify the format directly in --plot_save."
     group_plt.add_option("--plot_format", action="store",
                          dest="plot_format", help=helpmsg)
+
+    helpmsg = "Don't show the plot, only save it at --plot_save path."
+    group_plt.add_option("--show_no_plot", action="store_true",
+                         dest="show_no_plot", help=helpmsg)
 
     helpmsg = "Central meridian (x-axis origin) for projection (default: 180)."
     group_plt.add_option("--plot_lon0", action="store",
                          dest="plot_lon0", help=helpmsg)
+
+    helpmsg = "Map style, 'simple', 'shadedrelief', 'etopo', 'bluemarble'. " \
+              "Note: PIL needs to be installed for all styles except 'simple'. (default: 'simple')"
+    group_plt.add_option("--plot_style", action="store",
+                         dest="plot_style", help=helpmsg)
 
     parser.add_option_group(group_plt)
 
@@ -740,8 +752,9 @@ def read_input_command(parser, **kwargs):
 
                   'depth_bins_seismicity': 10,
                   'plot_dir_name': 'raw',
-                  'plot_save': '.', 'plot_format': 'png',
+                  'plot_save': False, 'plot_format': False,
                   'plot_lon0': 180,
+                  'plot_style': 'simple',
 
                   'plotxml_date': False,
                   'plotxml_start_stage': 1,
@@ -838,7 +851,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print('\n\t\t' + '*********************************')
         print('\t\t' + '*        obspyDMT version:      *')
-        print('\t\t' + '*\t' + 5*' ' + '2.1.3' + '\t\t*')
+        print('\t\t' + '*\t' + 5*' ' + '2.1.4' + '\t\t*')
         print('\t\t' + '*********************************')
         print('\n')
         sys.exit(2)
@@ -1224,7 +1237,17 @@ def read_input_command(parser, **kwargs):
     input_dics['plot_dir_name'] = options.plot_dir_name
     input_dics['plot_save'] = options.plot_save
     input_dics['plot_format'] = options.plot_format
+    if input_dics['plot_format']:
+        print('DEPRECATED option: specify the image format directly in --plot_save.')
+    input_dics['show_no_plot'] = options.show_no_plot
+
     input_dics['plot_lon0'] = float(options.plot_lon0)
+    input_dics['plot_style'] = options.plot_style
+
+    if not input_dics['plot_style'] in ['simple', 'shadedrelief', 'etopo', 'bluemarble']:
+        print("Erroneous --plot_style given: %s\n"
+              "Available options: 'simple' or 'shadedrelief' or 'etopo' or 'bluemarble'" % input_dics['plot_style'])
+        sys.exit(2)
 
     if input_dics['plot']:
         input_dics['pre_process'] = False

@@ -368,9 +368,12 @@ def plot_waveform(input_dics, events):
     plt.xticks(size=18)
     plt.yticks(size=18)
     plt.tight_layout()
-    plt.savefig(os.path.join(input_dics['plot_save'],
-                             'waveforms.%s' % input_dics['plot_format']))
-    plt.show()
+    if not input_dics['plot_save']:
+        plt.savefig(os.path.join(os.path.curdir, 'waveforms.png'))
+    else:
+        plt.savefig(os.path.join(input_dics['plot_save']))
+    if not input_dics['show_no_plot']:
+        plt.show()
 
 # ##################### plot_sta_ev_ray ###############################
 
@@ -430,16 +433,11 @@ def plot_sta_ev_ray(input_dics, events):
     else:
         sys.exit('[ERROR] can not continue, error:\n%s' % input_dics)
 
-    raw_input_resp = raw_input_built('choose the map style:\n'
-                                     '1. bluemarble (PIL should be installed)\n'
-                                     '2. etopo (PIL should be installed)\n'
-                                     '3. shadedrelief (PIL should be installed)\n'
-                                     '4. simple\n')
-    if int(raw_input_resp) == 1:
+    if input_dics['plot_style'] == 'bluemarble':
         m.bluemarble(scale=0.5)
-    elif int(raw_input_resp) == 2:
+    elif input_dics['plot_style'] == 'etopo':
         m.etopo(scale=0.5)
-    elif int(raw_input_resp) == 3:
+    elif input_dics['plot_style'] == 'shadedrelief':
         m.shadedrelief(scale=0.1)
     else:
         m.fillcontinents()
@@ -573,9 +571,12 @@ def plot_sta_ev_ray(input_dics, events):
                                       float(sta_ev_arr[si][4]),
                                       color='k', alpha=0.1)
 
-    plt.savefig(os.path.join(input_dics['plot_save'],
-                             'event_station.%s' % input_dics['plot_format']))
-    plt.show()
+    if not input_dics['plot_save']:
+        plt.savefig(os.path.join(os.path.curdir, 'event_station.png'))
+    else:
+        plt.savefig(os.path.join(input_dics['plot_save']))
+    if not input_dics['show_no_plot']:
+        plt.show()
 
 # ##################### plot_seismicity #######################################
 
@@ -620,16 +621,11 @@ def plot_seismicity(input_dics, events):
     meridians = np.arange(-180., 180., 60.)
     m.drawmeridians(meridians, fontsize=24)
 
-    raw_input_resp = raw_input_built('choose the map style:\n'
-                                     '1. bluemarble (PIL should be installed)\n'
-                                     '2. etopo (PIL should be installed)\n'
-                                     '3. shadedrelief (PIL should be installed)\n'
-                                     '4. simple\n')
-    if int(raw_input_resp) == 1:
+    if input_dics['plot_style'] == 'bluemarble':
         m.bluemarble(scale=0.5)
-    elif int(raw_input_resp) == 2:
+    elif input_dics['plot_style'] == 'etopo':
         m.etopo(scale=0.5)
-    elif int(raw_input_resp) == 3:
+    elif input_dics['plot_style'] == 'shadedrelief':
         m.shadedrelief(scale=0.1)
     else:
         m.fillcontinents()
@@ -731,11 +727,11 @@ def plot_seismicity(input_dics, events):
         meridians = np.arange(-180., 180., 60.)
         m.drawmeridians(meridians, fontsize=24)
 
-        if int(raw_input_resp) == 1:
+        if input_dics['plot_style'] == 'bluemarble':
             m.bluemarble(scale=0.5)
-        elif int(raw_input_resp) == 2:
+        elif input_dics['plot_style'] == 'etopo':
             m.etopo(scale=0.5)
-        elif int(raw_input_resp) == 3:
+        elif input_dics['plot_style'] == 'shadedrelief':
             m.shadedrelief(scale=0.1)
         else:
             m.fillcontinents()
@@ -789,7 +785,12 @@ def plot_seismicity(input_dics, events):
         plt.tight_layout()
         plt.grid(True)
 
-    plt.show()
+    if not input_dics['plot_save']:
+        plt.savefig(os.path.join(os.path.curdir, 'seismicity.png'))
+    else:
+        plt.savefig(os.path.join(input_dics['plot_save']))
+    if not input_dics['show_no_plot']:
+        plt.show()
 
 # ##################### vtk_generator ###################################
 
