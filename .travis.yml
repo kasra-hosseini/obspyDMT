@@ -4,7 +4,7 @@ python:
  - "2.7"
  - "3.4"
  - "3.5"
-#XXX "3.6"
+ - "3.6"
 
 before_install:
 - export MINICONDA=$HOME/miniconda
@@ -21,10 +21,10 @@ before_install:
 # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
 - sudo rm -rf /dev/shm
 - sudo ln -s /run/shm /dev/shm
-# These are mostly requirements of instaseis
+- conda install --yes -c anaconda matplotlib=2.1.2
 - conda install --yes -c obspy nomkl obspy pytest python=$TRAVIS_PYTHON_VERSION
 - conda install --yes -c scitools cartopy
-- conda install --yes -c anaconda basemap=1.0.7
+- conda install --yes -c anaconda basemap=1.1.0
 - travis_retry pip install $PIP_DEPS
 
 install:
