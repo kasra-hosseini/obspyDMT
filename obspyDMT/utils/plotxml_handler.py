@@ -16,7 +16,6 @@ from __future__ import print_function
 from builtins import input as raw_input_built
 import glob
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
 import numpy as np
 from obspy import read_inventory
 try:
@@ -42,6 +41,9 @@ def plot_xml_response(input_dics):
     :param input_dics:
     :return:
     """
+
+    from mpl_toolkits.basemap import Basemap
+
     plt.rc('font', family='serif')
     print('[INFO] plotting StationXML file/files in: %s' % \
           input_dics['datapath'])

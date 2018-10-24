@@ -16,7 +16,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from builtins import input as raw_input_built
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
 import multiprocessing
 import numpy as np
 try:
@@ -385,6 +384,9 @@ def plot_sta_ev_ray(input_dics, events):
     :param events:
     :return:
     """
+
+    from mpl_toolkits.basemap import Basemap
+
     plt.figure(figsize=(20., 10.))
     plt_stations = input_dics['plot_sta']
     plt_availability = input_dics['plot_availability']
@@ -591,6 +593,8 @@ def plot_seismicity(input_dics, events):
     print('\n==============')
     print('Seismicity map')
     print('==============\n')
+
+    from mpl_toolkits.basemap import Basemap
 
     # plt.rc('font', family='serif')
     if not len(events) > 0:
