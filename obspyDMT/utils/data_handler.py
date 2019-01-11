@@ -486,7 +486,7 @@ def arc_serial_parallel(stas_avail, event, input_dics, target_path,
     """
     print('%s -- event: %s' % (req_cli, target_path))
 
-    client_arclink = Client_arclink(user='test@obspy.org',
+    client_arclink = Client_arclink(user=input_dics['username'],
                                     timeout=input_dics['arc_wave_timeout'])
     client_syngine = Client_syngine()
 
