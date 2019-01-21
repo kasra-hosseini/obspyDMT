@@ -39,7 +39,7 @@ def test_read_input_command():
     assert len(parser.option_groups[4].option_list) == 8
     assert len(parser.option_groups[5].option_list) == 7
     assert len(parser.option_groups[6].option_list) == 5
-    assert len(parser.option_groups[7].option_list) == 2
+    assert len(parser.option_groups[7].option_list) == 6
     assert len(parser.option_groups[8].option_list) == 11
     assert len(parser.option_groups[9].option_list) == 1
     assert len(parser.option_groups[10].option_list) == 7
@@ -91,8 +91,12 @@ def test_default_inputs():
     assert input_dics['Mlon_rbb'] is None
     assert input_dics['req_np'] == 4
     assert input_dics['process_np'] == 4
-    assert input_dics['username'] is None
-    assert input_dics['password'] is None
+    assert input_dics['username_fdsn'] is None
+    assert input_dics['password_fdsn'] is None
+    assert input_dics['username_arclink'] == 'test@obspy.org'
+    assert input_dics['password_arclink'] is ''
+    assert input_dics['host_arclink'] == 'webdc.eu'
+    assert input_dics['port_arclink'] == 18002
     assert input_dics['event_catalog'] == 'LOCAL'
     assert input_dics['min_depth'] == -10.0
     assert input_dics['max_depth'] == +6000.0
@@ -157,7 +161,7 @@ def test_tour():
     assert len(glob('./dmt_tour_dir/20110311_054623.a/processed/*')) == 13
     assert len(glob('./dmt_tour_dir/20110311_054623.a/raw/*')) == 13
     assert len(glob('./dmt_tour_dir/20110311_054623.a/resp/*')) == 13
-    assert len(glob('./dmt_tour_dir/20110311_054623.a/info/*')) == 8
+    assert len(glob('./dmt_tour_dir/20110311_054623.a/info/*')) >= 8
 
     import shutil
     shutil.rmtree('./dmt_tour_dir')

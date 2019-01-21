@@ -46,7 +46,7 @@ def test_syngine_tour():
     assert len(glob('./dmt_tour_dir/20110311_054623.a/processed/*')) == len(glob('./dmt_tour_dir/20110311_054623.a/raw/*'))
     assert len(glob('./dmt_tour_dir/20110311_054623.a/syngine_iasp91_2s/*')) > 10
     assert len(glob('./dmt_tour_dir/20110311_054623.a/resp/*')) == len(glob('./dmt_tour_dir/20110311_054623.a/raw/*'))
-    assert len(glob('./dmt_tour_dir/20110311_054623.a/info/*')) == 8
+    assert len(glob('./dmt_tour_dir/20110311_054623.a/info/*')) >= 8
 
     import shutil
     shutil.rmtree('./dmt_tour_dir')

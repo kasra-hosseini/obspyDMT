@@ -165,13 +165,13 @@ def fdsn_serial_parallel(stas_avail, event, input_dics, target_path,
     print('%s -- event: %s' % (req_cli, target_path))
 
     client_fdsn = Client_fdsn(base_url=req_cli,
-                              user=input_dics['username'],
-                              password=input_dics['password'])
+                              user=input_dics['username_fdsn'],
+                              password=input_dics['password_fdsn'])
                               #debug=True)
     client_syngine = Client_syngine()
 
     if input_dics['req_parallel']:
-        if input_dics['password']:
+        if input_dics['password_fdsn']:
             print("[INFO] Restricted data from %s" % req_cli)
             print("[WARNING] parallel retrieving is now possible!")
             print("[WARNING] serial retrieving is activated!")
@@ -434,8 +434,8 @@ def fdsn_bulk_request(target_path, req_cli, input_dics):
     print('\n[INFO] sending bulk request to: %s' % req_cli)
 
     client_fdsn = Client_fdsn(base_url=req_cli,
-                              user=input_dics['username'],
-                              password=input_dics['password'])
+                              user=input_dics['username_fdsn'],
+                              password=input_dics['password_fdsn'])
 
     bulk_list_fio = open(os.path.join(target_path, 'info',
                                       'bulkdata_list_%s' % req_cli), 'rb')
@@ -486,7 +486,10 @@ def arc_serial_parallel(stas_avail, event, input_dics, target_path,
     """
     print('%s -- event: %s' % (req_cli, target_path))
 
-    client_arclink = Client_arclink(user=input_dics['username'],
+    client_arclink = Client_arclink(user=input_dics['username_arclink'],
+                                    host=input_dics['host_arclink'],
+                                    port=input_dics['port_arclink'],
+                                    password=input_dics['password_arclink'],
                                     timeout=input_dics['arc_wave_timeout'])
     client_syngine = Client_syngine()
 

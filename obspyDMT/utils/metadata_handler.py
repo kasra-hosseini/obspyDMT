@@ -178,7 +178,7 @@ def fdsn_available(input_dics, cl, event, target_path):
     """
     print("check the availability: %s" % input_dics['data_source'][cl])
 
-    if input_dics['username']:
+    if input_dics['username_fdsn']:
         include_restricted = True
     else:
         include_restricted = None
@@ -187,8 +187,8 @@ def fdsn_available(input_dics, cl, event, target_path):
     try:
         client_fdsn = Client_fdsn(
             base_url=input_dics['data_source'][cl].upper(),
-            user=input_dics['username'],
-            password=input_dics['password'])
+            user=input_dics['username_fdsn'],
+            password=input_dics['password_fdsn'])
 
         available = client_fdsn.get_stations(
             network=input_dics['net'],
@@ -267,7 +267,10 @@ def arc_available(input_dics, event, target_path):
     """
     print("check the availability: ArcLink")
 
-    client_arclink = Client_arclink(user='test@obspy.org',
+    client_arclink = Client_arclink(user=input_dics['username_arclink'],
+                                    host=input_dics['host_arclink'],
+                                    port=input_dics['port_arclink'],
+                                    password=input_dics['password_arclink'],
                                     timeout=input_dics['arc_avai_timeout'])
 
     if hasattr(client_arclink, 'get_inventory'):
