@@ -41,9 +41,6 @@ def plot_xml_response(input_dics):
     :param input_dics:
     :return:
     """
-
-    from mpl_toolkits.basemap import Basemap
-
     plt.rc('font', family='serif')
     print('[INFO] plotting StationXML file/files in: %s' % \
           input_dics['datapath'])
@@ -311,6 +308,8 @@ def plot_xml_response(input_dics):
             print('[Exception] %s' % error)
 
     if plot_map_compare:
+        from mpl_toolkits.basemap import Basemap
+
         plt.figure()
 
         m = Basemap(projection='robin', lon_0=input_dics['plot_lon0'], lat_0=0)

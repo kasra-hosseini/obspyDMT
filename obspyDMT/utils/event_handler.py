@@ -1308,14 +1308,16 @@ def write_cat_logger(input_dics, eventpath, events, catalog,
 
     # output catalogue as QUAKEML / JSON files
     try:
-        catalog.write(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.ml'),
-                      format="QUAKEML")
+        if not input_dics['event_catalog'].lower() == 'local':
+            catalog.write(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.ml'),
+                          format="QUAKEML")
     except Exception as err:
         print('\nCouldn\'t write catalog object to QuakeML as:\n>>:\t %s\n' \
               'Proceed without ..\n' % err)
     try:
-        catalog.write(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.zmap'),
-                      format="ZMAP")
+        if not input_dics['event_catalog'].lower() == 'local':
+            catalog.write(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.zmap'),
+                          format="ZMAP")
     except Exception as err:
         print('\nCouldn\'t write catalog object to JSON as:\n>>:\t %s\n' \
               'Proceed without ..\n' % err)
