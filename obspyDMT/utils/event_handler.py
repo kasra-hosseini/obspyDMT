@@ -1309,6 +1309,16 @@ def write_cat_logger(input_dics, eventpath, events, catalog,
     # output catalogue as QUAKEML / JSON files
     try:
         if not input_dics['event_catalog'].lower() == 'local':
+            if os.path.isfile(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.ml')):
+                stored_catalog = Catalog(events=[])
+                try:
+                    stored_catalog = readEvents(os.path.join(eventpath, 'EVENTS-INFO',
+                                                'catalog.ml'), format="QUAKEML")
+                except Exception as err:
+                    pass
+                for stored_ev in stored_catalog:
+                    if not stored_ev in catalog:
+                        catalog.append(stored_ev)
             catalog.write(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.ml'),
                           format="QUAKEML")
     except Exception as err:
