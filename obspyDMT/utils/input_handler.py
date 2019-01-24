@@ -216,10 +216,11 @@ def command_parse():
     group_tw.add_option("--waveform_format", action="store",
                         dest="waveform_format", help=helpmsg)
 
-    helpmsg = "desired sampling rate (in Hz). Resampling is done using " \
-              "either lanczos or decimation with sharp low pass filter. " \
-              "If not specified, the sampling rate of the waveforms " \
-              "will not be changed."
+    helpmsg = "Convert the format of response information retrieved via ArcLink " \
+              "(in Dataless SEED) to StationXML."
+    group_tw.add_option("--dataless2xml", action="store_true",
+                        dest="dataless2xml", help=helpmsg)
+
     helpmsg = "Desired sampling rate (in Hz). If not specified, " \
               "the sampling rate of the waveforms will not be changed. " \
               "Example: 10"
@@ -881,7 +882,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print('\n\t\t' + '*********************************')
         print('\t\t' + '*        obspyDMT version:      *')
-        print('\t\t' + '*\t' + 5*' ' + '2.2.3' + '\t\t*')
+        print('\t\t' + '*\t' + 5*' ' + '2.2.4' + '\t\t*')
         print('\t\t' + '*********************************')
         print('\n')
         sys.exit(2)
@@ -1087,6 +1088,7 @@ def read_input_command(parser, **kwargs):
     input_dics['waveform_format'] = options.waveform_format
     if input_dics['waveform_format']:
         input_dics['waveform_format'] = input_dics['waveform_format'].lower()
+    input_dics['dataless2xml'] = options.dataless2xml
     input_dics['resample_method'] = options.resample_method
     if options.sampling_rate:
         input_dics['sampling_rate'] = float(options.sampling_rate)

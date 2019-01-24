@@ -34,6 +34,7 @@ except:
         from obspy.geodetics import gps2DistAzimuth
     except:
         from obspy.core.util import gps2DistAzimuth
+from obspy import read_inventory
 import os
 import pickle
 
@@ -636,6 +637,15 @@ def arc_download_core(st_avail, event, input_dics, target_path,
                                          'DATALESS.%s' % st_id),
                             st_avail[0], st_avail[1], st_avail[2], st_avail[3],
                             t_start, t_end)
+                    if input_dics['dataless2xml']:
+                        try:
+                            datalessResp = read_inventory(
+                                os.path.join(target_path, 'resp', 'DATALESS.%s' % st_id))
+                            datalessResp.write(os.path.join(
+                                target_path, 'resp', 'STXML.%s' % st_id), format='STATIONXML')
+                            os.remove(os.path.join(target_path, 'resp', 'DATALESS.%s' % st_id))
+                        except Exception as error:
+                            pass
                     identifier += 100
                     print("%s -- %s -- saving response for: %s  ---> DONE" \
                           % (info_station, req_cli, st_id))

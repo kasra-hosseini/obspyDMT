@@ -36,7 +36,7 @@ def test_read_input_command():
     assert len(parser.option_groups[1].option_list) == 2
     assert len(parser.option_groups[2].option_list) == 4
     assert len(parser.option_groups[3].option_list) == 14
-    assert len(parser.option_groups[4].option_list) == 8
+    assert len(parser.option_groups[4].option_list) == 9
     assert len(parser.option_groups[5].option_list) == 7
     assert len(parser.option_groups[6].option_list) == 5
     assert len(parser.option_groups[7].option_list) == 6
