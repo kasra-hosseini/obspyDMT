@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.801778.svg)](https://doi.org/10.5281/zenodo.801778)
 
-[obspyDMT][dmt] (obspy Data Management Tool) is a command line tool for retrieving, processing and management of seismological datasets in a fully automatic way.
+[obspyDMT][dmt] (obspy Data Management Tool) is a tool for retrieving, processing and management of seismological datasets in a fully automatic way. Written in the Python programming language (Python 2 and 3 compatible), it can be used as a stand-alone command-line tool (requiring no knowledge of Python) or can be integrated as a module with other Python codes.
 
 Table of contents
 -----------------

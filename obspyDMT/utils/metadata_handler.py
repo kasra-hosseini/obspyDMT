@@ -27,6 +27,10 @@ try:
 except:
     from obspy.fdsn import Client as Client_fdsn
 try:
+    from obspy.clients.fdsn import RoutingClient
+except:
+    print("[WARNING] RoutingClient could not be imported.")
+try:
     from obspy.geodetics import locations2degrees
 except:
     from obspy.core.util import locations2degrees
@@ -185,28 +189,41 @@ def fdsn_available(input_dics, cl, event, target_path):
 
     sta_fdsn = []
     try:
-        client_fdsn = Client_fdsn(
-            base_url=input_dics['data_source'][cl].upper(),
-            user=input_dics['username_fdsn'],
-            password=input_dics['password_fdsn'])
+        if input_dics['data_source'][cl].lower() in ["iris-federator", "eida-routing"]:
+            client_fdsn = RoutingClient(input_dics['data_source'][cl].lower())
 
-        available = client_fdsn.get_stations(
-            network=input_dics['net'],
-            station=input_dics['sta'],
-            location=input_dics['loc'],
-            channel=input_dics['cha'],
-            starttime=event['t1'],
-            endtime=event['t2'],
-            latitude=input_dics['lat_cba'],
-            longitude=input_dics['lon_cba'],
-            minradius=input_dics['mr_cba'],
-            maxradius=input_dics['Mr_cba'],
-            minlatitude=input_dics['mlat_rbb'],
-            maxlatitude=input_dics['Mlat_rbb'],
-            minlongitude=input_dics['mlon_rbb'],
-            maxlongitude=input_dics['Mlon_rbb'],
-            includerestricted=include_restricted,
-            level='channel')
+            available = client_fdsn.get_stations(
+                network=input_dics['net'],
+                station=input_dics['sta'],
+                location=input_dics['loc'],
+                channel=input_dics['cha'],
+                starttime=event['t1'],
+                endtime=event['t2'],
+                level='channel')
+
+        else:
+            client_fdsn = Client_fdsn(
+                base_url=input_dics['data_source'][cl].upper(),
+                user=input_dics['username_fdsn'],
+                password=input_dics['password_fdsn'])
+
+            available = client_fdsn.get_stations(
+                network=input_dics['net'],
+                station=input_dics['sta'],
+                location=input_dics['loc'],
+                channel=input_dics['cha'],
+                starttime=event['t1'],
+                endtime=event['t2'],
+                latitude=input_dics['lat_cba'],
+                longitude=input_dics['lon_cba'],
+                minradius=input_dics['mr_cba'],
+                maxradius=input_dics['Mr_cba'],
+                minlatitude=input_dics['mlat_rbb'],
+                maxlatitude=input_dics['Mlat_rbb'],
+                minlongitude=input_dics['mlon_rbb'],
+                maxlongitude=input_dics['Mlon_rbb'],
+                includerestricted=include_restricted,
+                level='channel')
 
         for network in available.networks:
             for station in network:
