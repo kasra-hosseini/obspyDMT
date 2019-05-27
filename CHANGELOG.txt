@@ -1,1 +1,10 @@
+---------------------------------------
+v2.2.5
 
+Major
+* Support iris-federator and eida-routing web services 
+
+Bugs/Issues
+
+Minor
+* update README file
