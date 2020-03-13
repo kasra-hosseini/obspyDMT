@@ -49,7 +49,7 @@ obspyDMT --tour
 
 ``dmt_tour_dir`` directory will be created in the current path, and retrieved/processed waveforms as well as meta-data will be organized there (refer to [Directory structure](#directory-structure) section for more information).
 
-The retrieved waveforms can be plotted by:
+The (raw) retrieved waveforms can be plotted by:
 
 ```bash
 obspyDMT --datapath dmt_tour_dir --local --plot_waveform
@@ -59,7 +59,7 @@ obspyDMT --datapath dmt_tour_dir --local --plot_waveform
 <img src="figures/quick_tour_raw.png" width="70%" align="middle">
 </p>
 
-To plot the processed/corrected waveforms, ``--plot_dir_name processed`` can be added to the previous command line:
+To plot the processed (e.g., instrument corrected) waveforms, ``--plot_dir_name processed`` can be added to the previous command line:
 
 ```bash
 obspyDMT --datapath dmt_tour_dir --local --plot_waveform --plot_dir_name processed
