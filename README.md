@@ -205,7 +205,7 @@ obspyDMT --datapath event_based_dir --data_source "IPGP" --net "G*" --cha "BHZ" 
 To plot the stations/events/rays:
 
 ```bash
-obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --plot_ray
+obspyDMT --datapath event_based_dir --local --plot_ev --plot_sta --plot_ray
 ```
 
 <p align="center">
