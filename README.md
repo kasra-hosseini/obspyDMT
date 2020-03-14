@@ -180,7 +180,7 @@ obspyDMT --datapath event_based_dir --local --plot_ev --plot_sta --plot_ray
 ```
 
 <p align="center">
-<img src="figures/iris_ev_based_mode.png" width="90%" align="middle">
+<img src="figures/iris_ev_based_mode.png" width="70%" align="middle">
 </p>
 
 ## Update an existing data set
@@ -209,7 +209,7 @@ obspyDMT --datapath event_based_dir --local --plot_ev --plot_sta --plot_ray
 ```
 
 <p align="center">
-<img src="figures/iris_gfz_ipgp_ev_based.png" width="90%" align="middle">
+<img src="figures/iris_gfz_ipgp_ev_based.png" width="70%" align="middle">
 </p>
 
 ## Time-continuous mode
