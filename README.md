@@ -28,7 +28,7 @@ Table of contents
 ## Gallery
 
 
-| **Quick tour**                                                 <a href="#quick-tour">![](figures/quick_tour_ray.png)                                                 | **Earthquake meta-data**                                           <a href="#earthquake-meta-data">![](figures/neic_event_focal_2014_2015.png)                                   |
+| **Quick tour**                                                 <a href="#quick-tour">![](figures/quick_tour_ray.png)                                                 | **Earthquake meta-data**                                           <a href="#earthquake-meta-data">![](figures/neic_event_no_focal_2014_2015.png)                                   |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Seismicity map**                                             <a href="#seismicity-map">![](figures/japan_seismicity.png)                                           | **Event-based mode**                                               <a href="#event-based-mode">![](figures/iris_ev_based_mode.png)                                               |
 | **Update of an existing waveform data set**                    <a href="#update-an-existing-data-set">![](figures/iris_gfz_ipgp_ev_based.png)                        | **Time-continuous mode**                                           <a href="#time-continuous-mode">![](figures/continuous_example.png)                                           |
@@ -176,7 +176,7 @@ in which case each seismogram would have a different absolute start time.
 To plot the stations/events/rays:
 
 ```bash
-obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --plot_ray
+obspyDMT --datapath event_based_dir --local --plot_ev --plot_sta --plot_ray
 ```
 
 <p align="center">
