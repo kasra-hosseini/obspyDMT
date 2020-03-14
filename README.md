@@ -96,11 +96,11 @@ obspyDMT --datapath neic_event_metadata --min_mag 5.5 --min_date 2015-01-01 --ma
 To plot the content of local data set (`neic_event_metadata/`):
 
 ```bash
-obspyDMT --datapath neic_event_metadata --local --plot_ev --plot_focal
+obspyDMT --datapath neic_event_metadata --local --plot_ev
 ```
 
 <p align="center">
-<img src="figures/neic_event_focal_2014_2015.png" width="70%" align="middle">
+<img src="figures/neic_event_no_focal_2014_2015.png" width="70%" align="middle">
 </p>
 
 ## Seismicity map
