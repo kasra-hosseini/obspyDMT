@@ -100,7 +100,7 @@ def print_data_sources():
     print("list of all shortcut names")
     print("--------------------------\n")
     for key in sorted(URL_MAPPINGS.keys()):
-        print("{0:<7} {1}".format(key,  URL_MAPPINGS[key]))
+        print("{0:<15} {1}".format(key,  URL_MAPPINGS[key]))
     print("iris-federator")
     print("eida-routing")
     print("ARCLINK")
