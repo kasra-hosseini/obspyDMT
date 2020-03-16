@@ -1,3 +1,8 @@
+v2.2.6
+
+* Add a new process unit: ./obspyDMT/process_unit_rename.py
+* Print installation path of DMT when printing its version: obspyDMT --verion
+
 ---------------------------------------
 v2.2.5
 
