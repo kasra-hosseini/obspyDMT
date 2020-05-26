@@ -18,7 +18,10 @@ jobs:
     - uses: actions/checkout@v1
     - name: Install dependencies
       run: |-
-        pip install obspy
+        conda config --add channels conda-forge
+        conda create -n obspy python=3.7
+        conda activate obspy
+        conda install obspy
         pip install pytest
     - name: Run tests
       run: |-
