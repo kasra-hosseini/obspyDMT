@@ -640,7 +640,7 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
     :param link_neic:
     :return:
     """
-    tic = time.clock()
+    tic = time.perf_counter()
 
     dir_name = '%s_temp_xml_files' % int(UTCDateTime.now().timestamp)
     os.mkdir(dir_name)
@@ -766,7 +766,7 @@ def neic_catalog_urllib(t_start, t_end, min_latitude,
 
     print("\ncleaning up the temporary folder.")
     os.rmdir(dir_name)
-    toc = time.clock()
+    toc = time.perf_counter()
     print('\n%s sec to retrieve the event info form NEIC.' % (toc-tic))
     return cat
 
