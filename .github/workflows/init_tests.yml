@@ -12,7 +12,7 @@ jobs:
 
     runs-on: ubuntu-18.04
     container:
-      image: python
+      image: conda/miniconda3
 
     steps:
     - uses: actions/checkout@v1
