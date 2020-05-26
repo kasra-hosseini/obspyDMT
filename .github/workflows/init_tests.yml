@@ -19,8 +19,6 @@ jobs:
     - name: Install dependencies
       run: |-
         conda config --add channels conda-forge
-        conda create -n obspy python=3.7
-        conda activate obspy
         conda install obspy
         pip install pytest
     - name: Run tests
