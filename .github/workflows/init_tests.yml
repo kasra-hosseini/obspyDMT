@@ -1,0 +1,25 @@
+name: init tests
+
+on:
+  push:
+    paths:
+      - 'obspyDMT'
+      - '.github/workflows/init_tests.yml'
+        
+
+jobs:
+  run_script:
+
+    runs-on: ubuntu-18.04
+    container:
+      image: ubuntu
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install dependencies
+      run: |-
+        pip install obspy
+        pip install pytest
+    - name: Run tests
+      run: |-
+        pytest .
