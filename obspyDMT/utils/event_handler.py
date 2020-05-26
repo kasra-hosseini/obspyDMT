@@ -299,21 +299,29 @@ def event_info(input_dics):
             sys.exit('[ERROR] %s is not supported'
                      % input_dics['event_catalog'])
 
+        events_delete = []
         for i in range(len(events_QML)):
-            if not hasattr(events_QML.events[i], 'preferred_mag'):
-                events_QML.events[i].preferred_mag = \
-                    events_QML.events[i].magnitudes[0].mag
-                events_QML.events[i].preferred_mag_type = \
-                    events_QML.events[i].magnitudes[0].magnitude_type
-                events_QML.events[i].preferred_author = 'None'
-            else:
+            try:
+                if not hasattr(events_QML.events[i], 'preferred_mag'):
+                    if not hasattr(events_QML.events[i], 'preferred_magnitude'):
+                        events_QML.events[i].preferred_mag = events_QML.events[i].magnitudes[0].mag
+                        events_QML.events[i].preferred_mag_type = events_QML.events[i].magnitudes[0].magnitude_type
+                        events_QML.events[i].preferred_author = 'None'
+                    else:
+                        events_QML.events[i].preferred_mag = events_QML.events[i].preferred_magnitude().mag
+                        events_QML.events[i].preferred_mag_type = \
+                            events_QML.events[i].preferred_magnitude().magnitude_type
+                        events_QML.events[i].preferred_author = 'None'
                 if not hasattr(events_QML.events[i], 'preferred_author'):
-                    if events_QML.events[i].preferred_magnitude().creation_info:
-                        events_QML.events[i].preferred_author = \
-                            events_QML.events[i].preferred_magnitude().creation_info.author
-                    elif events_QML.events[i].magnitudes[0].creation_info:
-                        events_QML.events[i].preferred_author = \
-                            events_QML.events[i].magnitudes[0].creation_info.author
+                    events_QML.events[i].preferred_author = 'None'
+            except Exception as err:
+                #print("[WARNING] event: %s, error: %s" % (i, err))
+                events_delete.append(i)
+
+        events_delete.sort(reverse=True)
+        for i in events_delete:
+            del events_QML[i]
+
         # no matter if list was passed or requested, sort catalogue,
         # plot events and proceed
         events_QML = sort_catalogue(events_QML)
@@ -1309,20 +1317,21 @@ def write_cat_logger(input_dics, eventpath, events, catalog,
     # output catalogue as QUAKEML / JSON files
     try:
         if not input_dics['event_catalog'].lower() == 'local':
-            if os.path.isfile(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.ml')):
+            if os.path.isfile(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.ml.pkl')):
                 stored_catalog = Catalog(events=[])
                 try:
-                    stored_catalog = readEvents(os.path.join(eventpath, 'EVENTS-INFO',
-                                                'catalog.ml'), format="QUAKEML")
+                    stored_catalog = pickle.load(open(os.path.join(eventpath,
+                                                                   'EVENTS-INFO',
+                                                                   'catalog.ml.pkl'), "rb"))
                 except Exception as err:
                     pass
                 for stored_ev in stored_catalog:
                     if not stored_ev in catalog:
                         catalog.append(stored_ev)
-            catalog.write(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.ml'),
-                          format="QUAKEML")
+            pickle.dump(catalog,
+                        open(os.path.join(eventpath, 'EVENTS-INFO', 'catalog.ml.pkl'), "wb"))
     except Exception as err:
-        print('\nCouldn\'t write catalog object to QuakeML as:\n>>:\t %s\n' \
+        print('\nCouldn\'t write catalog object to catalog.ml.pkl as:\n>>:\t %s\n' \
               'Proceed without ..\n' % err)
     try:
         if not input_dics['event_catalog'].lower() == 'local':
