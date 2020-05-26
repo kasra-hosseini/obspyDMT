@@ -308,8 +308,6 @@ def create_ev_sta_kml(input_dics, events):
                                 KML.tessellate(1)),
                         ),
                     )
-    kml_outfile = file(os.path.join(
-        'kml_dir',
-        'kml_output.kml'), 'w')
+    kml_outfile = open(os.path.join('kml_dir', 'kml_output.kml'), 'wb')
     kml_outfile.write(etree.tostring(kmlobj, pretty_print=True))
     sys.exit('[INFO] KML file is stored in ./kml_dir!')

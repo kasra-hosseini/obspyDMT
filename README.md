@@ -28,7 +28,7 @@ Table of contents
 ## Gallery
 
 
-| **Quick tour**                                                 <a href="#quick-tour">![](figures/quick_tour_ray.png)                                                 | **Earthquake meta-data**                                           <a href="#earthquake-meta-data">![](figures/neic_event_focal_2014_2015.png)                                   |
+| **Quick tour**                                                 <a href="#quick-tour">![](figures/quick_tour_ray.png)                                                 | **Earthquake meta-data**                                           <a href="#earthquake-meta-data">![](figures/neic_event_no_focal_2014_2015.png)                                   |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Seismicity map**                                             <a href="#seismicity-map">![](figures/japan_seismicity.png)                                           | **Event-based mode**                                               <a href="#event-based-mode">![](figures/iris_ev_based_mode.png)                                               |
 | **Update of an existing waveform data set**                    <a href="#update-an-existing-data-set">![](figures/iris_gfz_ipgp_ev_based.png)                        | **Time-continuous mode**                                           <a href="#time-continuous-mode">![](figures/continuous_example.png)                                           |
@@ -49,7 +49,7 @@ obspyDMT --tour
 
 ``dmt_tour_dir`` directory will be created in the current path, and retrieved/processed waveforms as well as meta-data will be organized there (refer to [Directory structure](#directory-structure) section for more information).
 
-The retrieved waveforms can be plotted by:
+The (raw) retrieved waveforms can be plotted by:
 
 ```bash
 obspyDMT --datapath dmt_tour_dir --local --plot_waveform
@@ -59,7 +59,7 @@ obspyDMT --datapath dmt_tour_dir --local --plot_waveform
 <img src="figures/quick_tour_raw.png" width="70%" align="middle">
 </p>
 
-To plot the processed/corrected waveforms, ``--plot_dir_name processed`` can be added to the previous command line:
+To plot the processed (e.g., instrument corrected) waveforms, ``--plot_dir_name processed`` can be added to the previous command line:
 
 ```bash
 obspyDMT --datapath dmt_tour_dir --local --plot_waveform --plot_dir_name processed
@@ -96,11 +96,11 @@ obspyDMT --datapath neic_event_metadata --min_mag 5.5 --min_date 2015-01-01 --ma
 To plot the content of local data set (`neic_event_metadata/`):
 
 ```bash
-obspyDMT --datapath neic_event_metadata --local --plot_ev --plot_focal
+obspyDMT --datapath neic_event_metadata --local --plot_ev
 ```
 
 <p align="center">
-<img src="figures/neic_event_focal_2014_2015.png" width="70%" align="middle">
+<img src="figures/neic_event_no_focal_2014_2015.png" width="70%" align="middle">
 </p>
 
 ## Seismicity map
@@ -176,7 +176,7 @@ in which case each seismogram would have a different absolute start time.
 To plot the stations/events/rays:
 
 ```bash
-obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --plot_ray
+obspyDMT --datapath event_based_dir --local --plot_ev --plot_sta --plot_ray
 ```
 
 <p align="center">
@@ -205,7 +205,7 @@ obspyDMT --datapath event_based_dir --data_source "IPGP" --net "G*" --cha "BHZ" 
 To plot the stations/events/rays:
 
 ```bash
-obspyDMT --datapath event_based_dir --local --plot_ev --plot_focal --plot_sta --plot_ray
+obspyDMT --datapath event_based_dir --local --plot_ev --plot_sta --plot_ray
 ```
 
 <p align="center">

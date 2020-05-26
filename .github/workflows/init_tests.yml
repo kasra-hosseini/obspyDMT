@@ -1,0 +1,26 @@
+name: init tests
+
+on:
+  push:
+    paths:
+      - 'obspyDMT'
+      - '.github/workflows/init_tests.yml'
+        
+
+jobs:
+  run_script:
+
+    runs-on: ubuntu-18.04
+    container:
+      image: conda/miniconda3
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install dependencies
+      run: |-
+        conda config --add channels conda-forge
+        conda install obspy
+        pip install pytest
+    - name: Run tests
+      run: |-
+        pytest .
