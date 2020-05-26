@@ -1,6 +1,11 @@
-v2.2.6
+v2.2.7
 
 * Check the comparibility of obspyDMT with obspy 1.2.1, and python 3.6.
+
+---------------------------------------
+v2.2.6
+
+* Add a new process unit: ./obspyDMT/process_unit_rename.py
 
 ---------------------------------------
 v2.2.5

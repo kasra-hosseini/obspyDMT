@@ -882,7 +882,7 @@ def read_input_command(parser, **kwargs):
     if options.version:
         print('\n\t\t' + '*********************************')
         print('\t\t' + '*        obspyDMT version:      *')
-        print('\t\t' + '*\t' + 5*' ' + '2.2.6' + '\t\t*')
+        print('\t\t' + '*\t' + 5*' ' + '2.2.7' + '\t\t*')
         print('\t\t' + '*********************************')
         print('\n')
         dmt_install_path = os.path.abspath(os.path.join(__file__, "..", ".."))
