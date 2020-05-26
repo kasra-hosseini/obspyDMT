@@ -885,6 +885,8 @@ def read_input_command(parser, **kwargs):
         print('\t\t' + '*\t' + 5*' ' + '2.2.6' + '\t\t*')
         print('\t\t' + '*********************************')
         print('\n')
+        dmt_install_path = os.path.abspath(os.path.join(__file__, "..", ".."))
+        print('obspyDMT installation path:\n%s' % (dmt_install_path))
         sys.exit(2)
 
     # =================== Check importing the required modules=================
