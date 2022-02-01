@@ -530,8 +530,8 @@ def calculate_time_phase(event, sta, bg_model='iasp91'):
         except:
             time_ph = 0
     else:
-        try:
-            for ph in phase_list:
+        for ph in phase_list:
+            try:
                 tt = tau_bg.get_travel_times(evdp, dist,
                                              phase_list=[ph])[0].time
                 if not tt:
@@ -540,11 +540,12 @@ def calculate_time_phase(event, sta, bg_model='iasp91'):
                 else:
                     time_ph = tt
                     break
-        except:
-            time_ph = 0
+            except:
+                time_ph = 0
 
     t_start = event['t1'] + time_ph
     t_end = event['t2'] + time_ph
+
     return t_start, t_end
 
 # ##################### plot_filter_station ###############################
