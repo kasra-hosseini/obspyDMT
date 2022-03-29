@@ -5,7 +5,7 @@ import subprocess
 import sys
 import errno
 
-from .utils.utility_codes import convert_to_sac
+from utils.utility_codes import convert_to_sac
 # -----------------------------------------------------------------------------
 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

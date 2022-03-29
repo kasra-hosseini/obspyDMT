@@ -15,16 +15,16 @@
 import sys
 import time
 
-from .utils.data_handler import get_data
-from .utils.event_handler import get_time_window
-from .utils.input_handler import command_parse, read_input_command
-from .utils.local_handler import process_data, plot_unit, event_filter
-from .utils.metadata_handler import get_metadata
-from .utils.plotxml_handler import plot_xml_response
-from .utils.utility_codes import header_printer, goodbye_printer
-from .utils.utility_codes import print_event_catalogs, print_data_sources
-from .utils.utility_codes import print_syngine_models
-from .utils.utility_codes import send_email
+from utils.data_handler import get_data
+from utils.event_handler import get_time_window
+from utils.input_handler import command_parse, read_input_command
+from utils.local_handler import process_data, plot_unit, event_filter
+from utils.metadata_handler import get_metadata
+from utils.plotxml_handler import plot_xml_response
+from utils.utility_codes import header_printer, goodbye_printer
+from utils.utility_codes import print_event_catalogs, print_data_sources
+from utils.utility_codes import print_syngine_models
+from utils.utility_codes import send_email
 
 # =============================================================================
 # ############################## obspyDMT #####################################

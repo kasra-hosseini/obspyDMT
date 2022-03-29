@@ -176,9 +176,10 @@ def process_core_iterate(sta_ev_arr, input_dics, target_path, starti, endi):
         process_unit = importlib.import_module(
             'obspyDMT.%s' % input_dics['pre_process'])
     except:
-        from obspyDMT import __path__ as dmt_path
-        sys.exit("\n\n%s.py DOES NOT EXIST at %s!"
-                 % (input_dics['pre_process'], dmt_path))
+        process_unit = importlib.import_module(input_dics['pre_process'])
+        # from obspyDMT import __path__ as dmt_path
+        # sys.exit("\n\n%s.py DOES NOT EXIST at %s!"
+        #          % (input_dics['pre_process'], dmt_path))
     for i in range(starti, endi):
         staev_ar = sta_ev_arr[i]
         station_id = '%s.%s.%s.%s' % (staev_ar[0], staev_ar[1],

@@ -3,9 +3,9 @@ from obspy.core import read
 import os
 import errno
 
-from .utils.instrument_handler import instrument_correction
-from .utils.resample_handler import resample_unit
-from .utils.utility_codes import convert_to_sac
+from utils.instrument_handler import instrument_correction
+from utils.resample_handler import resample_unit
+from utils.utility_codes import convert_to_sac
 # -----------------------------------------------------------------------------
 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
