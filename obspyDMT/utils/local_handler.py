@@ -247,6 +247,7 @@ def plot_filter_event(input_dics, event_dic):
     :param event_dic:
     :return:
     """
+
     try:
         if not event_dic['datetime'] <= UTCDateTime(input_dics['max_date']):
             return False
@@ -262,30 +263,16 @@ def plot_filter_event(input_dics, event_dic):
             if not event_dic['depth'] >= float(input_dics['min_depth']):
                 return False
             if isinstance(input_dics['evlatmin'], float):
-
-                if float(event_dic['longitude']) < 0:
-                    event_dic_360 = 360. + float(event_dic['longitude'])
-                else:
-                    event_dic_360 = float(event_dic['longitude'])
-
-                if float(input_dics['evlonmin']) < 0:
-                    evlonmin_360 = 360. + float(input_dics['evlonmin'])
-                else:
-                    evlonmin_360 = float(input_dics['evlonmin'])
-
-                if float(input_dics['evlonmax']) < 0:
-                    evlonmax_360 = 360. + float(input_dics['evlonmax'])
-                else:
-                    evlonmax_360 = float(input_dics['evlonmax'])
-
+                
                 if not event_dic['latitude'] <= float(input_dics['evlatmax']):
                     return False
-                if not event_dic_360 <= evlonmax_360:
+                if not float(event_dic['longitude']) <= float(input_dics['evlonmax']):
                     return False
                 if not event_dic['latitude'] >= float(input_dics['evlatmin']):
                     return False
-                if not event_dic_360 >= evlonmin_360:
+                if not float(event_dic['longitude']) >= float(input_dics['evlonmin']):
                     return False
+
         return True
     except Exception as error:
         return False
