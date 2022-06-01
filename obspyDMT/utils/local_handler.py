@@ -287,6 +287,7 @@ def plot_waveform(input_dics, events):
     :param events:
     :return:
     """
+    plt.figure(figsize=(20., 10.))
     # plt.rc('font', family='serif')
     for ei in range(len(events)):
         target_path = locate(input_dics['datapath'], events[ei]['event_id'], num_matches=1)
@@ -356,9 +357,9 @@ def plot_waveform(input_dics, events):
     plt.yticks(size=18)
     plt.tight_layout()
     if not input_dics['plot_save']:
-        plt.savefig(os.path.join(os.path.curdir, 'waveforms.png'))
+        plt.savefig(os.path.join(os.path.curdir, 'waveforms.png'), dpi=300)
     else:
-        plt.savefig(os.path.join(input_dics['plot_save']))
+        plt.savefig(os.path.join(input_dics['plot_save']), dpi=300)
     if not input_dics['show_no_plot']:
         plt.show()
 
