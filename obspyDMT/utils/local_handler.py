@@ -287,8 +287,10 @@ def plot_waveform(input_dics, events):
     :param events:
     :return:
     """
-    plt.figure(figsize=(20., 10.))
-    # plt.rc('font', family='serif')
+    fig = plt.figure(figsize=(30, 20))
+    ax = fig.add_subplot(111)
+    ax.set_prop_cycle(plt.cycler('color', plt.cm.nipy_spectral(np.linspace(0, 1, len(sta_ev_arr)))))
+    
     for ei in range(len(events)):
         target_path = locate(input_dics['datapath'], events[ei]['event_id'], num_matches=1)
         if len(target_path) == 0:
@@ -346,13 +348,14 @@ def plot_waveform(input_dics, events):
                     if input_dics['max_azi']:
                         if azi > input_dics['max_azi']:
                             continue
-                plt.plot(taxis, tr.normalize().data + epi_dist, c='k',
-                         alpha=0.7)
+                ax.plot(taxis, tr.normalize().data/2 + epi_dist, alpha=0.3)
+                # ax.plot(taxis, tr.normalize().data/2 + epi_dist, c='k',
+                #          alpha=0.7)
             except:
                 continue
 
-    plt.xlabel('Time (sec)', size=24)
-    plt.ylabel('Distance (deg)', size=24)
+    ax.set_xlabel('Time (sec)', size=24)
+    ax.set_ylabel('Distance (deg)', size=24)
     plt.xticks(size=18)
     plt.yticks(size=18)
     plt.tight_layout()
