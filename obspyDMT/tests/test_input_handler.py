@@ -39,14 +39,14 @@ def test_read_input_command():
     assert len(parser.option_groups[4].option_list) == 9
     assert len(parser.option_groups[5].option_list) == 7
     assert len(parser.option_groups[6].option_list) == 5
-    assert len(parser.option_groups[7].option_list) == 6
+    assert len(parser.option_groups[7].option_list) == 2
     assert len(parser.option_groups[8].option_list) == 11
     assert len(parser.option_groups[9].option_list) == 1
     assert len(parser.option_groups[10].option_list) == 7
     assert len(parser.option_groups[11].option_list) == 6
     assert len(parser.option_groups[12].option_list) == 17
     assert len(parser.option_groups[13].option_list) == 13
-    assert len(parser.option_groups[14].option_list) == 3
+    assert len(parser.option_groups[14].option_list) == 1
 
     input_dics = read_input_command(parser)
 
@@ -93,10 +93,6 @@ def test_default_inputs():
     assert input_dics['process_np'] == 4
     assert input_dics['username_fdsn'] is None
     assert input_dics['password_fdsn'] is None
-    assert input_dics['username_arclink'] == 'test@obspy.org'
-    assert input_dics['password_arclink'] is ''
-    assert input_dics['host_arclink'] == 'webdc.eu'
-    assert input_dics['port_arclink'] == 18002
     assert input_dics['event_catalog'] == 'LOCAL'
     assert input_dics['min_depth'] == -10.0
     assert input_dics['max_depth'] == +6000.0

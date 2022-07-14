@@ -103,7 +103,6 @@ def print_data_sources():
         print("{0:<15} {1}".format(key,  URL_MAPPINGS[key]))
     print("iris-federator")
     print("eida-routing")
-    print("ARCLINK")
     print("\n============================================================")
     print("This is the list of all shortcut names which can be used for")
     print("--data_source option.")

@@ -1,6 +1,26 @@
-# obspyDMT: A Python Toolbox for Retrieving, Processing and Management of Seismological Datasets
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.801778.svg)](https://doi.org/10.5281/zenodo.801778)
+<div align="center">
+    <p align="center">
+    <img src="./figures/logo.jpg" 
+         alt="obspyDMT logo" width="50%" align="center">
+    </p>
+    <h2>A Python Toolbox for Retrieving, Processing and Management of Seismological Datasets</h2>
+</div>
+ 
+<p align="center">
+    <a href="https://pypi.org/project/obspyDMT/">
+        <img alt="PyPI" src="https://img.shields.io/pypi/v/obspyDMT">
+    </a>
+    <a href="https://github.com/kasra-hosseini/obspyDMT/blob/master/LICENSE.txt">
+        <img alt="License" src="https://img.shields.io/badge/License-LGPL_v3-yellow.svg">
+    </a>
+    <a href="https://github.com/kasra-hosseini/obspyDMT/actions/workflows/dmt_ci.yml/badge.svg">
+        <img alt="Integration Tests badge" src="https://github.com/kasra-hosseini/obspyDMT/actions/workflows/dmt_ci.yml/badge.svg">
+    </a>
+    <a href="https://doi.org/10.5281/zenodo.801778">
+        <img alt="Zenodo" src="https://zenodo.org/badge/DOI/10.5281/zenodo.801778.svg">
+    </a>
+    <br/>
+</p>
 
 [obspyDMT][dmt] (obspy Data Management Tool) is a tool for retrieving, processing and management of seismological datasets in a fully automatic way. Written in the Python programming language (Python 2 and 3 compatible), it can be used as a stand-alone command-line tool (requiring no knowledge of Python) or can be integrated as a module with other Python codes.
 
@@ -428,33 +448,44 @@ Please consider acknowledging obspyDMT if it helps you to obtain results and fig
 
 ## Installation
 
-Once working Python and [ObsPy](https://github.com/obspy/obspy/wiki) environments are available, obspyDMT can be installed in different ways:
+We strongly recommend installation via Anaconda (refer to [Anaconda website and follow the instructions](https://docs.anaconda.com/anaconda/install/)).
 
-**1. install obspyDMT package locally (using [PyPi](https://pypi.python.org/pypi)):** which tends to be the most user-friendly option:
-
-```bash
-pip install obspyDMT
-```
-
-**2. install obspyDMT from the source code:** The latest version of obspyDMT is available on GitHub. After installing [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git):
+* Create a new environment for obspyDMT
 
 ```bash
-git clone https://github.com/kasra-hosseini/obspyDMT.git /path/to/my/obspyDMT
+conda create -n py38dmt python=3.8
 ```
 
-obspyDMT can be installed by:
+* Activate the environment:
 
 ```bash
-cd /path/to/my/obspyDMT
-pip install -e .
+conda activate py38dmt
 ```
 
-or
+* obspyDMT can be installed in different ways:
 
-```bash
-cd /path/to/my/obspyDMT
-python setup.py install
-```
+  1. **Install obspyDMT via [PyPi](https://pypi.org/project/obspyDMT/)** (which tends to be the most user-friendly option):
+      
+      * Install obspyDMT:
+
+      ```bash
+      pip install obspyDMT
+      ```
+
+  2. **Install obspyDMT from the source code**:
+
+      * Clone obspyDMT source code:
+
+      ```bash
+      git clone https://github.com/kasra-hosseini/obspyDMT
+      ```
+
+      * Install obspyDMT dependencies:
+
+      ```
+      cd /path/to/my/obspyDMT
+      pip install -v -e .
+      ```
 
 obspyDMT can be used from a system shell without explicitly calling the Python interpreter. The following command checks the dependencies required for running the code properly:
 

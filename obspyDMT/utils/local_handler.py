@@ -68,8 +68,8 @@ def process_data(input_dics, event):
     print("[INFO] update station_event file...")
     update_sta_ev_file(target_path, event)
     sta_ev_arr = np.loadtxt(os.path.join(target_path, 'info', 'station_event'),
-                            delimiter=',', dtype=bytes, ndmin=2).astype(np.str)
-    sta_ev_arr = sta_ev_arr.astype(np.object)
+                            delimiter=',', dtype=bytes, ndmin=2).astype(str)
+    sta_ev_arr = sta_ev_arr.astype(object)
     if input_dics['select_data']:
         sta_ev_arr = select_data(deg_step=float(input_dics['select_data']),
                                  sta_ev=sta_ev_arr)
@@ -179,6 +179,7 @@ def process_core_iterate(sta_ev_arr, input_dics, target_path, starti, endi):
         from obspyDMT import __path__ as dmt_path
         sys.exit("\n\n%s.py DOES NOT EXIST at %s!"
                  % (input_dics['pre_process'], dmt_path))
+        #process_unit = importlib.import_module(input_dics['pre_process'])
     for i in range(starti, endi):
         staev_ar = sta_ev_arr[i]
         station_id = '%s.%s.%s.%s' % (staev_ar[0], staev_ar[1],
@@ -246,6 +247,7 @@ def plot_filter_event(input_dics, event_dic):
     :param event_dic:
     :return:
     """
+
     try:
         if not event_dic['datetime'] <= UTCDateTime(input_dics['max_date']):
             return False
@@ -261,30 +263,16 @@ def plot_filter_event(input_dics, event_dic):
             if not event_dic['depth'] >= float(input_dics['min_depth']):
                 return False
             if isinstance(input_dics['evlatmin'], float):
-
-                if float(event_dic['longitude']) < 0:
-                    event_dic_360 = 360. + float(event_dic['longitude'])
-                else:
-                    event_dic_360 = float(event_dic['longitude'])
-
-                if float(input_dics['evlonmin']) < 0:
-                    evlonmin_360 = 360. + float(input_dics['evlonmin'])
-                else:
-                    evlonmin_360 = float(input_dics['evlonmin'])
-
-                if float(input_dics['evlonmax']) < 0:
-                    evlonmax_360 = 360. + float(input_dics['evlonmax'])
-                else:
-                    evlonmax_360 = float(input_dics['evlonmax'])
-
+                
                 if not event_dic['latitude'] <= float(input_dics['evlatmax']):
                     return False
-                if not event_dic_360 <= evlonmax_360:
+                if not float(event_dic['longitude']) <= float(input_dics['evlonmax']):
                     return False
                 if not event_dic['latitude'] >= float(input_dics['evlatmin']):
                     return False
-                if not event_dic_360 >= evlonmin_360:
+                if not float(event_dic['longitude']) >= float(input_dics['evlonmin']):
                     return False
+
         return True
     except Exception as error:
         return False
@@ -299,7 +287,7 @@ def plot_waveform(input_dics, events):
     :param events:
     :return:
     """
-    # plt.rc('font', family='serif')
+
     for ei in range(len(events)):
         target_path = locate(input_dics['datapath'], events[ei]['event_id'], num_matches=1)
         if len(target_path) == 0:
@@ -318,8 +306,8 @@ def plot_waveform(input_dics, events):
         update_sta_ev_file(target_path, events[ei])
         sta_ev_arr = np.loadtxt(
             os.path.join(target_path, 'info', 'station_event'),
-            delimiter=',', dtype=bytes, ndmin=2).astype(np.str)
-        sta_ev_arr = sta_ev_arr.astype(np.object)
+            delimiter=',', dtype=bytes, ndmin=2).astype(str)
+        sta_ev_arr = sta_ev_arr.astype(object)
         del_index = []
         for sti in range(len(sta_ev_arr)):
             if not plot_filter_station(input_dics, sta_ev_arr[sti]):
@@ -328,6 +316,9 @@ def plot_waveform(input_dics, events):
         for di in del_index:
             sta_ev_arr[di] = np.delete(sta_ev_arr, (di), axis=0)
 
+        fig = plt.figure(figsize=(30, 20))
+        ax = fig.add_subplot(111)
+        
         for si in range(len(sta_ev_arr)):
             sta_id = sta_ev_arr[si, 0] + '.' + sta_ev_arr[si, 1] + '.' + \
                      sta_ev_arr[si, 2] + '.' + sta_ev_arr[si, 3]
@@ -357,20 +348,21 @@ def plot_waveform(input_dics, events):
                     if input_dics['max_azi']:
                         if azi > input_dics['max_azi']:
                             continue
-                plt.plot(taxis, tr.normalize().data + epi_dist, c='k',
-                         alpha=0.7)
+                ax.plot(taxis, tr.normalize().data/2 + epi_dist, lw=0.9,  c='k', alpha=0.3)
+                # ax.plot(taxis, tr.normalize().data/2 + epi_dist, c='k',
+                #          alpha=0.7)
             except:
                 continue
 
-    plt.xlabel('Time (sec)', size=24)
-    plt.ylabel('Distance (deg)', size=24)
+    ax.set_xlabel('Time (sec)', size=24)
+    ax.set_ylabel('Distance (deg)', size=24)
     plt.xticks(size=18)
     plt.yticks(size=18)
     plt.tight_layout()
     if not input_dics['plot_save']:
-        plt.savefig(os.path.join(os.path.curdir, 'waveforms.png'))
+        plt.savefig(os.path.join(os.path.curdir, 'waveforms.png'), dpi=300)
     else:
-        plt.savefig(os.path.join(input_dics['plot_save']))
+        plt.savefig(os.path.join(input_dics['plot_save']), dpi=300)
     if not input_dics['show_no_plot']:
         plt.show()
 
@@ -494,13 +486,13 @@ def plot_sta_ev_ray(input_dics, events):
             if not input_dics['plot_availability']:
                 sta_ev_arr = np.loadtxt(os.path.join(target_path,
                                                      'info', 'station_event'),
-                                        delimiter=',', dtype=bytes, ndmin=2).astype(np.str)
+                                        delimiter=',', dtype=bytes, ndmin=2).astype(str)
             else:
                 sta_ev_arr = np.loadtxt(os.path.join(target_path,
                                                      'info',
                                                      'availability.txt'),
-                                        delimiter=',', dtype=bytes, ndmin=2).astype(np.str)
-            sta_ev_arr = sta_ev_arr.astype(np.object)
+                                        delimiter=',', dtype=bytes, ndmin=2).astype(str)
+            sta_ev_arr = sta_ev_arr.astype(object)
 
             if events[ei]['magnitude'] > 0:
                 del_index = []
