@@ -13,14 +13,14 @@
     <a href="https://github.com/kasra-hosseini/obspyDMT/blob/master/LICENSE.txt">
         <img alt="License" src="https://img.shields.io/badge/License-LGPL_v3-yellow.svg">
     </a>
-    <a href="https://github.com/kasra-hosseini/obspyDMT/actions/workflows/init_tests.yml/badge.svg">
-        <img alt="Integration Tests badge" src="https://github.com/kasra-hosseini/obspyDMT/actions/workflows/init_tests.yml/badge.svg">
+    <a href="https://github.com/kasra-hosseini/obspyDMT/actions/workflows/dmt_ci.yml/badge.svg">
+        <img alt="Integration Tests badge" src="https://github.com/kasra-hosseini/obspyDMT/actions/workflows/dmt_ci.yml/badge.svg">
+    </a>
+    <a href="https://doi.org/10.5281/zenodo.801778">
+        <img alt="Zenodo" src="https://zenodo.org/badge/DOI/10.5281/zenodo.801778.svg">
     </a>
     <br/>
 </p>
-
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.801778.svg)](https://doi.org/10.5281/zenodo.801778)
 
 [obspyDMT][dmt] (obspy Data Management Tool) is a tool for retrieving, processing and management of seismological datasets in a fully automatic way. Written in the Python programming language (Python 2 and 3 compatible), it can be used as a stand-alone command-line tool (requiring no knowledge of Python) or can be integrated as a module with other Python codes.
 
