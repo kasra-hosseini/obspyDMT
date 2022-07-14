@@ -1,4 +1,24 @@
-# obspyDMT: A Python Toolbox for Retrieving, Processing and Management of Seismological Datasets
+<div align="center">
+    <p align="center">
+    <img src="./figures/logo.jpg" 
+         alt="obspyDMT logo" width="50%" align="center">
+    </p>
+    <h2>A Python Toolbox for Retrieving, Processing and Management of Seismological Datasets</h2>
+</div>
+ 
+<p align="center">
+    <a href="https://pypi.org/project/obspyDMT/">
+        <img alt="PyPI" src="https://img.shields.io/pypi/v/obspyDMT">
+    </a>
+    <a href="https://github.com/kasra-hosseini/obspyDMT/blob/master/LICENSE.txt">
+        <img alt="License" src="https://img.shields.io/badge/License-LGPL_v3-yellow.svg">
+    </a>
+    <a href="https://github.com/kasra-hosseini/obspyDMT/actions/workflows/init_tests.yml/badge.svg">
+        <img alt="Integration Tests badge" src="https://github.com/kasra-hosseini/obspyDMT/actions/workflows/init_tests.yml/badge.svg">
+    </a>
+    <br/>
+</p>
+
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.801778.svg)](https://doi.org/10.5281/zenodo.801778)
 
