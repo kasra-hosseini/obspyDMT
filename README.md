@@ -448,6 +448,8 @@ Please consider acknowledging obspyDMT if it helps you to obtain results and fig
 
 ## Installation
 
+:warning: Python versions >= 3.7 are recommended.
+
 We strongly recommend installation via Anaconda (refer to [Anaconda website and follow the instructions](https://docs.anaconda.com/anaconda/install/)).
 
 * Create a new environment for obspyDMT
@@ -460,6 +462,18 @@ conda create -n py38dmt python=3.8
 
 ```bash
 conda activate py38dmt
+```
+
+* 🗺️ For plotting data on maps, we use [Cartopy](https://scitools.org.uk/cartopy/docs/v0.14/index.html). If you don't want to plot data on maps, you can skip this step. 
+
+```bash
+conda install -c scitools cartopy
+```
+
+* 🌏 To create KML files (readable by Google-Earth), we use [PyKML](https://pythonhosted.org/pykml/). If you don't want to create KML files, you can skip this step. 
+
+```bash
+pip install pykml
 ```
 
 * obspyDMT can be installed in different ways:
