@@ -46,7 +46,7 @@ def test_read_input_command():
     assert len(parser.option_groups[11].option_list) == 6
     assert len(parser.option_groups[12].option_list) == 17
     assert len(parser.option_groups[13].option_list) == 13
-    assert len(parser.option_groups[14].option_list) == 3
+    assert len(parser.option_groups[14].option_list) == 1
 
     input_dics = read_input_command(parser)
 
