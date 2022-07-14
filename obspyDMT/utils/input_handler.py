@@ -1318,11 +1318,10 @@ def descrip_generator():
         descrip.append('matplotlib: not installed\nerror:\n%s\n' % error)
 
     try:
-        from mpl_toolkits.basemap import __version__ as base_ver
-        from mpl_toolkits.basemap import Basemap
-        descrip.append('Basemap ver: ' + base_ver)
+        from cartopy import __version__ as cart_ver
+        descrip.append('Cartopy ver: ' + cart_ver)
     except Exception as error:
-        descrip.append('Basemap: not installed\nerror:\n%s\n'
+        descrip.append('Cartopy: not installed\nerror:\n%s\n'
                        'You can not use all the plot options' % error)
     print("********************************\n")
     return descrip
