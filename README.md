@@ -448,33 +448,44 @@ Please consider acknowledging obspyDMT if it helps you to obtain results and fig
 
 ## Installation
 
-Once working Python and [ObsPy](https://github.com/obspy/obspy/wiki) environments are available, obspyDMT can be installed in different ways:
+We strongly recommend installation via Anaconda (refer to [Anaconda website and follow the instructions](https://docs.anaconda.com/anaconda/install/)).
 
-**1. install obspyDMT package locally (using [PyPi](https://pypi.python.org/pypi)):** which tends to be the most user-friendly option:
-
-```bash
-pip install obspyDMT
-```
-
-**2. install obspyDMT from the source code:** The latest version of obspyDMT is available on GitHub. After installing [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git):
+* Create a new environment for obspyDMT
 
 ```bash
-git clone https://github.com/kasra-hosseini/obspyDMT.git /path/to/my/obspyDMT
+conda create -n py38dmt python=3.8
 ```
 
-obspyDMT can be installed by:
+* Activate the environment:
 
 ```bash
-cd /path/to/my/obspyDMT
-pip install -e .
+conda activate py38dmt
 ```
 
-or
+* obspyDMT can be installed in different ways:
 
-```bash
-cd /path/to/my/obspyDMT
-python setup.py install
-```
+  1. **Install obspyDMT via [PyPi](https://pypi.org/project/obspyDMT/)** (which tends to be the most user-friendly option):
+      
+      * Install obspyDMT:
+
+      ```bash
+      pip install obspyDMT
+      ```
+
+  2. **Install obspyDMT from the source code**:
+
+      * Clone obspyDMT source code:
+
+      ```bash
+      git clone https://github.com/kasra-hosseini/obspyDMT
+      ```
+
+      * Install obspyDMT dependencies:
+
+      ```
+      cd /path/to/my/obspyDMT
+      pip install -v -e .
+      ```
 
 obspyDMT can be used from a system shell without explicitly calling the Python interpreter. The following command checks the dependencies required for running the code properly:
 
