@@ -93,10 +93,6 @@ def test_default_inputs():
     assert input_dics['process_np'] == 4
     assert input_dics['username_fdsn'] is None
     assert input_dics['password_fdsn'] is None
-    assert input_dics['username_arclink'] == 'test@obspy.org'
-    assert input_dics['password_arclink'] is ''
-    assert input_dics['host_arclink'] == 'webdc.eu'
-    assert input_dics['port_arclink'] == 18002
     assert input_dics['event_catalog'] == 'LOCAL'
     assert input_dics['min_depth'] == -10.0
     assert input_dics['max_depth'] == +6000.0
