@@ -263,14 +263,29 @@ def plot_filter_event(input_dics, event_dic):
             if not event_dic['depth'] >= float(input_dics['min_depth']):
                 return False
             if isinstance(input_dics['evlatmin'], float):
-                
+
+                if float(event_dic['longitude']) < 0:
+                    event_dic_360 = 360. + float(event_dic['longitude'])
+                else:
+                    event_dic_360 = float(event_dic['longitude'])
+
+                if float(input_dics['evlonmin']) < 0:
+                    evlonmin_360 = 360. + float(input_dics['evlonmin'])
+                else:
+                    evlonmin_360 = float(input_dics['evlonmin'])
+
+                if float(input_dics['evlonmax']) < 0:
+                    evlonmax_360 = 360. + float(input_dics['evlonmax'])
+                else:
+                    evlonmax_360 = float(input_dics['evlonmax'])
+
                 if not event_dic['latitude'] <= float(input_dics['evlatmax']):
                     return False
-                if not float(event_dic['longitude']) <= float(input_dics['evlonmax']):
+                if not event_dic_360 <= evlonmax_360:
                     return False
                 if not event_dic['latitude'] >= float(input_dics['evlatmin']):
                     return False
-                if not float(event_dic['longitude']) >= float(input_dics['evlonmin']):
+                if not event_dic_360 >= evlonmin_360:
                     return False
 
         return True
@@ -316,9 +331,6 @@ def plot_waveform(input_dics, events):
         for di in del_index:
             sta_ev_arr[di] = np.delete(sta_ev_arr, (di), axis=0)
 
-        fig = plt.figure(figsize=(30, 20))
-        ax = fig.add_subplot(111)
-        
         for si in range(len(sta_ev_arr)):
             sta_id = sta_ev_arr[si, 0] + '.' + sta_ev_arr[si, 1] + '.' + \
                      sta_ev_arr[si, 2] + '.' + sta_ev_arr[si, 3]
@@ -348,14 +360,12 @@ def plot_waveform(input_dics, events):
                     if input_dics['max_azi']:
                         if azi > input_dics['max_azi']:
                             continue
-                ax.plot(taxis, tr.normalize().data/2 + epi_dist, lw=0.9,  c='k', alpha=0.3)
-                # ax.plot(taxis, tr.normalize().data/2 + epi_dist, c='k',
-                #          alpha=0.7)
+                plt.plot(taxis, tr.normalize().data/2 + epi_dist, lw=0.9, c='k', alpha=0.3)
             except:
                 continue
 
-    ax.set_xlabel('Time (sec)', size=24)
-    ax.set_ylabel('Distance (deg)', size=24)
+    plt.xlabel('Time (sec)', size=24)
+    plt.ylabel('Distance (deg)', size=24)
     plt.xticks(size=18)
     plt.yticks(size=18)
     plt.tight_layout()
@@ -377,9 +387,11 @@ def plot_sta_ev_ray(input_dics, events):
     :return:
     """
 
-    from mpl_toolkits.basemap import Basemap
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
 
-    plt.figure(figsize=(20., 10.))
+
+    fig = plt.figure(figsize=(20, 10))
     plt_stations = input_dics['plot_sta']
     plt_availability = input_dics['plot_availability']
     plt_events = input_dics['plot_ev']
@@ -398,52 +410,46 @@ def plot_sta_ev_ray(input_dics, events):
         evlonmax = input_dics['evlonmax']
         glob_map = False
 
-    if plt_ray_path:
-        # # hammer, kav7, cyl, mbtfpq, moll
-        m = Basemap(projection='moll', lon_0=input_dics['plot_lon0'])
-        parallels = np.arange(-90, 90, 30.)
-        m.drawparallels(parallels, fontsize=24)
-        meridians = np.arange(-180., 180., 60.)
-        m.drawmeridians(meridians, fontsize=24)
-        width_beach = 10e5
-        width_station = 50
-    elif not glob_map:
-        m = Basemap(projection='cyl', llcrnrlat=evlatmin, urcrnrlat=evlatmax,
-                    llcrnrlon=evlonmin, urcrnrlon=evlonmax)
-        parallels = np.arange(-90, 90, 5.)
-        m.drawparallels(parallels, fontsize=12)
-        meridians = np.arange(-180., 180., 5.)
-        m.drawmeridians(meridians, fontsize=12)
-        width_beach = 5
-        width_station = 10
+    if not glob_map:
+        map_ax = fig.add_subplot(111, projection=ccrs.PlateCarree())
+        map_ax.gridlines()
+        map_ax.set_extent([evlonmin, evlonmax, evlatmin, evlatmax], crs=ccrs.Geodetic())
+        width_beach = 1
+        width_station = 30
     elif glob_map:
-        m = Basemap(projection='moll', lon_0=input_dics['plot_lon0'])
-        parallels = np.arange(-90, 90, 30.)
-        m.drawparallels(parallels, fontsize=24)
-        meridians = np.arange(-180., 180., 60.)
-        m.drawmeridians(meridians, fontsize=24)
-        width_beach = 5e5
-        width_station = 50
+        map_ax = fig.add_subplot(111, projection=ccrs.Robinson(central_longitude=input_dics["plot_lon0"]))
+        map_ax.set_global()
+        map_ax.gridlines()
+        width_beach = 1e6
+        width_station = 30
     else:
         sys.exit('[ERROR] can not continue, error:\n%s' % input_dics)
 
     if input_dics['plot_style'] == 'bluemarble':
-        m.bluemarble(scale=0.5)
+        print("[WARNING] bluemarble is not supported in >= v2.2.9, "
+              "using 'a downsampled version of the Natural Earth shaded relief raster'.")
+        map_ax.stock_img()
     elif input_dics['plot_style'] == 'etopo':
-        m.etopo(scale=0.5)
+        print("[WARNING] etopo is not supported in >= v2.2.9, "
+              "using 'a downsampled version of the Natural Earth shaded relief raster'.")
+        map_ax.stock_img()
     elif input_dics['plot_style'] == 'shadedrelief':
-        m.shadedrelief(scale=0.1)
+        print("[WARNING] 'a downsampled version of the Natural Earth shaded relief raster' will be used.")
+        map_ax.stock_img()
     else:
-        m.fillcontinents()
+        map_ax.add_feature(cfeature.LAND, facecolor='#bfbfbf')
+        # map_ax.coastlines()
 
     for ei in range(len(events)):
         if plt_events:
+            if input_dics["plot_focal"]:
+                print("\n[WARNING] Plotting beachball(s) is under construction! Change to simple point plot.\n")
+                input_dics["plot_focal"] = False
             if input_dics['plot_focal']:
                 if not events[ei]['focal_mechanism']:
                     print('[ERROR] moment tensor does not exist!')
                     continue
-                x, y = m(events[ei]['longitude'],
-                         events[ei]['latitude'])
+                x, y = (events[ei]['longitude'], events[ei]['latitude'])
                 focmecs = [float(events[ei]['focal_mechanism'][0]),
                            float(events[ei]['focal_mechanism'][1]),
                            float(events[ei]['focal_mechanism'][2]),
@@ -460,12 +466,12 @@ def plot_sta_ev_ray(input_dics, events):
                     print("[WARNING: %s -- %s]" % (error, focmecs))
                     continue
             else:
-                x, y = m(events[ei]['longitude'],
-                         events[ei]['latitude'])
+                x, y = (events[ei]['longitude'], events[ei]['latitude'])
                 magnitude = float(events[ei]['magnitude'])
-                m.scatter(x, y, color="blue", s=10*magnitude,
-                          edgecolors='none', marker="o",
-                          zorder=5, alpha=0.65)
+                plt.scatter(x, y, color="blue", s=10*magnitude,
+                            edgecolors='none', marker="o",
+                            zorder=5, alpha=0.65, 
+                            transform=ccrs.PlateCarree())
         if plt_stations or plt_availability or plt_ray_path:
             target_path = locate(input_dics['datapath'],
                                  events[ei]['event_id'], num_matches=1)
@@ -530,41 +536,20 @@ def plot_sta_ev_ray(input_dics, events):
 
         if plt_stations or plt_availability:
             if len(sta_ev_arr) > 0:
-                x, y = m(sta_ev_arr[:, 5], sta_ev_arr[:, 4])
-                m.scatter(x, y, color='red', s=width_station,
-                          edgecolors='none', marker='v',
-                          zorder=4, alpha=0.9)
+                x, y = (sta_ev_arr[:, 5], sta_ev_arr[:, 4])
+                plt.scatter(x.astype(np.float), y.astype(np.float),
+                            color='red', s=width_station,
+                            edgecolors='none', marker='v',
+                            zorder=4, alpha=0.9,
+                            transform=ccrs.PlateCarree())
 
         if plt_ray_path:
             for si in range(len(sta_ev_arr)):
-                gcline = m.drawgreatcircle(float(events[ei]['longitude']),
-                                           float(events[ei]['latitude']),
-                                           float(sta_ev_arr[si][5]),
-                                           float(sta_ev_arr[si][4]),
-                                           color='k', alpha=0.0)
-
-                gcx, gcy = gcline[0].get_data()
-                gcx_diff = gcx[0:-1] - gcx[1:]
-                gcy_diff = gcy[0:-1] - gcy[1:]
-                if np.max(abs(gcx_diff))/abs(gcx_diff[0]) > 300:
-                    gcx_max_arg = abs(gcx_diff).argmax()
-                    plt.plot(gcx[0:gcx_max_arg], gcy[0:gcx_max_arg],
-                             color='k', alpha=0.1)
-                    plt.plot(gcx[gcx_max_arg+1:], gcy[gcx_max_arg+1:],
-                             color='k', alpha=0.1)
-                elif np.max(abs(gcy_diff))/abs(gcy_diff[0]) > 400:
-                    gcy_max_arg = abs(gcy_diff).argmax()
-                    plt.plot(gcy[0:gcy_max_arg], gcy[0:gcy_max_arg],
-                             color='k', alpha=0.1)
-                    plt.plot(gcy[gcy_max_arg+1:], gcy[gcy_max_arg+1:],
-                             color='k', alpha=0.1)
-                else:
-                    m.drawgreatcircle(float(events[ei]['longitude']),
-                                      float(events[ei]['latitude']),
-                                      float(sta_ev_arr[si][5]),
-                                      float(sta_ev_arr[si][4]),
-                                      color='k', alpha=0.1)
-
+                plt.plot([float(events[ei]['longitude']), float(sta_ev_arr[si][5])],
+                         [float(events[ei]['latitude']), float(sta_ev_arr[si][4])], 
+                         color='k', alpha=0.1, 
+                         transform=ccrs.Geodetic())
+                         
     if not input_dics['plot_save']:
         plt.savefig(os.path.join(os.path.curdir, 'event_station.png'))
     else:
@@ -585,6 +570,8 @@ def plot_seismicity(input_dics, events):
     print('\n==============')
     print('Seismicity map')
     print('==============\n')
+
+    sys.exit("[ERROR] plot_seismicity is not implemented yet in obspyDMT version >= 2.2.9.\n[ERROR] This will be added in the next release.")
 
     from mpl_toolkits.basemap import Basemap
 

@@ -470,6 +470,12 @@ conda activate py38dmt
 conda install -c scitools cartopy
 ```
 
+* 🌏 To create KML files (readable by Google-Earth), we use [PyKML](https://pythonhosted.org/pykml/). If you don't want to create KML files, you can skip this step. 
+
+```bash
+pip install pykml
+```
+
 * obspyDMT can be installed in different ways:
 
   1. **Install obspyDMT via [PyPi](https://pypi.org/project/obspyDMT/)** (which tends to be the most user-friendly option):
