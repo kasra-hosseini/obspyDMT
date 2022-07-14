@@ -101,8 +101,8 @@ def get_metadata(input_dics, event, info_avail):
     avail_fi.close()
 
     saved_avail = np.loadtxt(avail_add_all, delimiter=',',
-                             dtype=bytes, ndmin=2).astype(np.str)
-    saved_avail = saved_avail.astype(np.object)
+                             dtype=bytes, ndmin=2).astype(str)
+    saved_avail = saved_avail.astype(object)
     unique_avail = []
     if len(saved_avail) >= 1:
         unique_avail = unique_rows_avail(saved_avail)
@@ -120,8 +120,8 @@ def get_metadata(input_dics, event, info_avail):
     avail_fi.close()
 
     saved_avail = np.loadtxt(avail_add_cur, delimiter=',',
-                             dtype=bytes, ndmin=2).astype(np.str)
-    saved_avail = saved_avail.astype(np.object)
+                             dtype=bytes, ndmin=2).astype(str)
+    saved_avail = saved_avail.astype(object)
     unique_avail = []
     if len(saved_avail) >= 1:
         unique_avail = unique_rows_avail(saved_avail)

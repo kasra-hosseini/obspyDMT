@@ -490,8 +490,8 @@ def update_sta_ev_file(target_path, event):
     """
     avail_arr = np.loadtxt(os.path.join(target_path, 'info',
                                         'availability.txt'),
-                           delimiter=',', dtype=bytes, ndmin=2).astype(np.str)
-    avail_arr = avail_arr.astype(np.object)
+                           delimiter=',', dtype=bytes, ndmin=2).astype(str)
+    avail_arr = avail_arr.astype(object)
     sta_ev_add = os.path.join(target_path, 'info', 'station_event')
     sta_ev_fio = open(sta_ev_add, 'wt+')
 

@@ -68,8 +68,8 @@ def process_data(input_dics, event):
     print("[INFO] update station_event file...")
     update_sta_ev_file(target_path, event)
     sta_ev_arr = np.loadtxt(os.path.join(target_path, 'info', 'station_event'),
-                            delimiter=',', dtype=bytes, ndmin=2).astype(np.str)
-    sta_ev_arr = sta_ev_arr.astype(np.object)
+                            delimiter=',', dtype=bytes, ndmin=2).astype(str)
+    sta_ev_arr = sta_ev_arr.astype(object)
     if input_dics['select_data']:
         sta_ev_arr = select_data(deg_step=float(input_dics['select_data']),
                                  sta_ev=sta_ev_arr)
@@ -306,8 +306,8 @@ def plot_waveform(input_dics, events):
         update_sta_ev_file(target_path, events[ei])
         sta_ev_arr = np.loadtxt(
             os.path.join(target_path, 'info', 'station_event'),
-            delimiter=',', dtype=bytes, ndmin=2).astype(np.str)
-        sta_ev_arr = sta_ev_arr.astype(np.object)
+            delimiter=',', dtype=bytes, ndmin=2).astype(str)
+        sta_ev_arr = sta_ev_arr.astype(object)
         del_index = []
         for sti in range(len(sta_ev_arr)):
             if not plot_filter_station(input_dics, sta_ev_arr[sti]):
@@ -486,13 +486,13 @@ def plot_sta_ev_ray(input_dics, events):
             if not input_dics['plot_availability']:
                 sta_ev_arr = np.loadtxt(os.path.join(target_path,
                                                      'info', 'station_event'),
-                                        delimiter=',', dtype=bytes, ndmin=2).astype(np.str)
+                                        delimiter=',', dtype=bytes, ndmin=2).astype(str)
             else:
                 sta_ev_arr = np.loadtxt(os.path.join(target_path,
                                                      'info',
                                                      'availability.txt'),
-                                        delimiter=',', dtype=bytes, ndmin=2).astype(np.str)
-            sta_ev_arr = sta_ev_arr.astype(np.object)
+                                        delimiter=',', dtype=bytes, ndmin=2).astype(str)
+            sta_ev_arr = sta_ev_arr.astype(object)
 
             if events[ei]['magnitude'] > 0:
                 del_index = []
