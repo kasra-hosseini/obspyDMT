@@ -16,8 +16,8 @@
     <a href="https://github.com/kasra-hosseini/obspyDMT/actions/workflows/dmt_ci.yml/badge.svg">
         <img alt="Integration Tests badge" src="https://github.com/kasra-hosseini/obspyDMT/actions/workflows/dmt_ci.yml/badge.svg">
     </a>
-    <a href="https://doi.org/10.5281/zenodo.801778">
-        <img alt="Zenodo" src="https://zenodo.org/badge/DOI/10.5281/zenodo.801778.svg">
+    <a href="https://doi.org/10.5281/zenodo.6836309">
+        <img alt="Zenodo" src="https://zenodo.org/badge/DOI/10.5281/zenodo.6836309.svg">
     </a>
     <br/>
 </p>
