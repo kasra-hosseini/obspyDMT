@@ -5,7 +5,7 @@ Copyright
 ---------
 GNU Lesser General Public License, Version 3 (LGPLv3)
 
-Copyright (c) 2012-2017 by:
+Copyright (c) 2012-2022 by:
     * Kasra Hosseini
 
 Overview
