@@ -31,7 +31,7 @@ class SphericalNearestNeighbour():
         r = eradius + el_dp
         # Convert data from lat/lng to x/y/z.
         colat = 90.0 - lat
-        cart_data = np.empty((shape, 3), dtype=np.float64)
+        cart_data = np.empty((shape, 3), dtype=float64)
         cart_data[:, 0] = r * np.sin(np.deg2rad(colat)) * \
         np.cos(np.deg2rad(lon))
         cart_data[:, 1] = r * np.sin(np.deg2rad(colat)) * \

@@ -109,8 +109,8 @@ def select_data(deg_step, sta_ev):
                                    grd_points[:, 1],
                                    np.zeros(len(grd_points[:, 1])),
                                    eradius=eradius)
-    dists, indxs = kd.query(sta_ev[:, 4].astype(np.float),
-                            sta_ev[:, 5].astype(np.float),
+    dists, indxs = kd.query(sta_ev[:, 4].astype(float),
+                            sta_ev[:, 5].astype(float),
                             np.zeros(len(sta_ev[:, 4])),
                             1)
     indxs_unique = np.unique(indxs, return_index=True)
@@ -537,7 +537,7 @@ def plot_sta_ev_ray(input_dics, events):
         if plt_stations or plt_availability:
             if len(sta_ev_arr) > 0:
                 x, y = (sta_ev_arr[:, 5], sta_ev_arr[:, 4])
-                plt.scatter(x.astype(np.float), y.astype(np.float),
+                plt.scatter(x.astype(float), y.astype(float),
                             color='red', s=width_station,
                             edgecolors='none', marker='v',
                             zorder=4, alpha=0.9,
